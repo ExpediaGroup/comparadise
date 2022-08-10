@@ -3,7 +3,7 @@
   "proxy": "http://localhost:8080",
   "dependencies": {
     "@aws-sdk/client-s3": "3.128.0",
-    "@emotion/react": "11.9.3",
+    "@emotion/react": "11.10.0",
     "@emotion/styled": "11.10.0",
     "@mui/icons-material": "5.8.4",
     "@mui/material": "5.10.0",
