@@ -1,0 +1,85 @@
+{
+  "name": "comparadise",
+  "proxy": "http://localhost:8080",
+  "dependencies": {
+    "@aws-sdk/client-s3": "3.128.0",
+    "@emotion/react": "11.9.3",
+    "@emotion/styled": "11.9.3",
+    "@mui/icons-material": "5.8.4",
+    "@mui/material": "5.9.0",
+    "@octokit/rest": "19.0.3",
+    "@trpc/client": "9.26.2",
+    "@trpc/react": "9.26.2",
+    "@trpc/server": "9.26.2",
+    "@types/cors": "2.8.12",
+    "@types/express": "4.17.13",
+    "@types/lodash.groupby": "4.6.7",
+    "@types/node": "18.0.0",
+    "@types/react": "18.0.14",
+    "@types/react-dom": "18.0.5",
+    "cors": "2.8.5",
+    "lodash.groupby": "4.6.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-medium-image-zoom": "4.4.3",
+    "react-query": "3.39.2",
+    "react-scripts": "5.0.1",
+    "ts-node": "10.9.1",
+    "typescript": "4.7.4",
+    "use-query-params": "1.2.3",
+    "zod": "3.17.9"
+  },
+  "devDependencies": {
+    "@testing-library/cypress": "8.0.3",
+    "@types/jest": "28.1.5",
+    "@types/testing-library__cypress": "5.0.9",
+    "cypress": "10.3.0",
+    "jest": "28.1.2",
+    "npm-watch": "0.11.0",
+    "prettier": "2.7.1",
+    "start-server-and-test": "1.14.0",
+    "ts-jest": "28.0.5"
+  },
+  "scripts": {
+    "build": "react-scripts build",
+    "build:docker": "docker build . --tag comparadise && docker-compose up",
+    "cypress:e2e": "cypress run --e2e",
+    "cypress:open": "CYPRESS_BASE_URL=http://localhost:3000 cypress open",
+    "dev": "DISABLE_ESLINT_PLUGIN=true npm run start:client & npm-watch",
+    "format": "prettier --write .",
+    "format-check": "prettier --check .",
+    "lint": "eslint .",
+    "start:client": "react-scripts start",
+    "start:server": "ts-node server/index.ts",
+    "test:client": "cypress run --component",
+    "test:integration": "start-server-and-test build:docker http://localhost:8080 cypress:e2e",
+    "test:server": "jest --silent"
+  },
+  "watch": {
+    "start:server": {
+      "patterns": [
+        "server"
+      ],
+      "extensions": "ts"
+    }
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.(j|t)sx?$": "ts-jest"
+    },
+    "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
+    "clearMocks": true
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
