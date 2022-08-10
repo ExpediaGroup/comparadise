@@ -4,12 +4,12 @@ import './App.css';
 import { Main } from './components/Main';
 import { ClientProvider } from './providers/ClientProvider';
 import { QueryParamProvider } from 'use-query-params';
-import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6';
+import { WindowHistoryAdapter } from 'use-query-params/adapters/window';
 
 function App() {
   return (
     <ClientProvider>
-      <QueryParamProvider adapter={ReactRouter6Adapter}>
+      <QueryParamProvider adapter={WindowHistoryAdapter}>
         <Main />
       </QueryParamProvider>
     </ClientProvider>
