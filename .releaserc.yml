@@ -1,0 +1,18 @@
+plugins:
+  - - "@semantic-release/commit-analyzer"
+    - preset: angular
+      releaseRules:
+        - breaking: true
+          release: major
+        - type: breaking
+          release: major
+        - type: docs
+          release: patch
+        - type: refactor
+          release: patch
+        - scope: no-release
+          release: false
+  - "@semantic-release/release-notes-generator"
+  - "@semantic-release/github"
+branches:
+  - main
