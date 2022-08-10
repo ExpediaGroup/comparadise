@@ -47,7 +47,7 @@ export type AppRouter = typeof router;
 const app = express();
 
 const oneMinute = 60 * 1000;
-app.use(rateLimit({ windowMs: oneMinute, max: 100 }));
+app.use(rateLimit({ windowMs: oneMinute, max: 1000 }));
 app.use(cors());
 app.use('/trpc', trpcExpress.createExpressMiddleware({ router }));
 
