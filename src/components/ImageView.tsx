@@ -47,7 +47,7 @@ export const SideBySideImageView: React.FC<ImageViewChildProps> = ({ responseEnt
       {responseEntries.map(entry => (
         <div key={entry.name}>
           <h2 style={{ textAlign: 'center' }}>{entry.name}</h2>
-            <img src={entry.image} alt={entry.name} />
+          <img src={entry.image} alt={entry.name} />
         </div>
       ))}
     </div>
