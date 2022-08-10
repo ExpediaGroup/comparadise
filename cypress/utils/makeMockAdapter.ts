@@ -2,8 +2,8 @@ import { PartialLocation, QueryParamAdapter, QueryParamAdapterComponent } from '
 
 export function makeMockAdapter(currentLocation: PartialLocation): QueryParamAdapterComponent {
   const adapter: QueryParamAdapter = {
-    replace: (newLocation) => Object.assign(currentLocation, newLocation),
-    push: (newLocation) => Object.assign(currentLocation, newLocation),
+    replace: newLocation => Object.assign(currentLocation, newLocation),
+    push: newLocation => Object.assign(currentLocation, newLocation),
     get location() {
       return currentLocation;
     }
