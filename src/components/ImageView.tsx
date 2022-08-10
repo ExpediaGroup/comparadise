@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { Button, ButtonGroup } from '@mui/material';
-import Zoom from 'react-medium-image-zoom';
 import { InferQueryOutput } from '../utils/trpc';
 
 interface ImageViewChildProps {
@@ -48,9 +47,7 @@ export const SideBySideImageView: React.FC<ImageViewChildProps> = ({ responseEnt
       {responseEntries.map(entry => (
         <div key={entry.name}>
           <h2 style={{ textAlign: 'center' }}>{entry.name}</h2>
-          <Zoom>
             <img src={entry.image} alt={entry.name} />
-          </Zoom>
         </div>
       ))}
     </div>

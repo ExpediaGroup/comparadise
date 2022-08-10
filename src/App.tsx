@@ -1,5 +1,4 @@
 import * as React from 'react';
-import 'react-medium-image-zoom/dist/styles.css';
 import './App.css';
 import { Main } from './components/Main';
 import { ClientProvider } from './providers/ClientProvider';
