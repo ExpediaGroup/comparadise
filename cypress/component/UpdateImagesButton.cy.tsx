@@ -3,13 +3,14 @@ import { UpdateImagesButton } from '../../src/components/UpdateImagesButton';
 import { BaseImageStateProvider } from '../../src/providers/BaseImageStateProvider';
 import { ClientProvider } from '../../src/providers/ClientProvider';
 import { QueryParamProvider } from 'use-query-params';
+import { makeMockAdapter } from '../utils/makeMockAdapter';
 
 describe('UpdateImagesButton.cy.ts', () => {
   beforeEach(() => {
     cy.intercept('*updateBaseImages*', { fixture: 'mutation.json' }).as('base-images');
     cy.mount(
       <ClientProvider>
-        <QueryParamProvider location={{ search: '?hash=123&bucket=bucket&repo=repo&owner=owner' } as Location}>
+        <QueryParamProvider adapter={makeMockAdapter({ search: '?hash=123&bucket=bucket&repo=repo&owner=owner' })}>
           <BaseImageStateProvider>
             <UpdateImagesButton />
           </BaseImageStateProvider>

@@ -2,13 +2,14 @@ import * as React from 'react';
 import { Main } from '../../src/components/Main';
 import { ClientProvider } from '../../src/providers/ClientProvider';
 import { QueryParamProvider } from 'use-query-params';
+import { makeMockAdapter } from '../utils/makeMockAdapter';
 
 describe('Main', () => {
   describe('homepage', () => {
     it('should redirect to homepage when parameters are omitted', () => {
       cy.mount(
         <ClientProvider>
-          <QueryParamProvider location={{ search: '' } as Location}>
+          <QueryParamProvider adapter={makeMockAdapter({ search: '' })}>
             <Main />
           </QueryParamProvider>
         </ClientProvider>
@@ -23,7 +24,7 @@ describe('Main', () => {
       cy.intercept('*updateBaseImages*', { fixture: 'mutation.json' });
       cy.mount(
         <ClientProvider>
-          <QueryParamProvider location={{ search: '?hash=123&bucket=bucket&repo=repo&owner=owner' } as Location}>
+          <QueryParamProvider adapter={makeMockAdapter({ search: '?hash=123&bucket=bucket&repo=repo&owner=owner' })}>
             <Main />
           </QueryParamProvider>
         </ClientProvider>
@@ -90,7 +91,7 @@ describe('Main', () => {
       cy.intercept('*getGroupedImages*', { fixture: 'new-images-only.json' });
       cy.mount(
         <ClientProvider>
-          <QueryParamProvider location={{ search: '?hash=123&bucket=bucket&repo=repo&owner=owner' } as Location}>
+          <QueryParamProvider adapter={makeMockAdapter({ search: '?hash=123&bucket=bucket&repo=repo&owner=owner' })}>
             <Main />
           </QueryParamProvider>
         </ClientProvider>
