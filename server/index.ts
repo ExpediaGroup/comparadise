@@ -1,5 +1,6 @@
 import cors from 'cors';
 import express from 'express';
+import rateLimit from 'express-rate-limit';
 import * as path from 'path';
 import * as trpcExpress from '@trpc/server/adapters/express';
 import * as trpc from '@trpc/server';
@@ -45,6 +46,8 @@ export type AppRouter = typeof router;
 
 const app = express();
 
+const oneMinute = 60 * 1000;
+app.use(rateLimit({ windowMs: oneMinute, max: 100 }));
 app.use(cors());
 app.use('/trpc', trpcExpress.createExpressMiddleware({ router }));
 
