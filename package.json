@@ -2,7 +2,7 @@
   "name": "comparadise",
   "proxy": "http://localhost:8080",
   "dependencies": {
-    "@aws-sdk/client-s3": "3.154.0",
+    "@aws-sdk/client-s3": "3.159.0",
     "@emotion/react": "11.10.0",
     "@emotion/styled": "11.10.0",
     "@mui/icons-material": "5.8.4",
