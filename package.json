@@ -18,7 +18,7 @@
     "@types/react": "18.0.17",
     "@types/react-dom": "18.0.6",
     "cors": "2.8.5",
-    "express-rate-limit": "6.5.1",
+    "express-rate-limit": "6.5.2",
     "lodash.groupby": "4.6.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
