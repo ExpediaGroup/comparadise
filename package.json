@@ -6,7 +6,7 @@
     "@emotion/react": "11.10.5",
     "@emotion/styled": "11.10.5",
     "@mui/icons-material": "5.10.9",
-    "@mui/material": "5.10.11",
+    "@mui/material": "5.10.12",
     "@octokit/rest": "19.0.5",
     "@trpc/client": "9.26.2",
     "@trpc/react": "9.26.2",
