@@ -30,7 +30,7 @@
     "zod": "3.19.1"
   },
   "devDependencies": {
-    "@testing-library/cypress": "8.0.3",
+    "@testing-library/cypress": "8.0.7",
     "@types/jest": "28.1.7",
     "@types/testing-library__cypress": "5.0.9",
     "cypress": "11.0.1",
