@@ -5,7 +5,7 @@
     "@aws-sdk/client-s3": "3.178.0",
     "@emotion/react": "11.10.5",
     "@emotion/styled": "11.10.5",
-    "@mui/icons-material": "5.10.9",
+    "@mui/icons-material": "5.10.14",
     "@mui/material": "5.10.11",
     "@octokit/rest": "19.0.5",
     "@trpc/client": "9.26.2",
