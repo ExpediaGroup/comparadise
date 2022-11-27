@@ -9,7 +9,7 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import UpdateImagesButton from './UpdateImagesButton';
 import { SideBySideImageView, SingleImageView } from './ImageView';
 import { BaseImageStateProvider } from '../providers/BaseImageStateProvider';
-import { InferQueryOutput, trpc } from '../utils/trpc';
+import { RouterOutput, trpc } from '../utils/trpc';
 import { StringParam, useQueryParams } from 'use-query-params';
 import { Classes, Root } from '../styles/main';
 
@@ -29,7 +29,7 @@ export const Main = () => {
     return <Homepage />;
   }
 
-  const { data: groupedImages, isLoading, error } = trpc.useQuery(['getGroupedImages', { hash, bucket }]);
+  const { data: groupedImages, isLoading, error } = trpc.getGroupedImages.useQuery({ hash, bucket });
 
   if (error) {
     return <Error error={error} />;
@@ -95,7 +95,7 @@ const imageIsSmallEnoughForSideBySide = async (image: string) => {
   return 3 * img.naturalWidth < window.innerWidth;
 };
 
-const getViewTypeForSpec = async (spec: InferQueryOutput<'getGroupedImages'>[number]) => {
+const getViewTypeForSpec = async (spec: RouterOutput['getGroupedImages'][number]) => {
   if (spec.entries.length === 1) {
     return undefined;
   }

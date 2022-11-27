@@ -21,8 +21,8 @@ export const UpdateImagesButton = () => {
   const [dialogIsOpen, setDialogIsOpen] = useState(false);
   const { baseImageState, setBaseImageState } = useContext(BaseImageStateContext);
 
-  const updateBaseImages = trpc.useMutation('updateBaseImages');
-  const updateCommitStatus = trpc.useMutation('updateCommitStatus');
+  const updateBaseImages = trpc.updateBaseImages.useMutation();
+  const updateCommitStatus = trpc.updateCommitStatus.useMutation();
 
   if (!hash || !bucket || !repo || !owner) {
     return null;
