@@ -6,7 +6,7 @@ import { Loader } from './Loader';
 import { BaseImageStateContext, UpdateBaseImagesText } from '../providers/BaseImageStateProvider';
 import { trpc } from '../utils/trpc';
 import { useQueryParams } from 'use-query-params';
-import {URL_PARAMS} from "../constants";
+import { URL_PARAMS } from '../constants';
 
 const UPDATE_TEXT =
   'Doing so will update the base images in S3 and will set visual regression status to passed! You should only do this if you are about to merge your PR.';

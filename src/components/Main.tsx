@@ -12,7 +12,7 @@ import { BaseImageStateProvider } from '../providers/BaseImageStateProvider';
 import { RouterOutput, trpc } from '../utils/trpc';
 import { useQueryParams } from 'use-query-params';
 import { Classes, Root } from '../styles/main';
-import {URL_PARAMS} from "../constants";
+import { URL_PARAMS } from '../constants';
 
 export const Main = () => {
   const [{ hash, bucket }] = useQueryParams(URL_PARAMS);
