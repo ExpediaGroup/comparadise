@@ -20,8 +20,9 @@ describe('Main', () => {
 
   describe('base, new, and diff case', () => {
     beforeEach(() => {
-      cy.intercept('*getGroupedImages*', { fixture: 'images.json' });
-      cy.intercept('*updateBaseImages*', { fixture: 'mutation.json' });
+      cy.intercept('/trpc/getGroupedImages*', { fixture: 'images.json' });
+      cy.intercept('/trpc/updateBaseImages*', { fixture: 'mutation.json' });
+      cy.intercept('/trpc/updateCommitStatus*', { fixture: 'mutation.json' });
       cy.mount(
         <ClientProvider>
           <QueryParamProvider adapter={makeMockAdapter({ search: '?hash=123&bucket=bucket&repo=repo&owner=owner' })}>
@@ -88,7 +89,7 @@ describe('Main', () => {
 
   describe('new only case', () => {
     beforeEach(() => {
-      cy.intercept('*getGroupedImages*', { fixture: 'new-images-only.json' });
+      cy.intercept('/trpc/getGroupedImages*', { fixture: 'new-images-only.json' });
       cy.mount(
         <ClientProvider>
           <QueryParamProvider adapter={makeMockAdapter({ search: '?hash=123&bucket=bucket&repo=repo&owner=owner' })}>

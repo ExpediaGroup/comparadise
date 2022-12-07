@@ -7,7 +7,8 @@ import { makeMockAdapter } from '../utils/makeMockAdapter';
 
 describe('UpdateImagesButton.cy.ts', () => {
   beforeEach(() => {
-    cy.intercept('*updateBaseImages*', { fixture: 'mutation.json' }).as('base-images');
+    cy.intercept('/trpc/updateBaseImages*', { fixture: 'mutation.json' }).as('base-images');
+    cy.intercept('/trpc/updateCommitStatus*', { fixture: 'mutation.json' }).as('commit-status');
     cy.mount(
       <ClientProvider>
         <QueryParamProvider adapter={makeMockAdapter({ search: '?hash=123&bucket=bucket&repo=repo&owner=owner' })}>
@@ -23,7 +24,7 @@ describe('UpdateImagesButton.cy.ts', () => {
     cy.findByRole('button', { name: /Update all base images/i }).click();
     cy.findByText(/Are you sure/i);
     cy.findByRole('button', { name: /update/i }).click();
-    cy.wait('@base-images');
+    cy.wait(['@base-images', '@commit-status']);
     cy.findByRole('button', { name: /all images updated/i });
   });
 
