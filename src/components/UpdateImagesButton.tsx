@@ -21,8 +21,8 @@ export const UpdateImagesButton = () => {
   const [dialogIsOpen, setDialogIsOpen] = useState(false);
   const { baseImageState, setBaseImageState } = useContext(BaseImageStateContext);
 
-  const updateBaseImages = trpc.updateBaseImages.useMutation();
-  const updateCommitStatus = trpc.updateCommitStatus.useMutation();
+  const { error: updateBaseImagesError, mutateAsync: updateBaseImages } = trpc.updateBaseImages.useMutation();
+  const { error: updateCommitStatusError, mutateAsync: updateCommitStatus } = trpc.updateCommitStatus.useMutation();
 
   if (!hash || !bucket || !repo || !owner) {
     return null;
@@ -38,15 +38,15 @@ export const UpdateImagesButton = () => {
 
   const handleUpdate = async () => {
     setBaseImageState?.(UpdateBaseImagesText.UPDATING);
-    updateBaseImages.mutate({ hash, bucket, baseImagesDirectory });
+    await updateBaseImages({ hash, bucket, baseImagesDirectory });
     if (!baseImagesDirectory) {
-      updateCommitStatus.mutate({ hash, owner, repo });
+      await updateCommitStatus({ hash, owner, repo });
       setDialogIsOpen(false);
       setBaseImageState?.(UpdateBaseImagesText.UPDATED);
     }
   };
 
-  const error = updateBaseImages.error || updateCommitStatus.error;
+  const error = updateBaseImagesError || updateCommitStatusError;
   if (error) {
     return <Error error={error} />;
   }

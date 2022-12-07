@@ -20,8 +20,9 @@ describe('Main', () => {
 
   describe('base, new, and diff case', () => {
     beforeEach(() => {
-      cy.intercept('*getGroupedImages*', { fixture: 'images.json' });
-      cy.intercept('*updateBaseImages*', { fixture: 'mutation.json' });
+      cy.intercept('/trpc/getGroupedImages*', { fixture: 'images.json' });
+      cy.intercept('/trpc/updateBaseImages*', { fixture: 'mutation.json' }).as('base-images');
+      cy.intercept('/trpc/updateCommitStatus*', { fixture: 'mutation.json' }).as('commit-status');
       cy.mount(
         <ClientProvider>
           <QueryParamProvider adapter={makeMockAdapter({ search: '?hash=123&bucket=bucket&repo=repo&owner=owner' })}>
@@ -72,10 +73,26 @@ describe('Main', () => {
       cy.findByRole('button', { name: /side-by-side/i }).should('be.enabled');
     });
 
+    it('should update base images', () => {
+      cy.findByRole('button', { name: /Update all base images/i }).click();
+      cy.findByText(/Are you sure/i);
+      cy.findByRole('button', { name: /update/i }).click();
+      cy.wait(['@base-images', '@commit-status']);
+      cy.findByRole('button', { name: /all images updated/i });
+    });
+
+    it('should do nothing if user cancels', () => {
+      cy.findByRole('button', { name: /Update all base images/i }).click();
+      cy.findByText(/Are you sure/i);
+      cy.findByRole('button', { name: /cancel/i }).click();
+      cy.findByRole('button', { name: /Update all base images/i }).should('be.visible');
+    });
+
     it('should be able to update base images and disable update base images button after navigating between specs', () => {
       cy.findByRole('button', { name: /Update all base images/i }).click();
       cy.findByText(/Are you sure/i);
       cy.findByRole('button', { name: /update/i }).click();
+      cy.wait(['@base-images', '@commit-status']);
       cy.findByRole('button', { name: /all images updated/i }).should('be.disabled');
       cy.findByRole('button', { name: /forward-arrow/ }).click();
       cy.findByRole('heading', { name: 'small/example' });
@@ -88,7 +105,7 @@ describe('Main', () => {
 
   describe('new only case', () => {
     beforeEach(() => {
-      cy.intercept('*getGroupedImages*', { fixture: 'new-images-only.json' });
+      cy.intercept('/trpc/getGroupedImages*', { fixture: 'new-images-only.json' });
       cy.mount(
         <ClientProvider>
           <QueryParamProvider adapter={makeMockAdapter({ search: '?hash=123&bucket=bucket&repo=repo&owner=owner' })}>
