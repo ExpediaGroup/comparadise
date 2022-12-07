@@ -5,26 +5,21 @@ import { Error } from './Error';
 import { Loader } from './Loader';
 import { BaseImageStateContext, UpdateBaseImagesText } from '../providers/BaseImageStateProvider';
 import { trpc } from '../utils/trpc';
-import { StringParam, useQueryParams } from 'use-query-params';
+import { useQueryParams } from 'use-query-params';
+import {URL_PARAMS} from "../constants";
 
 const UPDATE_TEXT =
   'Doing so will update the base images in S3 and will set visual regression status to passed! You should only do this if you are about to merge your PR.';
 
 export const UpdateImagesButton = () => {
-  const [{ hash, bucket, repo, owner, baseImagesDirectory }] = useQueryParams({
-    hash: StringParam,
-    bucket: StringParam,
-    repo: StringParam,
-    owner: StringParam,
-    baseImagesDirectory: StringParam
-  });
+  const [{ hash, bucket, repo, owner, baseImagesDirectory }] = useQueryParams(URL_PARAMS);
   const [dialogIsOpen, setDialogIsOpen] = useState(false);
   const { baseImageState, setBaseImageState } = useContext(BaseImageStateContext);
 
   const { error: updateBaseImagesError, mutateAsync: updateBaseImages } = trpc.updateBaseImages.useMutation();
   const { error: updateCommitStatusError, mutateAsync: updateCommitStatus } = trpc.updateCommitStatus.useMutation();
 
-  if (!hash || !bucket || !repo || !owner) {
+  if (!hash || !bucket) {
     return null;
   }
 
@@ -39,11 +34,11 @@ export const UpdateImagesButton = () => {
   const handleUpdate = async () => {
     setBaseImageState?.(UpdateBaseImagesText.UPDATING);
     await updateBaseImages({ hash, bucket, baseImagesDirectory });
-    if (!baseImagesDirectory) {
+    if (repo && owner) {
       await updateCommitStatus({ hash, owner, repo });
-      setDialogIsOpen(false);
-      setBaseImageState?.(UpdateBaseImagesText.UPDATED);
     }
+    setDialogIsOpen(false);
+    setBaseImageState?.(UpdateBaseImagesText.UPDATED);
   };
 
   const error = updateBaseImagesError || updateCommitStatusError;

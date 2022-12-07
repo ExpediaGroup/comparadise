@@ -10,22 +10,18 @@ import UpdateImagesButton from './UpdateImagesButton';
 import { SideBySideImageView, SingleImageView } from './ImageView';
 import { BaseImageStateProvider } from '../providers/BaseImageStateProvider';
 import { RouterOutput, trpc } from '../utils/trpc';
-import { StringParam, useQueryParams } from 'use-query-params';
+import { useQueryParams } from 'use-query-params';
 import { Classes, Root } from '../styles/main';
+import {URL_PARAMS} from "../constants";
 
 export const Main = () => {
-  const [{ hash, bucket, repo, owner }] = useQueryParams({
-    hash: StringParam,
-    bucket: StringParam,
-    repo: StringParam,
-    owner: StringParam
-  });
+  const [{ hash, bucket }] = useQueryParams(URL_PARAMS);
 
   const [specIndex, setSpecIndex] = React.useState(0);
   const [selectedView, setSelectedView] = React.useState<ViewType | undefined>();
   const [singleImageViewIndex, setSingleImageViewIndex] = React.useState(0);
 
-  if (!hash || !bucket || !repo || !owner) {
+  if (!hash || !bucket) {
     return <Homepage />;
   }
 
