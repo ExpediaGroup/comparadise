@@ -3,7 +3,7 @@ import { listAllS3PathsForHash } from './listAllS3PathsForHash';
 import { BASE_IMAGE_NAME, NEW_IMAGE_NAME } from './constants';
 
 export const updateBaseImagesInS3 = async (hash: string, bucket: string, baseImagesDirectory: string) => {
-  const s3Paths = (await listAllS3PathsForHash(hash, bucket)) as string[];
+  const s3Paths = await listAllS3PathsForHash(hash, bucket);
   return await replaceImagesInS3(s3Paths, bucket, baseImagesDirectory);
 };
 

@@ -8,7 +8,7 @@ import { TRPCError } from '@trpc/server';
 type ImageName = typeof BASE_IMAGE_NAME | typeof DIFF_IMAGE_NAME | typeof NEW_IMAGE_NAME;
 
 export const getGroupedImages = async (hash: string, bucket: string) => {
-  const keys = (await listAllS3PathsForHash(hash, bucket)) as string[];
+  const keys = await listAllS3PathsForHash(hash, bucket);
 
   if (!keys) {
     throw new TRPCError({
