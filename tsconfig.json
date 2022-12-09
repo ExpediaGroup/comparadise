@@ -17,6 +17,6 @@
     "strict": true,
     "noEmit": true
   },
-  "include": ["server"],
+  "include": ["server", "src"],
   "exclude": ["./**/*.test.ts", "cypress"]
 }

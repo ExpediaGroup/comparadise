@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { Button, ButtonGroup } from '@mui/material';
-import { InferQueryOutput } from '../utils/trpc';
+import { RouterOutput } from '../utils/trpc';
 
 interface ImageViewChildProps {
-  responseEntries: InferQueryOutput<'getGroupedImages'>[number]['entries'];
+  responseEntries: RouterOutput['getGroupedImages'][number]['entries'];
 }
 
 interface SingleImageViewProps extends ImageViewChildProps {

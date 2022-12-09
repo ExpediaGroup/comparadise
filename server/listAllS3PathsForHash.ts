@@ -6,5 +6,5 @@ export const listAllS3PathsForHash = async (hash: string, bucket: string) => {
     Prefix: hash
   });
 
-  return response?.Contents?.map(content => content.Key).filter(path => !path?.includes('actions-runner'));
+  return response?.Contents?.map(content => content.Key ?? '').filter(path => path && !path.includes('actions-runner')) ?? [];
 };
