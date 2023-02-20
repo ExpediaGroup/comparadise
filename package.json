@@ -4,7 +4,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "3.178.0",
     "@emotion/react": "11.10.5",
-    "@emotion/styled": "11.10.5",
+    "@emotion/styled": "11.10.6",
     "@mui/icons-material": "5.10.9",
     "@mui/material": "5.10.11",
     "@octokit/rest": "19.0.7",
