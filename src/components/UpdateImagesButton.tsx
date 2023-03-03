@@ -1,8 +1,17 @@
 import * as React from 'react';
 import { useState, useContext } from 'react';
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Typography
+} from '@mui/material';
 import { Error } from './Error';
-import { Loader } from './Loader';
 import { BaseImageStateContext, UpdateBaseImagesText } from '../providers/BaseImageStateProvider';
 import { trpc } from '../utils/trpc';
 import { useQueryParams } from 'use-query-params';
@@ -66,9 +75,10 @@ export const UpdateImagesButton = () => {
       )}
       {baseImageState === UpdateBaseImagesText.UPDATING ? (
         <Dialog open={dialogIsOpen}>
-          <div style={{ height: '150px', margin: '150px' }}>
-            <Loader />
-          </div>
+          <DialogTitle>Updating base images...</DialogTitle>
+          <DialogContent style={{ margin: 'auto' }}>
+            <CircularProgress aria-label="loader" />
+          </DialogContent>
         </Dialog>
       ) : (
         <Dialog onClose={handleDialogClose} open={dialogIsOpen}>
