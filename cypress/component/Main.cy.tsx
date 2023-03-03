@@ -21,7 +21,7 @@ describe('Main', () => {
   describe('base, new, and diff case', () => {
     beforeEach(() => {
       cy.intercept('/trpc/getGroupedImages*', { fixture: 'images.json' });
-      cy.intercept('/trpc/updateBaseImages*', { fixture: 'mutation.json', delay: 500 }).as('base-images');
+      cy.intercept('/trpc/updateBaseImages*', { fixture: 'mutation.json' }).as('base-images');
       cy.intercept('/trpc/updateCommitStatus*', { fixture: 'mutation.json' }).as('commit-status');
       cy.mount(
         <ClientProvider>
@@ -73,7 +73,8 @@ describe('Main', () => {
       cy.findByRole('button', { name: /side-by-side/i }).should('be.enabled');
     });
 
-    it('should update base images', () => {
+    it('should display loader and update base images', () => {
+      cy.intercept('/trpc/updateBaseImages*', { fixture: 'mutation.json', delay: 1000 }).as('base-images');
       cy.findByRole('button', { name: /Update all base images/i }).click();
       cy.findByText(/Are you sure/i);
       cy.findByRole('button', { name: /update/i }).click();
