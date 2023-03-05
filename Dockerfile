@@ -1,7 +1,10 @@
 FROM node:18-slim
 
-WORKDIR /usr/share/app
-COPY . .
+WORKDIR /app
+RUN useradd -ms /bin/sh admin
+RUN chown -R admin .
+COPY --chown=admin . .
+USER admin
 
 ENV NODE_ENV "production"
 ENV PORT 8080
