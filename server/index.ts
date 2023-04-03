@@ -54,9 +54,9 @@ app.use(rateLimit({ windowMs: oneMinute, max: 1000 }));
 app.use(cors());
 app.use('/trpc', trpcExpress.createExpressMiddleware({ router }));
 
-app.use(express.static(path.resolve(__dirname, '../build')));
+app.use(express.static(path.resolve(__dirname, '../dist')));
 app.get('*', (req, res) => {
-  res.sendFile(path.resolve(__dirname, '../build', 'index.html'));
+  res.sendFile(path.resolve(__dirname, '../dist', 'index.html'));
 });
 
 const PORT = 8080;
