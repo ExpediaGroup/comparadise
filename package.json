@@ -1,6 +1,5 @@
 {
   "name": "comparadise",
-  "proxy": "http://localhost:8080",
   "dependencies": {
     "@aws-sdk/client-s3": "3.178.0",
     "@emotion/react": "11.10.6",
@@ -48,7 +47,7 @@
     "build:docker": "docker build . --tag comparadise && docker-compose up",
     "cypress:e2e": "cypress run --e2e",
     "cypress:open": "CYPRESS_BASE_URL=http://localhost:5173 cypress open",
-    "dev": "VITE_API_URL=http://localhost:8080 npm run start:client & npm-watch",
+    "dev": "npm run start:client & npm-watch",
     "format": "prettier --write .",
     "format-check": "prettier --check .",
     "lint": "eslint .",
