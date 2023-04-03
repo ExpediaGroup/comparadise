@@ -1,4 +1,4 @@
-import { groupBy } from 'lodash';
+import groupBy from 'lodash.groupby';
 import { getBase64StringFromS3 } from './getBase64StringFromS3';
 import { listAllS3PathsForHash } from './listAllS3PathsForHash';
 import { BASE_IMAGE_NAME, DIFF_IMAGE_NAME, NEW_IMAGE_NAME } from './constants';
