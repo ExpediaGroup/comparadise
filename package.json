@@ -1,7 +1,7 @@
 {
   "name": "comparadise",
   "dependencies": {
-    "@aws-sdk/client-s3": "3.304.0",
+    "@aws-sdk/client-s3": "3.178.0",
     "@emotion/react": "11.10.6",
     "@emotion/styled": "11.10.6",
     "@mui/icons-material": "5.11.11",
@@ -46,7 +46,7 @@
     "build": "tsc && vite build",
     "build:docker": "docker build . --tag comparadise && docker-compose up",
     "cypress:e2e": "cypress run --e2e",
-    "cypress:open": "CYPRESS_BASE_URL=http://localhost:5173 cypress open",
+    "cypress:open": "cypress open --component",
     "dev": "npm run start:client & npm-watch",
     "format": "prettier --write .",
     "format-check": "prettier --check .",
