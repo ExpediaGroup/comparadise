@@ -6,7 +6,6 @@ RUN chown -R admin .
 COPY --chown=admin . .
 USER admin
 
-ENV NODE_ENV "production"
 ENV PORT 8080
 
 RUN npm ci
