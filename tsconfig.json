@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "target": "esnext",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
@@ -18,5 +18,6 @@
     "noEmit": true
   },
   "include": ["server", "src"],
-  "exclude": ["./**/*.test.ts", "cypress"]
+  "exclude": ["./**/*.test.ts", "cypress"],
+  "references": [{ "path": "./tsconfig.node.json" }]
 }

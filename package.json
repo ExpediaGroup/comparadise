@@ -17,6 +17,7 @@
     "@types/node": "18.7.21",
     "@types/react": "18.0.21",
     "@types/react-dom": "18.0.8",
+    "@vitejs/plugin-react-swc": "3.2.0",
     "cors": "2.8.5",
     "express-rate-limit": "6.6.0",
     "lodash.groupby": "4.6.0",
@@ -26,6 +27,7 @@
     "ts-node": "10.9.1",
     "typescript": "4.9.5",
     "use-query-params": "2.2.1",
+    "vite": "4.2.1",
     "zod": "3.21.4"
   },
   "devDependencies": {
@@ -40,15 +42,15 @@
     "ts-jest": "28.0.8"
   },
   "scripts": {
-    "build": "react-scripts build",
+    "build": "tsc && vite build",
     "build:docker": "docker build . --tag comparadise && docker-compose up",
     "cypress:e2e": "cypress run --e2e",
     "cypress:open": "CYPRESS_BASE_URL=http://localhost:3000 cypress open",
-    "dev": "DISABLE_ESLINT_PLUGIN=true npm run start:client & npm-watch",
+    "dev": "npm run start:client & npm-watch",
     "format": "prettier --write .",
     "format-check": "prettier --check .",
     "lint": "eslint .",
-    "start:client": "react-scripts start",
+    "start:client": "vite",
     "start:server": "ts-node server/index.ts",
     "test:client": "cypress run --component",
     "test:integration": "start-server-and-test build:docker http://localhost:8080 cypress:e2e",
