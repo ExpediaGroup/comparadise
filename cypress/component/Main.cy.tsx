@@ -106,7 +106,7 @@ describe('Main', () => {
     });
   });
 
-  describe('new only case', () => {
+  describe('new image only case', () => {
     beforeEach(() => {
       cy.intercept('/trpc/getGroupedImages*', { fixture: 'new-images-only.json' });
       cy.mount(
@@ -129,6 +129,27 @@ describe('Main', () => {
       cy.findByRole('button', { name: /forward-arrow/ }).click();
       cy.findByAltText('new');
       cy.findByRole('button', { name: /side-by-side/i }).should('be.disabled');
+    });
+  });
+
+  describe('no new image case', () => {
+    beforeEach(() => {
+      cy.intercept('/trpc/getGroupedImages*', { fixture: 'no-new-images.json' });
+      cy.mount(
+        <ClientProvider>
+          <QueryParamProvider adapter={makeMockAdapter({ search: '?hash=123&bucket=bucket&repo=repo&owner=owner' })}>
+            <Main />
+          </QueryParamProvider>
+        </ClientProvider>
+      );
+    });
+
+    it('should default to base when no new image was found and the currently selected image is new', () => {
+      cy.findByRole('heading', { name: 'large/example' });
+      cy.findByRole('button', { name: /new/ }).click();
+      cy.findByAltText('new');
+      cy.findByRole('button', { name: /forward-arrow/ }).click();
+      cy.findByAltText('base');
     });
   });
 });
