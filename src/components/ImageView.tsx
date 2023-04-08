@@ -33,11 +33,11 @@ export const SingleImageView: React.FC<SingleImageViewProps> = ({ responseEntrie
           );
         })}
       </ButtonGroup>
-        {<img
+      <img
         style={{ marginBottom: '100px' }}
         src={responseEntries[selectedImageIndex].image}
         alt={responseEntries[selectedImageIndex].name}
-      />}
+      />
     </div>
   );
 };
