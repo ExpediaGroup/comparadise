@@ -16,5 +16,5 @@ export default defineConfig({
   },
   define: {
     'process.env.DEBUG_PRINT_LIMIT': 10000
-  },
+  }
 });
