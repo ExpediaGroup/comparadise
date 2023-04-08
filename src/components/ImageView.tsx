@@ -16,6 +16,11 @@ export const SingleImageView: React.FC<SingleImageViewProps> = ({ responseEntrie
     return null;
   }
 
+  if (!responseEntries[selectedImageIndex]) {
+    onSelectImage(0);
+    return null;
+  }
+
   return (
     <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center' }}>
       <ButtonGroup style={{ margin: '10px 0px', position: 'fixed', bottom: '20px' }} variant="contained">
