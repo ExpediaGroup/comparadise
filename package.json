@@ -50,7 +50,7 @@
     "dev": "npm run start:frontend & npm-watch",
     "format": "prettier --write .",
     "format-check": "prettier --check .",
-    "lint": "eslint .",
+    "lint": "eslint . --max-warnings=0",
     "start:backend": "ts-node backend/server.ts",
     "start:frontend": "vite",
     "test:backend": "jest --silent",

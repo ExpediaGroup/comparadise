@@ -1,10 +1,9 @@
 import * as React from 'react';
-import { Main } from '../../frontend/components/Main';
 import { makeMockAdapter } from '../utils/makeMockAdapter';
 import App from '../../frontend/App';
 import { UPDATE_BASE_IMAGES_ERROR_MESSAGE } from '../../backend/constants';
 
-describe('Main', () => {
+describe('App', () => {
   describe('homepage', () => {
     it('should redirect to homepage when parameters are omitted', () => {
       cy.mount(<App queryParamAdapter={makeMockAdapter({ search: '' })} />);

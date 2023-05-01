@@ -13,7 +13,7 @@ export const updateBaseImagesInS3 = async ({ hash, bucket, owner, repo, baseImag
     });
   }
   const s3Paths = await listAllS3PathsForHash(hash, bucket);
-  return await replaceImagesInS3(s3Paths, bucket, baseImagesDirectory ?? BASE_IMAGES_DIRECTORY);
+  return await replaceImagesInS3(s3Paths, bucket, baseImagesDirectory || BASE_IMAGES_DIRECTORY);
 };
 
 export const filterNewImages = (s3Paths: string[]) => {

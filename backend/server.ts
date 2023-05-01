@@ -13,9 +13,7 @@ const t = initTRPC.create();
 
 const router = t.router({
   getGroupedImages: t.procedure.input(getGroupedImagesInputSchema).query(({ input }) => getGroupedImages(input)),
-
   updateBaseImages: t.procedure.input(updateBaseImagesInputSchema).mutation(({ input }) => updateBaseImagesInS3(input)),
-
   updateCommitStatus: t.procedure.input(updateCommitStatusInputSchema).mutation(({ input }) => updateCommitStatus(input))
 });
 
