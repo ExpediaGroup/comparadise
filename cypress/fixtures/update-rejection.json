@@ -1,11 +1,11 @@
 [
   {
     "error": {
-      "message": "Access Denied",
+      "message": "At least one non-visual status check is failing on your PR. Please ensure all other checks are passing before updating base images!",
       "code": -32603,
       "data": {
-        "code": "INTERNAL_SERVER_ERROR",
-        "httpStatus": 500,
+        "code": "FORBIDDEN",
+        "httpStatus": 403,
         "stack": "AccessDenied",
         "path": "updateBaseImages"
       }

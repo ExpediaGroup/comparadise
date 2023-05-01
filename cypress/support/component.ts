@@ -1,6 +1,7 @@
 import './commands';
 
 import { mount } from 'cypress/react18';
+import { UPDATE_BASE_IMAGES_ERROR_MESSAGE } from '../../backend/constants';
 
 declare global {
   namespace Cypress {
@@ -13,7 +14,7 @@ declare global {
 Cypress.Commands.add('mount', mount);
 
 Cypress.on('uncaught:exception', (err, runnable) => {
-  if (err.message.includes('Access Denied')) {
+  if (err.message.includes(UPDATE_BASE_IMAGES_ERROR_MESSAGE)) {
     return false;
   }
 });

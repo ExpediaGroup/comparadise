@@ -18,7 +18,7 @@ import { useQueryParams } from 'use-query-params';
 import { URL_PARAMS } from '../constants';
 
 const UPDATE_TEXT =
-  'Doing so will update the base images in S3 and will set visual regression status to passed! You should only do this if you are about to merge your PR.';
+  'WARNING: This will update the base images in S3 and will set the visual regression status to passed. You can only do this if you are about to merge your PR and all other checks have passed.';
 
 export const UpdateImagesButton = () => {
   const [{ hash, bucket, repo, owner, baseImagesDirectory }] = useQueryParams(URL_PARAMS);
@@ -28,7 +28,7 @@ export const UpdateImagesButton = () => {
   const { error: updateBaseImagesError, mutateAsync: updateBaseImages } = trpc.updateBaseImages.useMutation();
   const { error: updateCommitStatusError, mutateAsync: updateCommitStatus } = trpc.updateCommitStatus.useMutation();
 
-  if (!hash || !bucket) {
+  if (!hash || !bucket || !owner || !repo) {
     return null;
   }
 
@@ -42,10 +42,8 @@ export const UpdateImagesButton = () => {
 
   const handleUpdate = async () => {
     setBaseImageState?.(UpdateBaseImagesText.UPDATING);
-    await updateBaseImages({ hash, bucket, baseImagesDirectory });
-    if (repo && owner) {
-      await updateCommitStatus({ hash, owner, repo });
-    }
+    await updateBaseImages({ hash, bucket, owner, repo, baseImagesDirectory });
+    await updateCommitStatus({ hash, owner, repo });
     setDialogIsOpen(false);
     setBaseImageState?.(UpdateBaseImagesText.UPDATED);
   };
@@ -84,7 +82,9 @@ export const UpdateImagesButton = () => {
         <Dialog onClose={handleDialogClose} open={dialogIsOpen}>
           <DialogTitle>{dialogContentText}</DialogTitle>
           <DialogContent>
-            <DialogContentText>{!baseImagesDirectory && UPDATE_TEXT}</DialogContentText>
+            <DialogContentText color="darkred" fontWeight="bold">
+              {!baseImagesDirectory && UPDATE_TEXT}
+            </DialogContentText>
           </DialogContent>
           <DialogActions>
             <Button variant="outlined" autoFocus onClick={handleUpdate}>

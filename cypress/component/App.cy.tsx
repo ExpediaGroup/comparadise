@@ -99,7 +99,8 @@ describe('Main', () => {
       cy.findByRole('button', { name: /update/i }).click();
       cy.wait('@base-images');
       cy.findByRole('button', { name: /all images updated/i }).should('not.exist');
-      cy.findByRole('heading', { name: 'Access Denied' }).should('be.visible');
+      cy.findByRole('heading', { name: /Error/ }).should('be.visible');
+      cy.findByText(/At least one non-visual status check is failing on your PR/).should('be.visible');
     });
   });
 
