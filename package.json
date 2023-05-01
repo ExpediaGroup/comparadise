@@ -33,7 +33,7 @@
     "@types/jest": "29.5.1",
     "@types/testing-library__cypress": "5.0.9",
     "@typescript-eslint/eslint-plugin": "5.59.0",
-    "cypress": "12.10.0",
+    "cypress": "12.11.0",
     "eslint": "8.39.0",
     "eslint-plugin-react": "7.32.2",
     "jest": "29.5.0",
@@ -51,16 +51,16 @@
     "format": "prettier --write .",
     "format-check": "prettier --check .",
     "lint": "eslint .",
-    "start:client": "vite",
-    "start:server": "ts-node server/index.ts",
-    "test:client": "cypress run --component",
-    "test:integration": "start-server-and-test build:docker http://localhost:8080 cypress:e2e",
-    "test:server": "jest --silent"
+    "start:backend": "ts-node backend/server.ts",
+    "start:frontend": "vite",
+    "test:backend": "jest --silent",
+    "test:frontend": "cypress run --component",
+    "test:integration": "start-server-and-test build:docker http://localhost:8080 cypress:e2e"
   },
   "watch": {
-    "start:server": {
+    "start:backend": {
       "patterns": [
-        "server"
+        "backend"
       ],
       "extensions": "ts"
     }
