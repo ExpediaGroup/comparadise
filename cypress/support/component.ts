@@ -14,6 +14,6 @@ Cypress.Commands.add('mount', mount);
 
 Cypress.on('uncaught:exception', (err, runnable) => {
   if (err.message.includes('Access Denied')) {
-    return false
+    return false;
   }
 });

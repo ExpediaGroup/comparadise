@@ -7,24 +7,16 @@ import { initTRPC } from '@trpc/server';
 import { updateCommitStatus } from './updateCommitStatus';
 import { getGroupedImages } from './getGroupedImages';
 import { updateBaseImagesInS3 } from './updateBaseImagesInS3';
-import {getGroupedImagesInputSchema, updateBaseImagesInputSchema, updateCommitStatusInputSchema} from "./schema";
+import { getGroupedImagesInputSchema, updateBaseImagesInputSchema, updateCommitStatusInputSchema } from './schema';
 
 const t = initTRPC.create();
 
 const router = t.router({
-  getGroupedImages: t.procedure
-    .input(getGroupedImagesInputSchema)
-    .query(({ input }) => getGroupedImages(input)),
+  getGroupedImages: t.procedure.input(getGroupedImagesInputSchema).query(({ input }) => getGroupedImages(input)),
 
-  updateBaseImages: t.procedure
-    .input(updateBaseImagesInputSchema)
-    .mutation(({ input }) =>
-      updateBaseImagesInS3(input)
-    ),
+  updateBaseImages: t.procedure.input(updateBaseImagesInputSchema).mutation(({ input }) => updateBaseImagesInS3(input)),
 
-  updateCommitStatus: t.procedure
-    .input(updateCommitStatusInputSchema)
-    .mutation(({ input }) => updateCommitStatus(input))
+  updateCommitStatus: t.procedure.input(updateCommitStatusInputSchema).mutation(({ input }) => updateCommitStatus(input))
 });
 
 export type AppRouter = typeof router;

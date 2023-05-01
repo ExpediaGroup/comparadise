@@ -9,7 +9,7 @@ function App({ queryParamAdapter = WindowHistoryAdapter }) {
   return (
     <ClientProvider>
       <QueryParamProvider adapter={queryParamAdapter}>
-          <Main />
+        <Main />
       </QueryParamProvider>
     </ClientProvider>
   );

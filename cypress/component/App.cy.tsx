@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { Main } from '../../frontend/components/Main';
 import { makeMockAdapter } from '../utils/makeMockAdapter';
-import App from "../../frontend/App";
+import App from '../../frontend/App';
 
 describe('Main', () => {
   describe('homepage', () => {
     it('should redirect to homepage when parameters are omitted', () => {
-      cy.mount(<App queryParamAdapter={makeMockAdapter({ search: '' })}/>);
+      cy.mount(<App queryParamAdapter={makeMockAdapter({ search: '' })} />);
       cy.findByText(/Welcome to Comparadise/);
     });
   });
@@ -16,7 +16,7 @@ describe('Main', () => {
       cy.intercept('/trpc/getGroupedImages*', { fixture: 'images.json' });
       cy.intercept('/trpc/updateBaseImages*', { fixture: 'mutation.json' }).as('base-images');
       cy.intercept('/trpc/updateCommitStatus*', { fixture: 'mutation.json' }).as('commit-status');
-      cy.mount(<App queryParamAdapter={makeMockAdapter({ search: '?hash=123&bucket=bucket&repo=repo&owner=owner' })}/>);
+      cy.mount(<App queryParamAdapter={makeMockAdapter({ search: '?hash=123&bucket=bucket&repo=repo&owner=owner' })} />);
     });
 
     it('should default to the base image view of the first spec in the response list', () => {
@@ -106,7 +106,7 @@ describe('Main', () => {
   describe('new image only case', () => {
     beforeEach(() => {
       cy.intercept('/trpc/getGroupedImages*', { fixture: 'new-images-only.json' });
-      cy.mount(<App queryParamAdapter={makeMockAdapter({ search: '?hash=123&bucket=bucket&repo=repo&owner=owner' })}/>);
+      cy.mount(<App queryParamAdapter={makeMockAdapter({ search: '?hash=123&bucket=bucket&repo=repo&owner=owner' })} />);
     });
 
     it('should display the new image with side-by-side view disabled', () => {
@@ -126,7 +126,7 @@ describe('Main', () => {
   describe('no new image case', () => {
     beforeEach(() => {
       cy.intercept('/trpc/getGroupedImages*', { fixture: 'no-new-images.json' });
-      cy.mount(<App queryParamAdapter={makeMockAdapter({ search: '?hash=123&bucket=bucket&repo=repo&owner=owner' })}/>);
+      cy.mount(<App queryParamAdapter={makeMockAdapter({ search: '?hash=123&bucket=bucket&repo=repo&owner=owner' })} />);
     });
 
     it('should default to base when no new image was found and the currently selected image is new', () => {
