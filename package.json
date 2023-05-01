@@ -51,7 +51,7 @@
     "format": "prettier --write .",
     "format-check": "prettier --check .",
     "lint": "eslint .",
-    "start:backend": "ts-node backend/index.ts",
+    "start:backend": "ts-node backend/server.ts",
     "start:frontend": "vite",
     "test:backend": "jest --silent",
     "test:frontend": "cypress run --component",
