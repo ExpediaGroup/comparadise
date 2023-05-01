@@ -50,6 +50,7 @@ export const UpdateImagesButton = () => {
 
   const error = updateBaseImagesError || updateCommitStatusError;
   if (error) {
+    setBaseImageState?.(UpdateBaseImagesText.ERROR);
     return <Error error={error} />;
   }
 
@@ -57,11 +58,11 @@ export const UpdateImagesButton = () => {
     ? `Custom base image directory in use. This will update the base images in ${baseImagesDirectory}`
     : 'Are you sure you want to update the base images?';
 
-  const baseImageUpdateStarted = baseImageState === UpdateBaseImagesText.UPDATING || baseImageState === UpdateBaseImagesText.UPDATED;
+  const shouldDisableBaseImageButton = baseImageState !== UpdateBaseImagesText.NOT_UPDATED;
 
   return (
     <>
-      <Button disabled={baseImageUpdateStarted} style={{ marginTop: '10px' }} variant="outlined" onClick={handleDialogOpen}>
+      <Button disabled={shouldDisableBaseImageButton} style={{ marginTop: '10px' }} variant="outlined" onClick={handleDialogOpen}>
         {baseImageState}
       </Button>
       {baseImagesDirectory && (

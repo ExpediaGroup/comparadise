@@ -4,7 +4,8 @@ import { createContext, useState } from 'react';
 export enum UpdateBaseImagesText {
   NOT_UPDATED = 'Update all base images',
   UPDATING = 'Updating...',
-  UPDATED = 'All images updated!'
+  UPDATED = 'All images updated!',
+  ERROR = 'Base image update failed'
 }
 
 export type BaseImageStateProvider = {

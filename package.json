@@ -47,7 +47,7 @@
     "build:docker": "docker build . --tag comparadise && docker-compose up",
     "cypress:e2e": "cypress run --e2e",
     "cypress:open": "cypress open --component --browser chrome",
-    "dev": "npm run start:client & npm-watch",
+    "dev": "npm run start:frontend & npm-watch",
     "format": "prettier --write .",
     "format-check": "prettier --check .",
     "lint": "eslint .",
