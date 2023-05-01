@@ -21,7 +21,7 @@ describe('getGroupedImages', () => {
       'hash/EXTRA_LARGE/pdpPage/diff.png',
       'hash/EXTRA_LARGE/pdpPage/new.png'
     ]);
-    const paths = await getGroupedImages('hash', 'bucket');
+    const paths = await getGroupedImages({ hash: 'hash', bucket: 'bucket' });
     expect(paths).toEqual([
       {
         name: 'EXTRA_LARGE/pdpPage',
@@ -36,7 +36,7 @@ describe('getGroupedImages', () => {
 
   it('tells us if the commit hash was not associated with a visual regression test failure', async () => {
     (listAllS3PathsForHash as jest.Mock).mockResolvedValue(undefined);
-    await expect(() => getGroupedImages('hash', 'bucket')).rejects.toThrow(
+    await expect(() => getGroupedImages({ hash: 'hash', bucket: 'bucket' })).rejects.toThrow(
       'The commit hash was not associated with any visual regression test failures'
     );
   });
@@ -47,7 +47,7 @@ describe('getGroupedImages', () => {
       'hash/SMALL/srpPage/base.png',
       'hash/EXTRA_LARGE/pdpPage/base.png'
     ]);
-    await expect(() => getGroupedImages('hash', 'bucket')).rejects.toThrow(
+    await expect(() => getGroupedImages({ hash: 'hash', bucket: 'bucket' })).rejects.toThrow(
       'There was no new or diff images associated with the commit hash.\nThis might be because the tests failed before a picture could be taken and it could be compared to the base.'
     );
   });
@@ -58,7 +58,7 @@ describe('getGroupedImages', () => {
       'hash/SMALL/pdpPage/new.png',
       'hash/EXTRA_LARGE/pdpPage/base.png'
     ]);
-    const paths = await getGroupedImages('hash', 'bucket');
+    const paths = await getGroupedImages({ hash: 'hash', bucket: 'bucket' });
 
     expect(paths).toEqual([
       {

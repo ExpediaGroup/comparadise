@@ -1,10 +1,11 @@
 import { S3Client } from './s3Client';
 import { listAllS3PathsForHash } from './listAllS3PathsForHash';
-import { BASE_IMAGE_NAME, NEW_IMAGE_NAME } from './constants';
+import { BASE_IMAGE_NAME, BASE_IMAGES_DIRECTORY, NEW_IMAGE_NAME } from './constants';
+import { UpdateBaseImagesInput } from './schema';
 
-export const updateBaseImagesInS3 = async (hash: string, bucket: string, baseImagesDirectory: string) => {
+export const updateBaseImagesInS3 = async ({ hash, bucket, baseImagesDirectory }: UpdateBaseImagesInput) => {
   const s3Paths = await listAllS3PathsForHash(hash, bucket);
-  return await replaceImagesInS3(s3Paths, bucket, baseImagesDirectory);
+  return await replaceImagesInS3(s3Paths, bucket, baseImagesDirectory || BASE_IMAGES_DIRECTORY);
 };
 
 export const filterNewImages = (s3Paths: string[]) => {
