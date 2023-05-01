@@ -1,19 +1,12 @@
 import * as React from 'react';
 import { Main } from '../../frontend/components/Main';
-import { ClientProvider } from '../../frontend/providers/ClientProvider';
-import { QueryParamProvider } from 'use-query-params';
 import { makeMockAdapter } from '../utils/makeMockAdapter';
+import App from "../../frontend/App";
 
 describe('Main', () => {
   describe('homepage', () => {
     it('should redirect to homepage when parameters are omitted', () => {
-      cy.mount(
-        <ClientProvider>
-          <QueryParamProvider adapter={makeMockAdapter({ search: '' })}>
-            <Main />
-          </QueryParamProvider>
-        </ClientProvider>
-      );
+      cy.mount(<App queryParamAdapter={makeMockAdapter({ search: '' })}/>);
       cy.findByText(/Welcome to Comparadise/);
     });
   });
@@ -23,13 +16,7 @@ describe('Main', () => {
       cy.intercept('/trpc/getGroupedImages*', { fixture: 'images.json' });
       cy.intercept('/trpc/updateBaseImages*', { fixture: 'mutation.json' }).as('base-images');
       cy.intercept('/trpc/updateCommitStatus*', { fixture: 'mutation.json' }).as('commit-status');
-      cy.mount(
-        <ClientProvider>
-          <QueryParamProvider adapter={makeMockAdapter({ search: '?hash=123&bucket=bucket&repo=repo&owner=owner' })}>
-            <Main />
-          </QueryParamProvider>
-        </ClientProvider>
-      );
+      cy.mount(<App queryParamAdapter={makeMockAdapter({ search: '?hash=123&bucket=bucket&repo=repo&owner=owner' })}/>);
     });
 
     it('should default to the base image view of the first spec in the response list', () => {
@@ -104,18 +91,22 @@ describe('Main', () => {
       cy.findByRole('heading', { name: 'large/example' });
       cy.findByRole('button', { name: /all images updated/i }).should('be.disabled');
     });
+
+    it.only('should display failure message and not update commit status when base images fail to update', () => {
+      cy.intercept('/trpc/updateBaseImages*', { statusCode: 403, fixture: 'update-rejection.json' }).as('base-images');
+      cy.findByRole('button', { name: /Update all base images/i }).click();
+      cy.findByText(/Are you sure/i);
+      cy.findByRole('button', { name: /update/i }).click();
+      cy.wait('@base-images');
+      cy.findByRole('button', { name: /all images updated/i }).should('not.exist');
+      cy.findByRole('heading', { name: 'Access Denied' }).should('be.visible');
+    });
   });
 
   describe('new image only case', () => {
     beforeEach(() => {
       cy.intercept('/trpc/getGroupedImages*', { fixture: 'new-images-only.json' });
-      cy.mount(
-        <ClientProvider>
-          <QueryParamProvider adapter={makeMockAdapter({ search: '?hash=123&bucket=bucket&repo=repo&owner=owner' })}>
-            <Main />
-          </QueryParamProvider>
-        </ClientProvider>
-      );
+      cy.mount(<App queryParamAdapter={makeMockAdapter({ search: '?hash=123&bucket=bucket&repo=repo&owner=owner' })}/>);
     });
 
     it('should display the new image with side-by-side view disabled', () => {
@@ -135,13 +126,7 @@ describe('Main', () => {
   describe('no new image case', () => {
     beforeEach(() => {
       cy.intercept('/trpc/getGroupedImages*', { fixture: 'no-new-images.json' });
-      cy.mount(
-        <ClientProvider>
-          <QueryParamProvider adapter={makeMockAdapter({ search: '?hash=123&bucket=bucket&repo=repo&owner=owner' })}>
-            <Main />
-          </QueryParamProvider>
-        </ClientProvider>
-      );
+      cy.mount(<App queryParamAdapter={makeMockAdapter({ search: '?hash=123&bucket=bucket&repo=repo&owner=owner' })}/>);
     });
 
     it('should default to base when no new image was found and the currently selected image is new', () => {

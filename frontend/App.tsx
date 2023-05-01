@@ -5,11 +5,11 @@ import { ClientProvider } from './providers/ClientProvider';
 import { QueryParamProvider } from 'use-query-params';
 import { WindowHistoryAdapter } from 'use-query-params/adapters/window';
 
-function App() {
+function App({ queryParamAdapter = WindowHistoryAdapter }) {
   return (
     <ClientProvider>
-      <QueryParamProvider adapter={WindowHistoryAdapter}>
-        <Main />
+      <QueryParamProvider adapter={queryParamAdapter}>
+          <Main />
       </QueryParamProvider>
     </ClientProvider>
   );

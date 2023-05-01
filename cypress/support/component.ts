@@ -1,6 +1,6 @@
 import './commands';
 
-import { mount } from 'cypress/react';
+import { mount } from 'cypress/react18';
 
 declare global {
   namespace Cypress {
@@ -11,3 +11,9 @@ declare global {
 }
 
 Cypress.Commands.add('mount', mount);
+
+Cypress.on('uncaught:exception', (err, runnable) => {
+  if (err.message.includes('Access Denied')) {
+    return false
+  }
+});
