@@ -1,9 +1,6 @@
 name: Test
 
 on:
-  merge_group:
-    types:
-      - checks_requested
   pull_request:
     branches:
       - main
@@ -54,8 +51,8 @@ jobs:
       - name: Lint
         run: npm run lint
 
-  server:
-    name: Server Tests
+  backend:
+    name: Backend Tests
     needs:
       - lint
     runs-on: ubuntu-latest
@@ -72,10 +69,10 @@ jobs:
         run: npm ci
 
       - name: Test
-        run: npm run test:server
+        run: npm run test:backend
 
-  client:
-    name: Client Tests
+  frontend:
+    name: Frontend Tests
     needs:
       - lint
     runs-on: ubuntu-latest
@@ -92,7 +89,7 @@ jobs:
         run: npm ci
 
       - name: Test
-        run: npm run test:client
+        run: npm run test:frontend
 
   integration:
     name: Integration Tests

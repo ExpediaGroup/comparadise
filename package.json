@@ -51,16 +51,16 @@
     "format": "prettier --write .",
     "format-check": "prettier --check .",
     "lint": "eslint .",
-    "start:client": "vite",
-    "start:server": "ts-node server/index.ts",
-    "test:client": "cypress run --component",
-    "test:integration": "start-server-and-test build:docker http://localhost:8080 cypress:e2e",
-    "test:server": "jest --silent"
+    "start:backend": "ts-node backend/server.ts",
+    "start:frontend": "vite",
+    "test:backend": "jest --silent",
+    "test:frontend": "cypress run --component",
+    "test:integration": "start-server-and-test build:docker http://localhost:8080 cypress:e2e"
   },
   "watch": {
-    "start:server": {
+    "start:backend": {
       "patterns": [
-        "server"
+        "backend"
       ],
       "extensions": "ts"
     }
