@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { Main } from '../../src/components/Main';
-import { ClientProvider } from '../../src/providers/ClientProvider';
+import { Main } from '../../frontend/components/Main';
+import { ClientProvider } from '../../frontend/providers/ClientProvider';
 import { QueryParamProvider } from 'use-query-params';
 import { makeMockAdapter } from '../utils/makeMockAdapter';
 

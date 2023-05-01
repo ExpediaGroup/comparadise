@@ -11,4 +11,4 @@ ENV PORT 8080
 RUN npm ci
 RUN npm run build
 
-CMD [ "npm", "run", "start:server" ]
+CMD [ "npm", "run", "start:backend" ]
