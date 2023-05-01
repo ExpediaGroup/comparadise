@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Main } from '../../frontend/components/Main';
 import { makeMockAdapter } from '../utils/makeMockAdapter';
 import App from '../../frontend/App';
+import { UPDATE_BASE_IMAGES_ERROR_MESSAGE } from '../../backend/constants';
 
 describe('Main', () => {
   describe('homepage', () => {
@@ -93,14 +94,14 @@ describe('Main', () => {
     });
 
     it('should display failure message and not update commit status when base images fail to update', () => {
-      cy.intercept('/trpc/updateBaseImages*', { statusCode: 403, fixture: 'update-rejection.json' }).as('base-images');
+      cy.intercept('/trpc/updateBaseImages*', { statusCode: 403, fixture: 'base-image-update-rejection.json' }).as('base-images');
       cy.findByRole('button', { name: /Update all base images/i }).click();
       cy.findByText(/Are you sure/i);
       cy.findByRole('button', { name: /update/i }).click();
       cy.wait('@base-images');
       cy.findByRole('button', { name: /all images updated/i }).should('not.exist');
       cy.findByRole('heading', { name: /Error/ }).should('be.visible');
-      cy.findByText(/At least one non-visual status check is failing on your PR/).should('be.visible');
+      cy.findByText(UPDATE_BASE_IMAGES_ERROR_MESSAGE).should('be.visible');
     });
   });
 
