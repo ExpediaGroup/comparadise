@@ -7,42 +7,24 @@ import { initTRPC } from '@trpc/server';
 import { updateCommitStatus } from './updateCommitStatus';
 import { getGroupedImages } from './getGroupedImages';
 import { updateBaseImagesInS3 } from './updateBaseImagesInS3';
-import { z } from 'zod';
-import { BASE_IMAGES_DIRECTORY } from './constants';
+import {getGroupedImagesInputSchema, updateBaseImagesInputSchema, updateCommitStatusInputSchema} from "./schema";
 
 const t = initTRPC.create();
 
 const router = t.router({
   getGroupedImages: t.procedure
-    .input(
-      z.object({
-        hash: z.string().min(1),
-        bucket: z.string().min(1)
-      })
-    )
-    .query(({ input: { hash, bucket } }) => getGroupedImages(hash, bucket)),
+    .input(getGroupedImagesInputSchema)
+    .query(({ input }) => getGroupedImages(input)),
 
   updateBaseImages: t.procedure
-    .input(
-      z.object({
-        hash: z.string().min(1),
-        bucket: z.string().min(1),
-        baseImagesDirectory: z.string().nullish()
-      })
-    )
-    .mutation(({ input: { hash, bucket, baseImagesDirectory } }) =>
-      updateBaseImagesInS3(hash, bucket, baseImagesDirectory || BASE_IMAGES_DIRECTORY)
+    .input(updateBaseImagesInputSchema)
+    .mutation(({ input }) =>
+      updateBaseImagesInS3(input)
     ),
 
   updateCommitStatus: t.procedure
-    .input(
-      z.object({
-        hash: z.string().min(1),
-        repo: z.string().min(1),
-        owner: z.string().min(1)
-      })
-    )
-    .mutation(({ input: { hash, repo, owner } }) => updateCommitStatus(owner, repo, hash))
+    .input(updateCommitStatusInputSchema)
+    .mutation(({ input }) => updateCommitStatus(input))
 });
 
 export type AppRouter = typeof router;

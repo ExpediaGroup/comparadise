@@ -1,17 +1,18 @@
-import { readFileSync } from 'fs';
-import { Octokit } from '@octokit/rest';
 import { TRPCError } from '@trpc/server';
+import {getOctokit} from "./getOctokit";
+import {VISUAL_REGRESSION_STATUS_NAME} from "./constants";
+import {UpdateCommitStatusInput} from "./schema";
 
-export const updateCommitStatus = async (owner: string, repo: string, sha: string) => {
-  const octokitOptions = getOctokitOptions(owner, repo);
-  return new Octokit(octokitOptions).rest.repos
+export const updateCommitStatus = async ({owner, repo, hash}: UpdateCommitStatusInput) => {
+  const octokit = getOctokit(owner, repo);
+  return octokit.rest.repos
     .createCommitStatus({
       owner,
       repo,
-      sha,
+      sha: hash,
       state: 'success',
       description: 'Your visual tests have passed.',
-      context: 'Visual Regression'
+      context: VISUAL_REGRESSION_STATUS_NAME
     })
     .catch(error => {
       throw new TRPCError({
@@ -19,21 +20,4 @@ export const updateCommitStatus = async (owner: string, repo: string, sha: strin
         message: `Failed to update GitHub commit status: ${error}`
       });
     });
-};
-
-const getOctokitOptions = (owner: string, repo: string) => {
-  try {
-    const {
-      [`${owner}/${repo}`]: { githubToken, githubApiUrl }
-    } = JSON.parse(readFileSync(`/vault/secrets/secrets.json`).toString());
-    return {
-      auth: githubToken,
-      baseUrl: githubApiUrl
-    };
-  } catch (error) {
-    throw new TRPCError({
-      code: 'UNAUTHORIZED',
-      message: `No GitHub configs were found for ${owner}/${repo}: ${error}`
-    });
-  }
 };

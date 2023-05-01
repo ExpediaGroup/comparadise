@@ -4,10 +4,11 @@ import { listAllS3PathsForHash } from './listAllS3PathsForHash';
 import { BASE_IMAGE_NAME, DIFF_IMAGE_NAME, NEW_IMAGE_NAME } from './constants';
 import { parse } from 'path';
 import { TRPCError } from '@trpc/server';
+import {GetGroupedImagesInput} from "./schema";
 
 type ImageName = typeof BASE_IMAGE_NAME | typeof DIFF_IMAGE_NAME | typeof NEW_IMAGE_NAME;
 
-export const getGroupedImages = async (hash: string, bucket: string) => {
+export const getGroupedImages = async ({ hash, bucket }: GetGroupedImagesInput) => {
   const keys = await listAllS3PathsForHash(hash, bucket);
 
   if (!keys) {

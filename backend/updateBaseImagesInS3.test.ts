@@ -1,9 +1,9 @@
 import { S3Client } from './s3Client';
 import {filterNewImages, replaceImagesInS3, getBaseImagePaths, updateBaseImagesInS3} from './updateBaseImagesInS3';
 import { BASE_IMAGES_DIRECTORY } from './constants';
-import { allRequiredStatusesAreMet } from './allRequiredStatusesAreMet';
+import { allNonVisualChecksHavePassed } from './allNonVisualChecksHavePassed';
 
-jest.mock('./allRequiredStatusesAreMet');
+jest.mock('./allNonVisualChecksHavePassed');
 jest.mock('./s3Client');
 
 describe('filterNewImages', () => {
@@ -103,10 +103,10 @@ describe('updateBaseImagesInS3', () => {
   });
 
   it('should throw error if other required checks have not yet passed', async () => {
-    (allRequiredStatusesAreMet as jest.Mock).mockResolvedValue(false);
+    (allNonVisualChecksHavePassed as jest.Mock).mockResolvedValue(false);
 
     const expectedBucket = 'expected-bucket-name';
-    await expect(updateBaseImagesInS3('030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5', expectedBucket, BASE_IMAGES_DIRECTORY))
+    await expect(updateBaseImagesInS3({ hash: '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5', bucket: expectedBucket, repo: 'repo', owner: 'owner' }))
         .rejects
         .toThrow();
 
