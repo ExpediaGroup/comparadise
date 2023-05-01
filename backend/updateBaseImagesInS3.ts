@@ -1,8 +1,16 @@
 import { S3Client } from './s3Client';
 import { listAllS3PathsForHash } from './listAllS3PathsForHash';
 import { BASE_IMAGE_NAME, NEW_IMAGE_NAME } from './constants';
+import {allRequiredStatusesAreMet} from "./allRequiredStatusesAreMet";
+import {TRPCError} from "@trpc/server";
 
 export const updateBaseImagesInS3 = async (hash: string, bucket: string, baseImagesDirectory: string) => {
+  if (!(await allRequiredStatusesAreMet())) {
+      throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'At least one status check is failing on your PR. Please ensure all other checks are passing before updating base images!'
+      });
+  }
   const s3Paths = await listAllS3PathsForHash(hash, bucket);
   return await replaceImagesInS3(s3Paths, bucket, baseImagesDirectory);
 };

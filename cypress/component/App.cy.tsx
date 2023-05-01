@@ -92,7 +92,7 @@ describe('Main', () => {
       cy.findByRole('button', { name: /all images updated/i }).should('be.disabled');
     });
 
-    it.only('should display failure message and not update commit status when base images fail to update', () => {
+    it('should display failure message and not update commit status when base images fail to update', () => {
       cy.intercept('/trpc/updateBaseImages*', { statusCode: 403, fixture: 'update-rejection.json' }).as('base-images');
       cy.findByRole('button', { name: /Update all base images/i }).click();
       cy.findByText(/Are you sure/i);
