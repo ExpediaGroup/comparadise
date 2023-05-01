@@ -1,6 +1,6 @@
 import { TRPCError } from '@trpc/server';
-import { getOctokit } from './getOctokit';
 import { UpdateCommitStatusInput } from './schema';
+import { getOctokit } from './getOctokit';
 
 export const updateCommitStatus = async ({ owner, repo, hash }: UpdateCommitStatusInput) => {
   const octokit = getOctokit(owner, repo);
