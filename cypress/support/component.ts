@@ -13,7 +13,7 @@ declare global {
 
 Cypress.Commands.add('mount', mount);
 
-Cypress.on('uncaught:exception', (err) => {
+Cypress.on('uncaught:exception', err => {
   if (err.message.includes(UPDATE_BASE_IMAGES_ERROR_MESSAGE)) {
     return false;
   }
