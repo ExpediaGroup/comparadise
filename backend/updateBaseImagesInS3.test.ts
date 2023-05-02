@@ -1,7 +1,9 @@
 import { S3Client } from './s3Client';
-import { filterNewImages, replaceImagesInS3, getBaseImagePaths } from './updateBaseImagesInS3';
+import { filterNewImages, replaceImagesInS3, getBaseImagePaths, updateBaseImagesInS3 } from './updateBaseImagesInS3';
 import { BASE_IMAGES_DIRECTORY } from './constants';
+import { allNonVisualChecksHavePassed } from './allNonVisualChecksHavePassed';
 
+jest.mock('./allNonVisualChecksHavePassed');
 jest.mock('./s3Client');
 
 describe('filterNewImages', () => {
@@ -98,5 +100,17 @@ describe('updateBaseImagesInS3', () => {
       Key: `base-images-test/SMALL/srpPage/base.png`,
       ACL: 'bucket-owner-full-control'
     });
+  });
+
+  it('should throw error if other required checks have not yet passed', async () => {
+    (allNonVisualChecksHavePassed as jest.Mock).mockResolvedValue(false);
+
+    const expectedBucket = 'expected-bucket-name';
+    await expect(
+      updateBaseImagesInS3({ hash: '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5', bucket: expectedBucket, repo: 'repo', owner: 'owner' })
+    ).rejects.toThrow();
+
+    expect(S3Client.listObjectsV2).not.toHaveBeenCalled();
+    expect(S3Client.copyObject).not.toHaveBeenCalled();
   });
 });

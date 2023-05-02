@@ -2,7 +2,6 @@ import { updateCommitStatus } from './updateCommitStatus';
 import { getOctokit } from './getOctokit';
 
 jest.mock('./getOctokit');
-jest.mock('@octokit/rest');
 const createCommitStatus = jest.fn(() => ({ catch: jest.fn() }));
 (getOctokit as jest.Mock).mockImplementation(() => ({
   rest: {

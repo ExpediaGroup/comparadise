@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useState, useContext, Fragment } from 'react';
+import { Fragment, useContext, useState } from 'react';
 import { Error } from './error';
 import { BaseImageStateContext, UpdateBaseImagesText } from '../providers/base-image-state-provider';
 import { trpc } from '../utils/trpc';
@@ -9,7 +9,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { PrimaryButton, TertiaryButton } from './buttons';
 
 const UPDATE_TEXT =
-  'Doing so will update the base images in S3 and will set visual regression status to passed! You should only do this if you are about to merge your PR.';
+  'WARNING: This will update the base images in S3 and will set the visual regression status to passed. You can only do this if you are about to merge your PR and all other checks have passed.';
 
 export const UpdateImagesButton = () => {
   const [{ hash, bucket, repo, owner, baseImagesDirectory }] = useQueryParams(URL_PARAMS);
@@ -19,7 +19,7 @@ export const UpdateImagesButton = () => {
   const { error: updateBaseImagesError, mutateAsync: updateBaseImages } = trpc.updateBaseImages.useMutation();
   const { error: updateCommitStatusError, mutateAsync: updateCommitStatus } = trpc.updateCommitStatus.useMutation();
 
-  if (!hash || !bucket) {
+  if (!hash || !bucket || !owner || !repo) {
     return null;
   }
 
@@ -33,17 +33,15 @@ export const UpdateImagesButton = () => {
 
   const handleUpdate = async () => {
     setBaseImageState?.(UpdateBaseImagesText.UPDATING);
-    await updateBaseImages({ hash, bucket, baseImagesDirectory });
-    if (repo && owner) {
-      await updateCommitStatus({ hash, owner, repo });
-    }
+    await updateBaseImages({ hash, bucket, owner, repo, baseImagesDirectory });
+    await updateCommitStatus({ hash, owner, repo });
     setDialogIsOpen(false);
     setBaseImageState?.(UpdateBaseImagesText.UPDATED);
   };
 
   const error = updateBaseImagesError || updateCommitStatusError;
   if (error) {
-    return <Error error={error} />;
+    setBaseImageState?.(UpdateBaseImagesText.ERROR);
   }
 
   const dialogTitleText = baseImagesDirectory
@@ -81,12 +79,23 @@ export const UpdateImagesButton = () => {
       </Dialog.Title>
     </div>
   );
+  const dialogErrorContent = error && <Error error={error} />;
+  const getDialogContent = (state?: UpdateBaseImagesText) => {
+    switch (state) {
+      case UpdateBaseImagesText.UPDATING:
+        return dialogLoadingContent;
+      case UpdateBaseImagesText.ERROR:
+        return dialogErrorContent;
+      default:
+        return dialogContent;
+    }
+  };
 
-  const baseImageUpdateStarted = baseImageState === UpdateBaseImagesText.UPDATING || baseImageState === UpdateBaseImagesText.UPDATED;
+  const shouldDisableBaseImageButton = baseImageState !== UpdateBaseImagesText.NOT_UPDATED;
 
   return (
     <>
-      <PrimaryButton disabled={baseImageUpdateStarted} onClick={handleDialogOpen}>
+      <PrimaryButton disabled={shouldDisableBaseImageButton} onClick={handleDialogOpen}>
         {baseImageState}
       </PrimaryButton>
       {baseImagesDirectory && <p>Custom base image directory {baseImagesDirectory} in use</p>}
@@ -116,7 +125,7 @@ export const UpdateImagesButton = () => {
                 leaveTo="opacity-0 scale-95"
               >
                 <Dialog.Panel className="w-full max-w-lg transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-                  {baseImageState === UpdateBaseImagesText.NOT_UPDATED ? dialogContent : dialogLoadingContent}
+                  {getDialogContent(baseImageState)}
                 </Dialog.Panel>
               </Transition.Child>
             </div>
