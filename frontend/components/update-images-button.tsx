@@ -42,7 +42,6 @@ export const UpdateImagesButton = () => {
   const error = updateBaseImagesError || updateCommitStatusError;
   if (error) {
     setBaseImageState?.(UpdateBaseImagesText.ERROR);
-    // return <Error error={error} />;
   }
 
   const dialogTitleText = baseImagesDirectory
