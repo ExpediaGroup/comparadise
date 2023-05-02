@@ -5,7 +5,7 @@ import { groupBy, isEqual, sortBy } from 'lodash';
 type CheckRunConclusion = RestEndpointMethodTypes['checks']['listForRef']['response']['data']['check_runs'][number]['conclusion'];
 
 const allowedConclusions: CheckRunConclusion[] = ['success', 'skipped'];
-const visualTestRegex = /visual/gi;
+const visualTestRegex = new RegExp('visual', 'i');
 const isVisualTest = (testName: string) => visualTestRegex.test(testName);
 
 export const allNonVisualChecksHavePassed = async (owner: string, repo: string, sha: string): Promise<boolean> => {
