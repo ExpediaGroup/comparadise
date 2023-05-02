@@ -61,7 +61,7 @@ describe('App', () => {
     });
 
     it('should display loader and update base images', () => {
-      cy.intercept('/trpc/updateBaseImages*', { fixture: 'mutation.json', delay: 1000 }).as('base-images');
+      cy.intercept('/trpc/updateBaseImages*', { fixture: 'mutation.json', delay: 3000 }).as('base-images');
       cy.findByRole('button', { name: /Update all base images/i }).click();
       cy.findByText(/Are you sure/i);
       cy.findByRole('button', { name: /update/i }).click();
