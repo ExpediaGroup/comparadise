@@ -5,7 +5,7 @@ import { Loader } from './loader';
 import { ViewToggle, ViewType } from './view-toggle';
 import { UpdateImagesButton } from './update-images-button';
 import { SideBySideImageView, SingleImageView } from './image-views';
-import { BaseImageStateProvider } from '../providers/BaseImageStateProvider';
+import { BaseImageStateProvider } from '../providers/base-image-state-provider';
 import { RouterOutput, trpc } from '../utils/trpc';
 import { useQueryParams } from 'use-query-params';
 import { URL_PARAMS } from '../constants';

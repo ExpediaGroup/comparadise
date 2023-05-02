@@ -1,7 +1,7 @@
 import * as React from 'react';
 import './App.css';
 import { MainPage } from './components/main-page';
-import { ClientProvider } from './providers/ClientProvider';
+import { ClientProvider } from './providers/client-provider';
 import { QueryParamProvider } from 'use-query-params';
 import { WindowHistoryAdapter } from 'use-query-params/adapters/window';
 

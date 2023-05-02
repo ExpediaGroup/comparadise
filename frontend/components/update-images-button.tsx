@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useState, useContext, Fragment } from 'react';
 import { Error } from './error';
-import { BaseImageStateContext, UpdateBaseImagesText } from '../providers/BaseImageStateProvider';
+import { BaseImageStateContext, UpdateBaseImagesText } from '../providers/base-image-state-provider';
 import { trpc } from '../utils/trpc';
 import { useQueryParams } from 'use-query-params';
 import { URL_PARAMS } from '../constants';
