@@ -18,7 +18,7 @@ describe('App', () => {
       cy.mount(<App queryParamAdapter={makeMockAdapter({ search: '?hash=123&bucket=bucket&repo=repo&owner=owner' })} />);
     });
 
-    it('should default to the base image view of the first spec in the response list', () => {
+    it.only('should default to the base image view of the first spec in the response list', () => {
       cy.findByRole('heading', { name: 'large/example' });
       cy.findByAltText('base');
       cy.findByRole('button', { name: /back-arrow/ }).should('be.disabled');

@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { Button, ButtonGroup } from '@mui/material';
 import { RouterOutput } from '../utils/trpc';
 
 interface ImageViewChildProps {
@@ -23,16 +22,16 @@ export const SingleImageView: React.FC<SingleImageViewProps> = ({ responseEntrie
 
   return (
     <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center' }}>
-      <ButtonGroup style={{ margin: '10px 0px', position: 'fixed', bottom: '20px' }} variant="contained">
+      <div style={{ margin: '10px 0px', position: 'fixed', bottom: '20px' }}>
         {responseEntries.map((entry, index) => {
           const onClick = () => onSelectImage(index);
           return (
-            <Button key={entry.name} onClick={onClick} color={selectedImageIndex === index ? 'primary' : 'inherit'}>
+            <button key={entry.name} onClick={onClick} color={selectedImageIndex === index ? 'primary' : 'inherit'}>
               {entry.name}
-            </Button>
+            </button>
           );
         })}
-      </ButtonGroup>
+      </div>
       <img
         style={{ marginBottom: '100px' }}
         src={responseEntries[selectedImageIndex].image}

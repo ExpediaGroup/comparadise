@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { Button, ButtonGroup } from '@mui/material';
 
 export enum ViewType {
   SINGLE,
@@ -11,17 +10,17 @@ interface ViewToggleProps {
   onSelectView: (view: ViewType) => void;
 }
 
-const ViewToggle: React.FC<ViewToggleProps> = ({ selectedView, onSelectView }) => {
+export const ViewToggle: React.FC<ViewToggleProps> = ({ selectedView, onSelectView }) => {
   return (
-    <ButtonGroup variant="contained" style={{ marginTop: '20px' }}>
-      <Button
+    <div style={{ marginTop: '20px' }}>
+      <button
         color={selectedView === ViewType.SIDE_BY_SIDE ? 'primary' : 'inherit'}
         onClick={() => onSelectView(ViewType.SIDE_BY_SIDE)}
         disabled={selectedView === undefined}
       >
         Side-by-side
-      </Button>
-      <Button
+      </button>
+      <button
         color={selectedView === undefined || selectedView === ViewType.SINGLE ? 'primary' : 'inherit'}
         onClick={() => {
           if (selectedView === ViewType.SIDE_BY_SIDE) {
@@ -30,9 +29,7 @@ const ViewToggle: React.FC<ViewToggleProps> = ({ selectedView, onSelectView }) =
         }}
       >
         Single
-      </Button>
-    </ButtonGroup>
+      </button>
+    </div>
   );
 };
-
-export default ViewToggle;

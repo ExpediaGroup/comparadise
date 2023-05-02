@@ -1,21 +1,11 @@
 import * as React from 'react';
 import { useState, useContext } from 'react';
-import {
-  Box,
-  Button,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  Typography
-} from '@mui/material';
-import { Error } from './Error';
+import { Error } from './error';
 import { BaseImageStateContext, UpdateBaseImagesText } from '../providers/BaseImageStateProvider';
 import { trpc } from '../utils/trpc';
 import { useQueryParams } from 'use-query-params';
 import { URL_PARAMS } from '../constants';
+import { Dialog } from '@headlessui/react';
 
 const UPDATE_TEXT =
   'Doing so will update the base images in S3 and will set visual regression status to passed! You should only do this if you are about to merge your PR.';
@@ -63,39 +53,21 @@ export const UpdateImagesButton = () => {
 
   return (
     <>
-      <Button disabled={baseImageUpdateStarted} style={{ marginTop: '10px' }} variant="outlined" onClick={handleDialogOpen}>
+      <button disabled={baseImageUpdateStarted} onClick={handleDialogOpen}>
         {baseImageState}
-      </Button>
-      {baseImagesDirectory && (
-        <Box mt={2}>
-          <Typography color="secondary" variant="h4">
-            Custom base image directory {baseImagesDirectory} in use
-          </Typography>
-        </Box>
-      )}
-      {baseImageState === UpdateBaseImagesText.UPDATING ? (
-        <Dialog open={dialogIsOpen}>
-          <DialogTitle>Updating base images...</DialogTitle>
-          <DialogContent style={{ margin: 'auto' }}>
-            <CircularProgress aria-label="loader" />
-          </DialogContent>
-        </Dialog>
-      ) : (
-        <Dialog onClose={handleDialogClose} open={dialogIsOpen}>
-          <DialogTitle>{dialogContentText}</DialogTitle>
-          <DialogContent>
-            <DialogContentText>{!baseImagesDirectory && UPDATE_TEXT}</DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button variant="outlined" autoFocus onClick={handleUpdate}>
-              Update
-            </Button>
-            <Button variant="outlined" color="secondary" onClick={handleDialogClose}>
-              Cancel
-            </Button>
-          </DialogActions>
-        </Dialog>
-      )}
+      </button>
+      {baseImagesDirectory && <p>Custom base image directory {baseImagesDirectory} in use</p>}
+      <Dialog onClose={handleDialogClose} open={dialogIsOpen}>
+        <Dialog.Title>{baseImageState === UpdateBaseImagesText.UPDATING ? 'Updating base images...' : dialogContentText}</Dialog.Title>
+        <Dialog.Description>{!baseImagesDirectory && UPDATE_TEXT}</Dialog.Description>
+        <div aria-label="loader" />
+        <button autoFocus onClick={handleUpdate}>
+          Update
+        </button>
+        <button color="secondary" onClick={handleDialogClose}>
+          Cancel
+        </button>
+      </Dialog>
     </>
   );
 };

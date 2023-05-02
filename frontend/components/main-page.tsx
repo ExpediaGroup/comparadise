@@ -1,20 +1,17 @@
 import * as React from 'react';
-import { Homepage } from './Homepage';
-import { Error } from './Error';
-import { Loader } from './Loader';
-import ViewToggle, { ViewType } from './ViewToggle';
-import { Button } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import UpdateImagesButton from './UpdateImagesButton';
-import { SideBySideImageView, SingleImageView } from './ImageView';
+import { LandingPage } from './landing-page';
+import { Error } from './error';
+import { Loader } from './loader';
+import { ViewToggle, ViewType } from './view-toggle';
+import { UpdateImagesButton } from './update-images-button';
+import { SideBySideImageView, SingleImageView } from './image-views';
 import { BaseImageStateProvider } from '../providers/BaseImageStateProvider';
 import { RouterOutput, trpc } from '../utils/trpc';
 import { useQueryParams } from 'use-query-params';
-import { Classes, Root } from '../styles/main';
 import { URL_PARAMS } from '../constants';
+import { ArrowBackButton, ArrowForwardButton } from './arrows';
 
-export const Main = () => {
+export const MainPage = () => {
   const [{ hash, bucket }] = useQueryParams(URL_PARAMS);
 
   const [specIndex, setSpecIndex] = React.useState(0);
@@ -22,7 +19,7 @@ export const Main = () => {
   const [singleImageViewIndex, setSingleImageViewIndex] = React.useState(0);
 
   if (!hash || !bucket) {
-    return <Homepage />;
+    return <LandingPage />;
   }
 
   const { data: groupedImages, isLoading, error } = trpc.getGroupedImages.useQuery({ hash, bucket });
@@ -57,27 +54,27 @@ export const Main = () => {
 
     const isLastSpec = specIndex >= groupedImages.length - 1;
     return (
-      <Root key={name} style={{ width: '100%', display: 'flex', justifyContent: 'center', flexDirection: 'column' }}>
+      <div key={name} style={{ width: '100%', display: 'flex', justifyContent: 'center', flexDirection: 'column' }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '80%' }}>
-            <Button variant="contained" disabled={specIndex <= 0} onClick={onClickBackArrow}>
-              <ArrowBackIcon titleAccess="back-arrow" />
-            </Button>
+            <button disabled={specIndex <= 0} onClick={onClickBackArrow}>
+              <ArrowBackButton />
+            </button>
             <h1 style={{ textAlign: 'center' }}>{name}</h1>
-            <Button variant="contained" disabled={isLastSpec} onClick={onClickForwardArrow}>
-              <ArrowForwardIcon titleAccess="forward-arrow" />
-            </Button>
+            <button disabled={isLastSpec} onClick={onClickForwardArrow}>
+              <ArrowForwardButton />
+            </button>
           </div>
           <UpdateImagesButton />
           <ViewToggle selectedView={selectedView} onSelectView={setSelectedView} />
         </div>
         {imageView}
-      </Root>
+      </div>
     );
   });
 
   return (
-    <div className={Classes.root}>
+    <div>
       <BaseImageStateProvider>{containers?.[specIndex]}</BaseImageStateProvider>
     </div>
   );
