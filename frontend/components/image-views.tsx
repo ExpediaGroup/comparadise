@@ -21,22 +21,19 @@ export const SingleImageView: React.FC<SingleImageViewProps> = ({ responseEntrie
   }
 
   return (
-    <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center' }}>
-      <div style={{ margin: '10px 0px', position: 'fixed', bottom: '20px' }}>
+    <div className="flex justify-center mt-5 mb-12">
+      <div className="fixed bottom-20">
         {responseEntries.map((entry, index) => {
           const onClick = () => onSelectImage(index);
+          const buttonColor = selectedImageIndex === index ? 'bg-blue-500' : 'bg-slate-300';
           return (
-            <button key={entry.name} onClick={onClick} color={selectedImageIndex === index ? 'primary' : 'inherit'}>
+            <button key={entry.name} onClick={onClick} className={`${buttonColor}`}>
               {entry.name}
             </button>
           );
         })}
       </div>
-      <img
-        style={{ marginBottom: '100px' }}
-        src={responseEntries[selectedImageIndex].image}
-        alt={responseEntries[selectedImageIndex].name}
-      />
+      <img src={responseEntries[selectedImageIndex].image} alt={responseEntries[selectedImageIndex].name} />
     </div>
   );
 };
@@ -47,10 +44,10 @@ export const SideBySideImageView: React.FC<ImageViewChildProps> = ({ responseEnt
   }
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center' }}>
+    <div className="flex justify-center">
       {responseEntries.map(entry => (
         <div key={entry.name}>
-          <h2 style={{ textAlign: 'center' }}>{entry.name}</h2>
+          <h2 className="text-center">{entry.name}</h2>
           <img src={entry.image} alt={entry.name} />
         </div>
       ))}

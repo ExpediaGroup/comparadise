@@ -18,7 +18,7 @@ describe('App', () => {
       cy.mount(<App queryParamAdapter={makeMockAdapter({ search: '?hash=123&bucket=bucket&repo=repo&owner=owner' })} />);
     });
 
-    it.only('should default to the base image view of the first spec in the response list', () => {
+    it('should default to the base image view of the first spec in the response list', () => {
       cy.findByRole('heading', { name: 'large/example' });
       cy.findByAltText('base');
       cy.findByRole('button', { name: /back-arrow/ }).should('be.disabled');
@@ -59,7 +59,7 @@ describe('App', () => {
       cy.findByRole('button', { name: /side-by-side/i }).should('be.enabled');
     });
 
-    it('should display loader and update base images', () => {
+    it.only('should display loader and update base images', () => {
       cy.intercept('/trpc/updateBaseImages*', { fixture: 'mutation.json', delay: 1000 }).as('base-images');
       cy.findByRole('button', { name: /Update all base images/i }).click();
       cy.findByText(/Are you sure/i);

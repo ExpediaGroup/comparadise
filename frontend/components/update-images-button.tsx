@@ -52,23 +52,27 @@ export const UpdateImagesButton = () => {
   const baseImageUpdateStarted = baseImageState === UpdateBaseImagesText.UPDATING || baseImageState === UpdateBaseImagesText.UPDATED;
 
   return (
-    <>
-      <button disabled={baseImageUpdateStarted} onClick={handleDialogOpen}>
+    <div>
+      <button
+        disabled={baseImageUpdateStarted}
+        onClick={handleDialogOpen}
+        className="rounded-md bg-black bg-opacity-20 px-4 py-2 text-sm font-medium text-white hover:bg-opacity-30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75"
+      >
         {baseImageState}
       </button>
       {baseImagesDirectory && <p>Custom base image directory {baseImagesDirectory} in use</p>}
       <Dialog onClose={handleDialogClose} open={dialogIsOpen}>
-        <Dialog.Title>{baseImageState === UpdateBaseImagesText.UPDATING ? 'Updating base images...' : dialogContentText}</Dialog.Title>
-        <Dialog.Description>{!baseImagesDirectory && UPDATE_TEXT}</Dialog.Description>
-        <div aria-label="loader" />
-        <button autoFocus onClick={handleUpdate}>
-          Update
-        </button>
-        <button color="secondary" onClick={handleDialogClose}>
-          Cancel
-        </button>
+        <Dialog.Panel>
+          <Dialog.Title>{baseImageState === UpdateBaseImagesText.UPDATING ? 'Updating base images...' : dialogContentText}</Dialog.Title>
+          <Dialog.Description>{!baseImagesDirectory && UPDATE_TEXT}</Dialog.Description>
+          {UpdateBaseImagesText.UPDATING && <div aria-label="loader" />}
+          <button autoFocus onClick={handleUpdate}>
+            Update
+          </button>
+          <button onClick={handleDialogClose}>Cancel</button>
+        </Dialog.Panel>
       </Dialog>
-    </>
+    </div>
   );
 };
 

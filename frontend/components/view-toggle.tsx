@@ -12,7 +12,7 @@ interface ViewToggleProps {
 
 export const ViewToggle: React.FC<ViewToggleProps> = ({ selectedView, onSelectView }) => {
   return (
-    <div style={{ marginTop: '20px' }}>
+    <div className="mt-5">
       <button
         color={selectedView === ViewType.SIDE_BY_SIDE ? 'primary' : 'inherit'}
         onClick={() => onSelectView(ViewType.SIDE_BY_SIDE)}

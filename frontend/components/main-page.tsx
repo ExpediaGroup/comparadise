@@ -9,7 +9,7 @@ import { BaseImageStateProvider } from '../providers/BaseImageStateProvider';
 import { RouterOutput, trpc } from '../utils/trpc';
 import { useQueryParams } from 'use-query-params';
 import { URL_PARAMS } from '../constants';
-import { ArrowBackButton, ArrowForwardButton } from './arrows';
+import { ArrowBackIcon, ArrowForwardIcon } from './arrows';
 
 export const MainPage = () => {
   const [{ hash, bucket }] = useQueryParams(URL_PARAMS);
@@ -54,15 +54,15 @@ export const MainPage = () => {
 
     const isLastSpec = specIndex >= groupedImages.length - 1;
     return (
-      <div key={name} style={{ width: '100%', display: 'flex', justifyContent: 'center', flexDirection: 'column' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '80%' }}>
-            <button disabled={specIndex <= 0} onClick={onClickBackArrow}>
-              <ArrowBackButton />
+      <div className="max-h-screen">
+        <div key={name} className="flex flex-col items-center justify-center mt-10">
+          <div className="flex items-center justify-between w-4/5">
+            <button disabled={specIndex <= 0} onClick={onClickBackArrow} aria-label="back-arrow">
+              <ArrowBackIcon disabled={specIndex <= 0} />
             </button>
-            <h1 style={{ textAlign: 'center' }}>{name}</h1>
-            <button disabled={isLastSpec} onClick={onClickForwardArrow}>
-              <ArrowForwardButton />
+            <h1 className="text-center">{name}</h1>
+            <button disabled={isLastSpec} onClick={onClickForwardArrow} aria-label="forward-arrow">
+              <ArrowForwardIcon disabled={isLastSpec} />
             </button>
           </div>
           <UpdateImagesButton />
