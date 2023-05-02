@@ -28,9 +28,9 @@ export const PrimaryButton = (props: ButtonProps) => {
 export const SecondaryButton = (props: ButtonProps) => {
   let styles: string;
   if (props.backgroundFilled && props.disabled) {
-    styles = 'bg-slate-300 text-white';
+    styles = 'bg-slate-200 text-slate-400';
   } else if (props.backgroundFilled) {
-    styles = 'bg-slate-700 text-white';
+    styles = 'bg-slate-400 text-black';
   } else if (props.disabled) {
     styles = 'border border-slate-100 text-slate-100';
   } else {

@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 export const ArrowForwardIcon = ({ disabled }: { disabled?: boolean }) => {
-  const fill = disabled ? 'fill-slate-400' : 'fill-blue-700';
+  const fill = disabled ? 'fill-slate-300' : 'fill-blue-700';
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className={`${fill} w-16 h-16`}>
       <path

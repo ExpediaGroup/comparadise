@@ -34,7 +34,7 @@ export const SingleImageView: React.FC<SingleImageViewProps> = ({ responseEntrie
               ? 'rounded-s-none rounded-e-md'
               : 'rounded-none';
           return (
-            <Button key={entry.name} onClick={onClick} backgroundFilled className={`border border-slate-900 ${extraStyles}`}>
+            <Button key={entry.name} onClick={onClick} backgroundFilled className={`border border-slate-700 ${extraStyles}`}>
               {entry.name}
             </Button>
           );
