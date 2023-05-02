@@ -82,12 +82,12 @@ export const UpdateImagesButton = () => {
   const dialogErrorContent = error && <Error error={error} />;
   const getDialogContent = (state?: UpdateBaseImagesText) => {
     switch (state) {
-      case UpdateBaseImagesText.UPDATING:
-        return dialogLoadingContent;
+      case UpdateBaseImagesText.NOT_UPDATED:
+        return dialogContent;
       case UpdateBaseImagesText.ERROR:
         return dialogErrorContent;
       default:
-        return dialogContent;
+        return dialogLoadingContent;
     }
   };
 
