@@ -18,9 +18,9 @@ export const allNonVisualChecksHavePassed = async (owner: string, repo: string, 
   });
   const nonVisualChecks = data.check_runs.filter(({ name }) => !isVisualTest(name));
   const groupedChecks = groupBy(nonVisualChecks, 'name');
-  const mostRecentCheckByName = nonVisualChecks.filter(check => {
+  const mostRecentChecks = nonVisualChecks.filter(check => {
     const checksSortedByDescTime = sortBy(groupedChecks[check.name], 'completed_at').reverse();
     return isEqual(check, checksSortedByDescTime[0]);
   });
-  return mostRecentCheckByName.every(({ conclusion }) => allowedConclusions.includes(conclusion));
+  return mostRecentChecks.every(({ conclusion }) => allowedConclusions.includes(conclusion));
 };
