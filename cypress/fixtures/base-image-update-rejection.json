@@ -1,7 +1,7 @@
 [
   {
     "error": {
-      "message": "At least one non-visual status check is failing on your PR. Please ensure all other checks are passing before updating base images!",
+      "message": "At least one non-visual status check has not passed on your PR. Please ensure all other checks have passed before updating base images!",
       "code": -32603,
       "data": {
         "code": "FORBIDDEN",
