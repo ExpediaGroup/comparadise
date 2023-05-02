@@ -6,7 +6,7 @@ import { trpc } from '../utils/trpc';
 import { useQueryParams } from 'use-query-params';
 import { URL_PARAMS } from '../constants';
 import { Dialog, Transition } from '@headlessui/react';
-import { PrimaryButton, SecondaryButton, TertiaryButton } from './buttons';
+import { PrimaryButton, TertiaryButton } from './buttons';
 
 const UPDATE_TEXT =
   'Doing so will update the base images in S3 and will set visual regression status to passed! You should only do this if you are about to merge your PR.';

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { RouterOutput } from '../utils/trpc';
-import { PrimaryButton, SecondaryButton, TertiaryButton } from './buttons';
+import { PrimaryButton, SecondaryButton } from './buttons';
 
 interface ImageViewChildProps {
   responseEntries: RouterOutput['getGroupedImages'][number]['entries'];
@@ -34,7 +34,7 @@ export const SingleImageView: React.FC<SingleImageViewProps> = ({ responseEntrie
               ? 'rounded-s-none rounded-e-md'
               : 'rounded-none';
           return (
-            <Button key={entry.name} onClick={onClick} backgroundFilled className={`border border-slate-500 ${extraStyles}`}>
+            <Button key={entry.name} onClick={onClick} backgroundFilled className={`border border-slate-900 ${extraStyles}`}>
               {entry.name}
             </Button>
           );

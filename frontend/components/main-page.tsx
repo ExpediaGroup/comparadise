@@ -65,14 +65,14 @@ export const MainPage = () => {
               <ArrowForwardIcon disabled={isLastSpec} />
             </button>
           </div>
-          <div className="mt-5">
+          <div className="mt-8">
             <UpdateImagesButton />
           </div>
           <div className="mt-5">
             <ViewToggle selectedView={selectedView} onSelectView={setSelectedView} />
           </div>
         </div>
-        <div className="mt-7">{imageView}</div>
+        <div className="mt-8">{imageView}</div>
       </>
     );
   });
