@@ -6,6 +6,7 @@ import { trpc } from '../utils/trpc';
 import { useQueryParams } from 'use-query-params';
 import { URL_PARAMS } from '../constants';
 import { Dialog, Transition } from '@headlessui/react';
+import { PrimaryButton, SecondaryButton, TertiaryButton } from './buttons';
 
 const UPDATE_TEXT =
   'Doing so will update the base images in S3 and will set visual regression status to passed! You should only do this if you are about to merge your PR.';
@@ -51,22 +52,18 @@ export const UpdateImagesButton = () => {
   const dialogDescriptionText = !baseImagesDirectory ? UPDATE_TEXT : undefined;
   const dialogContent = (
     <>
-      <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900">
+      <Dialog.Title as="h3" className="mt-2 text-xl font-semibold leading-6">
         {dialogTitleText}
       </Dialog.Title>
-      <Dialog.Description className="mt-2 text-sm text-gray-500">{dialogDescriptionText}</Dialog.Description>
+      <Dialog.Description className="mt-5 text-lg font-semibold text-slate-500">{dialogDescriptionText}</Dialog.Description>
 
-      <div className="mt-4">
-        <button autoFocus onClick={handleUpdate}>
+      <div className="flex justify-end mt-5">
+        <PrimaryButton autoFocus onClick={handleUpdate}>
           Update
-        </button>
-        <button
-          type="button"
-          className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-          onClick={handleDialogClose}
-        >
+        </PrimaryButton>
+        <TertiaryButton className="ml-3" onClick={handleDialogClose}>
           Cancel
-        </button>
+        </TertiaryButton>
       </div>
     </>
   );
@@ -88,14 +85,10 @@ export const UpdateImagesButton = () => {
   const baseImageUpdateStarted = baseImageState === UpdateBaseImagesText.UPDATING || baseImageState === UpdateBaseImagesText.UPDATED;
 
   return (
-    <div>
-      <button
-        disabled={baseImageUpdateStarted}
-        onClick={handleDialogOpen}
-        className="rounded-md bg-black bg-opacity-20 px-4 py-2 text-sm font-medium text-white hover:bg-opacity-30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75"
-      >
+    <>
+      <PrimaryButton disabled={baseImageUpdateStarted} onClick={handleDialogOpen}>
         {baseImageState}
-      </button>
+      </PrimaryButton>
       {baseImagesDirectory && <p>Custom base image directory {baseImagesDirectory} in use</p>}
       <Transition appear show={dialogIsOpen} as={Fragment}>
         <Dialog as="div" className="relative z-10" onClose={handleDialogClose}>
@@ -122,7 +115,7 @@ export const UpdateImagesButton = () => {
                 leaveFrom="opacity-100 scale-100"
                 leaveTo="opacity-0 scale-95"
               >
-                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                <Dialog.Panel className="w-full max-w-lg transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
                   {baseImageState === UpdateBaseImagesText.NOT_UPDATED ? dialogContent : dialogLoadingContent}
                 </Dialog.Panel>
               </Transition.Child>
@@ -130,6 +123,6 @@ export const UpdateImagesButton = () => {
           </div>
         </Dialog>
       </Transition>
-    </div>
+    </>
   );
 };

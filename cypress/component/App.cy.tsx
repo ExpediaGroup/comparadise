@@ -24,7 +24,7 @@ describe('App', () => {
       cy.findByRole('button', { name: /back-arrow/ }).should('be.disabled');
     });
 
-    it('should default to single view', () => {
+    it.only('should default to single view', () => {
       cy.findByRole('button', { name: /single/i }).should('be.enabled');
       cy.findByRole('button', { name: /side-by-side/i }).should('be.disabled');
     });

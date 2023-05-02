@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { RouterOutput } from '../utils/trpc';
+import { PrimaryButton, SecondaryButton, TertiaryButton } from './buttons';
 
 interface ImageViewChildProps {
   responseEntries: RouterOutput['getGroupedImages'][number]['entries'];
@@ -25,11 +26,17 @@ export const SingleImageView: React.FC<SingleImageViewProps> = ({ responseEntrie
       <div className="fixed bottom-20">
         {responseEntries.map((entry, index) => {
           const onClick = () => onSelectImage(index);
-          const buttonColor = selectedImageIndex === index ? 'bg-blue-500' : 'bg-slate-300';
+          const Button = selectedImageIndex === index ? PrimaryButton : SecondaryButton;
+          const extraStyles =
+            index === 0
+              ? 'rounded-s-md rounded-e-none'
+              : index === responseEntries.length - 1
+              ? 'rounded-s-none rounded-e-md'
+              : 'rounded-none';
           return (
-            <button key={entry.name} onClick={onClick} className={`${buttonColor}`}>
+            <Button key={entry.name} onClick={onClick} backgroundFilled className={`border border-slate-500 ${extraStyles}`}>
               {entry.name}
-            </button>
+            </Button>
           );
         })}
       </div>

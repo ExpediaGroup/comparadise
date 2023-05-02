@@ -54,22 +54,26 @@ export const MainPage = () => {
 
     const isLastSpec = specIndex >= groupedImages.length - 1;
     return (
-      <div className="max-h-screen">
+      <>
         <div key={name} className="flex flex-col items-center justify-center mt-10">
           <div className="flex items-center justify-between w-4/5">
             <button disabled={specIndex <= 0} onClick={onClickBackArrow} aria-label="back-arrow">
               <ArrowBackIcon disabled={specIndex <= 0} />
             </button>
-            <h1 className="text-center">{name}</h1>
+            <h1 className="text-center text-4xl font-medium">{name}</h1>
             <button disabled={isLastSpec} onClick={onClickForwardArrow} aria-label="forward-arrow">
               <ArrowForwardIcon disabled={isLastSpec} />
             </button>
           </div>
-          <UpdateImagesButton />
-          <ViewToggle selectedView={selectedView} onSelectView={setSelectedView} />
+          <div className="mt-5">
+            <UpdateImagesButton />
+          </div>
+          <div className="mt-5">
+            <ViewToggle selectedView={selectedView} onSelectView={setSelectedView} />
+          </div>
         </div>
-        {imageView}
-      </div>
+        <div className="mt-7">{imageView}</div>
+      </>
     );
   });
 
