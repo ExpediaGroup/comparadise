@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { Button, ButtonGroup } from '@mui/material';
 import { RouterOutput } from '../utils/trpc';
+import { PrimaryButton, SecondaryButton } from './buttons';
 
 interface ImageViewChildProps {
   responseEntries: RouterOutput['getGroupedImages'][number]['entries'];
@@ -22,22 +22,25 @@ export const SingleImageView: React.FC<SingleImageViewProps> = ({ responseEntrie
   }
 
   return (
-    <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center' }}>
-      <ButtonGroup style={{ margin: '10px 0px', position: 'fixed', bottom: '20px' }} variant="contained">
+    <div className="flex justify-center mt-5 mb-12">
+      <div className="fixed bottom-20">
         {responseEntries.map((entry, index) => {
           const onClick = () => onSelectImage(index);
+          const Button = selectedImageIndex === index ? PrimaryButton : SecondaryButton;
+          const extraStyles =
+            index === 0
+              ? 'rounded-s-md rounded-e-none'
+              : index === responseEntries.length - 1
+              ? 'rounded-s-none rounded-e-md'
+              : 'rounded-none';
           return (
-            <Button key={entry.name} onClick={onClick} color={selectedImageIndex === index ? 'primary' : 'inherit'}>
+            <Button key={entry.name} onClick={onClick} backgroundFilled className={`border border-slate-700 ${extraStyles}`}>
               {entry.name}
             </Button>
           );
         })}
-      </ButtonGroup>
-      <img
-        style={{ marginBottom: '100px' }}
-        src={responseEntries[selectedImageIndex].image}
-        alt={responseEntries[selectedImageIndex].name}
-      />
+      </div>
+      <img src={responseEntries[selectedImageIndex].image} alt={responseEntries[selectedImageIndex].name} />
     </div>
   );
 };
@@ -48,10 +51,10 @@ export const SideBySideImageView: React.FC<ImageViewChildProps> = ({ responseEnt
   }
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center' }}>
+    <div className="flex justify-center">
       {responseEntries.map(entry => (
         <div key={entry.name}>
-          <h2 style={{ textAlign: 'center' }}>{entry.name}</h2>
+          <h2 className="text-center">{entry.name}</h2>
           <img src={entry.image} alt={entry.name} />
         </div>
       ))}

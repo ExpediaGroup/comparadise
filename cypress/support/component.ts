@@ -1,6 +1,7 @@
 import './commands';
 
 import { mount } from 'cypress/react18';
+import '../../frontend/App.css';
 import { UPDATE_BASE_IMAGES_ERROR_MESSAGE } from '../../backend/constants';
 
 declare global {

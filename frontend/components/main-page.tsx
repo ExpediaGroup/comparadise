@@ -1,20 +1,17 @@
 import * as React from 'react';
-import { Homepage } from './Homepage';
-import { Error } from './Error';
-import { Loader } from './Loader';
-import ViewToggle, { ViewType } from './ViewToggle';
-import { Button } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import UpdateImagesButton from './UpdateImagesButton';
-import { SideBySideImageView, SingleImageView } from './ImageView';
-import { BaseImageStateProvider } from '../providers/BaseImageStateProvider';
+import { LandingPage } from './landing-page';
+import { Error } from './error';
+import { Loader } from './loader';
+import { ViewToggle, ViewType } from './view-toggle';
+import { UpdateImagesButton } from './update-images-button';
+import { SideBySideImageView, SingleImageView } from './image-views';
+import { BaseImageStateProvider } from '../providers/base-image-state-provider';
 import { RouterOutput, trpc } from '../utils/trpc';
 import { useQueryParams } from 'use-query-params';
-import { Classes, Root } from '../styles/main';
 import { URL_PARAMS } from '../constants';
+import { ArrowBackIcon, ArrowForwardIcon } from './arrows';
 
-export const Main = () => {
+export const MainPage = () => {
   const [{ hash, bucket }] = useQueryParams(URL_PARAMS);
 
   const [specIndex, setSpecIndex] = React.useState(0);
@@ -22,7 +19,7 @@ export const Main = () => {
   const [singleImageViewIndex, setSingleImageViewIndex] = React.useState(0);
 
   if (!hash || !bucket) {
-    return <Homepage />;
+    return <LandingPage />;
   }
 
   const { data: groupedImages, isLoading, error } = trpc.getGroupedImages.useQuery({ hash, bucket });
@@ -57,27 +54,31 @@ export const Main = () => {
 
     const isLastSpec = specIndex >= groupedImages.length - 1;
     return (
-      <Root key={name} style={{ width: '100%', display: 'flex', justifyContent: 'center', flexDirection: 'column' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '80%' }}>
-            <Button variant="contained" disabled={specIndex <= 0} onClick={onClickBackArrow}>
-              <ArrowBackIcon titleAccess="back-arrow" />
-            </Button>
-            <h1 style={{ textAlign: 'center' }}>{name}</h1>
-            <Button variant="contained" disabled={isLastSpec} onClick={onClickForwardArrow}>
-              <ArrowForwardIcon titleAccess="forward-arrow" />
-            </Button>
+      <>
+        <div key={name} className="flex flex-col items-center justify-center mt-10">
+          <div className="flex items-center justify-between w-4/5">
+            <button disabled={specIndex <= 0} onClick={onClickBackArrow} aria-label="back-arrow">
+              <ArrowBackIcon disabled={specIndex <= 0} />
+            </button>
+            <h1 className="text-center text-4xl font-medium">{name}</h1>
+            <button disabled={isLastSpec} onClick={onClickForwardArrow} aria-label="forward-arrow">
+              <ArrowForwardIcon disabled={isLastSpec} />
+            </button>
           </div>
-          <UpdateImagesButton />
-          <ViewToggle selectedView={selectedView} onSelectView={setSelectedView} />
+          <div className="mt-8">
+            <UpdateImagesButton />
+          </div>
+          <div className="mt-5">
+            <ViewToggle selectedView={selectedView} onSelectView={setSelectedView} />
+          </div>
         </div>
-        {imageView}
-      </Root>
+        <div className="mt-8">{imageView}</div>
+      </>
     );
   });
 
   return (
-    <div className={Classes.root}>
+    <div>
       <BaseImageStateProvider>{containers?.[specIndex]}</BaseImageStateProvider>
     </div>
   );
