@@ -59,7 +59,7 @@ describe('App', () => {
       cy.findByRole('button', { name: /side-by-side/i }).should('be.enabled');
     });
 
-    it.only('should display loader and update base images', () => {
+    it('should display loader and update base images', () => {
       cy.intercept('/trpc/updateBaseImages*', { fixture: 'mutation.json', delay: 1000 }).as('base-images');
       cy.findByRole('button', { name: /Update all base images/i }).click();
       cy.findByText(/Are you sure/i);

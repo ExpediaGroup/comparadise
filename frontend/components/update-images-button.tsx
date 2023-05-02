@@ -1,11 +1,11 @@
 import * as React from 'react';
-import { useState, useContext } from 'react';
+import { useState, useContext, Fragment } from 'react';
 import { Error } from './error';
 import { BaseImageStateContext, UpdateBaseImagesText } from '../providers/BaseImageStateProvider';
 import { trpc } from '../utils/trpc';
 import { useQueryParams } from 'use-query-params';
 import { URL_PARAMS } from '../constants';
-import { Dialog } from '@headlessui/react';
+import { Dialog, Transition } from '@headlessui/react';
 
 const UPDATE_TEXT =
   'Doing so will update the base images in S3 and will set visual regression status to passed! You should only do this if you are about to merge your PR.';
@@ -45,9 +45,45 @@ export const UpdateImagesButton = () => {
     return <Error error={error} />;
   }
 
-  const dialogContentText = baseImagesDirectory
+  const dialogTitleText = baseImagesDirectory
     ? `Custom base image directory in use. This will update the base images in ${baseImagesDirectory}`
     : 'Are you sure you want to update the base images?';
+  const dialogDescriptionText = !baseImagesDirectory ? UPDATE_TEXT : undefined;
+  const dialogContent = (
+    <>
+      <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900">
+        {dialogTitleText}
+      </Dialog.Title>
+      <Dialog.Description className="mt-2 text-sm text-gray-500">{dialogDescriptionText}</Dialog.Description>
+
+      <div className="mt-4">
+        <button autoFocus onClick={handleUpdate}>
+          Update
+        </button>
+        <button
+          type="button"
+          className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+          onClick={handleDialogClose}
+        >
+          Cancel
+        </button>
+      </div>
+    </>
+  );
+  const dialogLoadingContent = (
+    <div className="flex" aria-label="loader">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="animate-spin w-5 h-5 mr-2.5">
+        <path
+          fillRule="evenodd"
+          d="M15.312 11.424a5.5 5.5 0 01-9.201 2.466l-.312-.311h2.433a.75.75 0 000-1.5H3.989a.75.75 0 00-.75.75v4.242a.75.75 0 001.5 0v-2.43l.31.31a7 7 0 0011.712-3.138.75.75 0 00-1.449-.39zm1.23-3.723a.75.75 0 00.219-.53V2.929a.75.75 0 00-1.5 0V5.36l-.31-.31A7 7 0 003.239 8.188a.75.75 0 101.448.389A5.5 5.5 0 0113.89 6.11l.311.31h-2.432a.75.75 0 000 1.5h4.243a.75.75 0 00.53-.219z"
+          clipRule="evenodd"
+        />
+      </svg>
+      <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900">
+        Updating base images...
+      </Dialog.Title>
+    </div>
+  );
 
   const baseImageUpdateStarted = baseImageState === UpdateBaseImagesText.UPDATING || baseImageState === UpdateBaseImagesText.UPDATED;
 
@@ -61,19 +97,39 @@ export const UpdateImagesButton = () => {
         {baseImageState}
       </button>
       {baseImagesDirectory && <p>Custom base image directory {baseImagesDirectory} in use</p>}
-      <Dialog onClose={handleDialogClose} open={dialogIsOpen}>
-        <Dialog.Panel>
-          <Dialog.Title>{baseImageState === UpdateBaseImagesText.UPDATING ? 'Updating base images...' : dialogContentText}</Dialog.Title>
-          <Dialog.Description>{!baseImagesDirectory && UPDATE_TEXT}</Dialog.Description>
-          {UpdateBaseImagesText.UPDATING && <div aria-label="loader" />}
-          <button autoFocus onClick={handleUpdate}>
-            Update
-          </button>
-          <button onClick={handleDialogClose}>Cancel</button>
-        </Dialog.Panel>
-      </Dialog>
+      <Transition appear show={dialogIsOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-10" onClose={handleDialogClose}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black bg-opacity-25" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                  {baseImageState === UpdateBaseImagesText.NOT_UPDATED ? dialogContent : dialogLoadingContent}
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
     </div>
   );
 };
-
-export default UpdateImagesButton;
