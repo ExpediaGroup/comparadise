@@ -14,7 +14,7 @@ const getButton = (props: ButtonProps, styles: string) => {
       {props.children}
     </button>
   );
-}
+};
 
 const getStyles = (props: ButtonProps, stylesMap: typeof primaryStylesMap) => {
   if (props.backgroundFilled && props.disabled) {
@@ -26,25 +26,25 @@ const getStyles = (props: ButtonProps, stylesMap: typeof primaryStylesMap) => {
   } else {
     return stylesMap.default;
   }
-}
+};
 
 const primaryStylesMap = {
   default: 'border border-sky-600 text-sky-600 hover:bg-sky-100',
   disabled: 'border border-slate-400 text-slate-400',
   backgroundFilled: 'bg-green-600 text-white',
-  backgroundFilledDisabled: 'bg-slate-400 text-slate-400',
+  backgroundFilledDisabled: 'bg-slate-400 text-slate-400'
 };
 const secondaryStylesMap = {
   default: 'border border-slate-700 text-slate-700 hover:bg-slate-100',
   disabled: 'border border-slate-300 text-slate-300',
   backgroundFilled: 'bg-slate-300 text-black',
-  backgroundFilledDisabled: 'bg-slate-300 text-white',
+  backgroundFilledDisabled: 'bg-slate-300 text-white'
 };
 const tertiaryStylesMap = {
   default: 'border border-amber-500 text-amber-500 hover:bg-amber-100',
   disabled: 'border border-slate-400 text-slate-400',
   backgroundFilled: 'bg-purple-800 text-white',
-  backgroundFilledDisabled: 'bg-slate-300 text-white',
+  backgroundFilledDisabled: 'bg-slate-300 text-white'
 };
 
 export const PrimaryButton = (props: ButtonProps) => {
