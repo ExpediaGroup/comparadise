@@ -85,11 +85,10 @@ jobs:
         with:
           node-version-file: .nvmrc
 
-      - name: Install
-        run: npm ci
-
-      - name: Test
-        run: npm run test:frontend
+      - name: Install and Test
+        uses: cypress-io/github-action@v5
+        with:
+          component: true
 
   integration:
     name: Integration Tests
