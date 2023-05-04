@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-const getFillColor = (disabled?: boolean) => disabled ? 'fill-amber-100' : 'fill-amber-700'
+const getFillColor = (disabled?: boolean) => disabled ? 'fill-sky-100' : 'fill-sky-500'
 
 export const ArrowForwardIcon = ({ disabled }: { disabled?: boolean }) => {
   return (
