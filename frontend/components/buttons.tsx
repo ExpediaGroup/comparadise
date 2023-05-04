@@ -32,7 +32,7 @@ const primaryStylesMap = {
   default: 'border border-sky-600 text-sky-600 hover:bg-sky-100',
   disabled: 'border border-slate-400 text-slate-400',
   backgroundFilled: 'bg-green-600 text-white',
-  backgroundFilledDisabled: 'bg-slate-400 text-slate-400'
+  backgroundFilledDisabled: 'bg-slate-300 text-white'
 };
 const secondaryStylesMap = {
   default: 'border border-slate-700 text-slate-700 hover:bg-slate-100',
@@ -43,7 +43,7 @@ const secondaryStylesMap = {
 const tertiaryStylesMap = {
   default: 'border border-amber-500 text-amber-500 hover:bg-amber-100',
   disabled: 'border border-slate-400 text-slate-400',
-  backgroundFilled: 'bg-purple-800 text-white',
+  backgroundFilled: 'bg-amber-500 text-white',
   backgroundFilledDisabled: 'bg-slate-300 text-white'
 };
 
