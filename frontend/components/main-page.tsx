@@ -55,8 +55,8 @@ export const MainPage = () => {
     const isLastSpec = specIndex >= groupedImages.length - 1;
     return (
       <>
-        <div key={name} className="flex flex-col items-center justify-center mt-10">
-          <div className="flex items-center justify-between w-4/5">
+        <div key={name} className="mt-10 flex flex-col items-center justify-center">
+          <div className="flex w-4/5 items-center justify-between">
             <button disabled={specIndex <= 0} onClick={onClickBackArrow} aria-label="back-arrow">
               <ArrowBackIcon disabled={specIndex <= 0} />
             </button>

@@ -22,7 +22,7 @@ export const SingleImageView: React.FC<SingleImageViewProps> = ({ responseEntrie
   }
 
   return (
-    <div className="flex justify-center mt-5 mb-12">
+    <div className="mb-12 mt-5 flex justify-center">
       <div className="fixed bottom-20">
         {responseEntries.map((entry, index) => {
           const onClick = () => onSelectImage(index);
