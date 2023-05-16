@@ -14084,9 +14084,11 @@ const core_1 = __nccwpck_require__(2186);
 const createGithubComment = async () => {
     const bucketName = (0, core_1.getInput)('bucket-name', { required: true });
     const commitHash = (0, core_1.getInput)('commit-hash', { required: true });
+    const comparadiseHost = (0, core_1.getInput)('comparadise-host');
     const { owner, repo } = github_1.context.repo;
-    const comparadiseUrl = `https://comparadise.rcp.us-west-2.partnerexperiences.test.exp-aws.net/?hash=${commitHash}&owner=${owner}&repo=${repo}&bucket=${bucketName}`;
-    const comparadiseBaseComment = `**Visual tests failed!**\nCheck out the diffs on [Comparadise](${comparadiseUrl})! :palm_tree:`;
+    const comparadiseUrl = `${comparadiseHost}/?hash=${commitHash}&owner=${owner}&repo=${repo}&bucket=${bucketName}`;
+    const comparadiseLink = comparadiseHost ? `[Comparadise](${comparadiseUrl})` : 'Comparadise';
+    const comparadiseBaseComment = `**Visual tests failed!**\nCheck out the diffs on ${comparadiseLink}! :palm_tree:`;
     const comparadiseCommentDetails = (0, core_1.getInput)('comment-details');
     const comparadiseComment = comparadiseCommentDetails ? `${comparadiseBaseComment}\n${comparadiseCommentDetails}` : comparadiseBaseComment;
     const { data } = await octokit_1.octokit.rest.repos.listPullRequestsAssociatedWithCommit({
