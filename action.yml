@@ -23,7 +23,7 @@ inputs:
     required: false
     default: 'base-images'
   comparadise-host:
-    description: ''
+    description: 'The URL at which you are hosting Comparadise'
     required: false
   comment-details:
     description: 'Additional details you would like to leave on the Comparadise comment'
