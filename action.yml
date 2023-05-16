@@ -1,0 +1,40 @@
+name: 'comparadise'
+description: 'A Github Action for using Comparadise with visual regression tests'
+author: 'Dan Adajian'
+inputs:
+  visual-test-command:
+    description: 'The command that runs your visual tests. Can be multiple lines!'
+    required: true
+  bucket-name:
+    description: 'The S3 bucket name'
+    required: true
+  commit-hash:
+    description: 'The commit hash'
+    required: true
+  screenshots-directory:
+    description: 'The directory where your visual tests expect screenshots to be'
+    required: false
+    default: screenshots
+  package-paths:
+    description: 'Comma separated list of package paths for monorepos'
+    required: false
+  base-images-directory:
+    description: 'The comment you would like to leave on PRs when visual tests fail'
+    required: false
+    default: 'base-images'
+  comparadise-host:
+    description: ''
+    required: false
+  comment-details:
+    description: 'Additional details you would like to leave on the Comparadise comment'
+    required: false
+  github-token:
+    description: 'The GitHub access token'
+    required: false
+    default: ${{ github.token }}
+runs:
+  using: 'node16'
+  main: 'action/dist/index.js'
+branding:
+  icon: layout
+  color: green
