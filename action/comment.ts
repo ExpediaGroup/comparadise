@@ -1,6 +1,6 @@
 import { octokit } from './octokit';
 import { context } from '@actions/github';
-import { getInput, setFailed } from '@actions/core';
+import { getInput } from '@actions/core';
 
 export const createGithubComment = async () => {
   const bucketName = getInput('bucket-name', { required: true });
