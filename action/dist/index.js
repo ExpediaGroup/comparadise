@@ -14095,11 +14095,7 @@ const createGithubComment = async () => {
         commit_sha: commitHash,
         ...github_1.context.repo
     });
-    const prNumber = data.find(Boolean)?.number;
-    if (!prNumber) {
-        (0, core_1.setFailed)('No pull request found for commit hash.');
-        return;
-    }
+    const prNumber = data.find(Boolean)?.number ?? github_1.context.issue.number;
     const { data: comments } = await octokit_1.octokit.rest.issues.listComments({
         issue_number: prNumber,
         ...github_1.context.repo
