@@ -10,13 +10,20 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  publish-npm-package:
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
+      - name: Validate package.json
+        uses: ExpediaGroup/package-json-validator@v1
         with:
-          fetch-depth: 0
+          rules: ranges
+          dependency-types: |
+            dependencies
+            devDependencies
 
       - name: Setup Node
         uses: actions/setup-node@v3
@@ -25,18 +32,117 @@ jobs:
 
       - name: Install
         run: npm ci
-        working-directory: utils
 
-      - name: Build
-        run: npm run build
-        working-directory: utils
+      - name: Format
+        id: format
+        run: npm run format-check
 
-      - name: Version
-        run: npm version 0.0.1
-        working-directory: utils
-
-      - name: Publish
+      - if: failure()
+        name: Make the code pretty
         run: |
-          npm config set _authToken=${{ secrets.NPM_TOKEN }}
-          npm publish
-        working-directory: utils
+          npm run format
+          git status
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+          git add .
+          git commit -m "chore: make the code pretty"
+          git push
+
+      - name: Lint
+        run: npm run lint
+
+  backend:
+    name: Backend Tests
+    needs:
+      - lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install
+        run: npm ci
+
+      - name: Test
+        run: npm run test:backend
+
+  frontend:
+    name: Frontend Tests
+    needs:
+      - lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install and Test
+        uses: cypress-io/github-action@v5
+        with:
+          component: true
+
+  integration:
+    name: Integration Tests
+    needs:
+      - lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install
+        run: npm ci
+
+      - name: Run Cypress Tests Against Docker Container
+        run: npm run test:integration
+
+  action:
+    name: Action Tests
+    needs:
+      - lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Package
+        run: npm run package
+
+      - name: Compare the expected and actual actions/dist/ directories
+        run: |
+          if [[ $(git status --porcelain) ]]; then
+            echo "Detected uncommitted changes after build. See status below:"
+            git status
+            git config user.name "${{ github.actor }}"
+            git config user.email "${{ github.actor }}@users.noreply.github.com"
+            git add action/dist/
+            git commit -m "chore: comitting generated actions/dist/"
+            git push
+            exit 1
+          fi
