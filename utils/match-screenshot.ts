@@ -43,7 +43,7 @@ export function matchScreenshot(subject: Cypress.JQueryWithSelector | Window | D
   const testPath = Cypress.spec.relative;
   const lastSlashIndex = testPath.lastIndexOf('/');
   const testPathWithoutFileName = testPath.substring(0, lastSlashIndex);
-  const screenshotPath = `${testPathWithoutFileName}/${rawName}`;
+  const screenshotPath = `${screenshotsFolder}/${testPathWithoutFileName}/${rawName}`;
 
   cy.task('baseExists', screenshotPath).then(hasBase => {
     if (typeof hasBase !== 'boolean') throw new Error('Result of baseExists task was not a boolean.');
