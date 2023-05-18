@@ -6,18 +6,12 @@ const PIXELMATCH_OPTIONS = {
   threshold: 0.3
 };
 
-/**
- * Helper function to create reusable image resizer
- */
 const createImageResizer = (width: number, height: number) => (source: any) => {
   const resized = new PNG({ width, height, fill: true });
   PNG.bitblt(source, resized, 0, 0, source.width, source.height, 0, 0);
   return resized;
 };
 
-/**
- * Fills new area added after resize with transparent black color.
- */
 const fillSizeDifference = (width: number, height: number) => (image: any) => {
   const inArea = (x: number, y: number) => y > height || x > width;
   for (let y = 0; y < image.height; y++) {
@@ -34,10 +28,6 @@ const fillSizeDifference = (width: number, height: number) => (image: any) => {
   return image;
 };
 
-/**
- * Aligns images sizes to biggest common value
- * and fills new pixels with transparent pixels
- */
 function alignImagesToSameSize(firstImage: any, secondImage: any) {
   // Keep original sizes to fill extended area later
   const firstImageWidth = firstImage.width;
@@ -56,12 +46,6 @@ function alignImagesToSameSize(firstImage: any, secondImage: any) {
   ];
 }
 
-/**
- * Compares a base and new image and returns the pixel difference
- * and diff PNG for writing the diff image to.
- * @param {string} basePath - Full file path to base image
- * @param {string} actualPath - Full file path to new image
- */
 export function getDiffPixels(basePath: string, actualPath: string) {
   const rawBase = PNG.sync.read(fs.readFileSync(basePath));
   const rawActual = PNG.sync.read(fs.readFileSync(actualPath));
