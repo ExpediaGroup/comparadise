@@ -36,8 +36,7 @@ jobs:
         working-directory: utils
 
       - name: Publish
-        run: npm publish
+        run: |
+          npm config set _authToken=${{ secrets.NPM_TOKEN }}
+          npm publish
         working-directory: utils
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
