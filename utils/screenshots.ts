@@ -3,8 +3,8 @@ import { join } from 'path';
 import { PNG } from 'pngjs';
 import { getDiffPixels } from './images';
 
-export function baseExists(path: string) {
-  const fileName = join(path, 'base.png');
+export function baseExists(screenshotFolder: string) {
+  const fileName = join(screenshotFolder, 'base.png');
   const exists = fs.existsSync(fileName);
 
   if (!exists) {

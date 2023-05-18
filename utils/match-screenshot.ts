@@ -40,27 +40,31 @@ export function matchScreenshot(subject: Cypress.JQueryWithSelector | Window | D
   if (!screenshotsFolder) {
     throw new Error('No screenshots folder found!');
   }
+  const testPath = Cypress.spec.relative;
+  const lastSlashIndex = testPath.lastIndexOf('/');
+  const testPathWithoutFileName = testPath.substring(0, lastSlashIndex);
+  const screenshotPath = `${testPathWithoutFileName}/${rawName}`;
 
-  cy.task('baseExists', screenshotsFolder).then(hasBase => {
+  cy.task('baseExists', screenshotPath).then(hasBase => {
+    if (typeof hasBase !== 'boolean') throw new Error('Result of baseExists task was not a boolean.');
+
     const target = subject ? cy.wrap(subject) : cy;
-    target.screenshot('new', { ...options, overwrite: true });
+    target.screenshot(`${screenshotPath}/new`, { ...options, overwrite: true });
 
     if (!hasBase) {
-      cy.task('log', `❌ A new base image was created. Add this as a new base image via Comparadise!`);
+      cy.task('log', `❌ A new base image was created at ${screenshotPath}. Add this as a new base image via Comparadise!`);
       return;
     }
 
-    cy.task('compareScreenshots', screenshotsFolder).then(diffPixels => {
+    cy.task('compareScreenshots', screenshotPath).then(diffPixels => {
+      if (typeof diffPixels !== 'number') throw new Error('Result of compareScreenshots task was not a number.');
+
       if (diffPixels === 0) {
         cy.log('✅ Actual image was the same as base.');
-
-        return null;
+      } else {
+        cy.task('log', `❌ Actual image of differed by ${diffPixels} pixels.`);
       }
-
-      cy.task('log', `❌ Actual image of differed by ${diffPixels} pixels.`);
     });
-
-    return null;
   });
 }
 
