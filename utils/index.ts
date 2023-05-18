@@ -1,9 +1,7 @@
 import { matchScreenshot, MatchScreenshotArgs } from './src/match-screenshot';
+export { setupVisualTests } from './src/setup-visual-tests';
 
-export * from './src';
-
-Cypress.Commands.add('matchScreenshot', { prevSubject: ['optional', 'element', 'window', 'document'] }, matchScreenshot);
-
+export {};
 declare global {
   namespace Cypress {
     interface Chainable {
@@ -11,3 +9,5 @@ declare global {
     }
   }
 }
+
+Cypress.Commands.add('matchScreenshot', { prevSubject: ['optional', 'element', 'window', 'document'] }, matchScreenshot);
