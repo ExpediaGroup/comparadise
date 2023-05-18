@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import path, { join } from 'path';
+import { join } from 'path';
 import { PNG } from 'pngjs';
 import { getDiffPixels } from './images';
 
