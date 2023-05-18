@@ -2,7 +2,7 @@ import * as fs from 'fs';
 
 export function onAfterScreenshot(details: Cypress.ScreenshotDetails): Promise<Cypress.AfterScreenshotReturnObject> {
   console.log('🧸 Screenshot was saved to:', details.path);
-  if (!details.path.match('cypress')) {
+  if (!details.specName.includes('visual')) {
     return Promise.resolve({});
   }
 
