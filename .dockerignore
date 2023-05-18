@@ -1,6 +1,7 @@
-node_modules
+.github
 action
 cypress
 dist
-.github
+node_modules
+utils
 *.md

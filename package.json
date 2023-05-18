@@ -49,6 +49,7 @@
   "scripts": {
     "build": "tsc && vite build",
     "build:docker": "docker build . --tag comparadise && docker-compose up",
+    "build:utils": "tsc --project utils",
     "cypress:e2e": "cypress run --e2e",
     "cypress:open": "cypress open --component --browser chrome",
     "dev": "npm run start:frontend & npm-watch",
