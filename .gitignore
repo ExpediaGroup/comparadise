@@ -10,6 +10,9 @@ node_modules
 dist
 !action/dist
 
+# utils
+utils/commands.js
+
 # misc
 .DS_Store
 .env.local

@@ -4,6 +4,7 @@
     "declaration": true,
     "types": ["cypress"],
     "noEmit": false,
+    "sourceMap": false,
     "outDir": "dist"
   },
   "include": ["**/*.ts"],

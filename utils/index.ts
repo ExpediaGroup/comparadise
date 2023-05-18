@@ -1,13 +1,14 @@
-import { matchScreenshot, MatchScreenshotArgs } from './src/match-screenshot';
-export { setupVisualTests } from './src/setup-visual-tests';
+import { baseExists, compareScreenshots } from './screenshots';
 
-export {};
-declare global {
-  namespace Cypress {
-    interface Chainable {
-      matchScreenshot(args?: MatchScreenshotArgs): Chainable;
+export function setupVisualTests(on: Cypress.PluginEvents, config: Cypress.PluginConfigOptions) {
+  on('task', {
+    baseExists,
+    compareScreenshots,
+    log: (message: string) => {
+      console.log(message);
+      return null;
     }
-  }
-}
+  });
 
-Cypress.Commands.add('matchScreenshot', { prevSubject: ['optional', 'element', 'window', 'document'] }, matchScreenshot);
+  return config;
+}

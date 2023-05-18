@@ -25,6 +25,7 @@
     "@types/pngjs": "6.0.1"
   },
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "postbuild": "echo \"require('./match-screenshot');\" > commands.js"
   }
 }
