@@ -18,6 +18,5 @@
     "noEmit": true
   },
   "include": ["action", "backend", "frontend"],
-  "exclude": ["./**/*.test.ts", "cypress"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

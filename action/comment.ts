@@ -1,6 +1,6 @@
 import { octokit } from './octokit';
 import { context } from '@actions/github';
-import { getInput, setFailed } from '@actions/core';
+import { getInput } from '@actions/core';
 
 export const createGithubComment = async () => {
   const bucketName = getInput('bucket-name', { required: true });
@@ -17,11 +17,7 @@ export const createGithubComment = async () => {
     commit_sha: commitHash,
     ...context.repo
   });
-  const prNumber = data.find(Boolean)?.number;
-  if (!prNumber) {
-    setFailed('No pull request found for commit hash.');
-    return;
-  }
+  const prNumber = data.find(Boolean)?.number ?? context.issue.number;
 
   const { data: comments } = await octokit.rest.issues.listComments({
     issue_number: prNumber,

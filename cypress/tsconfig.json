@@ -3,5 +3,5 @@
     "types": ["cypress"],
     "jsx": "react"
   },
-  "include": ["**/*.ts", "**/*.tsx", "../node_modules/cypress"]
+  "include": ["**/*.ts", "**/*.tsx"]
 }

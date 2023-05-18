@@ -20,7 +20,7 @@ jest.mock('@actions/github', () => ({
   }))
 }));
 
-const inputMap = {
+const inputMap: Record<string, string> = {
   'screenshots-directory': 'path/to/screenshots',
   'bucket-name': 'some-bucket',
   'commit-hash': 'sha',
@@ -28,7 +28,7 @@ const inputMap = {
   'github-token': 'some-token'
 };
 (getInput as jest.Mock).mockImplementation(name => inputMap[name]);
-const multiLineInputMap = {
+const multiLineInputMap: Record<string, string[]> = {
   'visual-test-command': ['run my visual tests']
 };
 (getMultilineInput as jest.Mock).mockImplementation(name => multiLineInputMap[name]);
@@ -81,7 +81,8 @@ describe('main', () => {
 
   it('should use subdirectories if provided', async () => {
     (exec as jest.Mock).mockResolvedValue(0);
-    (getInput as jest.Mock).mockImplementation(name => ({ ...inputMap, 'package-paths': 'path/1,path/2' }[name]));
+    const extendedInputMap: Record<string, string> = { ...inputMap, 'package-paths': 'path/1,path/2' };
+    (getInput as jest.Mock).mockImplementation(name => extendedInputMap[name]);
     (sync as jest.Mock).mockReturnValue(['path/to/screenshots/base.png', 'path/to/screenshots/diff.png', 'path/to/screenshots/new.png']);
     await run();
     expect(exec).toHaveBeenCalledWith('aws s3 cp s3://some-bucket/base-images/path/1 path/to/screenshots/path/1 --recursive');
