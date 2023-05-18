@@ -36,6 +36,36 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
+  publish-npm-package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        run: npm run build:utils
+
+      - run: echo VERSION="${GITHUB_REF:1}" >> $GITHUB_ENV
+
+      - name: Version
+        run: npm version ${{ env.VERSION }}
+
+      - name: Publish
+        run: npm publish --tag ${{ env.VERSION }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
   publish-tags:
     runs-on: ubuntu-latest
     steps:
