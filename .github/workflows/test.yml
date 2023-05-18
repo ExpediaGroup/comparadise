@@ -25,15 +25,19 @@ jobs:
 
       - name: Install
         run: npm ci
+        working-directory: utils
 
       - name: Build
-        run: npm run build:utils
+        run: npm run build
+        working-directory: utils
 
       - name: Version
         run: npm version 0.0.1
+        working-directory: utils
 
       - name: Publish
         run: npm publish --tag 0.0.1
+        working-directory: utils
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

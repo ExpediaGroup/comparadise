@@ -24,5 +24,8 @@
   "devDependencies": {
     "@types/pixelmatch": "5.2.4",
     "@types/pngjs": "6.0.1"
+  },
+  "scripts": {
+    "build": "tsc"
   }
 }
