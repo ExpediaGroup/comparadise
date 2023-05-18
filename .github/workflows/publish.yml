@@ -51,17 +51,21 @@ jobs:
 
       - name: Install
         run: npm ci
+        working-directory: utils
 
       - name: Build
-        run: npm run build:utils
+        run: npm run build
+        working-directory: utils
 
       - run: echo VERSION="${GITHUB_REF:1}" >> $GITHUB_ENV
 
       - name: Version
         run: npm version ${{ env.VERSION }}
+        working-directory: utils
 
       - name: Publish
-        run: npm publish --tag $GITHUB_REF
+        run: npm publish
+        working-directory: utils
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
