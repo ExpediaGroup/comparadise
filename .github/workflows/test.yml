@@ -36,7 +36,7 @@ jobs:
         working-directory: utils
 
       - name: Publish
-        run: npm publish --tag 0.0.1
+        run: npm publish --tag v0.0.1
         working-directory: utils
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
