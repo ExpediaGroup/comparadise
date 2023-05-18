@@ -38,5 +38,5 @@ jobs:
       - name: Publish
         run: |
           npm config set _authToken=${{ secrets.NPM_TOKEN }}
-          npm publish --access public
+          npm publish
         working-directory: utils
