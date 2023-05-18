@@ -49,7 +49,7 @@ export function matchScreenshot(subject: Cypress.JQueryWithSelector | Window | D
     if (typeof hasBase !== 'boolean') throw new Error('Result of baseExists task was not a boolean.');
 
     const target = subject ? cy.wrap(subject) : cy;
-    target.screenshot(`${screenshotPath}/new`, { ...options, overwrite: true });
+    target.screenshot(`${testPathWithoutFileName}/${rawName}/new`, { ...options, overwrite: true });
 
     if (!hasBase) {
       cy.task('log', `❌ A new base image was created at ${screenshotPath}. Add this as a new base image via Comparadise!`);
