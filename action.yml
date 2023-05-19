@@ -14,7 +14,7 @@ inputs:
   screenshots-directory:
     description: 'The directory where your visual tests expect screenshots to be'
     required: false
-    default: screenshots
+    default: cypress/screenshots
   package-paths:
     description: 'Comma separated list of package paths for monorepos'
     required: false

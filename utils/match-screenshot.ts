@@ -43,13 +43,18 @@ export function matchScreenshot(subject: Cypress.JQueryWithSelector | Window | D
   const testPath = Cypress.spec.relative;
   const lastSlashIndex = testPath.lastIndexOf('/');
   const testPathWithoutFileName = testPath.substring(0, lastSlashIndex);
-  const screenshotPath = `${screenshotsFolder}/${testPathWithoutFileName}/${rawName}`;
+  const testFileName = testPath.substring(lastSlashIndex + 1);
+  const testFileNameWithoutExtension = testFileName.split('.')[0];
+  const testName = rawName || testFileNameWithoutExtension;
+  const screenshotPath = `${screenshotsFolder}/${testPathWithoutFileName}/${testName}`;
 
   cy.task('baseExists', screenshotPath).then(hasBase => {
     if (typeof hasBase !== 'boolean') throw new Error('Result of baseExists task was not a boolean.');
 
     const target = subject ? cy.wrap(subject) : cy;
-    target.screenshot(`${testPathWithoutFileName}/${rawName}/new`, { ...options, overwrite: true });
+
+    // Cypress prepends the configured screenshotsFolder automatically here, so we must omit it
+    target.screenshot(`${testPathWithoutFileName}/${testName}/new`, { ...options, overwrite: true });
 
     if (!hasBase) {
       cy.task('log', `❌ A new base image was created at ${screenshotPath}. Add this as a new base image via Comparadise!`);
