@@ -35,11 +35,6 @@ function getTestFolderPathFromScripts(rawName?: string) {
   };
 }
 
-interface MatchScreenshotArgs {
-  rawName?: string;
-  options?: Partial<Cypress.ScreenshotOptions>;
-}
-
 function verifyImages() {
   if (Cypress.$('img:visible').length > 0) {
     cy.document()
@@ -55,6 +50,11 @@ function verifyImages() {
       });
   }
 }
+
+type MatchScreenshotArgs = {
+  rawName?: string;
+  options?: Partial<Cypress.ScreenshotOptions>;
+};
 
 function matchScreenshot(subject: Cypress.JQueryWithSelector | Window | Document | void, args?: MatchScreenshotArgs) {
   const { rawName, options = {} } = args ?? {};
@@ -82,20 +82,10 @@ function matchScreenshot(subject: Cypress.JQueryWithSelector | Window | Document
     cy.task('compareScreenshots', screenshotsFolder).then(diffPixels => {
       if (diffPixels === 0) {
         cy.log(`✅ Actual image of ${name} was the same as base`);
-
-        return null;
+      } else {
+        cy.task('log', `❌ Actual image of ${name} differed by ${diffPixels} pixels.`);
       }
-
-      const screenshotUrl = Cypress.env('BUILD_URL') ? `${Cypress.env('BUILD_URL')}artifact/${screenshotsFolder}` : screenshotsFolder;
-
-      cy.task(
-        'log',
-        `❌ Actual image of ${name} differed by ${diffPixels} pixels.
-             See the diff image for more details >>  ${screenshotUrl}/diff.png`
-      );
     });
-
-    return null;
   });
 }
 

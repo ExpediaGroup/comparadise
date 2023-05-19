@@ -25,8 +25,6 @@ export function createNewScreenshot(screenshotFolder: string) {
       console.error('❌Unable to create new.png', err);
     }
   });
-
-  return null;
 }
 
 /**
@@ -43,14 +41,14 @@ export function compareScreenshots(screenshotFolder: string) {
     // Create diff.png next to base and new for review
     fs.writeFile(createImageFileName(screenshotFolder, 'diff'), PNG.sync.write(diff), err => {
       if (err) {
-        console.error('❌Diff exists but unable to create diff.png', err);
+        console.error('❌ Diff exists but unable to create diff.png', err);
       }
     });
   } else {
     // Delete created new.png. Not needed if there's no diff
     fs.unlink(actualPath, err => {
       if (err) {
-        console.error('❌No diff but unable to deleteactualPath}', err);
+        console.error('❌ No diff but unable to delete actualPath}', err);
       }
     });
   }
@@ -65,7 +63,7 @@ export function compareScreenshots(screenshotFolder: string) {
  */
 export function onAfterScreenshot(details: Cypress.ScreenshotDetails): Promise<Cypress.AfterScreenshotReturnObject> {
   console.log('🧸 Screenshot was saved to:', details.path);
-  if (!details.path.match('cypress')) {
+  if (!details.path.match('visual')) {
     return Promise.resolve({});
   }
 
@@ -85,7 +83,6 @@ export function onAfterScreenshot(details: Cypress.ScreenshotDetails): Promise<C
 
   try {
     fs.mkdirSync(newPathDir, { recursive: true });
-    console.log('🧸 No screenshot folder found in the package. Created new screenshot folder:', newPathDir);
   } catch (err) {
     console.error('❌ Error creating new screenshot folder:', newPathDir, err);
   }
