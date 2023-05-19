@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import { PNG } from 'pngjs';
-const pixelmatch = require('pixelmatch');
+import pixelmatch from 'pixelmatch';
 
 const PIXELMATCH_OPTIONS = {
   threshold: 0.3

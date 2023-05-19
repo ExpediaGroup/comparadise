@@ -24,11 +24,9 @@ function getTestFolderPathFromScripts(rawName?: string) {
     throw new Error('❌ Could not find matching script in the Cypress DOM to infer the test folder path');
   }
 
-  // i.e. payment-card-cvvdialog
   const testName = relativeTestPath.substring(relativeTestPath.lastIndexOf('/') + 1, relativeTestPath.lastIndexOf(SUFFIX_TEST_IDENTIFIER));
   const name = rawName || testName;
 
-  // i.e. screenshots/packages/flights/forced-choice/test/visual/forced-choice/payment-card-cvvdialog
   const screenshotsFolder = `${SCREENSHOTS_FOLDER_NAME}/${relativeTestPath.substring(0, relativeTestPath.lastIndexOf(testName))}${name}`;
 
   return {
