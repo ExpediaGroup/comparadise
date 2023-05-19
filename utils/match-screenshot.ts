@@ -1,82 +1,115 @@
-function verifyImages() {
-  if (Cypress.$('img:visible').length > 0) {
-    cy.document()
-      .its('body')
-      .find('img')
-      .filter(':visible')
-      .then(images => {
-        if (images) {
-          cy.wrap(images).each($img => {
-            cy.wrap($img).should('exist').and('have.prop', 'naturalWidth');
-          });
-        }
-      });
-  }
-}
+const PREFIX_DIFFERENTIATOR = '___';
+const SUFFIX_TEST_IDENTIFIER = '.spec.ts';
+const SCREENSHOTS_FOLDER_NAME = 'screenshots';
 
 function forceFont() {
-  const iframe = window.parent.document.querySelector('iframe');
+  const iframe = window.parent.document.querySelector(
+      "iframe"
+  );
   const contentDocument = iframe && iframe.contentDocument;
 
   if (contentDocument) {
     const style = contentDocument.createElement('style');
     style.type = 'text/css';
-    style.appendChild(contentDocument.createTextNode('* { font-family: Arial !important; }'));
+    style.appendChild(
+        contentDocument.createTextNode(
+            '* { font-family: Arial !important; }'
+        )
+    );
     contentDocument.head.appendChild(style);
+    return style;
+  }
+
+  return false;
+}
+
+function getTestFolderPathFromScripts(rawName?: string) {
+  const relativeTestPath = Cypress.spec.relative;
+
+  if (!relativeTestPath) {
+    throw new Error(
+        '❌ Could not find matching script in the Cypress DOM to infer the test folder path'
+    );
+  }
+
+  // i.e. payment-card-cvvdialog
+  const testName = relativeTestPath.substring(relativeTestPath.lastIndexOf('/') + 1, relativeTestPath.lastIndexOf(SUFFIX_TEST_IDENTIFIER));
+  const name = rawName || testName;
+
+  // i.e. screenshots/packages/flights/forced-choice/test/visual/forced-choice/payment-card-cvvdialog
+  const screenshotsFolder = `${SCREENSHOTS_FOLDER_NAME}/${relativeTestPath.substring(
+      0,
+      relativeTestPath.lastIndexOf(testName)
+  )}${name}`;
+
+  return {
+    name,
+    screenshotsFolder
   }
 }
 
-export type MatchScreenshotArgs = {
+interface MatchScreenshotArgs {
   rawName?: string;
   options?: Partial<Cypress.ScreenshotOptions>;
-};
-
-export function matchScreenshot(subject: Cypress.JQueryWithSelector | Window | Document | void, args?: MatchScreenshotArgs) {
-  const { rawName, options = {} } = args || {};
-  forceFont();
-  verifyImages();
-
-
-  const screenshotsFolder = 'cypress/screenshots';
-  const testPath = Cypress.spec.relative;
-  const lastSlashIndex = testPath.lastIndexOf('/');
-  const testPathWithoutFileName = testPath.substring(0, lastSlashIndex);
-  const testFileName = testPath.substring(lastSlashIndex + 1);
-  const testFileNameWithoutExtension = testFileName.split('.')[0];
-  const testName = rawName || testFileNameWithoutExtension;
-  const screenshotPath = `${screenshotsFolder}/${testPathWithoutFileName}/${testName}`;
-
-  cy.task('baseExists', screenshotPath).then(hasBase => {
-    if (typeof hasBase !== 'boolean') throw new Error('Result of baseExists task was not a boolean.');
-
-    const target = subject ? cy.wrap(subject) : cy;
-
-    // Cypress prepends the configured screenshotsFolder automatically here, so we must omit it
-    target.screenshot(`${testPathWithoutFileName}/${testName}/new`, { ...options, overwrite: true });
-
-    if (!hasBase) {
-      cy.task('log', `❌ A new base image was created at ${screenshotPath}. Add this as a new base image via Comparadise!`);
-      return;
-    }
-
-    cy.task('compareScreenshots', screenshotPath).then(diffPixels => {
-      if (typeof diffPixels !== 'number') throw new Error('Result of compareScreenshots task was not a number.');
-
-      if (diffPixels === 0) {
-        cy.log('✅ Actual image was the same as base.');
-      } else {
-        cy.task('log', `❌ Actual image of differed by ${diffPixels} pixels.`);
-      }
-    });
-  });
 }
 
-declare global {
-  namespace Cypress {
-    interface Chainable {
-      matchScreenshot(args?: MatchScreenshotArgs): Chainable;
-    }
+function verifyImages() {
+  if (Cypress.$('img:visible').length > 0) {
+    cy.document().its('body').find('img').filter(':visible').then((images) => {
+      if (images) {
+        cy.wrap(images).each(($img) => {
+          cy.wrap($img)
+              .should('exist')
+              .and('have.prop', 'naturalWidth')
+        });
+      }
+    })
   }
+}
+
+function matchScreenshot(subject: Cypress.JQueryWithSelector | Window | Document | void, args?: MatchScreenshotArgs) {
+  const { rawName, options = {} } = args ?? {};
+  // Set up screen
+  forceFont();
+
+  // Making sure each image is visible before taking screenshots
+  verifyImages();
+
+  const { name, screenshotsFolder } = getTestFolderPathFromScripts(rawName);
+
+  cy.task('baseExists', screenshotsFolder).then((hasBase) => {
+    const type = 'new';
+    const target = subject ? cy.wrap(subject) : cy;
+    // For easy slicing of path ignoring the root screenshot folder
+    target.screenshot(`${PREFIX_DIFFERENTIATOR}${screenshotsFolder}/${type}`, options);
+
+    if (!hasBase) {
+      cy.task('createNewScreenshot', screenshotsFolder).then(() => {
+        cy.task(
+            'log',
+            `✅ A new base image was created for ${name}. Create this as a new base image via Comparadise!`
+        );
+      });
+    }
+
+    cy.task('compareScreenshots', screenshotsFolder).then((diffPixels) => {
+      if (diffPixels === 0) {
+        cy.log(`✅ Actual image of ${name} was the same as base`);
+
+        return null;
+      }
+
+      const screenshotUrl = Cypress.env('BUILD_URL') ? `${Cypress.env('BUILD_URL')}artifact/${screenshotsFolder}` : screenshotsFolder;
+
+      cy.task(
+          'log',
+          `❌ Actual image of ${name} differed by ${diffPixels} pixels.
+             See the diff image for more details >>  ${screenshotUrl}/diff.png`
+      );
+    });
+
+    return null;
+  });
 }
 
 Cypress.Commands.add('matchScreenshot', { prevSubject: ['optional', 'element', 'window', 'document'] }, matchScreenshot);
