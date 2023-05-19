@@ -73,9 +73,9 @@ function matchScreenshot(subject: Cypress.JQueryWithSelector | Window | Document
     target.screenshot(`${PREFIX_DIFFERENTIATOR}${screenshotsFolder}/${type}`, options);
 
     if (!hasBase) {
-      cy.task('createNewScreenshot', screenshotsFolder).then(() => {
+      // cy.task('createNewScreenshot', screenshotsFolder).then(() => {
         cy.task('log', `✅ A new base image was created for ${name}. Create this as a new base image via Comparadise!`);
-      });
+      // });
 
       return null;
     }

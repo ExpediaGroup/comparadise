@@ -65,7 +65,7 @@ export function compareScreenshots(screenshotFolder: string) {
  */
 export function onAfterScreenshot(details: Cypress.ScreenshotDetails): Promise<Cypress.AfterScreenshotReturnObject> {
   console.log('🧸 Screenshot was saved to:', details.path);
-  if (!details.path.match('visual')) {
+  if (!details.path.match('cypress')) {
     return Promise.resolve({});
   }
 
