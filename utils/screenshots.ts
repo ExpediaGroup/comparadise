@@ -1,15 +1,14 @@
 import * as fs from 'fs';
-import { join, relative } from 'path';
+import { join } from 'path';
 import { PNG } from 'pngjs';
 import { getDiffPixels } from './images';
 
 export function baseExists(screenshotFolder: string) {
   const fileName = join(screenshotFolder, 'base.png');
-  const relativePath = relative(fileName, __dirname);
-  const exists = fs.existsSync(relativePath);
+  const exists = fs.existsSync(fileName);
 
   if (!exists) {
-    console.log(`Base image does not exist at ${relativePath}. This means a new one will be created. If your base should exist, something went wrong.`);
+    console.log(`Base image does not exist at ${fileName}. This means a new one will be created. If your base should exist, something went wrong.`);
   }
   return exists;
 }
