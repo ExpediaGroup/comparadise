@@ -18,17 +18,6 @@ export function baseExists(path: string) {
   return exists;
 }
 
-export function createNewScreenshot(screenshotFolder: string) {
-  const newImage = PNG.sync.read(fs.readFileSync(createImageFileName(screenshotFolder, 'new')));
-  fs.writeFile(createImageFileName(screenshotFolder, 'new'), PNG.sync.write(newImage), err => {
-    if (err) {
-      console.error('❌Unable to create new.png', err);
-    }
-  });
-
-  return null;
-}
-
 /**
  * Runs a visual regression test.
  * @param screenshotFolder - Full screenshots folder where the base/new/diff

@@ -67,15 +67,12 @@ function matchScreenshot(subject: Cypress.JQueryWithSelector | Window | Document
   const { name, screenshotsFolder } = getTestFolderPathFromScripts(rawName);
 
   cy.task('baseExists', screenshotsFolder).then(hasBase => {
-    const type = 'new';
     const target = subject ? cy.wrap(subject) : cy;
     // For easy slicing of path ignoring the root screenshot folder
-    target.screenshot(`${PREFIX_DIFFERENTIATOR}${screenshotsFolder}/${type}`, options);
+    target.screenshot(`${PREFIX_DIFFERENTIATOR}${screenshotsFolder}/new`, options);
 
     if (!hasBase) {
-      // cy.task('createNewScreenshot', screenshotsFolder).then(() => {
-        cy.task('log', `✅ A new base image was created for ${name}. Create this as a new base image via Comparadise!`);
-      // });
+      cy.task('log', `✅ A new base image was created for ${name}. Create this as a new base image via Comparadise!`);
 
       return null;
     }
