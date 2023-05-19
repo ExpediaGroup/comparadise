@@ -76,6 +76,7 @@ function matchScreenshot(subject: Cypress.JQueryWithSelector | Window | Document
       cy.task('createNewScreenshot', screenshotsFolder).then(() => {
         cy.task('log', `✅ A new base image was created for ${name}. Create this as a new base image via Comparadise!`);
       });
+      return;
     }
 
     cy.task('compareScreenshots', screenshotsFolder).then(diffPixels => {
