@@ -32,7 +32,7 @@ jobs:
         working-directory: utils
 
       - name: Version
-        run: npm version 0.0.12
+        run: npm version 0.0.13
         working-directory: utils
 
       - name: Publish
