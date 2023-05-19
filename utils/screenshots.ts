@@ -13,24 +13,18 @@ export function baseExists(path: string) {
   const exists = fs.existsSync(fileName);
 
   if (!exists) {
-    console.log(
-      'Base image does not exist. This means a new one will be created. If your base should exist, something went wrong.'
-    );
+    console.log('Base image does not exist. This means a new one will be created. If your base should exist, something went wrong.');
   }
   return exists;
 }
 
 export function createNewScreenshot(screenshotFolder: string) {
   const newImage = PNG.sync.read(fs.readFileSync(createImageFileName(screenshotFolder, 'new')));
-  fs.writeFile(
-    createImageFileName(screenshotFolder, 'new'),
-    PNG.sync.write(newImage),
-    (err) => {
-      if (err) {
-        console.error('❌Unable to create new.png', err);
-      }
+  fs.writeFile(createImageFileName(screenshotFolder, 'new'), PNG.sync.write(newImage), err => {
+    if (err) {
+      console.error('❌Unable to create new.png', err);
     }
-  );
+  });
 
   return null;
 }
@@ -47,18 +41,14 @@ export function compareScreenshots(screenshotFolder: string) {
 
   if (diffPixels) {
     // Create diff.png next to base and new for review
-    fs.writeFile(
-      createImageFileName(screenshotFolder, 'diff'),
-      PNG.sync.write(diff),
-      (err) => {
-        if (err) {
-          console.error('❌Diff exists but unable to create diff.png', err);
-        }
+    fs.writeFile(createImageFileName(screenshotFolder, 'diff'), PNG.sync.write(diff), err => {
+      if (err) {
+        console.error('❌Diff exists but unable to create diff.png', err);
       }
-    );
+    });
   } else {
     // Delete created new.png. Not needed if there's no diff
-    fs.unlink(actualPath, (err) => {
+    fs.unlink(actualPath, err => {
       if (err) {
         console.error('❌No diff but unable to deleteactualPath}', err);
       }
@@ -80,8 +70,7 @@ export function onAfterScreenshot(details: Cypress.ScreenshotDetails): Promise<C
   }
 
   const getNewPath = (path: string) => {
-    let newPath = path
-      .slice(path.lastIndexOf('___') + 3);
+    let newPath = path.slice(path.lastIndexOf('___') + 3);
     console.log(newPath);
 
     if (newPath.startsWith('/')) {
@@ -102,8 +91,10 @@ export function onAfterScreenshot(details: Cypress.ScreenshotDetails): Promise<C
   }
 
   return new Promise((resolve, reject) => {
-    fs.rename(details.path, newPath, (err) => {
-      if (err) { reject(err); }
+    fs.rename(details.path, newPath, err => {
+      if (err) {
+        reject(err);
+      }
 
       // because we renamed/moved the image, resolve with the new path
       // so it is accurate in the test results

@@ -3,19 +3,13 @@ const SUFFIX_TEST_IDENTIFIER = '.spec.ts';
 const SCREENSHOTS_FOLDER_NAME = 'screenshots';
 
 function forceFont() {
-  const iframe = window.parent.document.querySelector(
-      "iframe"
-  );
+  const iframe = window.parent.document.querySelector('iframe');
   const contentDocument = iframe && iframe.contentDocument;
 
   if (contentDocument) {
     const style = contentDocument.createElement('style');
     style.type = 'text/css';
-    style.appendChild(
-        contentDocument.createTextNode(
-            '* { font-family: Arial !important; }'
-        )
-    );
+    style.appendChild(contentDocument.createTextNode('* { font-family: Arial !important; }'));
     contentDocument.head.appendChild(style);
     return style;
   }
@@ -27,9 +21,7 @@ function getTestFolderPathFromScripts(rawName?: string) {
   const relativeTestPath = Cypress.spec.relative;
 
   if (!relativeTestPath) {
-    throw new Error(
-        '❌ Could not find matching script in the Cypress DOM to infer the test folder path'
-    );
+    throw new Error('❌ Could not find matching script in the Cypress DOM to infer the test folder path');
   }
 
   // i.e. payment-card-cvvdialog
@@ -37,15 +29,12 @@ function getTestFolderPathFromScripts(rawName?: string) {
   const name = rawName || testName;
 
   // i.e. screenshots/packages/flights/forced-choice/test/visual/forced-choice/payment-card-cvvdialog
-  const screenshotsFolder = `${SCREENSHOTS_FOLDER_NAME}/${relativeTestPath.substring(
-      0,
-      relativeTestPath.lastIndexOf(testName)
-  )}${name}`;
+  const screenshotsFolder = `${SCREENSHOTS_FOLDER_NAME}/${relativeTestPath.substring(0, relativeTestPath.lastIndexOf(testName))}${name}`;
 
   return {
     name,
     screenshotsFolder
-  }
+  };
 }
 
 interface MatchScreenshotArgs {
@@ -55,15 +44,17 @@ interface MatchScreenshotArgs {
 
 function verifyImages() {
   if (Cypress.$('img:visible').length > 0) {
-    cy.document().its('body').find('img').filter(':visible').then((images) => {
-      if (images) {
-        cy.wrap(images).each(($img) => {
-          cy.wrap($img)
-              .should('exist')
-              .and('have.prop', 'naturalWidth')
-        });
-      }
-    })
+    cy.document()
+      .its('body')
+      .find('img')
+      .filter(':visible')
+      .then(images => {
+        if (images) {
+          cy.wrap(images).each($img => {
+            cy.wrap($img).should('exist').and('have.prop', 'naturalWidth');
+          });
+        }
+      });
   }
 }
 
@@ -77,7 +68,7 @@ function matchScreenshot(subject: Cypress.JQueryWithSelector | Window | Document
 
   const { name, screenshotsFolder } = getTestFolderPathFromScripts(rawName);
 
-  cy.task('baseExists', screenshotsFolder).then((hasBase) => {
+  cy.task('baseExists', screenshotsFolder).then(hasBase => {
     const type = 'new';
     const target = subject ? cy.wrap(subject) : cy;
     // For easy slicing of path ignoring the root screenshot folder
@@ -85,14 +76,11 @@ function matchScreenshot(subject: Cypress.JQueryWithSelector | Window | Document
 
     if (!hasBase) {
       cy.task('createNewScreenshot', screenshotsFolder).then(() => {
-        cy.task(
-            'log',
-            `✅ A new base image was created for ${name}. Create this as a new base image via Comparadise!`
-        );
+        cy.task('log', `✅ A new base image was created for ${name}. Create this as a new base image via Comparadise!`);
       });
     }
 
-    cy.task('compareScreenshots', screenshotsFolder).then((diffPixels) => {
+    cy.task('compareScreenshots', screenshotsFolder).then(diffPixels => {
       if (diffPixels === 0) {
         cy.log(`✅ Actual image of ${name} was the same as base`);
 
@@ -102,8 +90,8 @@ function matchScreenshot(subject: Cypress.JQueryWithSelector | Window | Document
       const screenshotUrl = Cypress.env('BUILD_URL') ? `${Cypress.env('BUILD_URL')}artifact/${screenshotsFolder}` : screenshotsFolder;
 
       cy.task(
-          'log',
-          `❌ Actual image of ${name} differed by ${diffPixels} pixels.
+        'log',
+        `❌ Actual image of ${name} differed by ${diffPixels} pixels.
              See the diff image for more details >>  ${screenshotUrl}/diff.png`
       );
     });

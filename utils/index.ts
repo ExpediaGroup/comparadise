@@ -1,4 +1,4 @@
-import {baseExists, compareScreenshots, createNewScreenshot, onAfterScreenshot} from './screenshots';
+import { baseExists, compareScreenshots, createNewScreenshot, onAfterScreenshot } from './screenshots';
 
 export function setupVisualTests(on: Cypress.PluginEvents, config: Cypress.PluginConfigOptions) {
   on('after:screenshot', onAfterScreenshot);
