@@ -25,6 +25,8 @@ export function createNewScreenshot(screenshotFolder: string) {
       console.error('❌Unable to create new.png', err);
     }
   });
+
+  return null;
 }
 
 /**

@@ -76,7 +76,8 @@ function matchScreenshot(subject: Cypress.JQueryWithSelector | Window | Document
       cy.task('createNewScreenshot', screenshotsFolder).then(() => {
         cy.task('log', `✅ A new base image was created for ${name}. Create this as a new base image via Comparadise!`);
       });
-      return;
+
+      return null;
     }
 
     cy.task('compareScreenshots', screenshotsFolder).then(diffPixels => {
@@ -85,7 +86,11 @@ function matchScreenshot(subject: Cypress.JQueryWithSelector | Window | Document
       } else {
         cy.task('log', `❌ Actual image of ${name} differed by ${diffPixels} pixels.`);
       }
+
+      return null;
     });
+
+    return null;
   });
 }
 
