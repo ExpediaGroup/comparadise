@@ -57,7 +57,7 @@ type MatchScreenshotArgs = {
 };
 
 function matchScreenshot(subject: Cypress.JQueryWithSelector | Window | Document | void, args?: MatchScreenshotArgs) {
-  const { rawName, options = {} } = args ?? {};
+  const { rawName, options = {} } = args || {};
   // Set up screen
   forceFont();
 
