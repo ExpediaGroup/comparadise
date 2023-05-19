@@ -36,10 +36,8 @@ export function matchScreenshot(subject: Cypress.JQueryWithSelector | Window | D
   forceFont();
   verifyImages();
 
-  const { screenshotsFolder } = Cypress.config();
-  if (!screenshotsFolder) {
-    throw new Error('No screenshots folder found!');
-  }
+
+  const screenshotsFolder = 'cypress/screenshots';
   const testPath = Cypress.spec.relative;
   const lastSlashIndex = testPath.lastIndexOf('/');
   const testPathWithoutFileName = testPath.substring(0, lastSlashIndex);
