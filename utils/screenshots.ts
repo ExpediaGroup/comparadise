@@ -8,7 +8,9 @@ export function baseExists(screenshotFolder: string) {
   const exists = fs.existsSync(fileName);
 
   if (!exists) {
-    console.log(`Base image does not exist at ${fileName}. This means a new one will be created. If your base should exist, something went wrong.`);
+    console.log(
+      `Base image does not exist at ${fileName}. This means a new one will be created. If your base should exist, something went wrong.`
+    );
   }
   return exists;
 }

@@ -1,4 +1,5 @@
 import { baseExists, compareScreenshots } from './screenshots';
+import { onAfterScreenshot } from './on-after-screenshot';
 
 export function setupVisualTests(on: Cypress.PluginEvents, config: Cypress.PluginConfigOptions) {
   on('task', {
@@ -9,6 +10,7 @@ export function setupVisualTests(on: Cypress.PluginEvents, config: Cypress.Plugi
       return null;
     }
   });
+  on('after:screenshot', onAfterScreenshot);
 
   return config;
 }
