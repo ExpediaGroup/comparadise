@@ -13,3 +13,5 @@ export function setupVisualTests(on: Cypress.PluginEvents, config: Cypress.Plugi
 
   return config;
 }
+
+export { matchScreenshot } from './match-screenshot';
