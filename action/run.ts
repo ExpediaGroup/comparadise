@@ -3,7 +3,7 @@ import { downloadBaseImages, uploadBaseImages } from './s3-operations';
 import { exec } from '@actions/exec';
 import { octokit } from './octokit';
 import { context } from '@actions/github';
-import path from 'path';
+import * as path from 'path';
 import { sync } from 'glob';
 import { createGithubComment } from './comment';
 
@@ -33,6 +33,17 @@ export const run = async () => {
   const newFileCount = filesInScreenshotDirectory.filter(file => file.endsWith('new.png')).length;
   if (diffFileCount === 0 && newFileCount === 0) {
     info('All visual tests passed, and no diffs found!');
+
+    const { data } = await octokit.rest.repos.listCommitStatusesForRef({
+      ref: commitHash,
+      ...context.repo
+    });
+    const latestVisualRegressionStatus = data.find(({ context }) => context === 'Visual Regression');
+    if (latestVisualRegressionStatus?.state === 'failure') {
+      info('Visual Regression status has already been set to failed, so skipping status update.');
+      return;
+    }
+
     return octokit.rest.repos.createCommitStatus({
       sha: commitHash,
       context: 'Visual Regression',

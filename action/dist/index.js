@@ -14134,8 +14134,28 @@ exports.octokit = (0, github_1.getOctokit)((0, core_1.getInput)('github-token'))
 
 "use strict";
 
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.run = void 0;
@@ -14144,7 +14164,7 @@ const s3_operations_1 = __nccwpck_require__(9526);
 const exec_1 = __nccwpck_require__(1514);
 const octokit_1 = __nccwpck_require__(1428);
 const github_1 = __nccwpck_require__(5438);
-const path_1 = __importDefault(__nccwpck_require__(1017));
+const path = __importStar(__nccwpck_require__(1017));
 const glob_1 = __nccwpck_require__(1957);
 const comment_1 = __nccwpck_require__(5925);
 const run = async () => {
@@ -14164,12 +14184,21 @@ const run = async () => {
         });
         return;
     }
-    const screenshotsPath = path_1.default.join(process.cwd(), screenshotsDirectory);
+    const screenshotsPath = path.join(process.cwd(), screenshotsDirectory);
     const filesInScreenshotDirectory = (0, glob_1.sync)(`${screenshotsPath}/**`);
     const diffFileCount = filesInScreenshotDirectory.filter(file => file.endsWith('diff.png')).length;
     const newFileCount = filesInScreenshotDirectory.filter(file => file.endsWith('new.png')).length;
     if (diffFileCount === 0 && newFileCount === 0) {
         (0, core_1.info)('All visual tests passed, and no diffs found!');
+        const { data } = await octokit_1.octokit.rest.repos.listCommitStatusesForRef({
+            ref: commitHash,
+            ...github_1.context.repo
+        });
+        const latestVisualRegressionStatus = data.find(({ context }) => context === 'Visual Regression');
+        if (latestVisualRegressionStatus?.state === 'failure') {
+            (0, core_1.info)('Visual Regression status has already been set to failed, so skipping status update.');
+            return;
+        }
         return octokit_1.octokit.rest.repos.createCommitStatus({
             sha: commitHash,
             context: 'Visual Regression',

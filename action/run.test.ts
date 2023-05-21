@@ -13,7 +13,12 @@ jest.mock('@actions/github', () => ({
     rest: {
       repos: {
         createCommitStatus: jest.fn(),
-        listPullRequestsAssociatedWithCommit: jest.fn(() => ({ data: [{ number: 123 }] }))
+        listPullRequestsAssociatedWithCommit: jest.fn(() => ({ data: [{ number: 123 }] })),
+        listCommitStatusesForRef: jest.fn(() => ({
+          data: [
+            { context: 'some context', created_at: '2023-05-21T16:51:29Z', state: 'success' }
+          ]
+        }))
       },
       issues: { createComment: jest.fn(), listComments: jest.fn(() => ({ data: [{ id: 1 }] })) }
     }
@@ -91,5 +96,33 @@ describe('main', () => {
     expect(exec).toHaveBeenCalledWith('aws s3 cp path/to/screenshots/path/1 s3://some-bucket/sha/path/1 --recursive');
     expect(exec).toHaveBeenCalledWith('aws s3 cp path/to/screenshots/path/2 s3://some-bucket/sha/path/2 --recursive');
     expect(exec).not.toHaveBeenCalledWith('aws s3 cp path/to/screenshots s3://some-bucket/sha --recursive');
+  });
+
+  it('should not set successful commit status if the latest Visual Regression status is failure', async () => {
+    (exec as jest.Mock).mockResolvedValue(0);
+    (sync as jest.Mock).mockReturnValue(['path/to/screenshots/base.png']);
+    (octokit.rest.repos.listCommitStatusesForRef as unknown as jest.Mock).mockResolvedValue({
+      data: [
+        { context: 'some context', created_at: '2023-05-21T16:51:29Z', state: 'success' },
+        { context: 'Visual Regression', created_at: '2023-05-21T16:51:29Z', state: 'failure' },
+        { context: 'Visual Regression', created_at: '2023-05-21T15:51:29Z', state: 'success' },
+      ]
+    })
+    await run();
+    expect(octokit.rest.repos.createCommitStatus).not.toHaveBeenCalled();
+  });
+
+  it('should set successful commit status if the latest Visual Regression status is not failure', async () => {
+    (exec as jest.Mock).mockResolvedValue(0);
+    (sync as jest.Mock).mockReturnValue(['path/to/screenshots/base.png']);
+    (octokit.rest.repos.listCommitStatusesForRef as unknown as jest.Mock).mockResolvedValue({
+      data: [
+        { context: 'some context', created_at: '2023-05-21T16:51:29Z', state: 'success' },
+        { context: 'Visual Regression', created_at: '2023-05-21T16:51:29Z', state: 'success' },
+        { context: 'Visual Regression', created_at: '2023-05-21T15:51:29Z', state: 'success' },
+      ]
+    })
+    await run();
+    expect(octokit.rest.repos.createCommitStatus).toHaveBeenCalled();
   });
 });
