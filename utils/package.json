@@ -27,6 +27,6 @@
   },
   "scripts": {
     "build": "tsc",
-    "postbuild": "echo \"require('./dist/match-screenshot');\" > commands.js"
+    "postbuild": "echo \"require('./dist/match-screenshot-command');\" > commands.js"
   }
 }
