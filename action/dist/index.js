@@ -14115,6 +14115,27 @@ exports.createGithubComment = createGithubComment;
 
 /***/ }),
 
+/***/ 9737:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getLatestVisualRegressionStatus = void 0;
+const octokit_1 = __nccwpck_require__(1428);
+const github_1 = __nccwpck_require__(5438);
+const getLatestVisualRegressionStatus = async (commitHash) => {
+    const { data } = await octokit_1.octokit.rest.repos.listCommitStatusesForRef({
+        ref: commitHash,
+        ...github_1.context.repo
+    });
+    return data.find(status => status.context === 'Visual Regression');
+};
+exports.getLatestVisualRegressionStatus = getLatestVisualRegressionStatus;
+
+
+/***/ }),
+
 /***/ 1428:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -14167,6 +14188,7 @@ const github_1 = __nccwpck_require__(5438);
 const path = __importStar(__nccwpck_require__(1017));
 const glob_1 = __nccwpck_require__(1957);
 const comment_1 = __nccwpck_require__(5925);
+const get_latest_visual_regression_status_1 = __nccwpck_require__(9737);
 const run = async () => {
     const visualTestCommands = (0, core_1.getMultilineInput)('visual-test-command', { required: true });
     const commitHash = (0, core_1.getInput)('commit-hash', { required: true });
@@ -14189,11 +14211,7 @@ const run = async () => {
     const newFileCount = filesInScreenshotDirectory.filter(file => file.endsWith('new.png')).length;
     if (diffFileCount === 0 && newFileCount === 0) {
         (0, core_1.info)('All visual tests passed, and no diffs found!');
-        const { data } = await octokit_1.octokit.rest.repos.listCommitStatusesForRef({
-            ref: commitHash,
-            ...github_1.context.repo
-        });
-        const latestVisualRegressionStatus = data.find(status => status.context === 'Visual Regression');
+        const latestVisualRegressionStatus = await (0, get_latest_visual_regression_status_1.getLatestVisualRegressionStatus)(commitHash);
         if (latestVisualRegressionStatus?.state === 'failure') {
             (0, core_1.info)('Visual Regression status has already been set to failed, so skipping status update.');
             return;
@@ -14205,6 +14223,12 @@ const run = async () => {
             description: 'Visual tests passed!',
             ...github_1.context.repo
         });
+    }
+    const latestVisualRegressionStatus = await (0, get_latest_visual_regression_status_1.getLatestVisualRegressionStatus)(commitHash);
+    if (latestVisualRegressionStatus?.state === 'failure' &&
+        latestVisualRegressionStatus?.description === 'Visual tests failed to execute successfully.') {
+        (0, core_1.warning)('Some other Visual Regression tests failed to execute successfully, so skipping status update and comment.');
+        return;
     }
     (0, core_1.warning)(`${diffFileCount} visual differences found, and ${newFileCount} new images found.`);
     await (0, s3_operations_1.uploadBaseImages)();

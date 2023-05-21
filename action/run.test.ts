@@ -66,7 +66,7 @@ describe('main', () => {
     });
   });
 
-  it('should fail if visual tests pass and some diffs or new images', async () => {
+  it('should fail if visual tests pass and some diff images were created', async () => {
     (exec as jest.Mock).mockResolvedValue(0);
     (sync as jest.Mock).mockReturnValue(['path/to/screenshots/base.png', 'path/to/screenshots/diff.png', 'path/to/screenshots/new.png']);
     await run();
@@ -78,6 +78,22 @@ describe('main', () => {
       context: 'Visual Regression',
       state: 'failure',
       description: 'A visual regression was detected!'
+    });
+    expect(octokit.rest.issues.createComment).toHaveBeenCalled();
+  });
+
+  it('should fail if visual tests pass and only new images were created', async () => {
+    (exec as jest.Mock).mockResolvedValue(0);
+    (sync as jest.Mock).mockReturnValue(['path/to/screenshots/base.png', 'path/to/screenshots/new.png']);
+    await run();
+    expect(setFailed).not.toHaveBeenCalled();
+    expect(octokit.rest.repos.createCommitStatus).toHaveBeenCalledWith({
+      owner: 'owner',
+      repo: 'repo',
+      sha: 'sha',
+      context: 'Visual Regression',
+      state: 'failure',
+      description: 'A new visual test was created!'
     });
     expect(octokit.rest.issues.createComment).toHaveBeenCalled();
   });
@@ -96,18 +112,24 @@ describe('main', () => {
     expect(exec).not.toHaveBeenCalledWith('aws s3 cp path/to/screenshots s3://some-bucket/sha --recursive');
   });
 
-  it('should not set successful commit status if the latest Visual Regression status is failure', async () => {
+  it('should not set successful commit status or create comment if the latest Visual Regression status is failure', async () => {
     (exec as jest.Mock).mockResolvedValue(0);
     (sync as jest.Mock).mockReturnValue(['path/to/screenshots/base.png']);
     (octokit.rest.repos.listCommitStatusesForRef as unknown as jest.Mock).mockResolvedValue({
       data: [
         { context: 'some context', created_at: '2023-05-21T16:51:29Z', state: 'success' },
-        { context: 'Visual Regression', created_at: '2023-05-21T16:51:29Z', state: 'failure' },
+        {
+          context: 'Visual Regression',
+          created_at: '2023-05-21T16:51:29Z',
+          state: 'failure',
+          description: 'A visual regression was detected!'
+        },
         { context: 'Visual Regression', created_at: '2023-05-21T15:51:29Z', state: 'success' }
       ]
     });
     await run();
     expect(octokit.rest.repos.createCommitStatus).not.toHaveBeenCalled();
+    expect(octokit.rest.issues.createComment).not.toHaveBeenCalled();
   });
 
   it('should set successful commit status if the latest Visual Regression status is not failure', async () => {
@@ -122,5 +144,26 @@ describe('main', () => {
     });
     await run();
     expect(octokit.rest.repos.createCommitStatus).toHaveBeenCalled();
+  });
+
+  it('should not set failure commit status or create comment if the latest Visual Regression status is failure because tests failed to execute successfully', async () => {
+    (exec as jest.Mock).mockResolvedValue(0);
+    (sync as jest.Mock).mockReturnValue(['path/to/screenshots/base.png', 'path/to/screenshots/diff.png', 'path/to/screenshots/new.png']);
+    (octokit.rest.repos.listCommitStatusesForRef as unknown as jest.Mock).mockResolvedValue({
+      data: [
+        { context: 'some context', created_at: '2023-05-21T16:51:29Z', state: 'success' },
+        {
+          context: 'Visual Regression',
+          created_at: '2023-05-21T16:51:29Z',
+          state: 'failure',
+          description: 'Visual tests failed to execute successfully.'
+        },
+        { context: 'Visual Regression', created_at: '2023-05-21T15:51:29Z', state: 'success' }
+      ]
+    });
+    await run();
+    expect(setFailed).not.toHaveBeenCalled();
+    expect(octokit.rest.repos.createCommitStatus).not.toHaveBeenCalled();
+    expect(octokit.rest.issues.createComment).not.toHaveBeenCalled();
   });
 });

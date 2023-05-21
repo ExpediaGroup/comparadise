@@ -6,6 +6,7 @@ import { context } from '@actions/github';
 import * as path from 'path';
 import { sync } from 'glob';
 import { createGithubComment } from './comment';
+import { getLatestVisualRegressionStatus } from './get-latest-visual-regression-status';
 
 export const run = async () => {
   const visualTestCommands = getMultilineInput('visual-test-command', { required: true });
@@ -33,11 +34,7 @@ export const run = async () => {
   if (diffFileCount === 0 && newFileCount === 0) {
     info('All visual tests passed, and no diffs found!');
 
-    const { data } = await octokit.rest.repos.listCommitStatusesForRef({
-      ref: commitHash,
-      ...context.repo
-    });
-    const latestVisualRegressionStatus = data.find(status => status.context === 'Visual Regression');
+    const latestVisualRegressionStatus = await getLatestVisualRegressionStatus(commitHash);
     if (latestVisualRegressionStatus?.state === 'failure') {
       info('Visual Regression status has already been set to failed, so skipping status update.');
       return;
@@ -50,6 +47,15 @@ export const run = async () => {
       description: 'Visual tests passed!',
       ...context.repo
     });
+  }
+
+  const latestVisualRegressionStatus = await getLatestVisualRegressionStatus(commitHash);
+  if (
+    latestVisualRegressionStatus?.state === 'failure' &&
+    latestVisualRegressionStatus?.description === 'Visual tests failed to execute successfully.'
+  ) {
+    warning('Some other Visual Regression tests failed to execute successfully, so skipping status update and comment.');
+    return;
   }
 
   warning(`${diffFileCount} visual differences found, and ${newFileCount} new images found.`);
