@@ -15,9 +15,7 @@ jest.mock('@actions/github', () => ({
         createCommitStatus: jest.fn(),
         listPullRequestsAssociatedWithCommit: jest.fn(() => ({ data: [{ number: 123 }] })),
         listCommitStatusesForRef: jest.fn(() => ({
-          data: [
-            { context: 'some context', created_at: '2023-05-21T16:51:29Z', state: 'success' }
-          ]
+          data: [{ context: 'some context', created_at: '2023-05-21T16:51:29Z', state: 'success' }]
         }))
       },
       issues: { createComment: jest.fn(), listComments: jest.fn(() => ({ data: [{ id: 1 }] })) }
@@ -105,9 +103,9 @@ describe('main', () => {
       data: [
         { context: 'some context', created_at: '2023-05-21T16:51:29Z', state: 'success' },
         { context: 'Visual Regression', created_at: '2023-05-21T16:51:29Z', state: 'failure' },
-        { context: 'Visual Regression', created_at: '2023-05-21T15:51:29Z', state: 'success' },
+        { context: 'Visual Regression', created_at: '2023-05-21T15:51:29Z', state: 'success' }
       ]
-    })
+    });
     await run();
     expect(octokit.rest.repos.createCommitStatus).not.toHaveBeenCalled();
   });
@@ -119,9 +117,9 @@ describe('main', () => {
       data: [
         { context: 'some context', created_at: '2023-05-21T16:51:29Z', state: 'success' },
         { context: 'Visual Regression', created_at: '2023-05-21T16:51:29Z', state: 'success' },
-        { context: 'Visual Regression', created_at: '2023-05-21T15:51:29Z', state: 'success' },
+        { context: 'Visual Regression', created_at: '2023-05-21T15:51:29Z', state: 'success' }
       ]
-    })
+    });
     await run();
     expect(octokit.rest.repos.createCommitStatus).toHaveBeenCalled();
   });
