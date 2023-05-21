@@ -14194,7 +14194,7 @@ const run = async () => {
             ref: commitHash,
             ...github_1.context.repo
         });
-        const latestVisualRegressionStatus = data.find(({ context }) => context === 'Visual Regression');
+        const latestVisualRegressionStatus = data.find(status => status.context === 'Visual Regression');
         if (latestVisualRegressionStatus?.state === 'failure') {
             (0, core_1.info)('Visual Regression status has already been set to failed, so skipping status update.');
             return;
