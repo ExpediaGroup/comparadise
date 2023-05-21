@@ -51,7 +51,7 @@ function verifyImages() {
   }
 }
 
-type MatchScreenshotArgs = {
+export type MatchScreenshotArgs = {
   rawName?: string;
   options?: Partial<Cypress.ScreenshotOptions>;
 };
@@ -92,3 +92,11 @@ function matchScreenshot(subject: Cypress.JQueryWithSelector | Window | Document
 }
 
 Cypress.Commands.add('matchScreenshot', { prevSubject: ['optional', 'element', 'window', 'document'] }, matchScreenshot);
+
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      matchScreenshot(args?: MatchScreenshotArgs): Chainable;
+    }
+  }
+}

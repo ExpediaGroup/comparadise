@@ -13,11 +13,3 @@ export function setupVisualTests(on: Cypress.PluginEvents, config: Cypress.Plugi
 
   return config;
 }
-
-declare global {
-  namespace Cypress {
-    interface Chainable {
-      matchScreenshot(args?: MatchScreenshotArgs): Chainable;
-    }
-  }
-}
