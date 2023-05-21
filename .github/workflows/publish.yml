@@ -59,7 +59,8 @@ jobs:
       - name: Publish
         run: |
           npm config set _authToken=${{ secrets.NPM_TOKEN }}
-          npm version "${GITHUB_REF:1}"
+          VERSION_TAG=$(echo "${GITHUB_REF}" | cut -d "/" -f3)
+          npm version "${VERSION_TAG:1}"
           npm publish
 
   publish-tags:
