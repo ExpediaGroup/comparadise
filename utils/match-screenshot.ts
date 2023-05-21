@@ -56,7 +56,7 @@ export type MatchScreenshotArgs = {
   options?: Partial<Cypress.ScreenshotOptions>;
 };
 
-function matchScreenshot(subject: Cypress.JQueryWithSelector | Window | Document | void, args?: MatchScreenshotArgs) {
+export function matchScreenshot(subject: Cypress.JQueryWithSelector | Window | Document | void, args?: MatchScreenshotArgs) {
   const { rawName, options = {} } = args || {};
   // Set up screen
   forceFont();
