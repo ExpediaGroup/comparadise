@@ -36,6 +36,32 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
+  publish-utils:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: utils
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Publish
+        run: |
+          npm config set _authToken=${{ secrets.NPM_TOKEN }}
+          npm version "${GITHUB_REF:1}"
+          npm publish
+
   publish-tags:
     runs-on: ubuntu-latest
     steps:
