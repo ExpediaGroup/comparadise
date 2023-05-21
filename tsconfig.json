@@ -18,5 +18,6 @@
     "noEmit": true
   },
   "include": ["action", "backend", "frontend"],
+  "exclude": ["dist", "node_modules"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
