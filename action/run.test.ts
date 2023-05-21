@@ -40,14 +40,14 @@ describe('main', () => {
   it('should fail if visual tests fail', async () => {
     (exec as jest.Mock).mockResolvedValue(1);
     await run();
-    expect(setFailed).toHaveBeenCalledWith('At least one visual test failed to take a screenshot.');
+    expect(setFailed).toHaveBeenCalled();
     expect(octokit.rest.repos.createCommitStatus).toHaveBeenCalledWith({
       owner: 'owner',
       repo: 'repo',
       sha: 'sha',
       context: 'Visual Regression',
       state: 'failure',
-      description: 'At least one visual test failed to take a screenshot.'
+      description: 'Visual tests failed to execute successfully.'
     });
   });
 

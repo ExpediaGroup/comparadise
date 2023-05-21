@@ -14174,15 +14174,14 @@ const run = async () => {
     await (0, s3_operations_1.downloadBaseImages)();
     const visualTestExitCode = await Promise.all(visualTestCommands.map(cmd => (0, exec_1.exec)(cmd)));
     if (visualTestExitCode.some(code => code !== 0)) {
-        (0, core_1.setFailed)('At least one visual test failed to take a screenshot.');
-        await octokit_1.octokit.rest.repos.createCommitStatus({
+        (0, core_1.setFailed)('Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?');
+        return octokit_1.octokit.rest.repos.createCommitStatus({
             sha: commitHash,
             context: 'Visual Regression',
             state: 'failure',
-            description: 'At least one visual test failed to take a screenshot.',
+            description: 'Visual tests failed to execute successfully.',
             ...github_1.context.repo
         });
-        return;
     }
     const screenshotsPath = path.join(process.cwd(), screenshotsDirectory);
     const filesInScreenshotDirectory = (0, glob_1.sync)(`${screenshotsPath}/**`);

@@ -16,15 +16,14 @@ export const run = async () => {
 
   const visualTestExitCode = await Promise.all(visualTestCommands.map(cmd => exec(cmd)));
   if (visualTestExitCode.some(code => code !== 0)) {
-    setFailed('At least one visual test failed to take a screenshot.');
-    await octokit.rest.repos.createCommitStatus({
+    setFailed('Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?');
+    return octokit.rest.repos.createCommitStatus({
       sha: commitHash,
       context: 'Visual Regression',
       state: 'failure',
-      description: 'At least one visual test failed to take a screenshot.',
+      description: 'Visual tests failed to execute successfully.',
       ...context.repo
     });
-    return;
   }
 
   const screenshotsPath = path.join(process.cwd(), screenshotsDirectory);
