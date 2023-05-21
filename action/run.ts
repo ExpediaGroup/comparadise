@@ -38,7 +38,7 @@ export const run = async () => {
       ref: commitHash,
       ...context.repo
     });
-    const latestVisualRegressionStatus = data.find(({ context }) => context === 'Visual Regression');
+    const latestVisualRegressionStatus = data.find(status => status.context === 'Visual Regression');
     if (latestVisualRegressionStatus?.state === 'failure') {
       info('Visual Regression status has already been set to failed, so skipping status update.');
       return;
