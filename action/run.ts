@@ -7,6 +7,7 @@ import * as path from 'path';
 import { sync } from 'glob';
 import { createGithubComment } from './comment';
 import { getLatestVisualRegressionStatus } from './get-latest-visual-regression-status';
+import { VISUAL_REGRESSION_CONTEXT } from '../constants';
 
 export const run = async () => {
   const visualTestCommands = getMultilineInput('visual-test-command', { required: true });
@@ -20,7 +21,7 @@ export const run = async () => {
     setFailed('Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?');
     return octokit.rest.repos.createCommitStatus({
       sha: commitHash,
-      context: 'Visual Regression',
+      context: VISUAL_REGRESSION_CONTEXT,
       state: 'failure',
       description: 'Visual tests failed to execute successfully.',
       ...context.repo
@@ -42,7 +43,7 @@ export const run = async () => {
 
     return octokit.rest.repos.createCommitStatus({
       sha: commitHash,
-      context: 'Visual Regression',
+      context: VISUAL_REGRESSION_CONTEXT,
       state: 'success',
       description: 'Visual tests passed!',
       ...context.repo
@@ -62,7 +63,7 @@ export const run = async () => {
   await uploadBaseImages();
   await octokit.rest.repos.createCommitStatus({
     sha: commitHash,
-    context: 'Visual Regression',
+    context: VISUAL_REGRESSION_CONTEXT,
     state: 'failure',
     description: diffFileCount === 0 ? 'A new visual test was created!' : 'A visual regression was detected!',
     ...context.repo

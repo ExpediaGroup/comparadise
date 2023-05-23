@@ -14124,12 +14124,13 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getLatestVisualRegressionStatus = void 0;
 const octokit_1 = __nccwpck_require__(1428);
 const github_1 = __nccwpck_require__(5438);
+const constants_1 = __nccwpck_require__(9079);
 const getLatestVisualRegressionStatus = async (commitHash) => {
     const { data } = await octokit_1.octokit.rest.repos.listCommitStatusesForRef({
         ref: commitHash,
         ...github_1.context.repo
     });
-    return data.find(status => status.context === 'Visual Regression');
+    return data.find(status => status.context === constants_1.VISUAL_REGRESSION_CONTEXT);
 };
 exports.getLatestVisualRegressionStatus = getLatestVisualRegressionStatus;
 
@@ -14189,6 +14190,7 @@ const path = __importStar(__nccwpck_require__(1017));
 const glob_1 = __nccwpck_require__(1957);
 const comment_1 = __nccwpck_require__(5925);
 const get_latest_visual_regression_status_1 = __nccwpck_require__(9737);
+const constants_1 = __nccwpck_require__(9079);
 const run = async () => {
     const visualTestCommands = (0, core_1.getMultilineInput)('visual-test-command', { required: true });
     const commitHash = (0, core_1.getInput)('commit-hash', { required: true });
@@ -14199,7 +14201,7 @@ const run = async () => {
         (0, core_1.setFailed)('Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?');
         return octokit_1.octokit.rest.repos.createCommitStatus({
             sha: commitHash,
-            context: 'Visual Regression',
+            context: constants_1.VISUAL_REGRESSION_CONTEXT,
             state: 'failure',
             description: 'Visual tests failed to execute successfully.',
             ...github_1.context.repo
@@ -14218,7 +14220,7 @@ const run = async () => {
         }
         return octokit_1.octokit.rest.repos.createCommitStatus({
             sha: commitHash,
-            context: 'Visual Regression',
+            context: constants_1.VISUAL_REGRESSION_CONTEXT,
             state: 'success',
             description: 'Visual tests passed!',
             ...github_1.context.repo
@@ -14234,7 +14236,7 @@ const run = async () => {
     await (0, s3_operations_1.uploadBaseImages)();
     await octokit_1.octokit.rest.repos.createCommitStatus({
         sha: commitHash,
-        context: 'Visual Regression',
+        context: constants_1.VISUAL_REGRESSION_CONTEXT,
         state: 'failure',
         description: diffFileCount === 0 ? 'A new visual test was created!' : 'A visual regression was detected!',
         ...github_1.context.repo
@@ -14277,6 +14279,18 @@ const uploadBaseImages = async () => {
     return (0, exec_1.exec)(`aws s3 cp ${screenshotsDirectory} s3://${bucketName}/${commitHash} --recursive`);
 };
 exports.uploadBaseImages = uploadBaseImages;
+
+
+/***/ }),
+
+/***/ 9079:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.VISUAL_REGRESSION_CONTEXT = void 0;
+exports.VISUAL_REGRESSION_CONTEXT = 'Visual Regression';
 
 
 /***/ }),

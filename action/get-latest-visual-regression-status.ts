@@ -1,5 +1,6 @@
 import { octokit } from './octokit';
 import { context } from '@actions/github';
+import { VISUAL_REGRESSION_CONTEXT } from '../constants';
 
 export const getLatestVisualRegressionStatus = async (commitHash: string) => {
   const { data } = await octokit.rest.repos.listCommitStatusesForRef({
@@ -7,5 +8,5 @@ export const getLatestVisualRegressionStatus = async (commitHash: string) => {
     ...context.repo
   });
 
-  return data.find(status => status.context === 'Visual Regression');
+  return data.find(status => status.context === VISUAL_REGRESSION_CONTEXT);
 };

@@ -3,6 +3,7 @@ import { exec } from '@actions/exec';
 import { getInput, getMultilineInput, setFailed } from '@actions/core';
 import { octokit } from './octokit';
 import { sync } from 'glob';
+import { VISUAL_REGRESSION_CONTEXT } from '../constants';
 
 jest.mock('glob');
 jest.mock('@actions/core');
@@ -45,7 +46,7 @@ describe('main', () => {
       owner: 'owner',
       repo: 'repo',
       sha: 'sha',
-      context: 'Visual Regression',
+      context: VISUAL_REGRESSION_CONTEXT,
       state: 'failure',
       description: 'Visual tests failed to execute successfully.'
     });
@@ -60,7 +61,7 @@ describe('main', () => {
       owner: 'owner',
       repo: 'repo',
       sha: 'sha',
-      context: 'Visual Regression',
+      context: VISUAL_REGRESSION_CONTEXT,
       state: 'success',
       description: 'Visual tests passed!'
     });
@@ -75,7 +76,7 @@ describe('main', () => {
       owner: 'owner',
       repo: 'repo',
       sha: 'sha',
-      context: 'Visual Regression',
+      context: VISUAL_REGRESSION_CONTEXT,
       state: 'failure',
       description: 'A visual regression was detected!'
     });
@@ -91,7 +92,7 @@ describe('main', () => {
       owner: 'owner',
       repo: 'repo',
       sha: 'sha',
-      context: 'Visual Regression',
+      context: VISUAL_REGRESSION_CONTEXT,
       state: 'failure',
       description: 'A new visual test was created!'
     });
@@ -119,12 +120,12 @@ describe('main', () => {
       data: [
         { context: 'some context', created_at: '2023-05-21T16:51:29Z', state: 'success' },
         {
-          context: 'Visual Regression',
+          context: VISUAL_REGRESSION_CONTEXT,
           created_at: '2023-05-21T16:51:29Z',
           state: 'failure',
           description: 'A visual regression was detected!'
         },
-        { context: 'Visual Regression', created_at: '2023-05-21T15:51:29Z', state: 'success' }
+        { context: VISUAL_REGRESSION_CONTEXT, created_at: '2023-05-21T15:51:29Z', state: 'success' }
       ]
     });
     await run();
@@ -138,8 +139,8 @@ describe('main', () => {
     (octokit.rest.repos.listCommitStatusesForRef as unknown as jest.Mock).mockResolvedValue({
       data: [
         { context: 'some context', created_at: '2023-05-21T16:51:29Z', state: 'success' },
-        { context: 'Visual Regression', created_at: '2023-05-21T16:51:29Z', state: 'success' },
-        { context: 'Visual Regression', created_at: '2023-05-21T15:51:29Z', state: 'success' }
+        { context: VISUAL_REGRESSION_CONTEXT, created_at: '2023-05-21T16:51:29Z', state: 'success' },
+        { context: VISUAL_REGRESSION_CONTEXT, created_at: '2023-05-21T15:51:29Z', state: 'success' }
       ]
     });
     await run();
@@ -153,12 +154,12 @@ describe('main', () => {
       data: [
         { context: 'some context', created_at: '2023-05-21T16:51:29Z', state: 'success' },
         {
-          context: 'Visual Regression',
+          context: VISUAL_REGRESSION_CONTEXT,
           created_at: '2023-05-21T16:51:29Z',
           state: 'failure',
           description: 'Visual tests failed to execute successfully.'
         },
-        { context: 'Visual Regression', created_at: '2023-05-21T15:51:29Z', state: 'success' }
+        { context: VISUAL_REGRESSION_CONTEXT, created_at: '2023-05-21T15:51:29Z', state: 'success' }
       ]
     });
     await run();

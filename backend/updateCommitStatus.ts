@@ -1,6 +1,7 @@
 import { TRPCError } from '@trpc/server';
 import { UpdateCommitStatusInput } from './schema';
 import { getOctokit } from './getOctokit';
+import { VISUAL_REGRESSION_CONTEXT } from '../constants';
 
 export const updateCommitStatus = async ({ owner, repo, hash }: UpdateCommitStatusInput) => {
   const octokit = getOctokit(owner, repo);
@@ -11,7 +12,7 @@ export const updateCommitStatus = async ({ owner, repo, hash }: UpdateCommitStat
       sha: hash,
       state: 'success',
       description: 'Your visual tests have passed.',
-      context: 'Visual Regression'
+      context: VISUAL_REGRESSION_CONTEXT
     })
     .catch(error => {
       throw new TRPCError({
