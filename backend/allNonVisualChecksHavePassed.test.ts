@@ -1,5 +1,6 @@
 import { allNonVisualChecksHavePassed } from './allNonVisualChecksHavePassed';
 import { getOctokit } from './getOctokit';
+import { VISUAL_REGRESSION_CONTEXT } from '../constants';
 
 jest.mock('./getOctokit');
 
@@ -17,7 +18,7 @@ describe('allNonVisualChecksHavePassed', () => {
                   completed_at: '2023-05-02T19:11:02Z'
                 },
                 {
-                  name: 'visual tests',
+                  name: VISUAL_REGRESSION_CONTEXT,
                   conclusion: 'failure',
                   completed_at: '2023-05-02T19:11:02Z'
                 },
@@ -36,6 +37,38 @@ describe('allNonVisualChecksHavePassed', () => {
     expect(result).toBe(true);
   });
 
+  it('should return false when at least one visual test job failed', async () => {
+    (getOctokit as jest.Mock).mockImplementation(() => ({
+      rest: {
+        checks: {
+          listForRef: jest.fn().mockReturnValue({
+            data: {
+              check_runs: [
+                {
+                  name: 'unit tests',
+                  conclusion: 'success',
+                  completed_at: '2023-05-02T19:11:02Z'
+                },
+                {
+                  name: VISUAL_REGRESSION_CONTEXT,
+                  conclusion: 'failure',
+                  completed_at: '2023-05-02T19:11:02Z'
+                },
+                {
+                  name: 'visual tests',
+                  conclusion: 'failure',
+                  completed_at: '2023-05-02T19:11:02Z'
+                }
+              ]
+            }
+          })
+        }
+      }
+    }));
+    const result = await allNonVisualChecksHavePassed('github-owner', 'github-repo', 'sha');
+    expect(result).toBe(false);
+  });
+
   it('should return false when at least one non-visual check failed', async () => {
     (getOctokit as jest.Mock).mockImplementation(() => ({
       rest: {
@@ -49,7 +82,7 @@ describe('allNonVisualChecksHavePassed', () => {
                   completed_at: '2023-05-02T19:11:02Z'
                 },
                 {
-                  name: 'visual tests',
+                  name: VISUAL_REGRESSION_CONTEXT,
                   conclusion: 'failure',
                   completed_at: '2023-05-02T19:11:02Z'
                 },
@@ -81,7 +114,7 @@ describe('allNonVisualChecksHavePassed', () => {
                   completed_at: '2023-05-02T19:11:02Z'
                 },
                 {
-                  name: 'visual tests',
+                  name: VISUAL_REGRESSION_CONTEXT,
                   conclusion: 'failure',
                   completed_at: '2023-05-02T19:11:02Z'
                 },
@@ -118,7 +151,7 @@ describe('allNonVisualChecksHavePassed', () => {
                   completed_at: '2023-05-02T19:11:02Z'
                 },
                 {
-                  name: 'visual tests',
+                  name: VISUAL_REGRESSION_CONTEXT,
                   conclusion: 'failure',
                   completed_at: '2023-05-02T19:11:02Z'
                 },
@@ -155,7 +188,7 @@ describe('allNonVisualChecksHavePassed', () => {
                   completed_at: '2023-05-02T19:10:02Z'
                 },
                 {
-                  name: 'visual tests',
+                  name: VISUAL_REGRESSION_CONTEXT,
                   conclusion: 'failure',
                   completed_at: '2023-05-02T19:11:02Z'
                 },

@@ -1,5 +1,6 @@
 import { updateCommitStatus } from './updateCommitStatus';
 import { getOctokit } from './getOctokit';
+import { VISUAL_REGRESSION_CONTEXT } from '../constants';
 
 jest.mock('./getOctokit');
 const createCommitStatus = jest.fn(() => ({ catch: jest.fn() }));
@@ -20,7 +21,7 @@ describe('updateCommitStatus', () => {
       sha: 'hash',
       state: 'success',
       description: 'Your visual tests have passed.',
-      context: 'Visual Regression'
+      context: VISUAL_REGRESSION_CONTEXT
     });
   });
 });
