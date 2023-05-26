@@ -1,11 +1,11 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": {
-    "declaration": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
     "types": ["cypress"],
     "noEmit": false,
-    "sourceMap": false,
-    "outDir": "dist"
+    "outDir": "types"
   },
   "include": ["**/*.ts"],
   "exclude": ["dist", "node_modules"]

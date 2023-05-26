@@ -11,6 +11,7 @@ dist
 !action/dist
 
 # utils
+utils/types/
 utils/commands.js
 
 # misc
