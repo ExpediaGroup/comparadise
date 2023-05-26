@@ -1,4 +1,5 @@
 import { baseExists, compareScreenshots, onAfterScreenshot } from './screenshots';
+import { MatchScreenshotArgs } from './match-screenshot';
 
 export function setupVisualTests(on: Cypress.PluginEvents, config: Cypress.PluginConfigOptions) {
   on('after:screenshot', onAfterScreenshot);
@@ -14,4 +15,10 @@ export function setupVisualTests(on: Cypress.PluginEvents, config: Cypress.Plugi
   return config;
 }
 
-export { matchScreenshot } from './match-screenshot';
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      matchScreenshot(args?: MatchScreenshotArgs): Chainable;
+    }
+  }
+}

@@ -90,3 +90,5 @@ export function matchScreenshot(subject: Cypress.JQueryWithSelector | Window | D
     return null;
   });
 }
+
+Cypress.Commands.add('matchScreenshot', { prevSubject: ['optional', 'element', 'window', 'document'] }, matchScreenshot);

@@ -1,10 +1,11 @@
 {
   "name": "comparadise-utils",
   "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "types": "types/index.d.ts",
   "license": "Apache-2.0",
   "files": [
     "dist",
+    "types",
     "commands.js"
   ],
   "repository": {
@@ -26,7 +27,8 @@
     "@types/pngjs": "6.0.1"
   },
   "scripts": {
-    "build": "tsc",
-    "postbuild": "echo \"require('./dist/match-screenshot-command');\" > commands.js"
+    "prebuild": "rm -rf dist types",
+    "build": "tsc && tsc --project tsconfig.types.json",
+    "postbuild": "echo \"require('./dist/match-screenshot');\" > commands.js && echo \"export {};\" > types/index.js"
   }
 }
