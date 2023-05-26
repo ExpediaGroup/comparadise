@@ -5,6 +5,7 @@
   "license": "Apache-2.0",
   "files": [
     "dist",
+    "types",
     "commands.js"
   ],
   "repository": {
