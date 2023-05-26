@@ -34,6 +34,15 @@ In a Cypress test that renders your component or visits your site, use `cy.match
 This will take a screenshot of whatever Cypress is currently displaying, compare it to a `base.png` that was
 previously downloaded from S3, and output a `diff.png` and `new.png` if there is a visual change.
 
+### comparadise-utils Usage
+
+In `cypress/support/commands.ts`:
+
+```ts
+import 'comparadise-utils/commands';
+import 'comparadise-utils/types';
+```
+
 ## Executing Your Visual Tests
 
 Usage:
