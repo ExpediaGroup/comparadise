@@ -30,11 +30,28 @@ and when you use the Comparadise app to review changes.
 
 Install the [comparadise-utils](https://www.npmjs.com/package/comparadise-utils) package using your favorite node package manager.
 
-In a Cypress test that renders your component or visits your site, use `cy.matchScreenshot()` to execute a visual test.
-This will take a screenshot of whatever Cypress is currently displaying, compare it to a `base.png` that was
-previously downloaded from S3, and output a `diff.png` and `new.png` if there is a visual change.
+In `cypress.config.ts`:
 
-### comparadise-utils Usage
+```ts
+import { setupVisualTests } from 'comparadise-utils';
+
+export default defineConfig({
+  component: {
+    setupNodeEvents(on, config) {
+      setupVisualTests(on, config);
+
+      return config;
+    }
+  },
+  e2e: {
+    setupNodeEvents(on, config) {
+      setupVisualTests(on, config);
+
+      return config;
+    }
+  }
+});
+```
 
 In `cypress/support/commands.ts`:
 
@@ -42,6 +59,10 @@ In `cypress/support/commands.ts`:
 import 'comparadise-utils/commands';
 import 'comparadise-utils/types';
 ```
+
+In a Cypress test that renders your component or visits your site, use `cy.matchScreenshot()` to execute a visual test.
+This will take a screenshot of whatever Cypress is currently displaying, compare it to a `base.png` that was
+previously downloaded from S3, and output a `diff.png` and `new.png` if there is a visual change.
 
 ## Executing Your Visual Tests
 
