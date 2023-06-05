@@ -3,5 +3,5 @@ action
 cypress
 dist
 node_modules
-utils
+comparadise-utils
 *.md
