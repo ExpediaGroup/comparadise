@@ -1,6 +1,7 @@
 import { getGroupedImages } from './getGroupedImages';
 import { listAllS3PathsForHash } from './listAllS3PathsForHash';
 import { getBase64StringFromS3 } from './getBase64StringFromS3';
+import { expect } from '@jest/globals';
 
 jest.mock('./getBase64StringFromS3');
 jest.mock('./listAllS3PathsForHash');

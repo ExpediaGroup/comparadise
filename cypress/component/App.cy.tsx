@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { makeMockAdapter } from '../utils/makeMockAdapter';
-import App from '../../frontend/App';
-import { UPDATE_BASE_IMAGES_ERROR_MESSAGE } from '../../backend/constants';
+import App from '../../app/frontend/App';
+import { UPDATE_BASE_IMAGES_ERROR_MESSAGE } from '../../app/backend/constants';
 
 describe('App', () => {
   describe('homepage', () => {
