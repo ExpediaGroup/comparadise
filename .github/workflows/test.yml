@@ -37,23 +37,30 @@ jobs:
       - name: Install
         run: npm ci
 
-      - name: Format
-        id: format
-        run: npm run format-check
-
-      - if: failure()
-        name: Make the code pretty
-        run: |
-          npm run format
-          git status
-          git config user.name "${{ github.actor }}"
-          git config user.email "${{ github.actor }}@users.noreply.github.com"
-          git add .
-          git commit -m "chore: make the code pretty"
-          git push
+      - name: Type Check
+        run: tsc
 
       - name: Lint
         run: npm run lint
+
+      - name: Format
+        run: npm run format
+
+      - name: Package
+        run: npm run package
+
+      - name: Check for any generated code that should be committed
+        run: |
+          if [[ $(git status --porcelain) ]]; then
+            echo "Detected uncommitted changes after build. See status below:"
+            git status
+            git config user.name "${{ github.actor }}"
+            git config user.email "${{ github.actor }}@users.noreply.github.com"
+            git add .
+            git commit -m "chore: committing generated code"
+            git push
+            exit 1
+          fi
 
   backend:
     name: Backend Tests
@@ -113,43 +120,6 @@ jobs:
 
       - name: Run Cypress Tests Against Docker Container
         run: npm run test:integration
-
-  action:
-    name: Action Tests
-    needs:
-      - lint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.pull_request.head.ref }}
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
-          token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
-
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version-file: .nvmrc
-
-      - name: Install Dependencies
-        run: npm ci
-
-      - name: Package
-        run: npm run package
-
-      - name: Compare the expected and actual actions/dist/ directories
-        run: |
-          if [[ $(git status --porcelain) ]]; then
-            echo "Detected uncommitted changes after build. See status below:"
-            git status
-            git config user.name "${{ github.actor }}"
-            git config user.email "${{ github.actor }}@users.noreply.github.com"
-            git add action/dist/
-            git commit -m "chore: comitting generated actions/dist/"
-            git push
-            exit 1
-          fi
 
   utils:
     name: Utils Tests

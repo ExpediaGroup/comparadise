@@ -1,6 +1,7 @@
 import { updateCommitStatus } from './updateCommitStatus';
 import { getOctokit } from './getOctokit';
-import { VISUAL_REGRESSION_CONTEXT } from '../constants';
+import { VISUAL_REGRESSION_CONTEXT } from '../../constants';
+import { expect } from '@jest/globals';
 
 jest.mock('./getOctokit');
 const createCommitStatus = jest.fn(() => ({ catch: jest.fn() }));

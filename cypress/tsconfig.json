@@ -1,7 +1,0 @@
-{
-  "compilerOptions": {
-    "types": ["cypress"],
-    "jsx": "react"
-  },
-  "include": ["**/*.ts", "**/*.tsx"]
-}

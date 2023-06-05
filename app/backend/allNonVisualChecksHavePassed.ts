@@ -1,7 +1,7 @@
 import { getOctokit } from './getOctokit';
 import { RestEndpointMethodTypes } from '@octokit/rest';
 import { groupBy, isEqual, sortBy } from 'lodash';
-import { VISUAL_REGRESSION_CONTEXT } from '../constants';
+import { VISUAL_REGRESSION_CONTEXT } from '../../constants';
 
 type CheckRunConclusion = RestEndpointMethodTypes['checks']['listForRef']['response']['data']['check_runs'][number]['conclusion'];
 

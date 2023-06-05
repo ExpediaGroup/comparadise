@@ -1,8 +1,8 @@
 import './commands';
 
 import { mount } from 'cypress/react18';
-import '../../frontend/App.css';
-import { UPDATE_BASE_IMAGES_ERROR_MESSAGE } from '../../backend/constants';
+import '../../app/frontend/App.css';
+import { UPDATE_BASE_IMAGES_ERROR_MESSAGE } from '../../app/backend/constants';
 
 declare global {
   namespace Cypress {

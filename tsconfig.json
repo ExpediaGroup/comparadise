@@ -13,11 +13,8 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
-    "sourceMap": true,
     "strict": true,
     "noEmit": true
   },
-  "include": ["action", "backend", "constants", "frontend"],
-  "exclude": ["dist", "node_modules"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
