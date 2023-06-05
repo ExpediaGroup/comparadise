@@ -1,3 +1,4 @@
+export const VISUAL_REGRESSION_CONTEXT = 'Visual Regression';
 export const BASE_IMAGES_DIRECTORY = 'base-images';
 export const BASE_IMAGE_NAME = 'base';
 export const DIFF_IMAGE_NAME = 'diff';

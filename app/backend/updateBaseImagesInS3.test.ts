@@ -1,6 +1,6 @@
 import { S3Client } from './s3Client';
 import { filterNewImages, replaceImagesInS3, getBaseImagePaths, updateBaseImagesInS3 } from './updateBaseImagesInS3';
-import { BASE_IMAGES_DIRECTORY } from './constants';
+import { BASE_IMAGES_DIRECTORY } from '../../shared';
 import { allNonVisualChecksHavePassed } from './allNonVisualChecksHavePassed';
 import { expect } from '@jest/globals';
 

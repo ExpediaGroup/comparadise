@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { makeMockAdapter } from '../utils/makeMockAdapter';
-import App from '../../app/frontend/App';
-import { UPDATE_BASE_IMAGES_ERROR_MESSAGE } from '../../app/backend/constants';
+import App from '../../App';
+import { UPDATE_BASE_IMAGES_ERROR_MESSAGE } from '../../../../shared';
 
 describe('App', () => {
   describe('homepage', () => {
@@ -61,7 +61,7 @@ describe('App', () => {
     });
 
     it('should display loader and update base images', () => {
-      cy.intercept('/trpc/updateBaseImages*', { fixture: 'mutation.json', delay: 3000 }).as('base-images');
+      cy.intercept('/trpc/updateBaseImages*', { fixture: 'mutation.json', delay: 2000 }).as('base-images');
       cy.findByRole('button', { name: /Update all base images/i }).click();
       cy.findByText(/Are you sure/i);
       cy.findByRole('button', { name: /update/i }).click();
