@@ -1,7 +1,7 @@
 .github
 action
+comparadise-utils
 cypress
 dist
 node_modules
-comparadise-utils
 *.md
