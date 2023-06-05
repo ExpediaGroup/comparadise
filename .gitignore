@@ -10,9 +10,9 @@ node_modules
 dist
 !action/dist
 
-# utils
-utils/types/
-utils/commands.js
+# comparadise-utils
+comparadise-utils/types/
+comparadise-utils/commands.js
 
 # misc
 .DS_Store
