@@ -22,10 +22,6 @@
   "peerDependencies": {
     "cypress": ">=12"
   },
-  "devDependencies": {
-    "@types/pixelmatch": "5.2.4",
-    "@types/pngjs": "6.0.1"
-  },
   "scripts": {
     "prebuild": "rm -rf dist types",
     "build": "tsc && tsc --project tsconfig.types.json",
