@@ -15,6 +15,5 @@
     "jsx": "react-jsx",
     "strict": true,
     "noEmit": true
-  },
-  "exclude": ["**/*.test.ts"]
+  }
 }
