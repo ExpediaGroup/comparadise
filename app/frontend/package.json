@@ -1,6 +1,25 @@
 {
   "name": "frontend",
   "private": true,
+  "dependencies": {
+    "@headlessui/react": "1.7.14",
+    "@tanstack/react-query": "4.29.12",
+    "@trpc/client": "10.18.0",
+    "@trpc/react-query": "10.18.0",
+    "@trpc/server": "10.18.0",
+    "@testing-library/cypress": "9.0.0",
+    "@types/react": "18.0.21",
+    "@types/react-dom": "18.0.8",
+    "@types/testing-library__cypress": "5.0.9",
+    "@vitejs/plugin-react-swc": "3.3.2",
+    "prettier-plugin-tailwindcss": "0.3.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "shared": "workspace:*",
+    "tailwindcss": "3.3.2",
+    "use-query-params": "2.2.1",
+    "vite": "4.3.9"
+  },
   "scripts": {
     "build": "tsc && vite build",
     "format": "prettier --write .",
