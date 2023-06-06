@@ -1,18 +1,14 @@
 {
-  "name": "comparadise-app",
+  "name": "app",
   "private": true,
   "scripts": {
-    "build": "tsc && vite build",
     "build:docker": "docker build . --tag comparadise && docker-compose up",
-    "cypress:e2e": "cypress run --e2e --browser chrome",
+    "cypress:e2e": "cypress run --e2e --browser chrome --config frontend/cypress.config.ts",
     "cypress:open": "cypress open --component --browser chrome",
-    "dev": "npm run start:frontend & npm-watch",
-    "format": "prettier --write .",
-    "lint": "eslint . --max-warnings=0",
-    "start:backend": "ts-node app/backend/server.ts",
-    "start:frontend": "vite",
-    "test": "jest && cypress run --component",
-    "test:integration": "start-server-and-test build:docker http://localhost:8080 cypress:e2e"
+    "dev": "nx start:frontend & npm-watch",
+    "start:backend": "nx start backend",
+    "start:frontend": "nx start frontend",
+    "test": "start-server-and-test build:docker http://localhost:8080 cypress:e2e"
   },
   "watch": {
     "start:backend": {

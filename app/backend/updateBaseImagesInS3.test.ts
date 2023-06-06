@@ -1,6 +1,6 @@
 import { S3Client } from './s3Client';
 import { filterNewImages, replaceImagesInS3, getBaseImagePaths, updateBaseImagesInS3 } from './updateBaseImagesInS3';
-import { BASE_IMAGES_DIRECTORY } from 'comparadise-shared';
+import { BASE_IMAGES_DIRECTORY } from 'shared';
 import { allNonVisualChecksHavePassed } from './allNonVisualChecksHavePassed';
 
 jest.mock('./allNonVisualChecksHavePassed');

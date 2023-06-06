@@ -17,6 +17,9 @@ importers:
       '@octokit/rest':
         specifier: 19.0.11
         version: 19.0.11
+      '@tanstack/react-query':
+        specifier: 4.29.12
+        version: 4.29.12(react-dom@18.2.0)(react@18.2.0)
       '@trpc/client':
         specifier: 10.18.0
         version: 10.18.0(@trpc/server@10.18.0)
@@ -105,9 +108,6 @@ importers:
       '@vitejs/plugin-react-swc':
         specifier: 3.3.2
         version: 3.3.2(vite@4.3.9)
-      comparadise-shared:
-        specifier: workspace:*
-        version: link:shared
       cypress:
         specifier: 12.13.0
         version: 12.13.0
@@ -132,6 +132,9 @@ importers:
       prettier-plugin-tailwindcss:
         specifier: 0.3.0
         version: 0.3.0(prettier@2.8.7)
+      shared:
+        specifier: workspace:*
+        version: link:shared
       start-server-and-test:
         specifier: 2.0.0
         version: 2.0.0
@@ -148,6 +151,10 @@ importers:
   action: {}
 
   app: {}
+
+  app/backend: {}
+
+  app/frontend: {}
 
   comparadise-utils:
     dependencies:

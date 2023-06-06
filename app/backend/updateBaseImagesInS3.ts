@@ -1,6 +1,6 @@
 import { S3Client } from './s3Client';
 import { listAllS3PathsForHash } from './listAllS3PathsForHash';
-import { BASE_IMAGE_NAME, BASE_IMAGES_DIRECTORY, NEW_IMAGE_NAME, UPDATE_BASE_IMAGES_ERROR_MESSAGE } from 'comparadise-shared';
+import { BASE_IMAGE_NAME, BASE_IMAGES_DIRECTORY, NEW_IMAGE_NAME, UPDATE_BASE_IMAGES_ERROR_MESSAGE } from 'shared';
 import { allNonVisualChecksHavePassed } from './allNonVisualChecksHavePassed';
 import { TRPCError } from '@trpc/server';
 import { UpdateBaseImagesInput } from './schema';

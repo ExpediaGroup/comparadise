@@ -7,7 +7,7 @@ import * as path from 'path';
 import { sync } from 'glob';
 import { createGithubComment } from './comment';
 import { getLatestVisualRegressionStatus } from './get-latest-visual-regression-status';
-import { VISUAL_REGRESSION_CONTEXT } from 'comparadise-shared';
+import { VISUAL_REGRESSION_CONTEXT } from 'shared';
 
 export const run = async () => {
   const visualTestCommands = getMultilineInput('visual-test-command', { required: true });

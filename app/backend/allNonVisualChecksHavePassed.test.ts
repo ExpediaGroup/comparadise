@@ -1,6 +1,6 @@
 import { allNonVisualChecksHavePassed } from './allNonVisualChecksHavePassed';
 import { getOctokit } from './getOctokit';
-import { VISUAL_REGRESSION_CONTEXT } from 'comparadise-shared';
+import { VISUAL_REGRESSION_CONTEXT } from 'shared';
 
 jest.mock('./getOctokit');
 

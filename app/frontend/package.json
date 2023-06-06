@@ -1,0 +1,11 @@
+{
+  "name": "frontend",
+  "private": true,
+  "scripts": {
+    "build": "tsc && vite build",
+    "lint": "eslint . --max-warnings=0",
+    "start": "vite",
+    "test": "cypress run --component --browser chrome"
+  },
+  "eslintIgnore": ["dist"]
+}

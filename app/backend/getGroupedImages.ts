@@ -1,7 +1,7 @@
-import groupBy from 'lodash.groupby';
+import { groupBy } from 'lodash';
 import { getBase64StringFromS3 } from './getBase64StringFromS3';
 import { listAllS3PathsForHash } from './listAllS3PathsForHash';
-import { BASE_IMAGE_NAME, DIFF_IMAGE_NAME, NEW_IMAGE_NAME } from 'comparadise-shared';
+import { BASE_IMAGE_NAME, DIFF_IMAGE_NAME, NEW_IMAGE_NAME } from 'shared';
 import { parse } from 'path';
 import { TRPCError } from '@trpc/server';
 import { GetGroupedImagesInput } from './schema';

@@ -8,7 +8,10 @@ USER admin
 
 ENV PORT 8080
 
-RUN npm ci
-RUN npm run build
+RUN curl -f https://get.pnpm.io/v6.16.js | node - add --global pnpm
+RUN pnpm fetch
+ADD . ./
+RUN pnpm install -r --offline
+RUN pnpm build
 
-CMD [ "npm", "run", "start:backend" ]
+CMD [ "pnpm", "start:backend" ]
