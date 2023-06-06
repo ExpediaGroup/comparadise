@@ -1,5 +1,6 @@
 version: 2
 updates:
+  # TODO: enable once dependabot supports pnpm
   #  - package-ecosystem: 'pnpm'
   #    directory: '/'
   #    schedule:
