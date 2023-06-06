@@ -51,9 +51,6 @@ jobs:
       - name: Install
         run: pnpm --filter comparadise-utils install
 
-      - name: Build
-        run: nx build comparadise-utils
-
       - name: Setup .npmrc
         run: |
           echo //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }} >> .npmrc
@@ -61,9 +58,9 @@ jobs:
 
       - name: Publish
         run: |
-          VERSION_TAG=$(echo "${GITHUB_REF}" | cut -d "/" -f3)
-          pnpm version "${VERSION_TAG:1}"
-          pnpm publish
+          echo VERSION_TAG=$(echo "${GITHUB_REF}" | cut -d "/" -f3) >> $GITHUB_OUTPUT
+          pnpm --filter comparadise-utils bump-version
+          pnpm --filter comparadise-utils publish --no-git-checks
 
   publish-tags:
     runs-on: ubuntu-latest
