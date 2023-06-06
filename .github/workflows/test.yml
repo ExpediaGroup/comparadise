@@ -28,7 +28,7 @@ jobs:
         run: pnpm install
 
       - name: Test
-        run: nx run-many --target=test
+        run: pnpm nx run-many --target=test
 
       - name: Check for any generated code that should be committed
         run: |
