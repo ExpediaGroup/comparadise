@@ -1,7 +1,9 @@
 name: Publish
 
 on:
-  pull_request
+  pull_request:
+    branches:
+      - main
 #  release:
 #    types: [created]
 
@@ -49,11 +51,9 @@ jobs:
       - name: Install
         run: pnpm --filter comparadise-utils install
 
-      - name: Setup .npmrc
-        run: echo //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }} >> .npmrc
-
       - name: Publish
         run: |
+          echo //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }} >> .npmrc
 #          echo VERSION_TAG=$(echo "${GITHUB_REF}" | cut -d "/" -f3) >> $GITHUB_OUTPUT
           echo VERSION_TAG=v0.2.0-canary.123 >> $GITHUB_OUTPUT
           pnpm --filter comparadise-utils bump-version
