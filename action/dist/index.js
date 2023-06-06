@@ -10843,6 +10843,235 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 6330:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.createGithubComment = void 0;
+const octokit_1 = __nccwpck_require__(2749);
+const github_1 = __nccwpck_require__(1419);
+const core_1 = __nccwpck_require__(3610);
+const createGithubComment = async () => {
+    const bucketName = (0, core_1.getInput)('bucket-name', { required: true });
+    const commitHash = (0, core_1.getInput)('commit-hash', { required: true });
+    const comparadiseHost = (0, core_1.getInput)('comparadise-host');
+    const { owner, repo } = github_1.context.repo;
+    const comparadiseUrl = `${comparadiseHost}/?hash=${commitHash}&owner=${owner}&repo=${repo}&bucket=${bucketName}`;
+    const comparadiseLink = comparadiseHost ? `[Comparadise](${comparadiseUrl})` : 'Comparadise';
+    const comparadiseBaseComment = `**Visual tests failed!**\nCheck out the diffs on ${comparadiseLink}! :palm_tree:`;
+    const comparadiseCommentDetails = (0, core_1.getInput)('comment-details');
+    const comparadiseComment = comparadiseCommentDetails ? `${comparadiseBaseComment}\n${comparadiseCommentDetails}` : comparadiseBaseComment;
+    const { data } = await octokit_1.octokit.rest.repos.listPullRequestsAssociatedWithCommit({
+        commit_sha: commitHash,
+        ...github_1.context.repo
+    });
+    const prNumber = data.find(Boolean)?.number ?? github_1.context.issue.number;
+    const { data: comments } = await octokit_1.octokit.rest.issues.listComments({
+        issue_number: prNumber,
+        ...github_1.context.repo
+    });
+    const githubActionsCommentBodies = comments.map(comment => comment.body);
+    const comparadiseCommentExists = githubActionsCommentBodies.some(body => body?.includes(comparadiseBaseComment));
+    if (!comparadiseCommentExists) {
+        await octokit_1.octokit.rest.issues.createComment({
+            body: comparadiseComment,
+            issue_number: prNumber,
+            ...github_1.context.repo
+        });
+    }
+};
+exports.createGithubComment = createGithubComment;
+
+
+/***/ }),
+
+/***/ 5399:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getLatestVisualRegressionStatus = void 0;
+const octokit_1 = __nccwpck_require__(2749);
+const github_1 = __nccwpck_require__(1419);
+const shared_1 = __nccwpck_require__(9201);
+const getLatestVisualRegressionStatus = async (commitHash) => {
+    const { data } = await octokit_1.octokit.rest.repos.listCommitStatusesForRef({
+        ref: commitHash,
+        ...github_1.context.repo
+    });
+    return data.find(status => status.context === shared_1.VISUAL_REGRESSION_CONTEXT);
+};
+exports.getLatestVisualRegressionStatus = getLatestVisualRegressionStatus;
+
+
+/***/ }),
+
+/***/ 2749:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.octokit = void 0;
+const github_1 = __nccwpck_require__(1419);
+const core_1 = __nccwpck_require__(3610);
+exports.octokit = (0, github_1.getOctokit)((0, core_1.getInput)('github-token'));
+
+
+/***/ }),
+
+/***/ 1306:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.run = void 0;
+const core_1 = __nccwpck_require__(3610);
+const s3_operations_1 = __nccwpck_require__(2394);
+const exec_1 = __nccwpck_require__(5045);
+const octokit_1 = __nccwpck_require__(2749);
+const github_1 = __nccwpck_require__(1419);
+const path = __importStar(__nccwpck_require__(1017));
+const glob_1 = __nccwpck_require__(4771);
+const comment_1 = __nccwpck_require__(6330);
+const get_latest_visual_regression_status_1 = __nccwpck_require__(5399);
+const shared_1 = __nccwpck_require__(9201);
+const run = async () => {
+    const visualTestCommands = (0, core_1.getMultilineInput)('visual-test-command', { required: true });
+    const commitHash = (0, core_1.getInput)('commit-hash', { required: true });
+    const screenshotsDirectory = (0, core_1.getInput)('screenshots-directory');
+    await (0, s3_operations_1.downloadBaseImages)();
+    const visualTestExitCode = await Promise.all(visualTestCommands.map(cmd => (0, exec_1.exec)(cmd)));
+    if (visualTestExitCode.some(code => code !== 0)) {
+        (0, core_1.setFailed)('Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?');
+        return octokit_1.octokit.rest.repos.createCommitStatus({
+            sha: commitHash,
+            context: shared_1.VISUAL_REGRESSION_CONTEXT,
+            state: 'failure',
+            description: 'Visual tests failed to execute successfully.',
+            ...github_1.context.repo
+        });
+    }
+    const screenshotsPath = path.join(process.cwd(), screenshotsDirectory);
+    const filesInScreenshotDirectory = (0, glob_1.sync)(`${screenshotsPath}/**`);
+    const diffFileCount = filesInScreenshotDirectory.filter(file => file.endsWith('diff.png')).length;
+    const newFileCount = filesInScreenshotDirectory.filter(file => file.endsWith('new.png')).length;
+    if (diffFileCount === 0 && newFileCount === 0) {
+        (0, core_1.info)('All visual tests passed, and no diffs found!');
+        const latestVisualRegressionStatus = await (0, get_latest_visual_regression_status_1.getLatestVisualRegressionStatus)(commitHash);
+        if (latestVisualRegressionStatus?.state === 'failure') {
+            (0, core_1.info)('Visual Regression status has already been set to failed, so skipping status update.');
+            return;
+        }
+        return octokit_1.octokit.rest.repos.createCommitStatus({
+            sha: commitHash,
+            context: shared_1.VISUAL_REGRESSION_CONTEXT,
+            state: 'success',
+            description: 'Visual tests passed!',
+            ...github_1.context.repo
+        });
+    }
+    const latestVisualRegressionStatus = await (0, get_latest_visual_regression_status_1.getLatestVisualRegressionStatus)(commitHash);
+    if (latestVisualRegressionStatus?.state === 'failure' &&
+        latestVisualRegressionStatus?.description === 'Visual tests failed to execute successfully.') {
+        (0, core_1.warning)('Some other Visual Regression tests failed to execute successfully, so skipping status update and comment.');
+        return;
+    }
+    (0, core_1.warning)(`${diffFileCount} visual differences found, and ${newFileCount} new images found.`);
+    await (0, s3_operations_1.uploadBaseImages)();
+    await octokit_1.octokit.rest.repos.createCommitStatus({
+        sha: commitHash,
+        context: shared_1.VISUAL_REGRESSION_CONTEXT,
+        state: 'failure',
+        description: diffFileCount === 0 ? 'A new visual test was created!' : 'A visual regression was detected!',
+        ...github_1.context.repo
+    });
+    await (0, comment_1.createGithubComment)();
+};
+exports.run = run;
+
+
+/***/ }),
+
+/***/ 2394:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.uploadBaseImages = exports.downloadBaseImages = void 0;
+const exec_1 = __nccwpck_require__(5045);
+const core_1 = __nccwpck_require__(3610);
+const downloadBaseImages = async () => {
+    const bucketName = (0, core_1.getInput)('bucket-name', { required: true });
+    const screenshotsDirectory = (0, core_1.getInput)('screenshots-directory');
+    const baseImagesDirectory = (0, core_1.getInput)('base-images-directory');
+    const packagePaths = (0, core_1.getInput)('package-paths')?.split(',');
+    if (packagePaths) {
+        return Promise.all(packagePaths.map(packagePath => (0, exec_1.exec)(`aws s3 cp s3://${bucketName}/${baseImagesDirectory}/${packagePath} ${screenshotsDirectory}/${packagePath} --recursive`)));
+    }
+    return (0, exec_1.exec)(`aws s3 cp s3://${bucketName}/${baseImagesDirectory} ${screenshotsDirectory} --recursive`);
+};
+exports.downloadBaseImages = downloadBaseImages;
+const uploadBaseImages = async () => {
+    const bucketName = (0, core_1.getInput)('bucket-name', { required: true });
+    const screenshotsDirectory = (0, core_1.getInput)('screenshots-directory');
+    const commitHash = (0, core_1.getInput)('commit-hash', { required: true });
+    const packagePaths = (0, core_1.getInput)('package-paths')?.split(',');
+    if (packagePaths) {
+        return Promise.all(packagePaths.map(packagePath => (0, exec_1.exec)(`aws s3 cp ${screenshotsDirectory}/${packagePath} s3://${bucketName}/${commitHash}/${packagePath} --recursive`)));
+    }
+    return (0, exec_1.exec)(`aws s3 cp ${screenshotsDirectory} s3://${bucketName}/${commitHash} --recursive`);
+};
+exports.uploadBaseImages = uploadBaseImages;
+
+
+/***/ }),
+
+/***/ 9201:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.UPDATE_BASE_IMAGES_ERROR_MESSAGE = exports.NEW_IMAGE_NAME = exports.DIFF_IMAGE_NAME = exports.BASE_IMAGE_NAME = exports.BASE_IMAGES_DIRECTORY = exports.VISUAL_REGRESSION_CONTEXT = void 0;
+exports.VISUAL_REGRESSION_CONTEXT = 'Visual Regression';
+exports.BASE_IMAGES_DIRECTORY = 'base-images';
+exports.BASE_IMAGE_NAME = 'base';
+exports.DIFF_IMAGE_NAME = 'diff';
+exports.NEW_IMAGE_NAME = 'new';
+exports.UPDATE_BASE_IMAGES_ERROR_MESSAGE = 'At least one non-visual status check has not passed on your PR. Please ensure all other checks have passed before updating base images!';
+
+
+/***/ }),
+
 /***/ 498:
 /***/ ((module) => {
 
@@ -11044,17 +11273,6 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 	}
 /******/ 	
 /************************************************************************/
-/******/ 	/* webpack/runtime/make namespace object */
-/******/ 	(() => {
-/******/ 		// define __esModule on exports
-/******/ 		__nccwpck_require__.r = (exports) => {
-/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 			}
-/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 		};
-/******/ 	})();
-/******/ 	
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
@@ -11064,169 +11282,11 @@ var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be in strict mode.
 (() => {
 "use strict";
-// ESM COMPAT FLAG
-__nccwpck_require__.r(__webpack_exports__);
+var exports = __webpack_exports__;
 
-// EXTERNAL MODULE: ../node_modules/.pnpm/@actions+core@1.10.0/node_modules/@actions/core/lib/core.js
-var core = __nccwpck_require__(3610);
-// EXTERNAL MODULE: ../node_modules/.pnpm/@actions+exec@1.1.1/node_modules/@actions/exec/lib/exec.js
-var exec = __nccwpck_require__(5045);
-;// CONCATENATED MODULE: ./s3-operations.ts
-
-
-const downloadBaseImages = async () => {
-    const bucketName = (0,core.getInput)('bucket-name', { required: true });
-    const screenshotsDirectory = (0,core.getInput)('screenshots-directory');
-    const baseImagesDirectory = (0,core.getInput)('base-images-directory');
-    const packagePaths = (0,core.getInput)('package-paths')?.split(',');
-    if (packagePaths) {
-        return Promise.all(packagePaths.map(packagePath => (0,exec.exec)(`aws s3 cp s3://${bucketName}/${baseImagesDirectory}/${packagePath} ${screenshotsDirectory}/${packagePath} --recursive`)));
-    }
-    return (0,exec.exec)(`aws s3 cp s3://${bucketName}/${baseImagesDirectory} ${screenshotsDirectory} --recursive`);
-};
-const uploadBaseImages = async () => {
-    const bucketName = (0,core.getInput)('bucket-name', { required: true });
-    const screenshotsDirectory = (0,core.getInput)('screenshots-directory');
-    const commitHash = (0,core.getInput)('commit-hash', { required: true });
-    const packagePaths = (0,core.getInput)('package-paths')?.split(',');
-    if (packagePaths) {
-        return Promise.all(packagePaths.map(packagePath => (0,exec.exec)(`aws s3 cp ${screenshotsDirectory}/${packagePath} s3://${bucketName}/${commitHash}/${packagePath} --recursive`)));
-    }
-    return (0,exec.exec)(`aws s3 cp ${screenshotsDirectory} s3://${bucketName}/${commitHash} --recursive`);
-};
-
-// EXTERNAL MODULE: ../node_modules/.pnpm/@actions+github@5.1.1/node_modules/@actions/github/lib/github.js
-var github = __nccwpck_require__(1419);
-;// CONCATENATED MODULE: ./octokit.ts
-
-
-const octokit = (0,github.getOctokit)((0,core.getInput)('github-token'));
-
-// EXTERNAL MODULE: external "path"
-var external_path_ = __nccwpck_require__(1017);
-// EXTERNAL MODULE: ../node_modules/.pnpm/@vercel+ncc@0.36.1/node_modules/@vercel/ncc/dist/ncc/@@notfound.js?glob
-var _notfoundglob = __nccwpck_require__(4771);
-;// CONCATENATED MODULE: ./comment.ts
-
-
-
-const createGithubComment = async () => {
-    const bucketName = (0,core.getInput)('bucket-name', { required: true });
-    const commitHash = (0,core.getInput)('commit-hash', { required: true });
-    const comparadiseHost = (0,core.getInput)('comparadise-host');
-    const { owner, repo } = github.context.repo;
-    const comparadiseUrl = `${comparadiseHost}/?hash=${commitHash}&owner=${owner}&repo=${repo}&bucket=${bucketName}`;
-    const comparadiseLink = comparadiseHost ? `[Comparadise](${comparadiseUrl})` : 'Comparadise';
-    const comparadiseBaseComment = `**Visual tests failed!**\nCheck out the diffs on ${comparadiseLink}! :palm_tree:`;
-    const comparadiseCommentDetails = (0,core.getInput)('comment-details');
-    const comparadiseComment = comparadiseCommentDetails ? `${comparadiseBaseComment}\n${comparadiseCommentDetails}` : comparadiseBaseComment;
-    const { data } = await octokit.rest.repos.listPullRequestsAssociatedWithCommit({
-        commit_sha: commitHash,
-        ...github.context.repo
-    });
-    const prNumber = data.find(Boolean)?.number ?? github.context.issue.number;
-    const { data: comments } = await octokit.rest.issues.listComments({
-        issue_number: prNumber,
-        ...github.context.repo
-    });
-    const githubActionsCommentBodies = comments.map(comment => comment.body);
-    const comparadiseCommentExists = githubActionsCommentBodies.some(body => body?.includes(comparadiseBaseComment));
-    if (!comparadiseCommentExists) {
-        await octokit.rest.issues.createComment({
-            body: comparadiseComment,
-            issue_number: prNumber,
-            ...github.context.repo
-        });
-    }
-};
-
-;// CONCATENATED MODULE: ../shared/index.ts
-const VISUAL_REGRESSION_CONTEXT = 'Visual Regression';
-const BASE_IMAGES_DIRECTORY = 'base-images';
-const BASE_IMAGE_NAME = 'base';
-const DIFF_IMAGE_NAME = 'diff';
-const NEW_IMAGE_NAME = 'new';
-const UPDATE_BASE_IMAGES_ERROR_MESSAGE = 'At least one non-visual status check has not passed on your PR. Please ensure all other checks have passed before updating base images!';
-
-;// CONCATENATED MODULE: ./get-latest-visual-regression-status.ts
-
-
-
-const getLatestVisualRegressionStatus = async (commitHash) => {
-    const { data } = await octokit.rest.repos.listCommitStatusesForRef({
-        ref: commitHash,
-        ...github.context.repo
-    });
-    return data.find(status => status.context === VISUAL_REGRESSION_CONTEXT);
-};
-
-;// CONCATENATED MODULE: ./run.ts
-
-
-
-
-
-
-
-
-
-
-const run = async () => {
-    const visualTestCommands = (0,core.getMultilineInput)('visual-test-command', { required: true });
-    const commitHash = (0,core.getInput)('commit-hash', { required: true });
-    const screenshotsDirectory = (0,core.getInput)('screenshots-directory');
-    await downloadBaseImages();
-    const visualTestExitCode = await Promise.all(visualTestCommands.map(cmd => (0,exec.exec)(cmd)));
-    if (visualTestExitCode.some(code => code !== 0)) {
-        (0,core.setFailed)('Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?');
-        return octokit.rest.repos.createCommitStatus({
-            sha: commitHash,
-            context: VISUAL_REGRESSION_CONTEXT,
-            state: 'failure',
-            description: 'Visual tests failed to execute successfully.',
-            ...github.context.repo
-        });
-    }
-    const screenshotsPath = external_path_.join(process.cwd(), screenshotsDirectory);
-    const filesInScreenshotDirectory = (0,_notfoundglob.sync)(`${screenshotsPath}/**`);
-    const diffFileCount = filesInScreenshotDirectory.filter(file => file.endsWith('diff.png')).length;
-    const newFileCount = filesInScreenshotDirectory.filter(file => file.endsWith('new.png')).length;
-    if (diffFileCount === 0 && newFileCount === 0) {
-        (0,core.info)('All visual tests passed, and no diffs found!');
-        const latestVisualRegressionStatus = await getLatestVisualRegressionStatus(commitHash);
-        if (latestVisualRegressionStatus?.state === 'failure') {
-            (0,core.info)('Visual Regression status has already been set to failed, so skipping status update.');
-            return;
-        }
-        return octokit.rest.repos.createCommitStatus({
-            sha: commitHash,
-            context: VISUAL_REGRESSION_CONTEXT,
-            state: 'success',
-            description: 'Visual tests passed!',
-            ...github.context.repo
-        });
-    }
-    const latestVisualRegressionStatus = await getLatestVisualRegressionStatus(commitHash);
-    if (latestVisualRegressionStatus?.state === 'failure' &&
-        latestVisualRegressionStatus?.description === 'Visual tests failed to execute successfully.') {
-        (0,core.warning)('Some other Visual Regression tests failed to execute successfully, so skipping status update and comment.');
-        return;
-    }
-    (0,core.warning)(`${diffFileCount} visual differences found, and ${newFileCount} new images found.`);
-    await uploadBaseImages();
-    await octokit.rest.repos.createCommitStatus({
-        sha: commitHash,
-        context: VISUAL_REGRESSION_CONTEXT,
-        state: 'failure',
-        description: diffFileCount === 0 ? 'A new visual test was created!' : 'A visual regression was detected!',
-        ...github.context.repo
-    });
-    await createGithubComment();
-};
-
-;// CONCATENATED MODULE: ./main.ts
-
-run();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const run_1 = __nccwpck_require__(1306);
+(0, run_1.run)();
 
 })();
 
