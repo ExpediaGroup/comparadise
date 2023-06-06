@@ -39,6 +39,5 @@
   "eslintIgnore": [
     "dist",
     "types"
-  ],
-  "version": "1.0.0"
+  ]
 }
