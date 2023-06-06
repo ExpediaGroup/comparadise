@@ -10,7 +10,7 @@ RUN chown -R admin .
 COPY --chown=admin . .
 USER admin
 
-RUN pnpm install --ignore-scripts
+RUN pnpm install --prod --ignore-scripts
 RUN pnpm nx build frontend
 
 ENV PORT 8080
