@@ -23,7 +23,6 @@ jobs:
           visual-test-command: exit 0
           bucket-name: test-bucket
           commit-hash: ${{ github.event.pull_request.head.sha }}
-
 #  test:
 #    name: All Tests
 #    runs-on: ubuntu-latest

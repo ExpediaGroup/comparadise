@@ -2,6 +2,16 @@
   "name": "action",
   "main": "src/main.ts",
   "private": true,
+  "dependencies": {
+    "@actions/core": "1.10.0",
+    "@actions/exec": "1.1.1",
+    "@actions/github": "5.1.1",
+    "glob": "10.2.6"
+  },
+  "devDependencies": {
+    "@types/glob": "8.1.0",
+    "@vercel/ncc": "0.36.1"
+  },
   "scripts": {
     "build": "ncc build --source-map --license licenses.txt",
     "format": "prettier --write .",
