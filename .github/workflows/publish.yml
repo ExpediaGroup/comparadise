@@ -52,7 +52,7 @@ jobs:
         run: pnpm --filter comparadise-utils install
 
       # echo VERSION_TAG=$(echo "${GITHUB_REF}" | cut -d "/" -f3) >> $GITHUB_OUTPUT
-      - run: echo VERSION_TAG=v0.2.9 >> $GITHUB_OUTPUT
+      - run: echo "VERSION_TAG=v0.2.9-canary.123" >> $GITHUB_OUTPUT
 
       - name: Publish
         run: |
