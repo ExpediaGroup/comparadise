@@ -1,4 +1,4 @@
-FROM node:18-slim
+FROM node:18.16.0-slim
 
 WORKDIR /app
 
@@ -10,8 +10,8 @@ RUN chown -R admin .
 COPY --chown=admin . .
 USER admin
 
-RUN pnpm i --ignore-scripts
+RUN pnpm install --prod --ignore-scripts
 RUN pnpm --filter frontend build
 
 ENV PORT 8080
-CMD [ "pnpm", "--filter", "app", "start" ]
+CMD [ "pnpm", "--filter", "backend", "start" ]
