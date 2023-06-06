@@ -5,14 +5,7 @@
     "build": "tsc",
     "format": "prettier --write .",
     "lint": "eslint . --max-warnings=0",
-    "start": "ts-node server.ts",
+    "start": "ts-node src/server.ts",
     "test": "jest"
-  },
-  "jest": {
-    "transform": {
-      "^.+\\.(t|j)sx?$": "@swc/jest"
-    },
-    "testRegex": ".test.ts$",
-    "clearMocks": true
   }
 }

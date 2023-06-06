@@ -1,6 +1,6 @@
 {
   "name": "action",
-  "main": "main.ts",
+  "main": "src/main.ts",
   "private": true,
   "scripts": {
     "build": "ncc build --source-map --license licenses.txt",
@@ -10,12 +10,5 @@
   },
   "eslintIgnore": [
     "dist"
-  ],
-  "jest": {
-    "transform": {
-      "^.+\\.(t|j)sx?$": "@swc/jest"
-    },
-    "testRegex": ".test.ts$",
-    "clearMocks": true
-  }
+  ]
 }

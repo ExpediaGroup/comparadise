@@ -1,8 +1,8 @@
-import { allNonVisualChecksHavePassed } from './allNonVisualChecksHavePassed';
-import { getOctokit } from './getOctokit';
+import { allNonVisualChecksHavePassed } from '../src/allNonVisualChecksHavePassed';
+import { getOctokit } from '../src/getOctokit';
 import { VISUAL_REGRESSION_CONTEXT } from 'shared';
 
-jest.mock('./getOctokit');
+jest.mock('../src/getOctokit');
 
 describe('allNonVisualChecksHavePassed', () => {
   it('should return true when all non-visual pr checks pass', async () => {

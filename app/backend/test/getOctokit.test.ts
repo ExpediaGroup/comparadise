@@ -1,5 +1,5 @@
 import { readFileSync } from 'fs';
-import { getOctokit } from './getOctokit';
+import { getOctokit } from '../src/getOctokit';
 import { Octokit } from '@octokit/rest';
 
 jest.mock('fs');

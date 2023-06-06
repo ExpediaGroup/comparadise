@@ -2,7 +2,7 @@
   "name": "app",
   "private": true,
   "scripts": {
-    "build:docker": "nx build comparadise",
+    "build:docker": "nx docker comparadise",
     "cypress:e2e": "nx test:e2e frontend",
     "cypress:open": "cypress open --component --browser chrome",
     "local": "nx start frontend & npm-watch",
