@@ -11,7 +11,7 @@ concurrency:
 
 jobs:
   test:
-    name: Run All Tests
+    name: All Tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -28,7 +28,7 @@ jobs:
         run: pnpm install
 
       - name: Test
-        run: pnpm nx run-many --target=test
+        run: pnpm nx affected -t test
 
       - name: Check for any generated code that should be committed
         run: |
