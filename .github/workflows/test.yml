@@ -28,7 +28,7 @@ jobs:
         run: pnpm install
 
       - name: Test
-        run: pnpm nx affected -t test
+        run: pnpm nx affected --target=test
 
       - name: Check for any generated code that should be committed
         run: |
