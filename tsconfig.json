@@ -15,6 +15,5 @@
     "jsx": "react-jsx",
     "strict": true,
     "noEmit": true
-  },
-  "references": [{ "path": "./tsconfig.node.json" }]
+  }
 }
