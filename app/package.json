@@ -2,16 +2,15 @@
   "name": "app",
   "private": true,
   "scripts": {
-    "build:docker": "docker build . --tag comparadise && docker-compose up",
-    "cypress:e2e": "cypress run --e2e --browser chrome --config frontend/cypress.config.ts",
+    "build:docker": "nx build comparadise",
+    "cypress:e2e": "nx test:e2e frontend",
     "cypress:open": "cypress open --component --browser chrome",
-    "dev": "nx start:frontend & npm-watch",
-    "start:backend": "nx start backend",
-    "start:frontend": "nx start frontend",
+    "local": "nx start frontend & npm-watch",
+    "start": "nx start backend",
     "test": "start-server-and-test build:docker http://localhost:8080 cypress:e2e"
   },
   "watch": {
-    "start:backend": {
+    "start": {
       "patterns": [
         "backend"
       ],

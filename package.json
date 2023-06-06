@@ -51,13 +51,7 @@
     "vite": "4.3.9"
   },
   "scripts": {
+    "build": "docker build . --tag comparadise && docker-compose up",
     "format": "prettier --write ."
-  },
-  "jest": {
-    "transform": {
-      "^.+\\.(t|j)sx?$": "@swc/jest"
-    },
-    "testRegex": ".test.ts$",
-    "clearMocks": true
   }
 }

@@ -5,7 +5,8 @@
     "build": "tsc && vite build",
     "lint": "eslint . --max-warnings=0",
     "start": "vite",
-    "test": "cypress run --component --browser chrome"
+    "test": "cypress run --component --browser chrome",
+    "test:e2e": "cypress run --e2e --browser chrome"
   },
   "eslintIgnore": [
     "dist"

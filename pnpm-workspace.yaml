@@ -1,4 +1,5 @@
 packages:
+  - .
   - action
   - app
   - app/frontend
