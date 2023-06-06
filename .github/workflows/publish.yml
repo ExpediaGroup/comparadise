@@ -51,12 +51,14 @@ jobs:
       - name: Install
         run: pnpm --filter comparadise-utils install
 
-      # echo VERSION_TAG=$(echo "${GITHUB_REF}" | cut -d "/" -f3) >> $GITHUB_OUTPUT
-      - run: echo VERSION_TAG=v0.2.9-canary.123 >> $GITHUB_ENV
+      # VERSION_TAG=$(echo "${GITHUB_REF}" | cut -d "/" -f3)
+      - run: |
+          VERSION_TAG=v0.2.9
+          echo NEW_VERSION="${VERSION_TAG:1}" >> $GITHUB_ENV
 
       - name: Publish
         run: |
-          echo VERSION_TAG=$VERSION_TAG
+          echo NEW_VERSION=$NEW_VERSION
           echo //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }} >> .npmrc
           pnpm --filter comparadise-utils bump-version
           pnpm --filter comparadise-utils publish --no-git-checks
