@@ -50,9 +50,7 @@ jobs:
         run: pnpm --filter comparadise-utils install
 
       - name: Setup .npmrc
-        run: |
-          echo //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }} >> .npmrc
-          git update-index --assume-unchanged .npmrc
+        run: echo //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }} >> .npmrc
 
       - name: Publish
         run: |
