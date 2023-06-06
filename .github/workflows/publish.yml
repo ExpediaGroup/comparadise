@@ -55,7 +55,7 @@ jobs:
           # echo VERSION_TAG=$(echo "${GITHUB_REF}" | cut -d "/" -f3) >> $GITHUB_OUTPUT
         run: |
           echo //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }} >> .npmrc
-          echo VERSION_TAG=v0.2.0-canary.123 >> $GITHUB_OUTPUT
+          echo VERSION_TAG=v0.2.9 >> $GITHUB_OUTPUT
           pnpm --filter comparadise-utils bump-version
           pnpm --filter comparadise-utils publish --no-git-checks
 
