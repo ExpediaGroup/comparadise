@@ -1,10 +1,11 @@
-import { S3Client } from '../src/s3Client';
-import { filterNewImages, replaceImagesInS3, getBaseImagePaths, updateBaseImagesInS3 } from '../src/updateBaseImagesInS3';
-import { BASE_IMAGES_DIRECTORY } from 'shared';
-import { allNonVisualChecksHavePassed } from '../src/allNonVisualChecksHavePassed';
+import { S3Client } from './s3Client';
+import { filterNewImages, replaceImagesInS3, getBaseImagePaths, updateBaseImagesInS3 } from './updateBaseImagesInS3';
+import { BASE_IMAGES_DIRECTORY } from '../../shared';
+import { allNonVisualChecksHavePassed } from './allNonVisualChecksHavePassed';
+import { expect } from '@jest/globals';
 
-jest.mock('../src/allNonVisualChecksHavePassed');
-jest.mock('../src/s3Client');
+jest.mock('./allNonVisualChecksHavePassed');
+jest.mock('./s3Client');
 
 describe('filterNewImages', () => {
   it('should filter only the new images from the given paths', () => {

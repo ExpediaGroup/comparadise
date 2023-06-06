@@ -1,8 +1,7 @@
 .github
 action
-app/frontend/cypress
-app/frontend/cypress.config.ts
 comparadise-utils
+cypress
 dist
 node_modules
 *.md

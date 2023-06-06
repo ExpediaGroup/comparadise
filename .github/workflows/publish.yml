@@ -38,26 +38,30 @@ jobs:
 
   publish-comparadise-utils:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: comparadise-utils
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: .nvmrc
 
       - name: Install
-        run: pnpm --filter comparadise-utils install
+        run: npm ci
 
-      - name: Set Version Environment Variable
-        run: |
-          VERSION_TAG=$(echo "${GITHUB_REF}" | cut -d "/" -f3)
-          echo NEW_VERSION="${VERSION_TAG:1}" >> $GITHUB_ENV
+      - name: Build
+        run: npm run build
 
       - name: Publish
         run: |
-          echo //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }} >> .npmrc
-          pnpm --filter comparadise-utils bump-version
-          pnpm --filter comparadise-utils publish --no-git-checks
+          npm config set _authToken=${{ secrets.NPM_TOKEN }}
+          VERSION_TAG=$(echo "${GITHUB_REF}" | cut -d "/" -f3)
+          npm version "${VERSION_TAG:1}"
+          npm publish
 
   publish-tags:
     runs-on: ubuntu-latest

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { TRPCClientErrorLike } from '@trpc/client';
-import { AppRouter } from '../../backend/src/server';
+import { AppRouter } from '../../backend/server';
 
 export const Error = ({ error }: { error: TRPCClientErrorLike<AppRouter> }) => {
   const { data, message } = error;

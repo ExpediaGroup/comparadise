@@ -1,7 +1,8 @@
-import { listAllS3PathsForHash } from '../src/listAllS3PathsForHash';
-import { S3Client } from '../src/s3Client';
+import { listAllS3PathsForHash } from './listAllS3PathsForHash';
+import { S3Client } from './s3Client';
+import { expect } from '@jest/globals';
 
-jest.mock('../src/s3Client');
+jest.mock('./s3Client');
 (S3Client.listObjectsV2 as jest.Mock).mockResolvedValue({
   Contents: [
     {

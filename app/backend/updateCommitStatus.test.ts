@@ -1,8 +1,9 @@
-import { updateCommitStatus } from '../src/updateCommitStatus';
-import { getOctokit } from '../src/getOctokit';
-import { VISUAL_REGRESSION_CONTEXT } from 'shared';
+import { updateCommitStatus } from './updateCommitStatus';
+import { getOctokit } from './getOctokit';
+import { VISUAL_REGRESSION_CONTEXT } from '../../shared';
+import { expect } from '@jest/globals';
 
-jest.mock('../src/getOctokit');
+jest.mock('./getOctokit');
 const createCommitStatus = jest.fn(() => ({ catch: jest.fn() }));
 (getOctokit as jest.Mock).mockImplementation(() => ({
   rest: {

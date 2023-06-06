@@ -1,9 +1,10 @@
-import { run } from '../src/run';
+import { run } from './run';
 import { exec } from '@actions/exec';
 import { getInput, getMultilineInput, setFailed } from '@actions/core';
-import { octokit } from '../src/octokit';
+import { octokit } from './octokit';
 import { sync } from 'glob';
-import { VISUAL_REGRESSION_CONTEXT } from 'shared';
+import { VISUAL_REGRESSION_CONTEXT } from '../shared';
+import { expect } from '@jest/globals';
 
 jest.mock('glob');
 jest.mock('@actions/core');

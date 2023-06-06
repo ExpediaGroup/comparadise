@@ -1,4 +1,3 @@
-action/
-app/
-comparadise-utils/
-shared/
+dist/
+utils/types/
+node_modules/

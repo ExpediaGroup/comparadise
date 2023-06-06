@@ -1,9 +1,10 @@
-import { getGroupedImages } from '../src/getGroupedImages';
-import { listAllS3PathsForHash } from '../src/listAllS3PathsForHash';
-import { getBase64StringFromS3 } from '../src/getBase64StringFromS3';
+import { getGroupedImages } from './getGroupedImages';
+import { listAllS3PathsForHash } from './listAllS3PathsForHash';
+import { getBase64StringFromS3 } from './getBase64StringFromS3';
+import { expect } from '@jest/globals';
 
-jest.mock('../src/getBase64StringFromS3');
-jest.mock('../src/listAllS3PathsForHash');
+jest.mock('./getBase64StringFromS3');
+jest.mock('./listAllS3PathsForHash');
 
 describe('getGroupedImages', () => {
   beforeEach(() => {

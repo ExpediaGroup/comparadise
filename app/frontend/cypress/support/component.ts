@@ -2,7 +2,7 @@ import './commands';
 
 import { mount } from 'cypress/react18';
 import '../../App.css';
-import { UPDATE_BASE_IMAGES_ERROR_MESSAGE } from 'shared';
+import { UPDATE_BASE_IMAGES_ERROR_MESSAGE } from '../../../../shared';
 
 declare global {
   namespace Cypress {

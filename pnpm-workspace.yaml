@@ -1,8 +1,0 @@
-packages:
-  - .
-  - action
-  - app
-  - app/frontend
-  - app/backend
-  - comparadise-utils
-  - shared
