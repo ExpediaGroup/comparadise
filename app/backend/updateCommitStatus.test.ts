@@ -1,7 +1,6 @@
 import { updateCommitStatus } from './updateCommitStatus';
 import { getOctokit } from './getOctokit';
-import { VISUAL_REGRESSION_CONTEXT } from '../../shared';
-import { expect } from '@jest/globals';
+import { VISUAL_REGRESSION_CONTEXT } from 'comparadise-shared';
 
 jest.mock('./getOctokit');
 const createCommitStatus = jest.fn(() => ({ catch: jest.fn() }));

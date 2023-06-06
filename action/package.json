@@ -1,0 +1,10 @@
+{
+  "name": "comparadise-action",
+  "private": true,
+  "scripts": {
+    "format": "prettier --write .",
+    "lint": "eslint . --max-warnings=0",
+    "package": "ncc build --source-map --license licenses.txt",
+    "test": "jest"
+  }
+}

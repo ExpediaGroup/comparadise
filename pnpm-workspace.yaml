@@ -1,0 +1,5 @@
+packages:
+  - action
+  - app
+  - comparadise-utils
+  - shared

@@ -1,0 +1,9 @@
+{
+  "name": "comparadise-shared",
+  "private": true,
+  "scripts": {
+    "format": "prettier --write .",
+    "lint": "eslint . --max-warnings=0",
+    "test": "exit 0"
+  }
+}

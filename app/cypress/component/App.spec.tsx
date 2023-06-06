@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { makeMockAdapter } from '../utils/makeMockAdapter';
-import App from '../../App';
-import { UPDATE_BASE_IMAGES_ERROR_MESSAGE } from '../../../../shared';
+import App from '../../frontend/App';
+import { UPDATE_BASE_IMAGES_ERROR_MESSAGE } from 'comparadise-shared';
 
 describe('App', () => {
   describe('homepage', () => {
