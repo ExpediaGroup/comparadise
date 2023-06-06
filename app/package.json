@@ -1,0 +1,32 @@
+{
+  "name": "app",
+  "private": true,
+  "scripts": {
+    "build:docker": "nx docker comparadise",
+    "cypress:e2e": "nx test:e2e frontend",
+    "cypress:open": "cypress open --component --browser chrome",
+    "local": "nx start frontend & npm-watch",
+    "start": "nx start backend",
+    "test": "start-server-and-test build:docker http://localhost:8080 cypress:e2e"
+  },
+  "watch": {
+    "start": {
+      "patterns": [
+        "backend"
+      ],
+      "extensions": "ts"
+    }
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

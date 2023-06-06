@@ -1,0 +1,11 @@
+{
+  "name": "backend",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "format": "prettier --write .",
+    "lint": "eslint . --max-warnings=0",
+    "start": "ts-node src/server.ts",
+    "test": "jest"
+  }
+}
