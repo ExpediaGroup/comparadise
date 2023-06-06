@@ -6,48 +6,32 @@ on:
       - main
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}
   cancel-in-progress: true
 
 jobs:
-  lint:
-    name: Lint
+  test:
+    name: All Tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
         with:
+          fetch-depth: 0
           ref: ${{ github.event.pull_request.head.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
 
-      - name: Validate package.json
-        uses: ExpediaGroup/package-json-validator@v1
-        with:
-          rules: ranges
-          dependency-types: |
-            dependencies
-            devDependencies
+      - uses: nrwl/nx-set-shas@v3
 
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version-file: .nvmrc
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
 
       - name: Install
-        run: npm ci
+        run: pnpm install
 
-      - name: Type Check
-        run: tsc
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Format
-        run: npm run format
-
-      - name: Package
-        run: npm run package
+      - name: Test
+        run: pnpm nx affected --target=test
 
       - name: Check for any generated code that should be committed
         run: |
@@ -61,85 +45,3 @@ jobs:
             git push
             exit 1
           fi
-
-  backend:
-    name: Backend Tests
-    needs:
-      - lint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version-file: .nvmrc
-
-      - name: Install
-        run: npm ci
-
-      - name: Test
-        run: npm run test:backend
-
-  frontend:
-    name: Frontend Tests
-    needs:
-      - lint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version-file: .nvmrc
-
-      - name: Install and Test
-        uses: cypress-io/github-action@v5
-        with:
-          component: true
-
-  integration:
-    name: Integration Tests
-    needs:
-      - lint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version-file: .nvmrc
-
-      - name: Install
-        run: npm ci
-
-      - name: Run Cypress Tests Against Docker Container
-        run: npm run test:integration
-
-  utils:
-    name: Utils Tests
-    needs:
-      - lint
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: comparadise-utils
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version-file: .nvmrc
-
-      - name: Install Dependencies
-        run: npm ci
-
-      - name: Build
-        run: npm run build

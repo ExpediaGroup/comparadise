@@ -1,11 +1,12 @@
 version: 2
 updates:
-  - package-ecosystem: 'npm'
-    directory: '/'
-    schedule:
-      interval: 'weekly'
-    reviewers:
-      - '@ExpediaGroup/comparadise-committers'
+  # TODO: enable once dependabot supports pnpm
+  #  - package-ecosystem: 'pnpm'
+  #    directory: '/'
+  #    schedule:
+  #      interval: 'weekly'
+  #    reviewers:
+  #      - '@ExpediaGroup/comparadise-committers'
   - package-ecosystem: 'github-actions'
     directory: '/'
     schedule:

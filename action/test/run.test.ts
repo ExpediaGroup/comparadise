@@ -1,10 +1,9 @@
-import { run } from './run';
+import { run } from '../src/run';
 import { exec } from '@actions/exec';
 import { getInput, getMultilineInput, setFailed } from '@actions/core';
-import { octokit } from './octokit';
+import { octokit } from '../src/octokit';
 import { sync } from 'glob';
-import { VISUAL_REGRESSION_CONTEXT } from '../shared';
-import { expect } from '@jest/globals';
+import { VISUAL_REGRESSION_CONTEXT } from 'shared';
 
 jest.mock('glob');
 jest.mock('@actions/core');
@@ -55,7 +54,7 @@ describe('main', () => {
 
   it('should pass if visual tests pass and no diffs or new images', async () => {
     (exec as jest.Mock).mockResolvedValue(0);
-    (sync as jest.Mock).mockReturnValue(['path/to/screenshots/base.png']);
+    (sync as unknown as jest.Mock).mockReturnValue(['path/to/screenshots/base.png']);
     await run();
     expect(setFailed).not.toHaveBeenCalled();
     expect(octokit.rest.repos.createCommitStatus).toHaveBeenCalledWith({
@@ -70,7 +69,11 @@ describe('main', () => {
 
   it('should fail if visual tests pass and some diff images were created', async () => {
     (exec as jest.Mock).mockResolvedValue(0);
-    (sync as jest.Mock).mockReturnValue(['path/to/screenshots/base.png', 'path/to/screenshots/diff.png', 'path/to/screenshots/new.png']);
+    (sync as unknown as jest.Mock).mockReturnValue([
+      'path/to/screenshots/base.png',
+      'path/to/screenshots/diff.png',
+      'path/to/screenshots/new.png'
+    ]);
     await run();
     expect(setFailed).not.toHaveBeenCalled();
     expect(octokit.rest.repos.createCommitStatus).toHaveBeenCalledWith({
@@ -86,7 +89,7 @@ describe('main', () => {
 
   it('should fail if visual tests pass and only new images were created', async () => {
     (exec as jest.Mock).mockResolvedValue(0);
-    (sync as jest.Mock).mockReturnValue(['path/to/screenshots/base.png', 'path/to/screenshots/new.png']);
+    (sync as unknown as jest.Mock).mockReturnValue(['path/to/screenshots/base.png', 'path/to/screenshots/new.png']);
     await run();
     expect(setFailed).not.toHaveBeenCalled();
     expect(octokit.rest.repos.createCommitStatus).toHaveBeenCalledWith({
@@ -104,7 +107,11 @@ describe('main', () => {
     (exec as jest.Mock).mockResolvedValue(0);
     const extendedInputMap: Record<string, string> = { ...inputMap, 'package-paths': 'path/1,path/2' };
     (getInput as jest.Mock).mockImplementation(name => extendedInputMap[name]);
-    (sync as jest.Mock).mockReturnValue(['path/to/screenshots/base.png', 'path/to/screenshots/diff.png', 'path/to/screenshots/new.png']);
+    (sync as unknown as jest.Mock).mockReturnValue([
+      'path/to/screenshots/base.png',
+      'path/to/screenshots/diff.png',
+      'path/to/screenshots/new.png'
+    ]);
     await run();
     expect(exec).toHaveBeenCalledWith('aws s3 cp s3://some-bucket/base-images/path/1 path/to/screenshots/path/1 --recursive');
     expect(exec).toHaveBeenCalledWith('aws s3 cp s3://some-bucket/base-images/path/2 path/to/screenshots/path/2 --recursive');
@@ -116,7 +123,7 @@ describe('main', () => {
 
   it('should not set successful commit status or create comment if the latest Visual Regression status is failure', async () => {
     (exec as jest.Mock).mockResolvedValue(0);
-    (sync as jest.Mock).mockReturnValue(['path/to/screenshots/base.png']);
+    (sync as unknown as jest.Mock).mockReturnValue(['path/to/screenshots/base.png']);
     (octokit.rest.repos.listCommitStatusesForRef as unknown as jest.Mock).mockResolvedValue({
       data: [
         { context: 'some context', created_at: '2023-05-21T16:51:29Z', state: 'success' },
@@ -136,7 +143,7 @@ describe('main', () => {
 
   it('should set successful commit status if the latest Visual Regression status is not failure', async () => {
     (exec as jest.Mock).mockResolvedValue(0);
-    (sync as jest.Mock).mockReturnValue(['path/to/screenshots/base.png']);
+    (sync as unknown as jest.Mock).mockReturnValue(['path/to/screenshots/base.png']);
     (octokit.rest.repos.listCommitStatusesForRef as unknown as jest.Mock).mockResolvedValue({
       data: [
         { context: 'some context', created_at: '2023-05-21T16:51:29Z', state: 'success' },
@@ -150,7 +157,11 @@ describe('main', () => {
 
   it('should not set failure commit status or create comment if the latest Visual Regression status is failure because tests failed to execute successfully', async () => {
     (exec as jest.Mock).mockResolvedValue(0);
-    (sync as jest.Mock).mockReturnValue(['path/to/screenshots/base.png', 'path/to/screenshots/diff.png', 'path/to/screenshots/new.png']);
+    (sync as unknown as jest.Mock).mockReturnValue([
+      'path/to/screenshots/base.png',
+      'path/to/screenshots/diff.png',
+      'path/to/screenshots/new.png'
+    ]);
     (octokit.rest.repos.listCommitStatusesForRef as unknown as jest.Mock).mockResolvedValue({
       data: [
         { context: 'some context', created_at: '2023-05-21T16:51:29Z', state: 'success' },
