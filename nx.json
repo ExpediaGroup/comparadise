@@ -9,11 +9,8 @@
     }
   },
   "targetDefaults": {
-    "build": {
-      "dependsOn": ["format", "lint"]
-    },
     "test": {
-      "dependsOn": ["build"]
+      "dependsOn": ["format", "lint", "build"]
     }
   },
   "affected": {

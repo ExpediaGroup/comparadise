@@ -11,7 +11,7 @@ COPY --chown=admin . .
 USER admin
 
 RUN pnpm install --prod --ignore-scripts
-RUN pnpm --filter frontend build
+RUN pnpm nx build frontend
 
 ENV PORT 8080
-CMD [ "pnpm", "--filter", "backend", "start" ]
+CMD [ "pnpm", "nx", "start", "app" ]
