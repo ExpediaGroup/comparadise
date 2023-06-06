@@ -28,7 +28,7 @@
   },
   "scripts": {
     "build": "tsc && tsc --project tsconfig.types.json",
-    "bump-version": "pnpm version ${VERSION_TAG:1}",
+    "bump-version": "pnpm version \"${VERSION_TAG:1}\"",
     "format": "prettier --write .",
     "lint": "eslint . --max-warnings=0",
     "postbuild": "echo \"require('./dist/match-screenshot');\" > commands.js && echo \"export {};\" > types/index.js",

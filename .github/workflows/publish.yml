@@ -56,6 +56,7 @@ jobs:
 
       - name: Publish
         run: |
+          echo VERSION_TAG=$VERSION_TAG
           echo //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }} >> .npmrc
           pnpm --filter comparadise-utils bump-version
           pnpm --filter comparadise-utils publish --no-git-checks
