@@ -10,51 +10,38 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  action:
-    name: Test Action
+  test:
+    name: All Tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-
-      - name: Test Action
-        uses: ./
         with:
-          visual-test-command: exit 0
-          bucket-name: test-bucket
-          commit-hash: ${{ github.event.pull_request.head.sha }}
-#  test:
-#    name: All Tests
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v3
-#        with:
-#          fetch-depth: 0
-#          ref: ${{ github.event.pull_request.head.ref }}
-#          repository: ${{ github.event.pull_request.head.repo.full_name }}
-#          token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
-#
-#      - uses: nrwl/nx-set-shas@v3
-#
-#      - name: Setup pnpm
-#        uses: pnpm/action-setup@v2
-#
-#      - name: Install
-#        run: pnpm install
-#
-#      - name: Test
-#        run: pnpm nx affected --target=test
-#
-#      - name: Check for any generated code that should be committed
-#        run: |
-#          if [[ $(git status --porcelain) ]]; then
-#            echo "Detected uncommitted changes after build. See status below:"
-#            git status
-#            git config user.name "${{ github.actor }}"
-#            git config user.email "${{ github.actor }}@users.noreply.github.com"
-#            git add .
-#            git commit -m "chore: committing generated code"
-#            git push
-#            exit 1
-#          fi
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - uses: nrwl/nx-set-shas@v3
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+
+      - name: Install
+        run: pnpm install
+
+      - name: Test
+        run: pnpm nx affected --target=test
+
+      - name: Check for any generated code that should be committed
+        run: |
+          if [[ $(git status --porcelain) ]]; then
+            echo "Detected uncommitted changes after build. See status below:"
+            git status
+            git config user.name "${{ github.actor }}"
+            git config user.email "${{ github.actor }}@users.noreply.github.com"
+            git add .
+            git commit -m "chore: committing generated code"
+            git push
+            exit 1
+          fi
