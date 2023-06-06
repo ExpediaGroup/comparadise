@@ -7,5 +7,7 @@
     "start": "vite",
     "test": "cypress run --component --browser chrome"
   },
-  "eslintIgnore": ["dist"]
+  "eslintIgnore": [
+    "dist"
+  ]
 }
