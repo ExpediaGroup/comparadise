@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "build": "ncc build --source-map --license licenses.txt",
+    "format": "prettier --write .",
     "lint": "eslint . --max-warnings=0",
     "test": "jest"
   },

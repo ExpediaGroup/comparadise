@@ -51,7 +51,6 @@
     "start-server-and-test": "2.0.0"
   },
   "scripts": {
-    "build": "docker build . --tag comparadise && docker-compose up",
-    "format": "prettier --write ."
+    "build": "docker build . --tag comparadise && docker-compose up"
   }
 }
