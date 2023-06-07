@@ -1,12 +1,10 @@
 import { groupBy } from 'lodash';
 import { getBase64StringFromS3 } from './getBase64StringFromS3';
 import { listAllS3PathsForHash } from './listAllS3PathsForHash';
-import { BASE_IMAGE_NAME, DIFF_IMAGE_NAME, NEW_IMAGE_NAME } from 'shared';
+import { NEW_IMAGE_NAME } from 'shared';
 import { parse } from 'path';
 import { TRPCError } from '@trpc/server';
-import { GetGroupedImagesInput } from './schema';
-
-type ImageName = typeof BASE_IMAGE_NAME | typeof DIFF_IMAGE_NAME | typeof NEW_IMAGE_NAME;
+import {GetGroupedImagesInput, imageNameSchema} from './schema';
 
 export const getGroupedImages = async ({ hash, bucket }: GetGroupedImagesInput) => {
   const keys = await listAllS3PathsForHash(hash, bucket);
@@ -49,7 +47,10 @@ const getResponseEntries = (keys: string[], base64Images: string[]) =>
     image: base64Images[index]
   }));
 
-const getImageNameFromPath = (path: string) => parse(path).name as ImageName;
+const getImageNameFromPath = (path: string) => {
+  const fileName = parse(path).name;
+  return imageNameSchema.parse(fileName);
+}
 
 const getKeyFromPath = (path: string) => {
   const pathWithoutFileName = parse(path).dir;
