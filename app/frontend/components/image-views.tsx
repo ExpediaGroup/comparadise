@@ -3,7 +3,7 @@ import { RouterOutput } from '../utils/trpc';
 import { PrimaryButton, SecondaryButton } from './buttons';
 
 interface ImageViewChildProps {
-  responseEntries: RouterOutput['getGroupedImages'][number]['entries'];
+  images: RouterOutput['getImages'];
 }
 
 interface SingleImageViewProps extends ImageViewChildProps {
@@ -11,12 +11,8 @@ interface SingleImageViewProps extends ImageViewChildProps {
   onSelectImage: (index: number) => void;
 }
 
-export const SingleImageView: React.FC<SingleImageViewProps> = ({ responseEntries, selectedImageIndex, onSelectImage }) => {
-  if (!responseEntries) {
-    return null;
-  }
-
-  if (!responseEntries[selectedImageIndex]) {
+export const SingleImageView: React.FC<SingleImageViewProps> = ({ images, selectedImageIndex, onSelectImage }) => {
+  if (!images[selectedImageIndex]) {
     onSelectImage(0);
     return null;
   }
@@ -24,38 +20,34 @@ export const SingleImageView: React.FC<SingleImageViewProps> = ({ responseEntrie
   return (
     <div className="mb-12 mt-5 flex justify-center">
       <div className="fixed bottom-20">
-        {responseEntries.map((entry, index) => {
+        {images.map((image, index) => {
           const onClick = () => onSelectImage(index);
           const Button = selectedImageIndex === index ? PrimaryButton : SecondaryButton;
           const extraStyles =
             index === 0
               ? 'rounded-s-md rounded-e-none'
-              : index === responseEntries.length - 1
+              : index === images.length - 1
               ? 'rounded-s-none rounded-e-md'
               : 'rounded-none';
           return (
-            <Button key={entry.name} onClick={onClick} backgroundFilled className={`border border-slate-700 ${extraStyles}`}>
-              {entry.name}
+            <Button key={image.name} onClick={onClick} backgroundFilled className={`border border-slate-700 ${extraStyles}`}>
+              {image.name}
             </Button>
           );
         })}
       </div>
-      <img src={responseEntries[selectedImageIndex].image} alt={responseEntries[selectedImageIndex].name} />
+      <img src={images[selectedImageIndex].base64} alt={images[selectedImageIndex].name} />
     </div>
   );
 };
 
-export const SideBySideImageView: React.FC<ImageViewChildProps> = ({ responseEntries }) => {
-  if (!responseEntries) {
-    return null;
-  }
-
+export const SideBySideImageView: React.FC<ImageViewChildProps> = ({ images }) => {
   return (
     <div className="flex justify-center">
-      {responseEntries.map(entry => (
-        <div key={entry.name}>
-          <h2 className="text-center">{entry.name}</h2>
-          <img src={entry.image} alt={entry.name} />
+      {images.map(image => (
+        <div key={image.name}>
+          <h2 className="text-center">{image.name}</h2>
+          <img src={image.base64} alt={image.name} />
         </div>
       ))}
     </div>

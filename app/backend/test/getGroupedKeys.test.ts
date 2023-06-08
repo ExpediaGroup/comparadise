@@ -31,6 +31,7 @@ describe('getGroupedKeys', () => {
     expect(paths).toEqual([
       {
         page: 1,
+        title: 'EXTRA_LARGE/pdpPage',
         keys: [
           'hash/EXTRA_LARGE/pdpPage/base.png',
           'hash/EXTRA_LARGE/pdpPage/diff.png',
@@ -58,6 +59,7 @@ describe('getGroupedKeys', () => {
     expect(paths).toEqual([
       {
         page: 1,
+        title: 'SMALL/pdpPage',
         keys: [
           'hash/SMALL/pdpPage/new.png'
         ]
@@ -95,6 +97,7 @@ describe('getGroupedKeys', () => {
     expect(paths).toEqual([
       {
         page: 1,
+        title: 'SMALL/srpPage',
         keys: [
           'hash/SMALL/srpPage/base.png',
           'hash/SMALL/srpPage/diff.png',
@@ -103,6 +106,7 @@ describe('getGroupedKeys', () => {
       },
       {
         page: 2,
+        title: 'EXTRA_LARGE/pdpPage',
         keys: [
           'hash/EXTRA_LARGE/pdpPage/base.png',
           'hash/EXTRA_LARGE/pdpPage/diff.png',

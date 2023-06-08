@@ -25,6 +25,7 @@ export const getGroupedKeys = async ({ hash, bucket }: GetGroupedKeysInput) => {
     .filter(key => groupedImages[key].length > 1 || groupedImages[key].find(item => item.name === NEW_IMAGE_NAME))
     .map((key, index) => ({
       page: index + 1,
+      title: getPathFromKey(key),
       keys: groupedImages[key].map(({ base, dir }) => join(dir, base))
     }));
 
@@ -37,4 +38,8 @@ export const getGroupedKeys = async ({ hash, bucket }: GetGroupedKeysInput) => {
   }
 
   return groupedKeys;
+};
+
+const getPathFromKey = (path: string) => {
+  return path.slice(path.indexOf('/') + 1);
 };

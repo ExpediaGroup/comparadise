@@ -19,19 +19,16 @@ describe('getImages', () => {
     });
     expect(result).toEqual([
       {
-        path: 'SMALL/srpPage',
         name: 'base',
-        image: 'base64'
+        base64: 'base64'
       },
       {
-        path: 'SMALL/srpPage',
         name: 'diff',
-        image: 'base64'
+        base64: 'base64'
       },
       {
-        path: 'SMALL/srpPage',
         name: 'new',
-        image: 'base64'
+        base64: 'base64'
       }
     ])
   });

@@ -18,8 +18,8 @@ import {getGroupedKeys} from "./getGroupedKeys";
 const t = initTRPC.create();
 
 const router = t.router({
-  getS3Paths: t.procedure.input(getGroupedKeysInputSchema).query(({ input }) => getGroupedKeys(input)),
-  getGroupedImages: t.procedure.input(getImagesInputSchema).query(({ input }) => getImages(input)),
+  getGroupedKeys: t.procedure.input(getGroupedKeysInputSchema).query(({ input }) => getGroupedKeys(input)),
+  getImages: t.procedure.input(getImagesInputSchema).query(({ input }) => getImages(input)),
   updateBaseImages: t.procedure.input(updateBaseImagesInputSchema).mutation(({ input }) => updateBaseImagesInS3(input)),
   updateCommitStatus: t.procedure.input(updateCommitStatusInputSchema).mutation(({ input }) => updateCommitStatus(input))
 });

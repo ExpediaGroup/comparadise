@@ -10,57 +10,71 @@ import { RouterOutput, trpc } from '../utils/trpc';
 import { useQueryParams } from 'use-query-params';
 import { URL_PARAMS } from '../constants';
 import { ArrowBackIcon, ArrowForwardIcon } from './arrows';
+import {useEffect} from "react";
 
 export const MainPage = () => {
   const [{ hash, bucket }] = useQueryParams(URL_PARAMS);
 
   const [specIndex, setSpecIndex] = React.useState(0);
-  const [selectedView, setSelectedView] = React.useState<ViewType | undefined>();
+  const [viewType, setViewType] = React.useState<ViewType | undefined>();
   const [singleImageViewIndex, setSingleImageViewIndex] = React.useState(0);
 
   if (!hash || !bucket) {
     return <LandingPage />;
   }
 
-  const { data: groupedImages, isLoading, error } = trpc.getGroupedImages.useQuery({ hash, bucket });
+  const { data: groupedKeys, isLoading: isLoadingKeys, error: keysError } = trpc.getGroupedKeys.useQuery({ hash, bucket });
 
+  const currentKeys = groupedKeys?.[specIndex].keys ?? [];
+  const { data: images, isLoading, error: imageError } = trpc.getImages.useQuery({ keys: currentKeys, bucket }, { enabled: !isLoadingKeys });
+
+  const utils = trpc.useContext();
+  useEffect(() => {
+    if (images) {
+      getViewType(images).then(viewType => {
+        setViewType(viewType);
+      });
+    }
+  }, [images]);
+
+  const error = keysError || imageError;
   if (error) {
     return <Error error={error} />;
   }
 
-  if (isLoading || !groupedImages) {
+  if (isLoading || !groupedKeys || !images) {
     return <Loader />;
   }
 
   const onClickBackArrow = async () => {
     setSpecIndex(specIndex - 1);
-    const viewType = await getViewTypeForSpec(groupedImages[specIndex - 1]);
-    setSelectedView(viewType);
+    utils.getImages.invalidate({ bucket, keys: currentKeys });
   };
 
   const onClickForwardArrow = async () => {
     setSpecIndex(specIndex + 1);
-    const viewType = await getViewTypeForSpec(groupedImages[specIndex + 1]);
-    setSelectedView(viewType);
   };
 
-  const containers = groupedImages?.map(({ name, entries }) => {
-    const imageView =
-      selectedView === ViewType.SIDE_BY_SIDE ? (
-        <SideBySideImageView responseEntries={entries} />
-      ) : (
-        <SingleImageView responseEntries={entries} selectedImageIndex={singleImageViewIndex} onSelectImage={setSingleImageViewIndex} />
-      );
+  const imageView =
+    viewType === ViewType.SIDE_BY_SIDE ? (
+      <SideBySideImageView images={images} />
+    ) : (
+      <SingleImageView images={images} selectedImageIndex={singleImageViewIndex} onSelectImage={setSingleImageViewIndex} />
+    );
 
-    const isLastSpec = specIndex >= groupedImages.length - 1;
-    return (
+  const { title } = groupedKeys[specIndex];
+
+  const isLastSpec = specIndex >= images.length - 1;
+
+  return (
+    <BaseImageStateProvider>
       <>
-        <div key={name} className="mt-10 flex flex-col items-center justify-center">
+        <div className="mt-10 flex flex-col items-center justify-center">
           <div className="flex w-4/5 items-center justify-between">
             <button disabled={specIndex <= 0} onClick={onClickBackArrow} aria-label="back-arrow">
               <ArrowBackIcon disabled={specIndex <= 0} />
             </button>
-            <h1 className="text-center text-4xl font-medium">{name}</h1>
+            <h1 className="text-center text-4xl font-medium">{title}</h1>
             <button disabled={isLastSpec} onClick={onClickForwardArrow} aria-label="forward-arrow">
               <ArrowForwardIcon disabled={isLastSpec} />
             </button>
@@ -69,18 +83,12 @@ export const MainPage = () => {
             <UpdateImagesButton />
           </div>
           <div className="mt-5">
-            <ViewToggle selectedView={selectedView} onSelectView={setSelectedView} />
+            <ViewToggle selectedView={viewType} onSelectView={setViewType} />
           </div>
         </div>
         <div className="mt-8">{imageView}</div>
       </>
-    );
-  });
-
-  return (
-    <div>
-      <BaseImageStateProvider>{containers?.[specIndex]}</BaseImageStateProvider>
-    </div>
+    </BaseImageStateProvider>
   );
 };
 
@@ -92,11 +100,11 @@ const imageIsSmallEnoughForSideBySide = async (image: string) => {
   return 3 * img.naturalWidth < window.innerWidth;
 };
 
-const getViewTypeForSpec = async (spec: RouterOutput['getGroupedImages'][number]) => {
-  if (spec.entries.length === 1) {
+const getViewType = async (images: RouterOutput['getImages']) => {
+  if (images.length === 1) {
     return undefined;
   }
-  const { image } = spec.entries[0];
-  const shouldViewSideBySide = await imageIsSmallEnoughForSideBySide(image);
+  const firstImage = images[0].base64;
+  const shouldViewSideBySide = await imageIsSmallEnoughForSideBySide(firstImage);
   return shouldViewSideBySide ? ViewType.SIDE_BY_SIDE : undefined;
 };
