@@ -7,7 +7,7 @@ import { CyHttpMessages } from 'cypress/types/net-stubbing';
 import { baseImageUpdateRejection } from '../mocks/base-image-update-rejection';
 import { mutationResponse } from '../mocks/mutation';
 
-const getPageFromRequest = (req: CyHttpMessages.IncomingHttpRequest) => JSON.parse(req.query.input as string)['0'].cursor;
+const getPageFromRequest = (req: CyHttpMessages.IncomingHttpRequest) => JSON.parse(req.query.input as string)['0'].page;
 
 describe('App', () => {
   describe('homepage', () => {
