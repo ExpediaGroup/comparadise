@@ -7,7 +7,6 @@
   },
   "scripts": {
     "cypress:e2e": "nx test:e2e frontend",
-    "cypress:open": "cypress open --component --browser chrome",
     "docker": "nx docker comparadise",
     "local": "nx start frontend & npm-watch",
     "start": "nx start backend",

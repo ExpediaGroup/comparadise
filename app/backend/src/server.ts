@@ -5,14 +5,21 @@ import * as path from 'path';
 import * as trpcExpress from '@trpc/server/adapters/express';
 import { initTRPC } from '@trpc/server';
 import { updateCommitStatus } from './updateCommitStatus';
-import { getGroupedImages } from './getGroupedImages';
+import { getImages } from './getImages';
 import { updateBaseImagesInS3 } from './updateBaseImagesInS3';
-import { getGroupedImagesInputSchema, updateBaseImagesInputSchema, updateCommitStatusInputSchema } from './schema';
+import {
+  getImagesInputSchema,
+  getGroupedKeysInputSchema,
+  updateBaseImagesInputSchema,
+  updateCommitStatusInputSchema
+} from './schema';
+import {getGroupedKeys} from "./getGroupedKeys";
 
 const t = initTRPC.create();
 
 const router = t.router({
-  getGroupedImages: t.procedure.input(getGroupedImagesInputSchema).query(({ input }) => getGroupedImages(input)),
+  getS3Paths: t.procedure.input(getGroupedKeysInputSchema).query(({ input }) => getGroupedKeys(input)),
+  getGroupedImages: t.procedure.input(getImagesInputSchema).query(({ input }) => getImages(input)),
   updateBaseImages: t.procedure.input(updateBaseImagesInputSchema).mutation(({ input }) => updateBaseImagesInS3(input)),
   updateCommitStatus: t.procedure.input(updateCommitStatusInputSchema).mutation(({ input }) => updateCommitStatus(input))
 });
