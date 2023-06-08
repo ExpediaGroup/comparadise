@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useEffect } from 'react';
 import { LandingPage } from './landing-page';
 import { Error } from './error';
-import { Loader } from './loader';
+import { Loader, LoaderViews } from './loader';
 import { ViewToggle, ViewType } from './view-toggle';
 import { UpdateImagesButton } from './update-images-button';
 import { SideBySideImageView, SingleImageView } from './image-views';
@@ -22,9 +22,14 @@ export const MainPage = () => {
     return <LandingPage />;
   }
 
-  const { data, fetchNextPage, fetchPreviousPage, isLoading, error } = trpc.fetchCurrentPage.useInfiniteQuery(
+  const { isLoading, data, fetchNextPage, fetchPreviousPage, isFetching, error } = trpc.fetchCurrentPage.useInfiniteQuery(
     { hash, bucket },
-    { getNextPageParam: currentPage => currentPage.nextPage, initialCursor: 1 }
+    {
+      initialCursor: 1,
+      getNextPageParam: currentPage => currentPage.nextPage,
+      keepPreviousData: true,
+      refetchOnWindowFocus: false
+    }
   );
 
   const currentPage = data?.pages[specIndex];
@@ -41,28 +46,34 @@ export const MainPage = () => {
     return <Error error={error} />;
   }
 
-  if (isLoading || !currentPage) {
-    return <Loader />;
+  if (isLoading) {
+    return <Loader view={LoaderViews.FULL_SCREEN} />;
   }
 
   const onClickBackArrow = async () => {
+    await fetchPreviousPage();
     setSpecIndex(specIndex - 1);
-    fetchPreviousPage();
   };
 
   const onClickForwardArrow = async () => {
+    await fetchNextPage();
     setSpecIndex(specIndex + 1);
-    fetchNextPage();
   };
 
-  const imageView =
-    viewType === ViewType.SIDE_BY_SIDE ? (
-      <SideBySideImageView images={currentPage.images} />
-    ) : (
-      <SingleImageView images={currentPage.images} selectedImageIndex={singleImageViewIndex} onSelectImage={setSingleImageViewIndex} />
-    );
+  const getImageBody = () => {
+    if (isFetching || !currentPage) {
+      return <Loader view={LoaderViews.PARTIAL} />;
+    }
+    const imageView =
+      viewType === ViewType.SIDE_BY_SIDE ? (
+        <SideBySideImageView images={currentPage.images} />
+      ) : (
+        <SingleImageView images={currentPage.images} selectedImageIndex={singleImageViewIndex} onSelectImage={setSingleImageViewIndex} />
+      );
+    return <div className="mt-8">{imageView}</div>;
+  };
 
-  const nextPageExists = Boolean(currentPage.nextPage);
+  const nextPageExists = Boolean(currentPage?.nextPage);
 
   return (
     <>
@@ -71,19 +82,23 @@ export const MainPage = () => {
           <button disabled={specIndex <= 0} onClick={onClickBackArrow} aria-label="back-arrow">
             <ArrowBackIcon disabled={specIndex <= 0} />
           </button>
-          <h1 className="text-center text-4xl font-medium">{currentPage.title}</h1>
+          <h1 className="text-center text-4xl font-medium">{currentPage?.title}</h1>
           <button disabled={!nextPageExists} onClick={onClickForwardArrow} aria-label="forward-arrow">
             <ArrowForwardIcon disabled={!nextPageExists} />
           </button>
         </div>
-        <div className="mt-8">
-          <UpdateImagesButton />
-        </div>
-        <div className="mt-5">
-          <ViewToggle selectedView={viewType} onSelectView={setViewType} />
-        </div>
+        {!isFetching && (
+          <>
+            <div className="mt-8">
+              <UpdateImagesButton />
+            </div>
+            <div className="mt-5">
+              <ViewToggle selectedView={viewType} onSelectView={setViewType} />
+            </div>
+          </>
+        )}
       </div>
-      <div className="mt-8">{imageView}</div>
+      {getImageBody()}
     </>
   );
 };
