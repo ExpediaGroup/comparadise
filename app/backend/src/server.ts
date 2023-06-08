@@ -9,16 +9,13 @@ import { getImages } from './getImages';
 import { updateBaseImagesInS3 } from './updateBaseImagesInS3';
 import {
   getImagesInputSchema,
-  getGroupedKeysInputSchema,
   updateBaseImagesInputSchema,
   updateCommitStatusInputSchema
 } from './schema';
-import {getGroupedKeys} from "./getGroupedKeys";
 
 const t = initTRPC.create();
 
 const router = t.router({
-  getGroupedKeys: t.procedure.input(getGroupedKeysInputSchema).query(({ input }) => getGroupedKeys(input)),
   getImages: t.procedure.input(getImagesInputSchema).query(({ input }) => getImages(input)),
   updateBaseImages: t.procedure.input(updateBaseImagesInputSchema).mutation(({ input }) => updateBaseImagesInS3(input)),
   updateCommitStatus: t.procedure.input(updateCommitStatusInputSchema).mutation(({ input }) => updateCommitStatus(input))

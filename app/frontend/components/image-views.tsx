@@ -3,7 +3,7 @@ import { RouterOutput } from '../utils/trpc';
 import { PrimaryButton, SecondaryButton } from './buttons';
 
 interface ImageViewChildProps {
-  images: RouterOutput['getImages'];
+  images: RouterOutput['getImages']['images'];
 }
 
 interface SingleImageViewProps extends ImageViewChildProps {

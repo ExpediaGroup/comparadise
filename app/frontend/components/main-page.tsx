@@ -23,48 +23,45 @@ export const MainPage = () => {
     return <LandingPage />;
   }
 
-  const { data: groupedKeys, isLoading: isLoadingKeys, error: keysError } = trpc.getGroupedKeys.useQuery({ hash, bucket });
+  const { data, fetchNextPage, fetchPreviousPage, isLoading, error } = trpc.getImages.useInfiniteQuery({ hash, bucket }, { getNextPageParam: lastPage => lastPage.nextPage, initialCursor: 1 });
 
-  const currentKeys = groupedKeys?.[specIndex].keys ?? [];
-  const { data: images, isLoading, error: imageError } = trpc.getImages.useQuery({ keys: currentKeys, bucket }, { enabled: !isLoadingKeys });
+  const currentPage = data?.pages[specIndex];
 
   const utils = trpc.useContext();
   useEffect(() => {
-    if (images) {
-      getViewType(images).then(viewType => {
+    if (currentPage) {
+      getViewType(currentPage.images).then(viewType => {
         setViewType(viewType);
       });
     }
-  }, [images]);
+  }, [currentPage]);
 
-  const error = keysError || imageError;
   if (error) {
     return <Error error={error} />;
   }
 
-  if (isLoading || !groupedKeys || !images) {
+  if (isLoading || !currentPage) {
     return <Loader />;
   }
 
   const onClickBackArrow = async () => {
     setSpecIndex(specIndex - 1);
-    utils.getImages.invalidate({ bucket, keys: currentKeys });
+    fetchPreviousPage();
   };
 
   const onClickForwardArrow = async () => {
     setSpecIndex(specIndex + 1);
+    fetchNextPage();
   };
 
   const imageView =
     viewType === ViewType.SIDE_BY_SIDE ? (
-      <SideBySideImageView images={images} />
+      <SideBySideImageView images={currentPage.images} />
     ) : (
-      <SingleImageView images={images} selectedImageIndex={singleImageViewIndex} onSelectImage={setSingleImageViewIndex} />
+      <SingleImageView images={currentPage.images} selectedImageIndex={singleImageViewIndex} onSelectImage={setSingleImageViewIndex} />
     );
 
-  const { title } = groupedKeys[specIndex];
-
-  const isLastSpec = specIndex >= images.length - 1;
+  const nextPageExists = Boolean(currentPage.nextPage);
 
   return (
     <BaseImageStateProvider>
@@ -74,9 +71,9 @@ export const MainPage = () => {
             <button disabled={specIndex <= 0} onClick={onClickBackArrow} aria-label="back-arrow">
               <ArrowBackIcon disabled={specIndex <= 0} />
             </button>
-            <h1 className="text-center text-4xl font-medium">{title}</h1>
-            <button disabled={isLastSpec} onClick={onClickForwardArrow} aria-label="forward-arrow">
-              <ArrowForwardIcon disabled={isLastSpec} />
+            <h1 className="text-center text-4xl font-medium">{currentPage.title}</h1>
+            <button disabled={!nextPageExists} onClick={onClickForwardArrow} aria-label="forward-arrow">
+              <ArrowForwardIcon disabled={!nextPageExists} />
             </button>
           </div>
           <div className="mt-8">
@@ -100,7 +97,7 @@ const imageIsSmallEnoughForSideBySide = async (image: string) => {
   return 3 * img.naturalWidth < window.innerWidth;
 };
 
-const getViewType = async (images: RouterOutput['getImages']) => {
+const getViewType = async (images: RouterOutput['getImages']['images']) => {
   if (images.length === 1) {
     return undefined;
   }
