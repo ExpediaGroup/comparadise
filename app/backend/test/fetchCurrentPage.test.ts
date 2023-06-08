@@ -1,6 +1,6 @@
-import { getImages } from '../src/getImages';
+import { fetchCurrentPage } from '../src/fetchCurrentPage';
 import { getBase64StringFromS3 } from '../src/getBase64StringFromS3';
-import {getGroupedKeys} from "../src/getGroupedKeys";
+import { getGroupedKeys } from '../src/getGroupedKeys';
 
 jest.mock('../src/getGroupedKeys');
 jest.mock('../src/getBase64StringFromS3');
@@ -8,24 +8,18 @@ jest.mock('../src/getBase64StringFromS3');
 (getGroupedKeys as jest.Mock).mockResolvedValue([
   {
     title: 'SMALL/srpPage',
-    keys: [
-      'hash/SMALL/srpPage/base.png',
-      'hash/SMALL/srpPage/diff.png',
-      'hash/SMALL/srpPage/new.png',
-    ]
+    keys: ['hash/SMALL/srpPage/base.png', 'hash/SMALL/srpPage/diff.png', 'hash/SMALL/srpPage/new.png']
   },
   {
     title: 'EXTRA_LARGE/pdpPage',
-    keys: [
-      'hash/EXTRA_LARGE/pdpPage/new.png',
-    ]
+    keys: ['hash/EXTRA_LARGE/pdpPage/new.png']
   }
 ]);
 (getBase64StringFromS3 as jest.Mock).mockResolvedValue('base64');
 
-describe('getImages', () => {
+describe('fetchCurrentPage', () => {
   it('should get first page of images', async () => {
-    const result = await getImages({
+    const result = await fetchCurrentPage({
       hash: 'hash',
       bucket: 'bucket',
       cursor: 1
@@ -47,11 +41,11 @@ describe('getImages', () => {
         }
       ],
       nextPage: 2
-    })
+    });
   });
 
   it('should get subsequent page of images', async () => {
-    const result = await getImages({
+    const result = await fetchCurrentPage({
       hash: 'hash',
       bucket: 'bucket',
       cursor: 2
@@ -65,6 +59,6 @@ describe('getImages', () => {
         }
       ],
       nextPage: undefined
-    })
+    });
   });
 });

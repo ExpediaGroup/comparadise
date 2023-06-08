@@ -3,7 +3,7 @@ import { RouterOutput } from '../utils/trpc';
 import { PrimaryButton, SecondaryButton } from './buttons';
 
 interface ImageViewChildProps {
-  images: RouterOutput['getImages']['images'];
+  images: RouterOutput['fetchCurrentPage']['images'];
 }
 
 interface SingleImageViewProps extends ImageViewChildProps {
@@ -24,11 +24,7 @@ export const SingleImageView: React.FC<SingleImageViewProps> = ({ images, select
           const onClick = () => onSelectImage(index);
           const Button = selectedImageIndex === index ? PrimaryButton : SecondaryButton;
           const extraStyles =
-            index === 0
-              ? 'rounded-s-md rounded-e-none'
-              : index === images.length - 1
-              ? 'rounded-s-none rounded-e-md'
-              : 'rounded-none';
+            index === 0 ? 'rounded-s-md rounded-e-none' : index === images.length - 1 ? 'rounded-s-none rounded-e-md' : 'rounded-none';
           return (
             <Button key={image.name} onClick={onClick} backgroundFilled className={`border border-slate-700 ${extraStyles}`}>
               {image.name}

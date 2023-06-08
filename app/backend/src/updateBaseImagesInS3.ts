@@ -3,7 +3,7 @@ import { BASE_IMAGE_NAME, BASE_IMAGES_DIRECTORY, NEW_IMAGE_NAME, UPDATE_BASE_IMA
 import { allNonVisualChecksHavePassed } from './allNonVisualChecksHavePassed';
 import { TRPCError } from '@trpc/server';
 import { UpdateBaseImagesInput } from './schema';
-import {getKeysFromS3} from "./getKeysFromS3";
+import { getKeysFromS3 } from './getKeysFromS3';
 
 export const updateBaseImagesInS3 = async ({ hash, bucket, owner, repo, baseImagesDirectory }: UpdateBaseImagesInput) => {
   if (!(await allNonVisualChecksHavePassed(owner, repo, hash))) {
