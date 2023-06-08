@@ -2,6 +2,12 @@ import * as React from 'react';
 import { makeMockAdapter } from '../utils/makeMockAdapter';
 import App from '../../App';
 import { UPDATE_BASE_IMAGES_ERROR_MESSAGE } from 'shared';
+import { firstPage, noNewImagesPage, onlyNewImagesFirstPage, onlyNewImagesSecondPage, secondPage } from '../mocks/pages';
+import { CyHttpMessages } from 'cypress/types/net-stubbing';
+import { baseImageUpdateRejection } from '../mocks/base-image-update-rejection';
+import { mutationResponse } from '../mocks/mutation';
+
+const getPageFromRequest = (req: CyHttpMessages.IncomingHttpRequest) => JSON.parse(req.query.input as string)['0'].cursor;
 
 describe('App', () => {
   describe('homepage', () => {
@@ -13,9 +19,13 @@ describe('App', () => {
 
   describe('base, new, and diff case', () => {
     beforeEach(() => {
-      cy.intercept('/trpc/getGroupedImages*', { fixture: 'images.json' });
-      cy.intercept('/trpc/updateBaseImages*', { fixture: 'mutation.json' }).as('base-images');
-      cy.intercept('/trpc/updateCommitStatus*', { fixture: 'mutation.json' }).as('commit-status');
+      cy.intercept('/trpc/fetchCurrentPage*', req => {
+        const page = getPageFromRequest(req);
+        const body = page === 1 ? firstPage : secondPage;
+        req.reply(body);
+      });
+      cy.intercept('/trpc/updateBaseImages*', { body: mutationResponse }).as('base-images');
+      cy.intercept('/trpc/updateCommitStatus*', { body: mutationResponse }).as('commit-status');
       cy.mount(<App queryParamAdapter={makeMockAdapter({ search: '?hash=123&bucket=bucket&repo=repo&owner=owner' })} />);
     });
 
@@ -61,7 +71,7 @@ describe('App', () => {
     });
 
     it('should display loader and update base images', () => {
-      cy.intercept('/trpc/updateBaseImages*', { fixture: 'mutation.json', delay: 2000 }).as('base-images');
+      cy.intercept('/trpc/updateBaseImages*', { body: mutationResponse, delay: 2000 }).as('base-images');
       cy.findByRole('button', { name: /Update all base images/i }).click();
       cy.findByText(/Are you sure/i);
       cy.findByRole('button', { name: /update/i }).click();
@@ -93,7 +103,7 @@ describe('App', () => {
     });
 
     it('should display failure message and not update commit status when base images fail to update', () => {
-      cy.intercept('/trpc/updateBaseImages*', { statusCode: 403, fixture: 'base-image-update-rejection.json' }).as('base-images');
+      cy.intercept('/trpc/updateBaseImages*', { statusCode: 403, body: baseImageUpdateRejection }).as('base-images');
       cy.findByRole('button', { name: /Update all base images/i }).click();
       cy.findByText(/Are you sure/i);
       cy.findByRole('button', { name: /update/i }).click();
@@ -106,7 +116,11 @@ describe('App', () => {
 
   describe('new image only case', () => {
     beforeEach(() => {
-      cy.intercept('/trpc/getGroupedImages*', { fixture: 'new-images-only.json' });
+      cy.intercept('/trpc/fetchCurrentPage*', req => {
+        const page = getPageFromRequest(req);
+        const body = page === 1 ? onlyNewImagesFirstPage : onlyNewImagesSecondPage;
+        req.reply(body);
+      });
       cy.mount(<App queryParamAdapter={makeMockAdapter({ search: '?hash=123&bucket=bucket&repo=repo&owner=owner' })} />);
     });
 
@@ -126,7 +140,11 @@ describe('App', () => {
 
   describe('no new image case', () => {
     beforeEach(() => {
-      cy.intercept('/trpc/getGroupedImages*', { fixture: 'no-new-images.json' });
+      cy.intercept('/trpc/fetchCurrentPage*', req => {
+        const page = getPageFromRequest(req);
+        const body = page === 1 ? firstPage : noNewImagesPage;
+        req.reply(body);
+      });
       cy.mount(<App queryParamAdapter={makeMockAdapter({ search: '?hash=123&bucket=bucket&repo=repo&owner=owner' })} />);
     });
 

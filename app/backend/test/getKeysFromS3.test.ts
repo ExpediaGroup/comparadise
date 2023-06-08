@@ -1,4 +1,4 @@
-import { listAllS3PathsForHash } from '../src/listAllS3PathsForHash';
+import { getKeysFromS3 } from '../src/getKeysFromS3';
 import { S3Client } from '../src/s3Client';
 
 jest.mock('../src/s3Client');
@@ -15,7 +15,7 @@ jest.mock('../src/s3Client');
 
 describe('listAllS3PathsForHash', () => {
   it('returns the response we want', async () => {
-    const paths = await listAllS3PathsForHash('hash', 'bucket');
+    const paths = await getKeysFromS3('hash', 'bucket');
     expect(paths).toEqual(['a/normal/key']);
   });
 });

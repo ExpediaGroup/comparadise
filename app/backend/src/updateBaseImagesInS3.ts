@@ -1,9 +1,9 @@
 import { S3Client } from './s3Client';
-import { listAllS3PathsForHash } from './listAllS3PathsForHash';
 import { BASE_IMAGE_NAME, BASE_IMAGES_DIRECTORY, NEW_IMAGE_NAME, UPDATE_BASE_IMAGES_ERROR_MESSAGE } from 'shared';
 import { allNonVisualChecksHavePassed } from './allNonVisualChecksHavePassed';
 import { TRPCError } from '@trpc/server';
 import { UpdateBaseImagesInput } from './schema';
+import { getKeysFromS3 } from './getKeysFromS3';
 
 export const updateBaseImagesInS3 = async ({ hash, bucket, owner, repo, baseImagesDirectory }: UpdateBaseImagesInput) => {
   if (!(await allNonVisualChecksHavePassed(owner, repo, hash))) {
@@ -12,7 +12,7 @@ export const updateBaseImagesInS3 = async ({ hash, bucket, owner, repo, baseImag
       message: UPDATE_BASE_IMAGES_ERROR_MESSAGE
     });
   }
-  const s3Paths = await listAllS3PathsForHash(hash, bucket);
+  const s3Paths = await getKeysFromS3(hash, bucket);
   return await replaceImagesInS3(s3Paths, bucket, baseImagesDirectory || BASE_IMAGES_DIRECTORY);
 };
 
