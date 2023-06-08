@@ -22,25 +22,19 @@ export const MainPage = () => {
     return <LandingPage />;
   }
 
-  const { isLoading, data, fetchNextPage, fetchPreviousPage, isFetching, error } = trpc.fetchCurrentPage.useInfiniteQuery(
-    { hash, bucket },
-    {
-      initialCursor: 1,
-      getNextPageParam: currentPage => currentPage.nextPage,
-      keepPreviousData: true,
-      refetchOnWindowFocus: false
-    }
-  );
+  const page = specIndex + 1;
+  const { isLoading, data, isFetching, refetch, error } = trpc.fetchCurrentPage.useQuery({ hash, bucket, page });
 
-  const currentPage = data?.pages[specIndex];
+  const utils = trpc.useContext();
+  if (data) {
+    utils.fetchCurrentPage.prefetch({ hash, bucket, page: page + 1 });
+  }
 
   useEffect(() => {
-    if (currentPage) {
-      getViewType(currentPage.images).then(newViewType => {
-        setViewType(newViewType);
-      });
+    if (data) {
+      getViewType(data.images).then(newViewType => setViewType(newViewType));
     }
-  }, [currentPage]);
+  }, [data]);
 
   if (error) {
     return <Error error={error} />;
@@ -50,30 +44,30 @@ export const MainPage = () => {
     return <Loader view={LoaderViews.FULL_SCREEN} />;
   }
 
-  const onClickBackArrow = async () => {
-    await fetchPreviousPage();
+  const onClickBackArrow = () => {
     setSpecIndex(specIndex - 1);
+    refetch();
   };
 
-  const onClickForwardArrow = async () => {
-    await fetchNextPage();
+  const onClickForwardArrow = () => {
     setSpecIndex(specIndex + 1);
+    refetch();
   };
 
   const getImageBody = () => {
-    if (isFetching || !currentPage) {
+    if (isFetching) {
       return <Loader view={LoaderViews.PARTIAL} />;
     }
     const imageView =
       viewType === ViewType.SIDE_BY_SIDE ? (
-        <SideBySideImageView images={currentPage.images} />
+        <SideBySideImageView images={data.images} />
       ) : (
-        <SingleImageView images={currentPage.images} selectedImageIndex={singleImageViewIndex} onSelectImage={setSingleImageViewIndex} />
+        <SingleImageView images={data.images} selectedImageIndex={singleImageViewIndex} onSelectImage={setSingleImageViewIndex} />
       );
     return <div className="mt-8">{imageView}</div>;
   };
 
-  const nextPageExists = Boolean(currentPage?.nextPage);
+  const nextPageExists = Boolean(data.nextPage);
 
   return (
     <>
@@ -82,7 +76,7 @@ export const MainPage = () => {
           <button disabled={specIndex <= 0} onClick={onClickBackArrow} aria-label="back-arrow">
             <ArrowBackIcon disabled={specIndex <= 0} />
           </button>
-          <h1 className="text-center text-4xl font-medium">{currentPage?.title}</h1>
+          <h1 className="text-center text-4xl font-medium">{data.title}</h1>
           <button disabled={!nextPageExists} onClick={onClickForwardArrow} aria-label="forward-arrow">
             <ArrowForwardIcon disabled={!nextPageExists} />
           </button>

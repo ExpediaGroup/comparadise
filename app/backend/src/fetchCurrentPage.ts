@@ -3,7 +3,7 @@ import { FetchCurrentPageInput } from './schema';
 import { parse } from 'path';
 import { getGroupedKeys } from './getGroupedKeys';
 
-export const fetchCurrentPage = async ({ hash, bucket, cursor: page }: FetchCurrentPageInput) => {
+export const fetchCurrentPage = async ({ hash, bucket, page }: FetchCurrentPageInput) => {
   const paginatedKeys = await getGroupedKeys(hash, bucket);
   const { keys, title } = paginatedKeys[page - 1];
   const images = await Promise.all(

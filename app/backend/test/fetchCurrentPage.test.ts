@@ -22,7 +22,7 @@ describe('fetchCurrentPage', () => {
     const result = await fetchCurrentPage({
       hash: 'hash',
       bucket: 'bucket',
-      cursor: 1
+      page: 1
     });
     expect(result).toEqual({
       title: 'SMALL/srpPage',
@@ -48,7 +48,7 @@ describe('fetchCurrentPage', () => {
     const result = await fetchCurrentPage({
       hash: 'hash',
       bucket: 'bucket',
-      cursor: 2
+      page: 2
     });
     expect(result).toEqual({
       title: 'EXTRA_LARGE/pdpPage',
