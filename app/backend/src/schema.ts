@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const getImagesInputSchema = z.object({
+export const fetchCurrentPageInputSchema = z.object({
   bucket: z.string().min(1),
   hash: z.string().min(1),
   cursor: z.number()
@@ -17,6 +17,6 @@ export const updateCommitStatusInputSchema = z.object({
   repo: z.string().min(1),
   owner: z.string().min(1)
 });
-export type GetImagesInput = z.infer<typeof getImagesInputSchema>;
+export type FetchCurrentPageInput = z.infer<typeof fetchCurrentPageInputSchema>;
 export type UpdateBaseImagesInput = z.infer<typeof updateBaseImagesInputSchema>;
 export type UpdateCommitStatusInput = z.infer<typeof updateCommitStatusInputSchema>;
