@@ -2,10 +2,18 @@ import { getBase64StringFromS3 } from './getBase64StringFromS3';
 import { FetchCurrentPageInput } from './schema';
 import { parse } from 'path';
 import { getGroupedKeys } from './getGroupedKeys';
+import { TRPCError } from '@trpc/server';
 
 export const fetchCurrentPage = async ({ hash, bucket, page }: FetchCurrentPageInput) => {
   const paginatedKeys = await getGroupedKeys(hash, bucket);
-  const { keys, title } = paginatedKeys[page - 1];
+  const currentPage = paginatedKeys[page - 1];
+  if (!currentPage) {
+    throw new TRPCError({
+      code: 'NOT_FOUND',
+      message: `Page ${page} does not exist. Only ${paginatedKeys.length} pages were found.`
+    });
+  }
+  const { keys, title } = currentPage;
   const images = await Promise.all(
     keys.map(async key => ({
       name: parse(key).name,

@@ -7,26 +7,28 @@ import { ViewToggle, ViewType } from './view-toggle';
 import { UpdateImagesButton } from './update-images-button';
 import { SideBySideImageView, SingleImageView } from './image-views';
 import { RouterOutput, trpc } from '../utils/trpc';
-import { useQueryParams } from 'use-query-params';
-import { URL_PARAMS } from '../constants';
+import { createSearchParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowBackIcon, ArrowForwardIcon } from './arrows';
 
 export const MainPage = () => {
-  const [{ hash, bucket }] = useQueryParams(URL_PARAMS);
-
-  const [specIndex, setSpecIndex] = React.useState(0);
   const [viewType, setViewType] = React.useState<ViewType | undefined>();
   const [singleImageViewIndex, setSingleImageViewIndex] = React.useState(0);
 
+  const [searchParams] = useSearchParams();
+  const params: Record<string, string | undefined> = Object.fromEntries(searchParams.entries());
+  const { hash, bucket, page: pageParam } = params;
   if (!hash || !bucket) {
     return <LandingPage />;
   }
 
-  const page = specIndex + 1;
+  const page = Number(pageParam ?? 1);
   const { isLoading, data, isFetching, refetch, error } = trpc.fetchCurrentPage.useQuery({ hash, bucket, page });
 
+  const nextPageExists = Boolean(data?.nextPage);
+
+  const navigate = useNavigate();
   const utils = trpc.useContext();
-  if (data) {
+  if (nextPageExists) {
     utils.fetchCurrentPage.prefetch({ hash, bucket, page: page + 1 });
   }
 
@@ -45,12 +47,18 @@ export const MainPage = () => {
   }
 
   const onClickBackArrow = () => {
-    setSpecIndex(specIndex - 1);
+    navigate({
+      pathname: '/',
+      search: `?${createSearchParams({ ...params, page: String(page - 1) })}`
+    });
     refetch();
   };
 
   const onClickForwardArrow = () => {
-    setSpecIndex(specIndex + 1);
+    navigate({
+      pathname: '/',
+      search: `?${createSearchParams({ ...params, page: String(page + 1) })}`
+    });
     refetch();
   };
 
@@ -67,14 +75,12 @@ export const MainPage = () => {
     return <div className="mt-8">{imageView}</div>;
   };
 
-  const nextPageExists = Boolean(data.nextPage);
-
   return (
     <>
       <div className="mt-10 flex flex-col items-center justify-center">
         <div className="flex w-4/5 items-center justify-between">
-          <button disabled={specIndex <= 0} onClick={onClickBackArrow} aria-label="back-arrow">
-            <ArrowBackIcon disabled={specIndex <= 0} />
+          <button disabled={page <= 1} onClick={onClickBackArrow} aria-label="back-arrow">
+            <ArrowBackIcon disabled={page <= 1} />
           </button>
           <h1 className="text-center text-4xl font-medium">{data.title}</h1>
           <button disabled={!nextPageExists} onClick={onClickForwardArrow} aria-label="forward-arrow">

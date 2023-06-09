@@ -61,4 +61,14 @@ describe('fetchCurrentPage', () => {
       nextPage: undefined
     });
   });
+
+  it('should throw when page is not found', async () => {
+    await expect(() =>
+      fetchCurrentPage({
+        hash: 'hash',
+        bucket: 'bucket',
+        page: 12
+      })
+    ).rejects.toThrow('Page 12 does not exist. Only 2 pages were found.');
+  });
 });

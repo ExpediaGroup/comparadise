@@ -7,7 +7,7 @@ type ButtonProps = {
 const commonStyles = 'uppercase rounded-md px-4 py-2 font-medium';
 
 const getButton = (props: ButtonProps, styles: string) => {
-  const { className: extraStyles, ...rest } = props;
+  const { className: extraStyles, backgroundFilled, ...rest } = props;
 
   return (
     <button className={`${commonStyles} ${styles} ${extraStyles}`} {...rest}>

@@ -3,22 +3,23 @@ import { Fragment, useContext, useState } from 'react';
 import { Error } from './error';
 import { BaseImageStateContext, UpdateBaseImagesText } from '../providers/base-image-state-provider';
 import { trpc } from '../utils/trpc';
-import { useQueryParams } from 'use-query-params';
-import { URL_PARAMS } from '../constants';
 import { Dialog, Transition } from '@headlessui/react';
 import { PrimaryButton, TertiaryButton } from './buttons';
+import { useSearchParams } from 'react-router-dom';
 
 const UPDATE_TEXT =
   'WARNING: This will update the base images in S3 and will set the visual regression status to passed. You can only do this if you are about to merge your PR and all other checks have passed.';
 
 export const UpdateImagesButton = () => {
-  const [{ hash, bucket, repo, owner, baseImagesDirectory }] = useQueryParams(URL_PARAMS);
   const [dialogIsOpen, setDialogIsOpen] = useState(false);
   const { baseImageState, setBaseImageState } = useContext(BaseImageStateContext);
 
   const { error: updateBaseImagesError, mutateAsync: updateBaseImages } = trpc.updateBaseImages.useMutation();
   const { error: updateCommitStatusError, mutateAsync: updateCommitStatus } = trpc.updateCommitStatus.useMutation();
 
+  const [searchParams] = useSearchParams();
+  const params: Record<string, string | undefined> = Object.fromEntries(searchParams.entries());
+  const { hash, bucket, repo, owner, baseImagesDirectory } = params;
   if (!hash || !bucket || !owner || !repo) {
     return null;
   }
