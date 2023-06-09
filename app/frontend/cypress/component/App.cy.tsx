@@ -1,18 +1,22 @@
 import * as React from 'react';
-import { makeMockAdapter } from '../utils/makeMockAdapter';
 import App from '../../App';
 import { UPDATE_BASE_IMAGES_ERROR_MESSAGE } from 'shared';
 import { firstPage, noNewImagesPage, onlyNewImagesFirstPage, onlyNewImagesSecondPage, secondPage } from '../mocks/pages';
 import { CyHttpMessages } from 'cypress/types/net-stubbing';
 import { baseImageUpdateRejection } from '../mocks/base-image-update-rejection';
 import { mutationResponse } from '../mocks/mutation';
+import { MemoryRouter } from 'react-router-dom';
 
 const getPageFromRequest = (req: CyHttpMessages.IncomingHttpRequest) => JSON.parse(req.query.input as string)['0'].page;
 
 describe('App', () => {
   describe('homepage', () => {
     it('should redirect to homepage when parameters are omitted', () => {
-      cy.mount(<App queryParamAdapter={makeMockAdapter({ search: '' })} />);
+      cy.mount(
+        <MemoryRouter initialEntries={['/']}>
+          <App />
+        </MemoryRouter>
+      );
       cy.findByText(/Welcome to Comparadise/);
     });
   });
@@ -21,12 +25,16 @@ describe('App', () => {
     beforeEach(() => {
       cy.intercept('/trpc/fetchCurrentPage*', req => {
         const page = getPageFromRequest(req);
-        const body = page === 1 ? firstPage : secondPage;
+        const body = page === 2 ? secondPage : firstPage;
         req.reply(body);
       });
       cy.intercept('/trpc/updateBaseImages*', { body: mutationResponse }).as('base-images');
       cy.intercept('/trpc/updateCommitStatus*', { body: mutationResponse }).as('commit-status');
-      cy.mount(<App queryParamAdapter={makeMockAdapter({ search: '?hash=123&bucket=bucket&repo=repo&owner=owner' })} />);
+      cy.mount(
+        <MemoryRouter initialEntries={['/?hash=123&bucket=bucket&repo=repo&owner=owner']}>
+          <App />
+        </MemoryRouter>
+      );
     });
 
     it('should default to the base image view of the first spec in the response list', () => {
@@ -118,10 +126,14 @@ describe('App', () => {
     beforeEach(() => {
       cy.intercept('/trpc/fetchCurrentPage*', req => {
         const page = getPageFromRequest(req);
-        const body = page === 1 ? onlyNewImagesFirstPage : onlyNewImagesSecondPage;
+        const body = page === 2 ? onlyNewImagesSecondPage : onlyNewImagesFirstPage;
         req.reply(body);
       });
-      cy.mount(<App queryParamAdapter={makeMockAdapter({ search: '?hash=123&bucket=bucket&repo=repo&owner=owner' })} />);
+      cy.mount(
+        <MemoryRouter initialEntries={['?hash=123&bucket=bucket&repo=repo&owner=owner']}>
+          <App />
+        </MemoryRouter>
+      );
     });
 
     it('should display the new image with side-by-side view disabled', () => {
@@ -142,10 +154,14 @@ describe('App', () => {
     beforeEach(() => {
       cy.intercept('/trpc/fetchCurrentPage*', req => {
         const page = getPageFromRequest(req);
-        const body = page === 1 ? firstPage : noNewImagesPage;
+        const body = page === 2 ? noNewImagesPage : firstPage;
         req.reply(body);
       });
-      cy.mount(<App queryParamAdapter={makeMockAdapter({ search: '?hash=123&bucket=bucket&repo=repo&owner=owner' })} />);
+      cy.mount(
+        <MemoryRouter initialEntries={['?hash=123&bucket=bucket&repo=repo&owner=owner']}>
+          <App />
+        </MemoryRouter>
+      );
     });
 
     it('should default to base when no new image was found and the currently selected image is new', () => {
