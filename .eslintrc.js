@@ -23,7 +23,7 @@ module.exports = {
     'no-console': 'off',
     'no-use-before-define': 'off',
     '@typescript-eslint/no-use-before-define': 'off',
-    "@typescript-eslint/no-unused-vars": ['error', { ignoreRestSiblings: true }],
+    '@typescript-eslint/no-unused-vars': ['error', { ignoreRestSiblings: true }],
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     'react/jsx-filename-extension': ['warn', { extensions: ['.tsx'] }],
     'no-shadow': 'off',
