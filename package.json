@@ -1,6 +1,6 @@
 {
   "name": "comparadise",
-  "packageManager": "pnpm@8.6.1",
+  "packageManager": "pnpm@8.6.2",
   "devDependencies": {
     "@swc/jest": "0.2.26",
     "@types/jest": "29.5.2",
