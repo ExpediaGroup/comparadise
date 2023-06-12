@@ -30,6 +30,9 @@ jobs:
       - name: Install
         run: pnpm install
 
+      - name: Format Code
+        run: pnpm format
+
       - name: Test
         run: pnpm nx affected --target=test
 

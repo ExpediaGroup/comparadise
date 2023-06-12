@@ -41,15 +41,15 @@ export default defineConfig({
       setupVisualTests(on, config);
 
       return config;
-    }
+    },
   },
   e2e: {
     setupNodeEvents(on, config) {
       setupVisualTests(on, config);
 
       return config;
-    }
-  }
+    },
+  },
 });
 ```
 

@@ -5,7 +5,7 @@ export enum UpdateBaseImagesText {
   NOT_UPDATED = 'Update all base images',
   UPDATING = 'Updating...',
   UPDATED = 'All images updated!',
-  ERROR = 'Base image update failed'
+  ERROR = 'Base image update failed',
 }
 
 export type BaseImageStateProvider = {
@@ -15,8 +15,18 @@ export type BaseImageStateProvider = {
 
 export const BaseImageStateContext = createContext<BaseImageStateProvider>({});
 
-export const BaseImageStateProvider = ({ children }: React.PropsWithChildren) => {
-  const [baseImageState, setBaseImageState] = useState(UpdateBaseImagesText.NOT_UPDATED);
+export const BaseImageStateProvider = ({
+  children,
+}: React.PropsWithChildren) => {
+  const [baseImageState, setBaseImageState] = useState(
+    UpdateBaseImagesText.NOT_UPDATED
+  );
 
-  return <BaseImageStateContext.Provider value={{ baseImageState, setBaseImageState }}>{children}</BaseImageStateContext.Provider>;
+  return (
+    <BaseImageStateContext.Provider
+      value={{ baseImageState, setBaseImageState }}
+    >
+      {children}
+    </BaseImageStateContext.Provider>
+  );
 };

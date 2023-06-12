@@ -3,14 +3,14 @@
     "default": {
       "runner": "nx/tasks-runners/default",
       "options": {
-        "cacheableOperations": ["format", "lint", "build"],
+        "cacheableOperations": ["lint", "build"],
         "parallel": 5
       }
     }
   },
   "targetDefaults": {
     "test": {
-      "dependsOn": ["format", "lint", "build"]
+      "dependsOn": ["lint", "build"]
     }
   },
   "affected": {

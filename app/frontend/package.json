@@ -23,7 +23,6 @@
   "scripts": {
     "build": "tsc && vite build",
     "cypress:open": "cypress open --component --browser chrome",
-    "format": "prettier --write .",
     "lint": "eslint . --max-warnings=0",
     "start": "vite",
     "test": "cypress run --component --browser chrome",

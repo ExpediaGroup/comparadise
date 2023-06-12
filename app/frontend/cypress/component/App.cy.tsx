@@ -1,13 +1,20 @@
 import * as React from 'react';
 import App from '../../App';
 import { UPDATE_BASE_IMAGES_ERROR_MESSAGE } from 'shared';
-import { firstPage, noNewImagesPage, onlyNewImagesFirstPage, onlyNewImagesSecondPage, secondPage } from '../mocks/pages';
+import {
+  firstPage,
+  noNewImagesPage,
+  onlyNewImagesFirstPage,
+  onlyNewImagesSecondPage,
+  secondPage,
+} from '../mocks/pages';
 import { CyHttpMessages } from 'cypress/types/net-stubbing';
 import { baseImageUpdateRejection } from '../mocks/base-image-update-rejection';
 import { mutationResponse } from '../mocks/mutation';
 import { MemoryRouter } from 'react-router-dom';
 
-const getPageFromRequest = (req: CyHttpMessages.IncomingHttpRequest) => JSON.parse(req.query.input as string)['0'].page;
+const getPageFromRequest = (req: CyHttpMessages.IncomingHttpRequest) =>
+  JSON.parse(req.query.input as string)['0'].page;
 
 describe('App', () => {
   describe('homepage', () => {
@@ -28,10 +35,16 @@ describe('App', () => {
         const body = page === 2 ? secondPage : firstPage;
         req.reply(body);
       });
-      cy.intercept('/trpc/updateBaseImages*', { body: mutationResponse }).as('base-images');
-      cy.intercept('/trpc/updateCommitStatus*', { body: mutationResponse }).as('commit-status');
+      cy.intercept('/trpc/updateBaseImages*', { body: mutationResponse }).as(
+        'base-images'
+      );
+      cy.intercept('/trpc/updateCommitStatus*', { body: mutationResponse }).as(
+        'commit-status'
+      );
       cy.mount(
-        <MemoryRouter initialEntries={['/?hash=123&bucket=bucket&repo=repo&owner=owner']}>
+        <MemoryRouter
+          initialEntries={['/?hash=123&bucket=bucket&repo=repo&owner=owner']}
+        >
           <App />
         </MemoryRouter>
       );
@@ -79,7 +92,10 @@ describe('App', () => {
     });
 
     it('should display loader and update base images', () => {
-      cy.intercept('/trpc/updateBaseImages*', { body: mutationResponse, delay: 2000 }).as('base-images');
+      cy.intercept('/trpc/updateBaseImages*', {
+        body: mutationResponse,
+        delay: 2000,
+      }).as('base-images');
       cy.findByRole('button', { name: /Update all base images/i }).click();
       cy.findByText(/Are you sure/i);
       cy.findByRole('button', { name: /update/i }).click();
@@ -93,7 +109,9 @@ describe('App', () => {
       cy.findByRole('button', { name: /Update all base images/i }).click();
       cy.findByText(/Are you sure/i);
       cy.findByRole('button', { name: /cancel/i }).click();
-      cy.findByRole('button', { name: /Update all base images/i }).should('be.visible');
+      cy.findByRole('button', { name: /Update all base images/i }).should(
+        'be.visible'
+      );
     });
 
     it('should be able to update base images and disable update base images button after navigating between specs', () => {
@@ -101,22 +119,33 @@ describe('App', () => {
       cy.findByText(/Are you sure/i);
       cy.findByRole('button', { name: /update/i }).click();
       cy.wait(['@base-images', '@commit-status']);
-      cy.findByRole('button', { name: /all images updated/i }).should('be.disabled');
+      cy.findByRole('button', { name: /all images updated/i }).should(
+        'be.disabled'
+      );
       cy.findByRole('button', { name: /forward-arrow/ }).click();
       cy.findByRole('heading', { name: 'small/example' });
-      cy.findByRole('button', { name: /all images updated/i }).should('be.disabled');
+      cy.findByRole('button', { name: /all images updated/i }).should(
+        'be.disabled'
+      );
       cy.findByRole('button', { name: /back-arrow/ }).click();
       cy.findByRole('heading', { name: 'large/example' });
-      cy.findByRole('button', { name: /all images updated/i }).should('be.disabled');
+      cy.findByRole('button', { name: /all images updated/i }).should(
+        'be.disabled'
+      );
     });
 
     it('should display failure message and not update commit status when base images fail to update', () => {
-      cy.intercept('/trpc/updateBaseImages*', { statusCode: 403, body: baseImageUpdateRejection }).as('base-images');
+      cy.intercept('/trpc/updateBaseImages*', {
+        statusCode: 403,
+        body: baseImageUpdateRejection,
+      }).as('base-images');
       cy.findByRole('button', { name: /Update all base images/i }).click();
       cy.findByText(/Are you sure/i);
       cy.findByRole('button', { name: /update/i }).click();
       cy.wait('@base-images');
-      cy.findByRole('button', { name: /all images updated/i }).should('not.exist');
+      cy.findByRole('button', { name: /all images updated/i }).should(
+        'not.exist'
+      );
       cy.findByRole('heading', { name: /Error/ }).should('be.visible');
       cy.findByText(UPDATE_BASE_IMAGES_ERROR_MESSAGE).should('be.visible');
     });
@@ -126,11 +155,14 @@ describe('App', () => {
     beforeEach(() => {
       cy.intercept('/trpc/fetchCurrentPage*', req => {
         const page = getPageFromRequest(req);
-        const body = page === 2 ? onlyNewImagesSecondPage : onlyNewImagesFirstPage;
+        const body =
+          page === 2 ? onlyNewImagesSecondPage : onlyNewImagesFirstPage;
         req.reply(body);
       });
       cy.mount(
-        <MemoryRouter initialEntries={['?hash=123&bucket=bucket&repo=repo&owner=owner']}>
+        <MemoryRouter
+          initialEntries={['?hash=123&bucket=bucket&repo=repo&owner=owner']}
+        >
           <App />
         </MemoryRouter>
       );
@@ -158,7 +190,9 @@ describe('App', () => {
         req.reply(body);
       });
       cy.mount(
-        <MemoryRouter initialEntries={['?hash=123&bucket=bucket&repo=repo&owner=owner']}>
+        <MemoryRouter
+          initialEntries={['?hash=123&bucket=bucket&repo=repo&owner=owner']}
+        >
           <App />
         </MemoryRouter>
       );

@@ -3,7 +3,7 @@ import { PNG } from 'pngjs';
 import pixelmatch from 'pixelmatch';
 
 const PIXELMATCH_OPTIONS = {
-  threshold: 0.3
+  threshold: 0.3,
 };
 
 /**
@@ -47,14 +47,17 @@ function alignImagesToSameSize(firstImage: any, secondImage: any) {
   const secondImageWidth = secondImage.width;
   const secondImageHeight = secondImage.height;
   // Calculate biggest common values
-  const resizeToSameSize = createImageResizer(Math.max(firstImageWidth, secondImageWidth), Math.max(firstImageHeight, secondImageHeight));
+  const resizeToSameSize = createImageResizer(
+    Math.max(firstImageWidth, secondImageWidth),
+    Math.max(firstImageHeight, secondImageHeight)
+  );
   // Resize both images
   const resizedFirst = resizeToSameSize(firstImage);
   const resizedSecond = resizeToSameSize(secondImage);
   // Fill resized area with black transparent pixels
   return [
     fillSizeDifference(firstImageWidth, firstImageHeight)(resizedFirst),
-    fillSizeDifference(secondImageWidth, secondImageHeight)(resizedSecond)
+    fillSizeDifference(secondImageWidth, secondImageHeight)(resizedSecond),
   ];
 }
 
@@ -68,13 +71,23 @@ export function getDiffPixels(basePath: string, actualPath: string) {
   const rawBase = PNG.sync.read(fs.readFileSync(basePath));
   const rawActual = PNG.sync.read(fs.readFileSync(actualPath));
 
-  const hasSizeMismatch = rawBase.height !== rawActual.height || rawBase.width !== rawActual.width;
+  const hasSizeMismatch =
+    rawBase.height !== rawActual.height || rawBase.width !== rawActual.width;
 
-  const [base, actual] = hasSizeMismatch ? alignImagesToSameSize(rawBase, rawActual) : [rawBase, rawActual];
+  const [base, actual] = hasSizeMismatch
+    ? alignImagesToSameSize(rawBase, rawActual)
+    : [rawBase, rawActual];
 
   const diff = new PNG({ width: base.width, height: base.height });
 
-  const diffPixels = pixelmatch(actual.data, base.data, diff.data, diff.width, diff.height, PIXELMATCH_OPTIONS);
+  const diffPixels = pixelmatch(
+    actual.data,
+    base.data,
+    diff.data,
+    diff.width,
+    diff.height,
+    PIXELMATCH_OPTIONS
+  );
 
   return { diffPixels, diff };
 }

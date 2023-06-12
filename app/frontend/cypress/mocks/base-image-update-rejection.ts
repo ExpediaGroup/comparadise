@@ -9,7 +9,7 @@ export const baseImageUpdateRejection: TRPCErrorResponse = {
       code: 'FORBIDDEN',
       httpStatus: 403,
       stack: 'AccessDenied',
-      path: 'updateBaseImages'
-    }
-  }
+      path: 'updateBaseImages',
+    },
+  },
 };

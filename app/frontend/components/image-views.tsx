@@ -12,7 +12,11 @@ interface SingleImageViewProps extends ImageViewChildProps {
   onSelectImage: (index: number) => void;
 }
 
-export const SingleImageView: React.FC<SingleImageViewProps> = ({ images, selectedImageIndex, onSelectImage }) => {
+export const SingleImageView: React.FC<SingleImageViewProps> = ({
+  images,
+  selectedImageIndex,
+  onSelectImage,
+}) => {
   if (!images[selectedImageIndex]) {
     onSelectImage(0);
     return null;
@@ -23,16 +27,25 @@ export const SingleImageView: React.FC<SingleImageViewProps> = ({ images, select
       <div className="fixed bottom-20">
         {images.map((image, index) => {
           const onClick = () => onSelectImage(index);
-          const Button = selectedImageIndex === index ? PrimaryButton : SecondaryButton;
+          const Button =
+            selectedImageIndex === index ? PrimaryButton : SecondaryButton;
           const extraStyles = getImageButtonStyles(images, index);
           return (
-            <Button key={image.name} onClick={onClick} backgroundFilled className={`border border-slate-700 ${extraStyles}`}>
+            <Button
+              key={image.name}
+              onClick={onClick}
+              backgroundFilled
+              className={`border border-slate-700 ${extraStyles}`}
+            >
               {image.name}
             </Button>
           );
         })}
       </div>
-      <img src={images[selectedImageIndex].base64} alt={images[selectedImageIndex].name} />
+      <img
+        src={images[selectedImageIndex].base64}
+        alt={images[selectedImageIndex].name}
+      />
     </div>
   );
 };
@@ -51,7 +64,9 @@ const getImageButtonStyles = (images: Images, imageIndex: number) => {
   }
 };
 
-export const SideBySideImageView: React.FC<ImageViewChildProps> = ({ images }) => {
+export const SideBySideImageView: React.FC<ImageViewChildProps> = ({
+  images,
+}) => {
   return (
     <div className="flex justify-center">
       {images.map(image => (

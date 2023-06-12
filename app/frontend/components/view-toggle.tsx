@@ -3,7 +3,7 @@ import { PrimaryButton, SecondaryButton } from './buttons';
 
 export enum ViewType {
   SINGLE,
-  SIDE_BY_SIDE
+  SIDE_BY_SIDE,
 }
 
 interface ViewToggleProps {
@@ -11,9 +11,14 @@ interface ViewToggleProps {
   onSelectView: (view: ViewType) => void;
 }
 
-export const ViewToggle: React.FC<ViewToggleProps> = ({ selectedView, onSelectView }) => {
-  const SideBySideButton = selectedView === ViewType.SIDE_BY_SIDE ? PrimaryButton : SecondaryButton;
-  const SingleButton = selectedView !== ViewType.SIDE_BY_SIDE ? PrimaryButton : SecondaryButton;
+export const ViewToggle: React.FC<ViewToggleProps> = ({
+  selectedView,
+  onSelectView,
+}) => {
+  const SideBySideButton =
+    selectedView === ViewType.SIDE_BY_SIDE ? PrimaryButton : SecondaryButton;
+  const SingleButton =
+    selectedView !== ViewType.SIDE_BY_SIDE ? PrimaryButton : SecondaryButton;
   return (
     <>
       <SideBySideButton

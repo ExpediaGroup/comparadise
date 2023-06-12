@@ -18,7 +18,6 @@
   },
   "scripts": {
     "build": "tsc",
-    "format": "prettier --write .",
     "lint": "eslint . --max-warnings=0",
     "start": "ts-node --swc src/server.ts",
     "test": "jest"
