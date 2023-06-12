@@ -49,7 +49,7 @@ const getImageButtonStyles = (images: Images, imageIndex: number) => {
     default:
       return 'rounded-none';
   }
-}
+};
 
 export const SideBySideImageView: React.FC<ImageViewChildProps> = ({ images }) => {
   return (
