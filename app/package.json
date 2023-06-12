@@ -9,7 +9,6 @@
     "cypress:e2e": "nx test:e2e frontend",
     "docker": "nx docker comparadise",
     "local": "nx start frontend & npm-watch",
-    "start": "nx start backend",
     "test": "start-server-and-test docker http://localhost:8080 cypress:e2e"
   },
   "watch": {
