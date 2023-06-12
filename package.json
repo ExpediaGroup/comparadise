@@ -15,7 +15,6 @@
   },
   "scripts": {
     "docker": "docker build . --tag comparadise && docker-compose up",
-    "format": "prettier --write .",
-    "test": "exit 0"
+    "format": "prettier --write ."
   }
 }
