@@ -2,8 +2,9 @@ import * as React from 'react';
 import { RouterOutput } from '../utils/trpc';
 import { PrimaryButton, SecondaryButton } from './buttons';
 
+type Images = RouterOutput['fetchCurrentPage']['images'];
 interface ImageViewChildProps {
-  images: RouterOutput['fetchCurrentPage']['images'];
+  images: Images;
 }
 
 interface SingleImageViewProps extends ImageViewChildProps {
@@ -23,8 +24,7 @@ export const SingleImageView: React.FC<SingleImageViewProps> = ({ images, select
         {images.map((image, index) => {
           const onClick = () => onSelectImage(index);
           const Button = selectedImageIndex === index ? PrimaryButton : SecondaryButton;
-          const extraStyles =
-            index === 0 ? 'rounded-s-md rounded-e-none' : index === images.length - 1 ? 'rounded-s-none rounded-e-md' : 'rounded-none';
+          const extraStyles = getImageButtonStyles(images, index);
           return (
             <Button key={image.name} onClick={onClick} backgroundFilled className={`border border-slate-700 ${extraStyles}`}>
               {image.name}
@@ -35,6 +35,20 @@ export const SingleImageView: React.FC<SingleImageViewProps> = ({ images, select
       <img src={images[selectedImageIndex].base64} alt={images[selectedImageIndex].name} />
     </div>
   );
+};
+
+const getImageButtonStyles = (images: Images, imageIndex: number) => {
+  if (images.length === 1) {
+    return 'rounded-md';
+  }
+  switch (imageIndex) {
+    case 0:
+      return 'rounded-s-md rounded-e-none';
+    case images.length - 1:
+      return 'rounded-s-none rounded-e-md';
+    default:
+      return 'rounded-none';
+  }
 };
 
 export const SideBySideImageView: React.FC<ImageViewChildProps> = ({ images }) => {
