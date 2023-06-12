@@ -13,7 +13,9 @@ export function baseExists(path: string) {
   const exists = fs.existsSync(fileName);
 
   if (!exists) {
-    console.log('Base image does not exist. This means a new one will be created. If your base should exist, something went wrong.');
+    console.log(
+      'Base image does not exist. This means a new one will be created. If your base should exist, something went wrong.'
+    );
   }
   return exists;
 }
@@ -30,11 +32,15 @@ export function compareScreenshots(screenshotFolder: string) {
 
   if (diffPixels) {
     // Create diff.png next to base and new for review
-    fs.writeFile(createImageFileName(screenshotFolder, 'diff'), PNG.sync.write(diff), err => {
-      if (err) {
-        console.error('❌ Diff exists but unable to create diff.png', err);
+    fs.writeFile(
+      createImageFileName(screenshotFolder, 'diff'),
+      PNG.sync.write(diff),
+      err => {
+        if (err) {
+          console.error('❌ Diff exists but unable to create diff.png', err);
+        }
       }
-    });
+    );
   } else {
     // Delete created new.png. Not needed if there's no diff
     fs.unlink(actualPath, err => {
@@ -52,7 +58,9 @@ export function compareScreenshots(screenshotFolder: string) {
  * Should NOT be used standalone. Works with the matchScreenshot task.
  * @param {Cypress.ScreenshotDetails} details
  */
-export function onAfterScreenshot(details: Cypress.ScreenshotDetails): Promise<Cypress.AfterScreenshotReturnObject> {
+export function onAfterScreenshot(
+  details: Cypress.ScreenshotDetails
+): Promise<Cypress.AfterScreenshotReturnObject> {
   console.log('🧸 Screenshot was saved to:', details.path);
   if (!details.path.match('cypress')) {
     return Promise.resolve({});

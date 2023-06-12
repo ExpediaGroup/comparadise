@@ -9,7 +9,9 @@ function forceFont() {
   if (contentDocument) {
     const style = contentDocument.createElement('style');
     style.type = 'text/css';
-    style.appendChild(contentDocument.createTextNode('* { font-family: Arial !important; }'));
+    style.appendChild(
+      contentDocument.createTextNode('* { font-family: Arial !important; }')
+    );
     contentDocument.head.appendChild(style);
     return style;
   }
@@ -21,17 +23,25 @@ function getTestFolderPathFromScripts(rawName?: string) {
   const relativeTestPath = Cypress.spec.relative;
 
   if (!relativeTestPath) {
-    throw new Error('❌ Could not find matching script in the Cypress DOM to infer the test folder path');
+    throw new Error(
+      '❌ Could not find matching script in the Cypress DOM to infer the test folder path'
+    );
   }
 
-  const testName = relativeTestPath.substring(relativeTestPath.lastIndexOf('/') + 1, relativeTestPath.lastIndexOf(SUFFIX_TEST_IDENTIFIER));
+  const testName = relativeTestPath.substring(
+    relativeTestPath.lastIndexOf('/') + 1,
+    relativeTestPath.lastIndexOf(SUFFIX_TEST_IDENTIFIER)
+  );
   const name = rawName || testName;
 
-  const screenshotsFolder = `${SCREENSHOTS_FOLDER_NAME}/${relativeTestPath.substring(0, relativeTestPath.lastIndexOf(testName))}${name}`;
+  const screenshotsFolder = `${SCREENSHOTS_FOLDER_NAME}/${relativeTestPath.substring(
+    0,
+    relativeTestPath.lastIndexOf(testName)
+  )}${name}`;
 
   return {
     name,
-    screenshotsFolder
+    screenshotsFolder,
   };
 }
 
@@ -56,7 +66,10 @@ export type MatchScreenshotArgs = {
   options?: Partial<Cypress.ScreenshotOptions>;
 };
 
-export function matchScreenshot(subject: Cypress.JQueryWithSelector | Window | Document | void, args?: MatchScreenshotArgs) {
+export function matchScreenshot(
+  subject: Cypress.JQueryWithSelector | Window | Document | void,
+  args?: MatchScreenshotArgs
+) {
   const { rawName, options = {} } = args || {};
   // Set up screen
   forceFont();
@@ -69,10 +82,16 @@ export function matchScreenshot(subject: Cypress.JQueryWithSelector | Window | D
   cy.task('baseExists', screenshotsFolder).then(hasBase => {
     const target = subject ? cy.wrap(subject) : cy;
     // For easy slicing of path ignoring the root screenshot folder
-    target.screenshot(`${PREFIX_DIFFERENTIATOR}${screenshotsFolder}/new`, options);
+    target.screenshot(
+      `${PREFIX_DIFFERENTIATOR}${screenshotsFolder}/new`,
+      options
+    );
 
     if (!hasBase) {
-      cy.task('log', `✅ A new base image was created for ${name}. Create this as a new base image via Comparadise!`);
+      cy.task(
+        'log',
+        `✅ A new base image was created for ${name}. Create this as a new base image via Comparadise!`
+      );
 
       return null;
     }
@@ -81,7 +100,10 @@ export function matchScreenshot(subject: Cypress.JQueryWithSelector | Window | D
       if (diffPixels === 0) {
         cy.log(`✅ Actual image of ${name} was the same as base`);
       } else {
-        cy.task('log', `❌ Actual image of ${name} differed by ${diffPixels} pixels.`);
+        cy.task(
+          'log',
+          `❌ Actual image of ${name} differed by ${diffPixels} pixels.`
+        );
       }
 
       return null;
@@ -91,4 +113,8 @@ export function matchScreenshot(subject: Cypress.JQueryWithSelector | Window | D
   });
 }
 
-Cypress.Commands.add('matchScreenshot', { prevSubject: ['optional', 'element', 'window', 'document'] }, matchScreenshot);
+Cypress.Commands.add(
+  'matchScreenshot',
+  { prevSubject: ['optional', 'element', 'window', 'document'] },
+  matchScreenshot
+);

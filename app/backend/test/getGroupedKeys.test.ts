@@ -11,14 +11,18 @@ describe('getGroupedKeys', () => {
       'hash/EXTRA_LARGE/pdpPage/base.png',
       'hash/EXTRA_LARGE/pdpPage/diff.png',
       'hash/EXTRA_LARGE/pdpPage/new.png',
-      'ome/actions-runner/something'
+      'ome/actions-runner/something',
     ]);
     const paths = await getGroupedKeys('hash', 'bucket');
     expect(paths).toEqual([
       {
         title: 'EXTRA_LARGE/pdpPage',
-        keys: ['hash/EXTRA_LARGE/pdpPage/base.png', 'hash/EXTRA_LARGE/pdpPage/diff.png', 'hash/EXTRA_LARGE/pdpPage/new.png']
-      }
+        keys: [
+          'hash/EXTRA_LARGE/pdpPage/base.png',
+          'hash/EXTRA_LARGE/pdpPage/diff.png',
+          'hash/EXTRA_LARGE/pdpPage/new.png',
+        ],
+      },
     ]);
   });
 
@@ -26,14 +30,14 @@ describe('getGroupedKeys', () => {
     (getKeysFromS3 as jest.Mock).mockResolvedValue([
       'hash/EXTRA_LARGE/srpPage/base.png',
       'hash/SMALL/pdpPage/new.png',
-      'hash/EXTRA_LARGE/pdpPage/base.png'
+      'hash/EXTRA_LARGE/pdpPage/base.png',
     ]);
     const paths = await getGroupedKeys('hash', 'bucket');
     expect(paths).toEqual([
       {
         title: 'SMALL/pdpPage',
-        keys: ['hash/SMALL/pdpPage/new.png']
-      }
+        keys: ['hash/SMALL/pdpPage/new.png'],
+      },
     ]);
   });
 
@@ -45,18 +49,26 @@ describe('getGroupedKeys', () => {
       'hash/SMALL/srpPage/new.png',
       'hash/EXTRA_LARGE/pdpPage/base.png',
       'hash/EXTRA_LARGE/pdpPage/diff.png',
-      'hash/EXTRA_LARGE/pdpPage/new.png'
+      'hash/EXTRA_LARGE/pdpPage/new.png',
     ]);
     const paths = await getGroupedKeys('hash', 'bucket');
     expect(paths).toEqual([
       {
         title: 'SMALL/srpPage',
-        keys: ['hash/SMALL/srpPage/base.png', 'hash/SMALL/srpPage/diff.png', 'hash/SMALL/srpPage/new.png']
+        keys: [
+          'hash/SMALL/srpPage/base.png',
+          'hash/SMALL/srpPage/diff.png',
+          'hash/SMALL/srpPage/new.png',
+        ],
       },
       {
         title: 'EXTRA_LARGE/pdpPage',
-        keys: ['hash/EXTRA_LARGE/pdpPage/base.png', 'hash/EXTRA_LARGE/pdpPage/diff.png', 'hash/EXTRA_LARGE/pdpPage/new.png']
-      }
+        keys: [
+          'hash/EXTRA_LARGE/pdpPage/base.png',
+          'hash/EXTRA_LARGE/pdpPage/diff.png',
+          'hash/EXTRA_LARGE/pdpPage/new.png',
+        ],
+      },
     ]);
   });
 
@@ -71,7 +83,7 @@ describe('getGroupedKeys', () => {
     (getKeysFromS3 as jest.Mock).mockResolvedValue([
       'hash/EXTRA_LARGE/srpPage/base.png',
       'hash/SMALL/srpPage/base.png',
-      'hash/EXTRA_LARGE/pdpPage/base.png'
+      'hash/EXTRA_LARGE/pdpPage/base.png',
     ]);
     await expect(() => getGroupedKeys('hash', 'bucket')).rejects.toThrow(
       'There was no new or diff images associated with the commit hash.\nThis might be because the tests failed before a picture could be taken and it could be compared to the base.'

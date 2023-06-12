@@ -4,15 +4,10 @@
   "dependencies": {
     "@headlessui/react": "1.7.15",
     "@tanstack/react-query": "4.29.12",
-    "@testing-library/cypress": "9.0.0",
     "@trpc/client": "10.30.0",
     "@trpc/react-query": "10.30.0",
     "@trpc/server": "10.30.0",
-    "@types/react": "18.2.11",
-    "@types/react-dom": "18.2.4",
-    "@types/testing-library__cypress": "5.0.9",
     "@vitejs/plugin-react-swc": "3.3.2",
-    "prettier-plugin-tailwindcss": "0.3.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-router-dom": "6.12.1",
@@ -20,11 +15,18 @@
     "tailwindcss": "3.3.2",
     "vite": "4.3.9"
   },
+  "devDependencies": {
+    "@testing-library/cypress": "9.0.0",
+    "@types/react": "18.2.11",
+    "@types/react-dom": "18.2.4",
+    "@types/testing-library__cypress": "5.0.9",
+    "prettier-plugin-tailwindcss": "0.3.0"
+  },
   "scripts": {
-    "build": "tsc && vite build",
+    "build": "tsc && pnpm prod",
     "cypress:open": "cypress open --component --browser chrome",
-    "format": "prettier --write .",
     "lint": "eslint . --max-warnings=0",
+    "prod": "vite build",
     "start": "vite",
     "test": "cypress run --component --browser chrome",
     "test:e2e": "cypress run --e2e --browser chrome"

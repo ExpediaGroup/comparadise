@@ -1,7 +1,11 @@
 import * as React from 'react';
 import { Fragment, useContext, useState } from 'react';
 import { Error } from './error';
-import { BaseImageStateContext, UpdateBaseImagesText } from '../providers/base-image-state-provider';
+import {
+  BaseImageStateContext,
+  UpdateBaseImagesTexts,
+  UpdateBaseImagesText,
+} from '../providers/base-image-state-provider';
 import { trpc } from '../utils/trpc';
 import { Dialog, Transition } from '@headlessui/react';
 import { PrimaryButton, TertiaryButton } from './buttons';
@@ -12,13 +16,19 @@ const UPDATE_TEXT =
 
 export const UpdateImagesButton = () => {
   const [dialogIsOpen, setDialogIsOpen] = useState(false);
-  const { baseImageState, setBaseImageState } = useContext(BaseImageStateContext);
+  const { baseImageState, setBaseImageState } = useContext(
+    BaseImageStateContext
+  );
 
-  const { error: updateBaseImagesError, mutateAsync: updateBaseImages } = trpc.updateBaseImages.useMutation();
-  const { error: updateCommitStatusError, mutateAsync: updateCommitStatus } = trpc.updateCommitStatus.useMutation();
+  const { error: updateBaseImagesError, mutateAsync: updateBaseImages } =
+    trpc.updateBaseImages.useMutation();
+  const { error: updateCommitStatusError, mutateAsync: updateCommitStatus } =
+    trpc.updateCommitStatus.useMutation();
 
   const [searchParams] = useSearchParams();
-  const params: Record<string, string | undefined> = Object.fromEntries(searchParams.entries());
+  const params: Record<string, string | undefined> = Object.fromEntries(
+    searchParams.entries()
+  );
   const { hash, bucket, repo, owner, baseImagesDirectory } = params;
   if (!hash || !bucket || !owner || !repo) {
     return null;
@@ -33,16 +43,16 @@ export const UpdateImagesButton = () => {
   };
 
   const handleUpdate = async () => {
-    setBaseImageState?.(UpdateBaseImagesText.UPDATING);
+    setBaseImageState?.(UpdateBaseImagesTexts.UPDATING);
     await updateBaseImages({ hash, bucket, owner, repo, baseImagesDirectory });
     await updateCommitStatus({ hash, owner, repo });
     setDialogIsOpen(false);
-    setBaseImageState?.(UpdateBaseImagesText.UPDATED);
+    setBaseImageState?.(UpdateBaseImagesTexts.UPDATED);
   };
 
   const error = updateBaseImagesError || updateCommitStatusError;
   if (error) {
-    setBaseImageState?.(UpdateBaseImagesText.ERROR);
+    setBaseImageState?.(UpdateBaseImagesTexts.ERROR);
   }
 
   const dialogTitleText = baseImagesDirectory
@@ -54,7 +64,9 @@ export const UpdateImagesButton = () => {
       <Dialog.Title as="h3" className="mt-2 text-xl font-semibold leading-6">
         {dialogTitleText}
       </Dialog.Title>
-      <Dialog.Description className="mt-5 text-lg font-semibold text-slate-500">{dialogDescriptionText}</Dialog.Description>
+      <Dialog.Description className="mt-5 text-lg font-semibold text-slate-500">
+        {dialogDescriptionText}
+      </Dialog.Description>
 
       <div className="mt-5 flex justify-end">
         <PrimaryButton autoFocus onClick={handleUpdate}>
@@ -68,14 +80,22 @@ export const UpdateImagesButton = () => {
   );
   const dialogLoadingContent = (
     <div className="flex" aria-label="loader">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="mr-2.5 h-5 w-5 animate-spin">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+        className="mr-2.5 h-5 w-5 animate-spin"
+      >
         <path
           fillRule="evenodd"
           d="M15.312 11.424a5.5 5.5 0 01-9.201 2.466l-.312-.311h2.433a.75.75 0 000-1.5H3.989a.75.75 0 00-.75.75v4.242a.75.75 0 001.5 0v-2.43l.31.31a7 7 0 0011.712-3.138.75.75 0 00-1.449-.39zm1.23-3.723a.75.75 0 00.219-.53V2.929a.75.75 0 00-1.5 0V5.36l-.31-.31A7 7 0 003.239 8.188a.75.75 0 101.448.389A5.5 5.5 0 0113.89 6.11l.311.31h-2.432a.75.75 0 000 1.5h4.243a.75.75 0 00.53-.219z"
           clipRule="evenodd"
         />
       </svg>
-      <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900">
+      <Dialog.Title
+        as="h3"
+        className="text-lg font-medium leading-6 text-gray-900"
+      >
         Updating base images...
       </Dialog.Title>
     </div>
@@ -83,23 +103,29 @@ export const UpdateImagesButton = () => {
   const dialogErrorContent = error && <Error error={error} />;
   const getDialogContent = (state?: UpdateBaseImagesText) => {
     switch (state) {
-      case UpdateBaseImagesText.NOT_UPDATED:
+      case UpdateBaseImagesTexts.NOT_UPDATED:
         return dialogContent;
-      case UpdateBaseImagesText.ERROR:
+      case UpdateBaseImagesTexts.ERROR:
         return dialogErrorContent;
       default:
         return dialogLoadingContent;
     }
   };
 
-  const shouldDisableBaseImageButton = baseImageState !== UpdateBaseImagesText.NOT_UPDATED;
+  const shouldDisableBaseImageButton =
+    baseImageState !== UpdateBaseImagesTexts.NOT_UPDATED;
 
   return (
     <>
-      <PrimaryButton disabled={shouldDisableBaseImageButton} onClick={handleDialogOpen}>
+      <PrimaryButton
+        disabled={shouldDisableBaseImageButton}
+        onClick={handleDialogOpen}
+      >
         {baseImageState}
       </PrimaryButton>
-      {baseImagesDirectory && <p>Custom base image directory {baseImagesDirectory} in use</p>}
+      {baseImagesDirectory && (
+        <p>Custom base image directory {baseImagesDirectory} in use</p>
+      )}
       <Transition appear show={dialogIsOpen} as={Fragment}>
         <Dialog as="div" className="relative z-10" onClose={handleDialogClose}>
           <Transition.Child

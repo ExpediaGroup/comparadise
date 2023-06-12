@@ -15,25 +15,29 @@ describe('allNonVisualChecksHavePassed', () => {
                 {
                   name: 'unit tests',
                   conclusion: 'success',
-                  completed_at: '2023-05-02T19:11:02Z'
+                  completed_at: '2023-05-02T19:11:02Z',
                 },
                 {
                   name: VISUAL_REGRESSION_CONTEXT,
                   conclusion: 'failure',
-                  completed_at: '2023-05-02T19:11:02Z'
+                  completed_at: '2023-05-02T19:11:02Z',
                 },
                 {
                   name: 'other tests',
                   conclusion: 'success',
-                  completed_at: '2023-05-02T19:11:02Z'
-                }
-              ]
-            }
-          })
-        }
-      }
+                  completed_at: '2023-05-02T19:11:02Z',
+                },
+              ],
+            },
+          }),
+        },
+      },
     }));
-    const result = await allNonVisualChecksHavePassed('github-owner', 'github-repo', 'sha');
+    const result = await allNonVisualChecksHavePassed(
+      'github-owner',
+      'github-repo',
+      'sha'
+    );
     expect(result).toBe(true);
   });
 
@@ -47,25 +51,29 @@ describe('allNonVisualChecksHavePassed', () => {
                 {
                   name: 'unit tests',
                   conclusion: 'success',
-                  completed_at: '2023-05-02T19:11:02Z'
+                  completed_at: '2023-05-02T19:11:02Z',
                 },
                 {
                   name: VISUAL_REGRESSION_CONTEXT,
                   conclusion: 'failure',
-                  completed_at: '2023-05-02T19:11:02Z'
+                  completed_at: '2023-05-02T19:11:02Z',
                 },
                 {
                   name: 'visual tests',
                   conclusion: 'failure',
-                  completed_at: '2023-05-02T19:11:02Z'
-                }
-              ]
-            }
-          })
-        }
-      }
+                  completed_at: '2023-05-02T19:11:02Z',
+                },
+              ],
+            },
+          }),
+        },
+      },
     }));
-    const result = await allNonVisualChecksHavePassed('github-owner', 'github-repo', 'sha');
+    const result = await allNonVisualChecksHavePassed(
+      'github-owner',
+      'github-repo',
+      'sha'
+    );
     expect(result).toBe(false);
   });
 
@@ -79,25 +87,29 @@ describe('allNonVisualChecksHavePassed', () => {
                 {
                   name: 'unit tests',
                   conclusion: 'success',
-                  completed_at: '2023-05-02T19:11:02Z'
+                  completed_at: '2023-05-02T19:11:02Z',
                 },
                 {
                   name: VISUAL_REGRESSION_CONTEXT,
                   conclusion: 'failure',
-                  completed_at: '2023-05-02T19:11:02Z'
+                  completed_at: '2023-05-02T19:11:02Z',
                 },
                 {
                   name: 'other tests',
                   conclusion: 'failure',
-                  completed_at: '2023-05-02T19:11:02Z'
-                }
-              ]
-            }
-          })
-        }
-      }
+                  completed_at: '2023-05-02T19:11:02Z',
+                },
+              ],
+            },
+          }),
+        },
+      },
     }));
-    const result = await allNonVisualChecksHavePassed('github-owner', 'github-repo', 'sha');
+    const result = await allNonVisualChecksHavePassed(
+      'github-owner',
+      'github-repo',
+      'sha'
+    );
     expect(result).toBe(false);
   });
 
@@ -111,25 +123,29 @@ describe('allNonVisualChecksHavePassed', () => {
                 {
                   name: 'unit tests',
                   conclusion: 'success',
-                  completed_at: '2023-05-02T19:11:02Z'
+                  completed_at: '2023-05-02T19:11:02Z',
                 },
                 {
                   name: VISUAL_REGRESSION_CONTEXT,
                   conclusion: 'failure',
-                  completed_at: '2023-05-02T19:11:02Z'
+                  completed_at: '2023-05-02T19:11:02Z',
                 },
                 {
                   name: 'other tests',
                   conclusion: 'skipped',
-                  completed_at: '2023-05-02T19:11:02Z'
-                }
-              ]
-            }
-          })
-        }
-      }
+                  completed_at: '2023-05-02T19:11:02Z',
+                },
+              ],
+            },
+          }),
+        },
+      },
     }));
-    const result = await allNonVisualChecksHavePassed('github-owner', 'github-repo', 'sha');
+    const result = await allNonVisualChecksHavePassed(
+      'github-owner',
+      'github-repo',
+      'sha'
+    );
     expect(result).toBe(true);
   });
 
@@ -143,30 +159,34 @@ describe('allNonVisualChecksHavePassed', () => {
                 {
                   name: 'unit tests',
                   conclusion: 'failure',
-                  completed_at: '2023-05-02T19:10:02Z'
+                  completed_at: '2023-05-02T19:10:02Z',
                 },
                 {
                   name: 'unit tests',
                   conclusion: 'success',
-                  completed_at: '2023-05-02T19:11:02Z'
+                  completed_at: '2023-05-02T19:11:02Z',
                 },
                 {
                   name: VISUAL_REGRESSION_CONTEXT,
                   conclusion: 'failure',
-                  completed_at: '2023-05-02T19:11:02Z'
+                  completed_at: '2023-05-02T19:11:02Z',
                 },
                 {
                   name: 'other tests',
                   conclusion: 'skipped',
-                  completed_at: '2023-05-02T19:11:02Z'
-                }
-              ]
-            }
-          })
-        }
-      }
+                  completed_at: '2023-05-02T19:11:02Z',
+                },
+              ],
+            },
+          }),
+        },
+      },
     }));
-    const result = await allNonVisualChecksHavePassed('github-owner', 'github-repo', 'sha');
+    const result = await allNonVisualChecksHavePassed(
+      'github-owner',
+      'github-repo',
+      'sha'
+    );
     expect(result).toBe(true);
   });
 
@@ -180,30 +200,34 @@ describe('allNonVisualChecksHavePassed', () => {
                 {
                   name: 'unit tests',
                   conclusion: 'failure',
-                  completed_at: '2023-05-02T19:11:02Z'
+                  completed_at: '2023-05-02T19:11:02Z',
                 },
                 {
                   name: 'unit tests',
                   conclusion: 'failure',
-                  completed_at: '2023-05-02T19:10:02Z'
+                  completed_at: '2023-05-02T19:10:02Z',
                 },
                 {
                   name: VISUAL_REGRESSION_CONTEXT,
                   conclusion: 'failure',
-                  completed_at: '2023-05-02T19:11:02Z'
+                  completed_at: '2023-05-02T19:11:02Z',
                 },
                 {
                   name: 'other tests',
                   conclusion: 'skipped',
-                  completed_at: '2023-05-02T19:11:02Z'
-                }
-              ]
-            }
-          })
-        }
-      }
+                  completed_at: '2023-05-02T19:11:02Z',
+                },
+              ],
+            },
+          }),
+        },
+      },
     }));
-    const result = await allNonVisualChecksHavePassed('github-owner', 'github-repo', 'sha');
+    const result = await allNonVisualChecksHavePassed(
+      'github-owner',
+      'github-repo',
+      'sha'
+    );
     expect(result).toBe(false);
   });
 });
