@@ -3,6 +3,7 @@ import { Fragment, useContext, useState } from 'react';
 import { Error } from './error';
 import {
   BaseImageStateContext,
+  UpdateBaseImagesTexts,
   UpdateBaseImagesText,
 } from '../providers/base-image-state-provider';
 import { trpc } from '../utils/trpc';
@@ -42,16 +43,16 @@ export const UpdateImagesButton = () => {
   };
 
   const handleUpdate = async () => {
-    setBaseImageState?.(UpdateBaseImagesText.UPDATING);
+    setBaseImageState?.(UpdateBaseImagesTexts.UPDATING);
     await updateBaseImages({ hash, bucket, owner, repo, baseImagesDirectory });
     await updateCommitStatus({ hash, owner, repo });
     setDialogIsOpen(false);
-    setBaseImageState?.(UpdateBaseImagesText.UPDATED);
+    setBaseImageState?.(UpdateBaseImagesTexts.UPDATED);
   };
 
   const error = updateBaseImagesError || updateCommitStatusError;
   if (error) {
-    setBaseImageState?.(UpdateBaseImagesText.ERROR);
+    setBaseImageState?.(UpdateBaseImagesTexts.ERROR);
   }
 
   const dialogTitleText = baseImagesDirectory
@@ -102,9 +103,9 @@ export const UpdateImagesButton = () => {
   const dialogErrorContent = error && <Error error={error} />;
   const getDialogContent = (state?: UpdateBaseImagesText) => {
     switch (state) {
-      case UpdateBaseImagesText.NOT_UPDATED:
+      case UpdateBaseImagesTexts.NOT_UPDATED:
         return dialogContent;
-      case UpdateBaseImagesText.ERROR:
+      case UpdateBaseImagesTexts.ERROR:
         return dialogErrorContent;
       default:
         return dialogLoadingContent;
@@ -112,7 +113,7 @@ export const UpdateImagesButton = () => {
   };
 
   const shouldDisableBaseImageButton =
-    baseImageState !== UpdateBaseImagesText.NOT_UPDATED;
+    baseImageState !== UpdateBaseImagesTexts.NOT_UPDATED;
 
   return (
     <>

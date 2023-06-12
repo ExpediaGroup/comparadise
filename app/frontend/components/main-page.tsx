@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { LandingPage } from './landing-page';
 import { Error } from './error';
 import { Loader, LoaderViews } from './loader';
-import { ViewToggle, ViewType } from './view-toggle';
+import { ViewToggle, ImageViews, ImageView } from './view-toggle';
 import { UpdateImagesButton } from './update-images-button';
 import { SideBySideImageView, SingleImageView } from './image-views';
 import { RouterOutput, trpc } from '../utils/trpc';
@@ -15,7 +15,7 @@ import {
 import { ArrowBackIcon, ArrowForwardIcon } from './arrows';
 
 export const MainPage = () => {
-  const [viewType, setViewType] = React.useState<ViewType | undefined>();
+  const [viewType, setViewType] = React.useState<ImageView | undefined>();
   const [singleImageViewIndex, setSingleImageViewIndex] = React.useState(0);
 
   const [searchParams] = useSearchParams();
@@ -74,7 +74,7 @@ export const MainPage = () => {
       return <Loader view={LoaderViews.PARTIAL} />;
     }
     const imageView =
-      viewType === ViewType.SIDE_BY_SIDE ? (
+      viewType === ImageViews.SIDE_BY_SIDE ? (
         <SideBySideImageView images={data.images} />
       ) : (
         <SingleImageView
@@ -140,5 +140,5 @@ const getViewType = async (
   const shouldViewSideBySide = await imageIsSmallEnoughForSideBySide(
     firstImage
   );
-  return shouldViewSideBySide ? ViewType.SIDE_BY_SIDE : undefined;
+  return shouldViewSideBySide ? ImageViews.SIDE_BY_SIDE : undefined;
 };
