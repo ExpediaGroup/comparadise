@@ -37,27 +37,15 @@ describe('filterNewImages', () => {
 });
 
 describe('getBaseImagesPaths', () => {
-  it(`should return the base image path given the new image path and default to ${BASE_IMAGES_DIRECTORY}`, () => {
+  it('should return the base image paths given the new image paths', () => {
     const paths = [
       '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5/SMALL/pdpPage/new.png',
       '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5/LARGE/srpPage/new.png',
     ];
-    const result = getBaseImagePaths(paths, BASE_IMAGES_DIRECTORY);
+    const result = getBaseImagePaths(paths);
     expect(result).toEqual([
       `${BASE_IMAGES_DIRECTORY}/SMALL/pdpPage/base.png`,
       `${BASE_IMAGES_DIRECTORY}/LARGE/srpPage/base.png`,
-    ]);
-  });
-
-  it('should return the base image *test* path given the new image path', () => {
-    const paths = [
-      '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5/SMALL/pdpPage/new.png',
-      '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5/LARGE/srpPage/new.png',
-    ];
-    const result = getBaseImagePaths(paths, 'base-images-test');
-    expect(result).toEqual([
-      `base-images-test/SMALL/pdpPage/base.png`,
-      `base-images-test/LARGE/srpPage/base.png`,
     ]);
   });
 });
@@ -72,8 +60,7 @@ describe('updateBaseImagesInS3', () => {
         '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5/SMALL/srpPage/base.png',
         '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5/SMALL/pdpPage/base.png',
       ],
-      expectedBucket,
-      BASE_IMAGES_DIRECTORY
+      expectedBucket
     );
     expect(S3Client.copyObject).toHaveBeenCalledWith({
       Bucket: expectedBucket,
@@ -85,32 +72,6 @@ describe('updateBaseImagesInS3', () => {
       Bucket: expectedBucket,
       CopySource: `${expectedBucket}/030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5/SMALL/srpPage/new.png`,
       Key: `${BASE_IMAGES_DIRECTORY}/SMALL/srpPage/base.png`,
-      ACL: 'bucket-owner-full-control',
-    });
-  });
-
-  it('should fetch the images from S3 test directory', async () => {
-    const expectedBucket = 'expectedBucket';
-    await replaceImagesInS3(
-      [
-        '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5/SMALL/pdpPage/new.png',
-        '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5/SMALL/srpPage/new.png',
-        '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5/SMALL/srpPage/base.png',
-        '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5/SMALL/pdpPage/base.png',
-      ],
-      expectedBucket,
-      'base-images-test'
-    );
-    expect(S3Client.copyObject).toHaveBeenCalledWith({
-      Bucket: expectedBucket,
-      CopySource: `${expectedBucket}/030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5/SMALL/pdpPage/new.png`,
-      Key: `base-images-test/SMALL/pdpPage/base.png`,
-      ACL: 'bucket-owner-full-control',
-    });
-    expect(S3Client.copyObject).toHaveBeenCalledWith({
-      Bucket: expectedBucket,
-      CopySource: `${expectedBucket}/030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5/SMALL/srpPage/new.png`,
-      Key: `base-images-test/SMALL/srpPage/base.png`,
       ACL: 'bucket-owner-full-control',
     });
   });

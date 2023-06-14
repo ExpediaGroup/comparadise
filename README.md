@@ -28,6 +28,8 @@ and when you use the Comparadise app to review changes.
 
 ## Writing Visual Tests
 
+Comparadise relies on Cypress for running tests against web components in the browser.
+
 Install the [comparadise-utils](https://www.npmjs.com/package/comparadise-utils) package using your favorite node package manager.
 
 In `cypress.config.ts`:
@@ -63,6 +65,30 @@ import 'comparadise-utils/types';
 In a Cypress test that renders your component or visits your site, use `cy.matchScreenshot()` to execute a visual test.
 This will take a screenshot of whatever Cypress is currently displaying, compare it to a `base.png` that was
 previously downloaded from S3, and output a `diff.png` and `new.png` if there is a visual change.
+
+Example test:
+
+```tsx
+describe('MyComponent visual test', () => {
+  it('should verify MyComponent looks the same', () => {
+    cy.mount(<MyComponent inputs={mockInputs} />);
+
+    cy.matchScreenshot();
+  });
+});
+```
+
+### matchScreenshot Arguments
+
+#### rawName - optional (String)
+
+By default, `matchScreenshot` will infer the name of your test from the name of your file and create a folder to save the base, new, and diff images to.
+
+However, if you have multiple visual tests in a single file, you should pass a different `rawName` for each test to vary the paths where screenshots will be saved.
+
+#### options - optional (Cypress.ScreenshotOptions)
+
+Learn more about the `options` argument definition in [Cypress' official docs](https://docs.cypress.io/api/commands/screenshot.html#Arguments).
 
 ## Executing Your Visual Tests
 

@@ -10,7 +10,6 @@ export const updateBaseImagesInputSchema = z.object({
   bucket: z.string().min(1),
   repo: z.string().min(1),
   owner: z.string().min(1),
-  baseImagesDirectory: z.string().nullish(),
 });
 export const updateCommitStatusInputSchema = z.object({
   hash: z.string().min(1),

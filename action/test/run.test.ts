@@ -39,7 +39,6 @@ const inputMap: Record<string, string> = {
   'screenshots-directory': 'path/to/screenshots',
   'bucket-name': 'some-bucket',
   'commit-hash': 'sha',
-  'base-images-directory': 'base-images',
   'github-token': 'some-token',
 };
 (getInput as jest.Mock).mockImplementation(name => inputMap[name]);
