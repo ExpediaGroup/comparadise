@@ -3,7 +3,7 @@ import { exec } from '@actions/exec';
 import { getInput, getMultilineInput, setFailed } from '@actions/core';
 import { octokit } from '../src/octokit';
 import { sync } from 'glob';
-import { VISUAL_REGRESSION_CONTEXT } from 'shared';
+import { BASE_IMAGES_DIRECTORY, VISUAL_REGRESSION_CONTEXT } from 'shared';
 
 jest.mock('glob');
 jest.mock('@actions/core');
@@ -134,13 +134,13 @@ describe('main', () => {
     ]);
     await run();
     expect(exec).toHaveBeenCalledWith(
-      'aws s3 cp s3://some-bucket/base-images/path/1 path/to/screenshots/path/1 --recursive'
+      `aws s3 cp s3://some-bucket/${BASE_IMAGES_DIRECTORY}/path/1 path/to/screenshots/path/1 --recursive`
     );
     expect(exec).toHaveBeenCalledWith(
-      'aws s3 cp s3://some-bucket/base-images/path/2 path/to/screenshots/path/2 --recursive'
+      `aws s3 cp s3://some-bucket/${BASE_IMAGES_DIRECTORY}/path/2 path/to/screenshots/path/2 --recursive`
     );
     expect(exec).not.toHaveBeenCalledWith(
-      'aws s3 cp s3://some-bucket/base-images path/to/screenshots --recursive'
+      `aws s3 cp s3://some-bucket/${BASE_IMAGES_DIRECTORY} path/to/screenshots --recursive`
     );
     expect(exec).toHaveBeenCalledWith(
       'aws s3 cp path/to/screenshots/path/1 s3://some-bucket/sha/path/1 --recursive'
