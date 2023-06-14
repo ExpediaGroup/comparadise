@@ -15,7 +15,6 @@ export const updateBaseImagesInS3 = async ({
   bucket,
   owner,
   repo,
-  baseImagesDirectory,
 }: UpdateBaseImagesInput) => {
   if (!(await allNonVisualChecksHavePassed(owner, repo, hash))) {
     throw new TRPCError({
@@ -24,11 +23,7 @@ export const updateBaseImagesInS3 = async ({
     });
   }
   const s3Paths = await getKeysFromS3(hash, bucket);
-  return await replaceImagesInS3(
-    s3Paths,
-    bucket,
-    baseImagesDirectory || BASE_IMAGES_DIRECTORY
-  );
+  return await replaceImagesInS3(s3Paths, bucket);
 };
 
 export const filterNewImages = (s3Paths: string[]) => {
@@ -37,25 +32,18 @@ export const filterNewImages = (s3Paths: string[]) => {
   );
 };
 
-export const getBaseImagePaths = (
-  newImagePaths: string[],
-  baseImagesDirectory: string
-) => {
+export const getBaseImagePaths = (newImagePaths: string[]) => {
   return newImagePaths.map(path => {
     const commitHash = path.split('/')[0];
     return path
-      .replace(commitHash, baseImagesDirectory)
+      .replace(commitHash, BASE_IMAGES_DIRECTORY)
       .replace(NEW_IMAGE_NAME, BASE_IMAGE_NAME);
   });
 };
 
-export const replaceImagesInS3 = async (
-  s3Paths: string[],
-  bucket: string,
-  baseImagesDirectory: string
-) => {
+export const replaceImagesInS3 = async (s3Paths: string[], bucket: string) => {
   const newImagePaths = filterNewImages(s3Paths);
-  const baseImagePaths = getBaseImagePaths(newImagePaths, baseImagesDirectory);
+  const baseImagePaths = getBaseImagePaths(newImagePaths);
   return await Promise.all(
     baseImagePaths.map((path, index) =>
       S3Client.copyObject({

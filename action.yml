@@ -18,10 +18,6 @@ inputs:
   package-paths:
     description: 'Comma separated list of package paths for monorepos'
     required: false
-  base-images-directory:
-    description: 'The comment you would like to leave on PRs when visual tests fail'
-    required: false
-    default: 'base-images'
   comparadise-host:
     description: 'The URL at which you are hosting Comparadise'
     required: false

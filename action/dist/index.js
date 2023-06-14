@@ -12028,15 +12028,15 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.uploadBaseImages = exports.downloadBaseImages = void 0;
 const exec_1 = __nccwpck_require__(5045);
 const core_1 = __nccwpck_require__(3610);
+const shared_1 = __nccwpck_require__(9201);
 const downloadBaseImages = async () => {
     const bucketName = (0, core_1.getInput)('bucket-name', { required: true });
     const screenshotsDirectory = (0, core_1.getInput)('screenshots-directory');
-    const baseImagesDirectory = (0, core_1.getInput)('base-images-directory');
     const packagePaths = (0, core_1.getInput)('package-paths')?.split(',');
     if (packagePaths) {
-        return Promise.all(packagePaths.map(packagePath => (0, exec_1.exec)(`aws s3 cp s3://${bucketName}/${baseImagesDirectory}/${packagePath} ${screenshotsDirectory}/${packagePath} --recursive`)));
+        return Promise.all(packagePaths.map(packagePath => (0, exec_1.exec)(`aws s3 cp s3://${bucketName}/${shared_1.BASE_IMAGES_DIRECTORY}/${packagePath} ${screenshotsDirectory}/${packagePath} --recursive`)));
     }
-    return (0, exec_1.exec)(`aws s3 cp s3://${bucketName}/${baseImagesDirectory} ${screenshotsDirectory} --recursive`);
+    return (0, exec_1.exec)(`aws s3 cp s3://${bucketName}/${shared_1.BASE_IMAGES_DIRECTORY} ${screenshotsDirectory} --recursive`);
 };
 exports.downloadBaseImages = downloadBaseImages;
 const uploadBaseImages = async () => {

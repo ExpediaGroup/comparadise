@@ -11,9 +11,6 @@ import { Dialog, Transition } from '@headlessui/react';
 import { PrimaryButton, TertiaryButton } from './buttons';
 import { useSearchParams } from 'react-router-dom';
 
-const UPDATE_TEXT =
-  'WARNING: This will update the base images in S3 and will set the visual regression status to passed. You can only do this if you are about to merge your PR and all other checks have passed.';
-
 export const UpdateImagesButton = () => {
   const [dialogIsOpen, setDialogIsOpen] = useState(false);
   const { baseImageState, setBaseImageState } = useContext(
@@ -29,7 +26,7 @@ export const UpdateImagesButton = () => {
   const params: Record<string, string | undefined> = Object.fromEntries(
     searchParams.entries()
   );
-  const { hash, bucket, repo, owner, baseImagesDirectory } = params;
+  const { hash, bucket, repo, owner } = params;
   if (!hash || !bucket || !owner || !repo) {
     return null;
   }
@@ -44,7 +41,7 @@ export const UpdateImagesButton = () => {
 
   const handleUpdate = async () => {
     setBaseImageState?.(UpdateBaseImagesTexts.UPDATING);
-    await updateBaseImages({ hash, bucket, owner, repo, baseImagesDirectory });
+    await updateBaseImages({ hash, bucket, owner, repo });
     await updateCommitStatus({ hash, owner, repo });
     setDialogIsOpen(false);
     setBaseImageState?.(UpdateBaseImagesTexts.UPDATED);
@@ -55,17 +52,16 @@ export const UpdateImagesButton = () => {
     setBaseImageState?.(UpdateBaseImagesTexts.ERROR);
   }
 
-  const dialogTitleText = baseImagesDirectory
-    ? `Custom base image directory in use. This will update the base images in ${baseImagesDirectory}`
-    : 'Are you sure you want to update the base images?';
-  const dialogDescriptionText = !baseImagesDirectory ? UPDATE_TEXT : undefined;
+  const dialogTitleText = 'Are you sure you want to update the base images?';
+  const updateText =
+    'WARNING: This will update the base images in S3 and will set the visual regression status to passed. You can only do this if you are about to merge your PR and all other checks have passed.';
   const dialogContent = (
     <>
       <Dialog.Title as="h3" className="mt-2 text-xl font-semibold leading-6">
         {dialogTitleText}
       </Dialog.Title>
       <Dialog.Description className="mt-5 text-lg font-semibold text-slate-500">
-        {dialogDescriptionText}
+        {updateText}
       </Dialog.Description>
 
       <div className="mt-5 flex justify-end">
@@ -123,9 +119,6 @@ export const UpdateImagesButton = () => {
       >
         {baseImageState}
       </PrimaryButton>
-      {baseImagesDirectory && (
-        <p>Custom base image directory {baseImagesDirectory} in use</p>
-      )}
       <Transition appear show={dialogIsOpen} as={Fragment}>
         <Dialog as="div" className="relative z-10" onClose={handleDialogClose}>
           <Transition.Child
