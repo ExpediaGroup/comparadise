@@ -196,11 +196,6 @@ describe('allNonVisualChecksHavePassed', () => {
                 state: 'failure',
                 created_at: '2023-05-02T19:11:02Z',
               },
-              {
-                context: 'other tests',
-                state: 'skipped',
-                created_at: '2023-05-02T19:11:02Z',
-              },
             ],
           }),
         },
