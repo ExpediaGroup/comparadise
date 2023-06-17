@@ -2,22 +2,21 @@
   "name": "app",
   "private": true,
   "devDependencies": {
-    "npm-watch": "0.11.0",
+    "nodemon": "2.0.22",
     "start-server-and-test": "2.0.0"
   },
   "scripts": {
     "cypress:e2e": "nx test:e2e frontend",
     "docker": "nx docker comparadise",
-    "start": "nx start frontend & npm-watch",
+    "start": "nx start frontend & nodemon",
     "test": "start-server-and-test docker http://localhost:8080 cypress:e2e"
   },
-  "watch": {
-    "start": {
-      "patterns": [
-        "backend"
-      ],
-      "extensions": "ts"
-    }
+  "nodemonConfig": {
+    "watch": [
+      "backend"
+    ],
+    "exec": "nx start backend",
+    "ext": "ts"
   },
   "nx": {
     "implicitDependencies": [
