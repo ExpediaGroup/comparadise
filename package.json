@@ -14,7 +14,7 @@
     "typescript": "5.1.3"
   },
   "scripts": {
-    "docker": "docker build . --tag comparadise && docker-compose up",
+    "docker": "docker build . --tag comparadise --file app/Dockerfile && docker-compose --project-directory app up",
     "format": "prettier --write ."
   }
 }
