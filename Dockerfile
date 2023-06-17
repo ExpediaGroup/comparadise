@@ -10,7 +10,7 @@ RUN chown -R admin .
 COPY --chown=admin . .
 USER admin
 
-RUN pnpm install --prod --ignore-scripts
+RUN pnpm --filter backend --filter frontend install --prod --ignore-scripts
 RUN pnpm --filter frontend prod
 
 ENV PORT 8080

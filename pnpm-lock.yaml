@@ -66,9 +66,9 @@ importers:
 
   app:
     devDependencies:
-      npm-watch:
-        specifier: 0.11.0
-        version: 0.11.0
+      nodemon:
+        specifier: 2.0.22
+        version: 2.0.22
       start-server-and-test:
         specifier: 2.0.0
         version: 2.0.0
@@ -6158,14 +6158,6 @@ packages:
     dependencies:
       path-key: 3.1.1
 
-  /npm-watch@0.11.0:
-    resolution: {integrity: sha512-wAOd0moNX2kSA2FNvt8+7ORwYaJpQ1ZoWjUYdb1bBCxq4nkWuU0IiJa9VpVxrj5Ks+FGXQd62OC/Bjk0aSr+dg==}
-    hasBin: true
-    dependencies:
-      nodemon: 2.0.22
-      through2: 4.0.2
-    dev: true
-
   /nx@16.3.2(@swc/core@1.3.62):
     resolution: {integrity: sha512-fOzCVL7qoCJAcYTJwvJ9j+PSaL791ro4AICWuLxaphZsp2jcLoav4Ev7ONPks2Wlkt8FS9bee3nqQ3w1ya36Og==}
     hasBin: true
@@ -7353,12 +7345,6 @@ packages:
 
   /throttleit@1.0.0:
     resolution: {integrity: sha512-rkTVqu6IjfQ/6+uNuuc3sZek4CEYxTJom3IktzgdSxcZqdARuebbA/f4QmAxMQIxqq9ZLEUkSYqvuk1I6VKq4g==}
-
-  /through2@4.0.2:
-    resolution: {integrity: sha512-iOqSav00cVxEEICeD7TjLB1sueEL+81Wpzp2bY17uZjZN0pWZPuo4suZ/61VujxmqSGFfgOcNuTZ85QJwNZQpw==}
-    dependencies:
-      readable-stream: 3.6.2
-    dev: true
 
   /through@2.3.8:
     resolution: {integrity: sha512-w89qg7PI8wAdvX60bMDP+bFoD5Dvhm9oLheFp5O4a2QF0cSBGsBX4qZmadPMvVqlLJBBci+WqGGOAPvcDeNSVg==}
