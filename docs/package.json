@@ -4,7 +4,8 @@
   "scripts": {
     "build": "tsc && docusaurus build",
     "lint": "eslint . --max-warnings=0",
-    "start": "docusaurus start"
+    "start": "docusaurus start",
+    "test": "exit 0"
   },
   "dependencies": {
     "@docusaurus/core": "3.0.0-alpha.0",
