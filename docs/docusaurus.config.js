@@ -43,13 +43,19 @@ const config = {
         items: [
           {
             type: 'docSidebar',
-            sidebarId: 'tutorialSidebar',
+            sidebarId: 'docsSidebar',
             position: 'left',
             label: 'Docs',
           },
           {
+            type: 'html',
+            position: 'right',
+            className: 'header-release-link',
+            value: '<a href="https://github.com/ExpediaGroup/comparadise/releases/latest"><img alt="latest-release" src="https://img.shields.io/github/v/release/ExpediaGroup/comparadise"/></a>'
+          },
+          {
             href: 'https://github.com/ExpediaGroup/comparadise',
-            label: 'GitHub',
+            className: 'header-github-link',
             position: 'right',
           },
         ],
@@ -57,11 +63,7 @@ const config = {
       footer: {
         style: 'dark',
         copyright: `Copyright © ${new Date().getFullYear()} Expedia, Inc.`,
-      },
-      prism: {
-        theme: themes.github,
-        darkTheme: themes.dracula,
-      },
+      }
     }),
 };
 

@@ -219,9 +219,6 @@ importers:
       clsx:
         specifier: 1.2.1
         version: 1.2.1
-      prism-react-renderer:
-        specifier: 2.0.5
-        version: 2.0.5(react@18.2.0)
       react:
         specifier: 18.2.0
         version: 18.2.0
@@ -5285,10 +5282,6 @@ packages:
 
   /@types/prettier@2.7.3:
     resolution: {integrity: sha512-+68kP9yzs4LMp7VNh8gdzMSPZFL44MLGqiHWvttYJe+6qnuVr4Ek9wSBQoveqY/r+LwjCcU29kNVkidwim+kYA==}
-    dev: true
-
-  /@types/prismjs@1.26.0:
-    resolution: {integrity: sha512-ZTaqn/qSqUuAq1YwvOFQfVW1AR/oQJlLSZVustdjwI+GZ8kr0MSHBj0tsXPW1EqHubx50gtBEjbPGsdZwQwCjQ==}
     dev: true
 
   /@types/prop-types@15.7.5:
@@ -12030,16 +12023,6 @@ packages:
     peerDependencies:
       react: '>=0.14.9'
     dependencies:
-      react: 18.2.0
-    dev: true
-
-  /prism-react-renderer@2.0.5(react@18.2.0):
-    resolution: {integrity: sha512-VHTC2ZhOImeC3/mu/3TkEuRCa1K+kTCZQeCkwvWzQa01/ahU3dibyxWf3XiPLuO4k/rGjSTea1lEsfza6fMofw==}
-    peerDependencies:
-      react: '>=16.0.0'
-    dependencies:
-      '@types/prismjs': 1.26.0
-      clsx: 1.2.1
       react: 18.2.0
     dev: true
 
