@@ -10,6 +10,8 @@ const config = {
 
   organizationName: 'ExpediaGroup',
   projectName: 'comparadise',
+  deploymentBranch: 'main',
+  trailingSlash: false,
 
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
@@ -49,7 +51,8 @@ const config = {
             type: 'html',
             position: 'right',
             className: 'header-release-link',
-            value: '<a href="https://github.com/ExpediaGroup/comparadise/releases/latest"><img alt="latest-release" src="https://img.shields.io/github/v/release/ExpediaGroup/comparadise"/></a>'
+            value:
+              '<a href="https://github.com/ExpediaGroup/comparadise/releases/latest"><img alt="latest-release" src="https://img.shields.io/github/v/release/ExpediaGroup/comparadise"/></a>',
           },
           {
             href: 'https://github.com/ExpediaGroup/comparadise',
@@ -61,7 +64,7 @@ const config = {
       footer: {
         style: 'dark',
         copyright: `Copyright © ${new Date().getFullYear()} Expedia, Inc.`,
-      }
+      },
     }),
 };
 
