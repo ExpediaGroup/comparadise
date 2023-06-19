@@ -129,13 +129,13 @@ importers:
         version: 4.29.12(react-dom@18.2.0)(react@18.2.0)
       '@trpc/client':
         specifier: 10.31.0
-        version: 10.31.0(@trpc/server@10.30.0)
+        version: 10.31.0(@trpc/server@10.31.0)
       '@trpc/react-query':
         specifier: 10.31.0
-        version: 10.31.0(@tanstack/react-query@4.29.12)(@trpc/client@10.31.0)(@trpc/server@10.30.0)(react-dom@18.2.0)(react@18.2.0)
+        version: 10.31.0(@tanstack/react-query@4.29.12)(@trpc/client@10.31.0)(@trpc/server@10.31.0)(react-dom@18.2.0)(react@18.2.0)
       '@trpc/server':
-        specifier: 10.30.0
-        version: 10.30.0
+        specifier: 10.31.0
+        version: 10.31.0
       '@vitejs/plugin-react-swc':
         specifier: 3.3.2
         version: 3.3.2(vite@4.3.9)
@@ -2742,15 +2742,15 @@ packages:
       pretty-format: 27.5.1
     dev: true
 
-  /@trpc/client@10.31.0(@trpc/server@10.30.0):
+  /@trpc/client@10.31.0(@trpc/server@10.31.0):
     resolution: {integrity: sha512-VCqbJEvFJb8C4hQFw7AD+dkQTjgEdV/QAzO4D+/cX5e93u5NpfNXI+PKS0QFXwG/zqgwQwVV6OkYc/D/MFwA6g==}
     peerDependencies:
       '@trpc/server': 10.31.0
     dependencies:
-      '@trpc/server': 10.30.0
+      '@trpc/server': 10.31.0
     dev: false
 
-  /@trpc/react-query@10.31.0(@tanstack/react-query@4.29.12)(@trpc/client@10.31.0)(@trpc/server@10.30.0)(react-dom@18.2.0)(react@18.2.0):
+  /@trpc/react-query@10.31.0(@tanstack/react-query@4.29.12)(@trpc/client@10.31.0)(@trpc/server@10.31.0)(react-dom@18.2.0)(react@18.2.0):
     resolution: {integrity: sha512-+M8sIsbf6e4H5XYvHlzDqhaf+ybfUigA/9OL3wXRp2vXhCedEiIERCnwNuHWFDRASl9vjOcM33AuJ4sbOOINEA==}
     peerDependencies:
       '@tanstack/react-query': ^4.18.0
@@ -2760,14 +2760,18 @@ packages:
       react-dom: '>=16.8.0'
     dependencies:
       '@tanstack/react-query': 4.29.12(react-dom@18.2.0)(react@18.2.0)
-      '@trpc/client': 10.31.0(@trpc/server@10.30.0)
-      '@trpc/server': 10.30.0
+      '@trpc/client': 10.31.0(@trpc/server@10.31.0)
+      '@trpc/server': 10.31.0
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
     dev: false
 
   /@trpc/server@10.30.0:
     resolution: {integrity: sha512-pRsrHCuar3fbyOdJvO4b80OMP1Tx/wOSy5Ozy6cFDFWVUmfAyIX3En5Hoysy4cmMUuCsQsfTEYQwo+OcpjzBkg==}
+    dev: false
+
+  /@trpc/server@10.31.0:
+    resolution: {integrity: sha512-9EnRTSDE9nF11LZsvSOqNKqkRYzHqFX4ch5AJ6VIu8uta2vxVTN4FxxsNRSOluTzVYZDeaCISbwmOJ5iihCCIg==}
     dev: false
 
   /@tsconfig/node10@1.0.9:
