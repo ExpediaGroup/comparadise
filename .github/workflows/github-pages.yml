@@ -27,10 +27,10 @@ jobs:
         uses: pnpm/action-setup@v2
 
       - name: Install
-        run: pnpm install
+        run: pnpm --filter docs install
 
       - name: Build Docs
-        run: pnpm nx build docs
+        run: pnpm --filter docs build
 
       - name: Setup Pages
         uses: actions/configure-pages@v1
