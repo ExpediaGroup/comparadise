@@ -1,10 +1,8 @@
-const { themes } = require('prism-react-renderer');
-
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'Comparadise',
   tagline:
-    'A visual comparison tool for reviewing visual changes on frontend pull requests',
+    'A visual comparison tool for testing and reviewing visual changes in web applications',
   favicon: 'img/island.svg',
 
   url: 'https://expediagroup.github.io',

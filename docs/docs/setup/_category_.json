@@ -1,0 +1,8 @@
+{
+  "label": "Setup",
+  "position": 2,
+  "link": {
+    "type": "generated-index",
+    "description": "Follow these instructions to set up visual regression testing with Comparadise!"
+  }
+}
