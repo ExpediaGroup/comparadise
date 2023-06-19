@@ -3,8 +3,7 @@ name: Deploy GitHub Pages
 on:
   push:
     branches:
-      #      - main
-      - docs
+      - main
     paths:
       - 'docs/**'
       - '.github/workflows/github-pages.yml'
@@ -30,7 +29,7 @@ jobs:
         uses: pnpm/action-setup@v2
 
       - name: Install
-        run: pnpm --filter docs install --prod
+        run: pnpm install --prod --ignore-scripts
 
       - name: Build Docs
         run: pnpm --filter docs build
