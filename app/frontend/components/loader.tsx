@@ -1,5 +1,5 @@
 import * as React from 'react';
-import Island from '../resources/Island.svg';
+import Island from '../resources/island.svg';
 
 export const LoaderViews = {
   FULL_SCREEN: 'FULL_SCREEN',

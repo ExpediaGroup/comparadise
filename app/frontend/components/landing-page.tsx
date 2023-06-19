@@ -1,10 +1,10 @@
 import * as React from 'react';
-import Logo from '../resources/Logo.svg';
+import Island from '../resources/island.svg';
 
 export const LandingPage = () => {
   return (
     <div className="m-10 flex flex-col items-center">
-      <img src={Logo} alt="Comparadise" height={700} width={700} />
+      <img src={Island} alt="Comparadise" height={700} width={700} />
       <div className="m-10">
         <h1 className="text-4xl">Welcome to Comparadise</h1>
         <p className="text-xl">
