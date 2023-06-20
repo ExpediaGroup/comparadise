@@ -4,7 +4,7 @@ sidebar_position: 4
 
 # Setting Up CI/CD
 
-Comparadise ships a GitHub Action that execute all steps necessary to run and evaluate your visual tests!
+Comparadise ships a GitHub Action that executes all steps necessary to run and evaluate your visual tests!
 
 This action will do the following:
 
