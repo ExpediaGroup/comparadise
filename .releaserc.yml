@@ -7,7 +7,7 @@ plugins:
         - type: breaking
           release: major
         - type: docs
-          release: patch
+          release: false
         - type: refactor
           release: patch
         - scope: no-release

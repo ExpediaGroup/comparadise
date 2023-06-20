@@ -6,7 +6,7 @@
     "@tanstack/react-query": "4.29.12",
     "@trpc/client": "10.31.0",
     "@trpc/react-query": "10.31.0",
-    "@trpc/server": "10.30.0",
+    "@trpc/server": "10.31.0",
     "@vitejs/plugin-react-swc": "3.3.2",
     "react": "18.2.0",
     "react-dom": "18.2.0",
@@ -17,7 +17,7 @@
   },
   "devDependencies": {
     "@testing-library/cypress": "9.0.0",
-    "@types/react": "18.2.12",
+    "@types/react": "18.2.13",
     "@types/react-dom": "18.2.5",
     "@types/testing-library__cypress": "5.0.9",
     "prettier-plugin-tailwindcss": "0.3.0"

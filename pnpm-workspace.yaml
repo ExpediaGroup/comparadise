@@ -5,4 +5,5 @@ packages:
   - app/frontend
   - app/backend
   - comparadise-utils
+  - docs
   - shared

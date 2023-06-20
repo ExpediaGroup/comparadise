@@ -6,7 +6,8 @@
   "files": [
     "dist",
     "types",
-    "commands.js"
+    "commands.js",
+    "README.md"
   ],
   "repository": {
     "type": "git",

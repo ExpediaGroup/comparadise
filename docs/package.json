@@ -1,0 +1,33 @@
+{
+  "name": "docs",
+  "private": true,
+  "scripts": {
+    "build": "tsc && docusaurus build",
+    "lint": "eslint . --max-warnings=0",
+    "start": "docusaurus start",
+    "test": "exit 0"
+  },
+  "dependencies": {
+    "@docusaurus/core": "3.0.0-alpha.0",
+    "@docusaurus/plugin-content-docs": "3.0.0-alpha.0",
+    "@docusaurus/preset-classic": "3.0.0-alpha.0",
+    "@docusaurus/types": "3.0.0-alpha.0",
+    "@mdx-js/react": "2.3.0",
+    "@types/react": "18.2.13",
+    "clsx": "1.2.1",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  },
+  "browserslist": {
+    "production": [
+      ">0.5%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
