@@ -17,7 +17,7 @@ function HomepageHeader() {
         <div className={styles.buttons}>
           <Link
             className="button button--secondary button--lg"
-            to="/docs/category/overview"
+            to="/docs/overview/visual-testing"
           >
             View the Docs
           </Link>
@@ -29,7 +29,7 @@ function HomepageHeader() {
 
 export default function Home(): JSX.Element {
   return (
-    <Layout title="Home">
+    <Layout>
       <HomepageHeader />
       <main>
         <HomepageFeatures />

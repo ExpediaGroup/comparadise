@@ -14,26 +14,26 @@ const config = {
   trailingSlash: false,
 
   onBrokenLinks: 'throw',
-  onBrokenMarkdownLinks: 'warn',
+  onBrokenMarkdownLinks: 'throw',
 
   presets: [
     [
       'classic',
       /** @type {import('@docusaurus/preset-classic').Options} */
-      ({
+      {
         docs: {
           sidebarPath: require.resolve('./sidebars.js'),
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
         },
-      }),
+      },
     ],
   ],
 
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
-    ({
+    {
       navbar: {
         title: 'Comparadise',
         logo: {
@@ -65,7 +65,7 @@ const config = {
         style: 'dark',
         copyright: `Copyright © ${new Date().getFullYear()} Expedia, Inc.`,
       },
-    }),
+    },
 };
 
 module.exports = config;

@@ -198,6 +198,9 @@ importers:
       '@docusaurus/core':
         specifier: 3.0.0-alpha.0
         version: 3.0.0-alpha.0(@docusaurus/types@3.0.0-alpha.0)(@swc/core@1.3.62)(eslint@8.43.0)(react-dom@18.2.0)(react@18.2.0)(typescript@5.1.3)
+      '@docusaurus/plugin-content-docs':
+        specifier: 3.0.0-alpha.0
+        version: 3.0.0-alpha.0(@swc/core@1.3.62)(eslint@8.43.0)(react-dom@18.2.0)(react@18.2.0)(typescript@5.1.3)
       '@docusaurus/preset-classic':
         specifier: 3.0.0-alpha.0
         version: 3.0.0-alpha.0(@algolia/client-search@4.17.2)(@swc/core@1.3.62)(@types/react@18.2.13)(eslint@8.43.0)(react-dom@18.2.0)(react@18.2.0)(search-insights@2.6.0)(typescript@5.1.3)
