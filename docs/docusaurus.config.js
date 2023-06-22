@@ -68,7 +68,10 @@ const config = {
       algolia: {
         appId: '5VSB7HP4TJ',
         apiKey: '02cd188072c53a27485cb9444004d83e',
-        indexName: 'opensource-expediagroup'
+        indexName: 'opensource-expediagroup',
+        extraUrls: [
+          'https://opensource.expediagroup.com/comparadise/docs/overview/visual-testing'
+        ]
       }
     },
 };
