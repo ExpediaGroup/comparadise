@@ -70,9 +70,9 @@ const config = {
         apiKey: '02cd188072c53a27485cb9444004d83e',
         indexName: 'opensource-expediagroup',
         extraUrls: [
-          'https://opensource.expediagroup.com/comparadise/docs/overview/visual-testing'
-        ]
-      }
+          'https://opensource.expediagroup.com/comparadise/docs/overview/visual-testing',
+        ],
+      },
     },
 };
 
