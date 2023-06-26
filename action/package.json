@@ -6,7 +6,7 @@
     "@actions/core": "1.10.0",
     "@actions/exec": "1.1.1",
     "@actions/github": "5.1.1",
-    "glob": "10.2.7",
+    "glob": "10.3.0",
     "shared": "workspace:*"
   },
   "devDependencies": {
