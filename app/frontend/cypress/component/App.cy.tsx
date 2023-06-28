@@ -91,16 +91,22 @@ describe('App', () => {
       cy.findByRole('button', { name: /side-by-side/i }).should('be.enabled');
     });
 
-    it('should display loader and update base images', () => {
+    it('should display loader while updating base images', () => {
       cy.intercept('/trpc/updateBaseImages*', {
         body: mutationResponse,
-        delay: 2000,
+        delay: 5000,
       }).as('base-images');
       cy.findByRole('button', { name: /Update all base images/i }).click();
       cy.findByText(/Are you sure/i);
       cy.findByRole('button', { name: /update/i }).click();
       cy.findByText('Updating base images...').should('be.visible');
       cy.findByLabelText('loader').should('be.visible');
+    });
+
+    it('should update base images', () => {
+      cy.findByRole('button', { name: /Update all base images/i }).click();
+      cy.findByText(/Are you sure/i);
+      cy.findByRole('button', { name: /update/i }).click();
       cy.wait(['@base-images', '@commit-status']);
       cy.findByRole('button', { name: /all images updated/i });
     });
