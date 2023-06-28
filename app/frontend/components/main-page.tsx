@@ -86,24 +86,27 @@ export const MainPage = () => {
     return <div className="mt-8">{imageView}</div>;
   };
 
+  const backButtonDisabled = page <= 1 || isFetching;
+  const forwardButtonDisabled = !nextPageExists || isFetching;
+
   return (
     <>
       <div className="mt-10 flex flex-col items-center justify-center">
         <div className="flex w-4/5 items-center justify-between">
           <button
-            disabled={page <= 1}
+            disabled={backButtonDisabled}
             onClick={onClickBackArrow}
             aria-label="back-arrow"
           >
-            <ArrowBackIcon disabled={page <= 1} />
+            <ArrowBackIcon disabled={backButtonDisabled} />
           </button>
           <h1 className="text-center text-4xl font-medium">{data.title}</h1>
           <button
-            disabled={!nextPageExists}
+            disabled={forwardButtonDisabled}
             onClick={onClickForwardArrow}
             aria-label="forward-arrow"
           >
-            <ArrowForwardIcon disabled={!nextPageExists} />
+            <ArrowForwardIcon disabled={forwardButtonDisabled} />
           </button>
         </div>
         {!isFetching && (
