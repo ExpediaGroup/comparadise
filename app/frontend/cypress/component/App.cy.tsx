@@ -78,6 +78,18 @@ describe('App', () => {
       cy.findByRole('button', { name: /side-by-side/i }).should('be.disabled');
     });
 
+    it('should disable arrow buttons while loading next spec', () => {
+      cy.intercept('/trpc/fetchCurrentPage*', req => {
+        const page = getPageFromRequest(req);
+        const body = page === 2 ? secondPage : firstPage;
+        const delay = page === 2 ? 5000 : 0;
+        req.reply({ body, delay });
+      });
+      cy.findByRole('button', { name: /forward-arrow/ }).click();
+      cy.findByRole('button', { name: /back-arrow/ }).should('be.disabled');
+      cy.findByRole('button', { name: /forward-arrow/ }).should('be.disabled');
+    });
+
     it('should switch to side-by-side view and back', () => {
       cy.findByRole('button', { name: /forward-arrow/ }).click();
       cy.findByRole('button', { name: /side-by-side/i }).should('be.enabled');
@@ -91,16 +103,22 @@ describe('App', () => {
       cy.findByRole('button', { name: /side-by-side/i }).should('be.enabled');
     });
 
-    it('should display loader and update base images', () => {
+    it('should display loader while updating base images', () => {
       cy.intercept('/trpc/updateBaseImages*', {
         body: mutationResponse,
-        delay: 2000,
+        delay: 5000,
       }).as('base-images');
       cy.findByRole('button', { name: /Update all base images/i }).click();
       cy.findByText(/Are you sure/i);
       cy.findByRole('button', { name: /update/i }).click();
       cy.findByText('Updating base images...').should('be.visible');
       cy.findByLabelText('loader').should('be.visible');
+    });
+
+    it('should update base images', () => {
+      cy.findByRole('button', { name: /Update all base images/i }).click();
+      cy.findByText(/Are you sure/i);
+      cy.findByRole('button', { name: /update/i }).click();
       cy.wait(['@base-images', '@commit-status']);
       cy.findByRole('button', { name: /all images updated/i });
     });
