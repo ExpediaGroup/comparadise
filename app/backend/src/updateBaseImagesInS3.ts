@@ -5,7 +5,7 @@ import {
   NEW_IMAGE_NAME,
   UPDATE_BASE_IMAGES_ERROR_MESSAGE,
 } from 'shared';
-import { allNonVisualChecksHavePassed } from './allNonVisualChecksHavePassed';
+import { shouldAllowBaseImageUpdate } from './shouldAllowBaseImageUpdate';
 import { TRPCError } from '@trpc/server';
 import { UpdateBaseImagesInput } from './schema';
 import { getKeysFromS3 } from './getKeysFromS3';
@@ -16,7 +16,7 @@ export const updateBaseImagesInS3 = async ({
   owner,
   repo,
 }: UpdateBaseImagesInput) => {
-  if (!(await allNonVisualChecksHavePassed(owner, repo, hash))) {
+  if (!(await shouldAllowBaseImageUpdate(owner, repo, hash))) {
     throw new TRPCError({
       code: 'FORBIDDEN',
       message: UPDATE_BASE_IMAGES_ERROR_MESSAGE,

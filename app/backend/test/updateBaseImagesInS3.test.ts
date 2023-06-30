@@ -6,9 +6,9 @@ import {
   updateBaseImagesInS3,
 } from '../src/updateBaseImagesInS3';
 import { BASE_IMAGES_DIRECTORY } from 'shared';
-import { allNonVisualChecksHavePassed } from '../src/allNonVisualChecksHavePassed';
+import { shouldAllowBaseImageUpdate } from '../src/shouldAllowBaseImageUpdate';
 
-jest.mock('../src/allNonVisualChecksHavePassed');
+jest.mock('../src/shouldAllowBaseImageUpdate');
 jest.mock('../src/s3Client');
 
 describe('filterNewImages', () => {
@@ -77,7 +77,7 @@ describe('updateBaseImagesInS3', () => {
   });
 
   it('should throw error if other required checks have not yet passed', async () => {
-    (allNonVisualChecksHavePassed as jest.Mock).mockResolvedValue(false);
+    (shouldAllowBaseImageUpdate as jest.Mock).mockResolvedValue(false);
 
     const expectedBucket = 'expected-bucket-name';
     await expect(

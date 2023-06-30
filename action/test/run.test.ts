@@ -3,7 +3,11 @@ import { exec } from '@actions/exec';
 import { getInput, getMultilineInput, setFailed } from '@actions/core';
 import { octokit } from '../src/octokit';
 import { sync } from 'glob';
-import { BASE_IMAGES_DIRECTORY, VISUAL_REGRESSION_CONTEXT } from 'shared';
+import {
+  BASE_IMAGES_DIRECTORY,
+  VISUAL_REGRESSION_CONTEXT,
+  VISUAL_TESTS_FAILED_TO_EXECUTE,
+} from 'shared';
 
 jest.mock('glob');
 jest.mock('@actions/core');
@@ -60,7 +64,7 @@ describe('main', () => {
       sha: 'sha',
       context: VISUAL_REGRESSION_CONTEXT,
       state: 'failure',
-      description: 'Visual tests failed to execute successfully.',
+      description: VISUAL_TESTS_FAILED_TO_EXECUTE,
     });
   });
 
@@ -235,7 +239,7 @@ describe('main', () => {
           context: VISUAL_REGRESSION_CONTEXT,
           created_at: '2023-05-21T16:51:29Z',
           state: 'failure',
-          description: 'Visual tests failed to execute successfully.',
+          description: VISUAL_TESTS_FAILED_TO_EXECUTE,
         },
         {
           context: VISUAL_REGRESSION_CONTEXT,

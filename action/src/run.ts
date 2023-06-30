@@ -13,7 +13,10 @@ import * as path from 'path';
 import { sync } from 'glob';
 import { createGithubComment } from './comment';
 import { getLatestVisualRegressionStatus } from './get-latest-visual-regression-status';
-import { VISUAL_REGRESSION_CONTEXT } from 'shared';
+import {
+  VISUAL_REGRESSION_CONTEXT,
+  VISUAL_TESTS_FAILED_TO_EXECUTE,
+} from 'shared';
 
 export const run = async () => {
   const visualTestCommands = getMultilineInput('visual-test-command', {
@@ -35,7 +38,7 @@ export const run = async () => {
       sha: commitHash,
       context: VISUAL_REGRESSION_CONTEXT,
       state: 'failure',
-      description: 'Visual tests failed to execute successfully.',
+      description: VISUAL_TESTS_FAILED_TO_EXECUTE,
       ...context.repo,
     });
   }
@@ -75,8 +78,7 @@ export const run = async () => {
   );
   if (
     latestVisualRegressionStatus?.state === 'failure' &&
-    latestVisualRegressionStatus?.description ===
-      'Visual tests failed to execute successfully.'
+    latestVisualRegressionStatus?.description === VISUAL_TESTS_FAILED_TO_EXECUTE
   ) {
     warning(
       'Some other Visual Regression tests failed to execute successfully, so skipping status update and comment.'
