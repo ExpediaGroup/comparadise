@@ -11964,7 +11964,7 @@ const run = async () => {
     const commitHash = (0, core_1.getInput)('commit-hash', { required: true });
     const screenshotsDirectory = (0, core_1.getInput)('screenshots-directory');
     await (0, s3_operations_1.downloadBaseImages)();
-    const visualTestExitCode = await Promise.all(visualTestCommands.map(cmd => (0, exec_1.exec)(cmd)));
+    const visualTestExitCode = await Promise.all(visualTestCommands.map(cmd => (0, exec_1.exec)(cmd, [], { ignoreReturnCode: true })));
     if (visualTestExitCode.some(code => code !== 0)) {
         (0, core_1.setFailed)('Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?');
         return octokit_1.octokit.rest.repos.createCommitStatus({
