@@ -1,8 +1,11 @@
 import { getOctokit } from './getOctokit';
 import { groupBy, isEqual, sortBy } from 'lodash';
-import { VISUAL_REGRESSION_CONTEXT } from 'shared';
+import {
+  VISUAL_REGRESSION_CONTEXT,
+  VISUAL_TESTS_FAILED_TO_EXECUTE,
+} from 'shared';
 
-export const allNonVisualChecksHavePassed = async (
+export const shouldAllowBaseImageUpdate = async (
   owner: string,
   repo: string,
   sha: string
@@ -14,6 +17,11 @@ export const allNonVisualChecksHavePassed = async (
     repo,
     ref: sha,
   });
+  const visualRegressionContextDescription = data.find(
+    ({ context }) => context === VISUAL_REGRESSION_CONTEXT
+  )?.description;
+  if (visualRegressionContextDescription === VISUAL_TESTS_FAILED_TO_EXECUTE)
+    return false;
   const nonVisualStatuses = data.filter(
     ({ context }) => context !== VISUAL_REGRESSION_CONTEXT
   );

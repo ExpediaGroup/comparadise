@@ -1,10 +1,13 @@
-import { allNonVisualChecksHavePassed } from '../src/allNonVisualChecksHavePassed';
+import { shouldAllowBaseImageUpdate } from '../src/shouldAllowBaseImageUpdate';
 import { getOctokit } from '../src/getOctokit';
-import { VISUAL_REGRESSION_CONTEXT } from 'shared';
+import {
+  VISUAL_REGRESSION_CONTEXT,
+  VISUAL_TESTS_FAILED_TO_EXECUTE,
+} from 'shared';
 
 jest.mock('../src/getOctokit');
 
-describe('allNonVisualChecksHavePassed', () => {
+describe('shouldAllowBaseImageUpdate', () => {
   it('should return true when all non-visual pr checks pass', async () => {
     (getOctokit as jest.Mock).mockImplementation(() => ({
       rest: {
@@ -31,7 +34,7 @@ describe('allNonVisualChecksHavePassed', () => {
         },
       },
     }));
-    const result = await allNonVisualChecksHavePassed(
+    const result = await shouldAllowBaseImageUpdate(
       'github-owner',
       'github-repo',
       'sha'
@@ -65,7 +68,7 @@ describe('allNonVisualChecksHavePassed', () => {
         },
       },
     }));
-    const result = await allNonVisualChecksHavePassed(
+    const result = await shouldAllowBaseImageUpdate(
       'github-owner',
       'github-repo',
       'sha'
@@ -99,7 +102,7 @@ describe('allNonVisualChecksHavePassed', () => {
         },
       },
     }));
-    const result = await allNonVisualChecksHavePassed(
+    const result = await shouldAllowBaseImageUpdate(
       'github-owner',
       'github-repo',
       'sha'
@@ -133,7 +136,7 @@ describe('allNonVisualChecksHavePassed', () => {
         },
       },
     }));
-    const result = await allNonVisualChecksHavePassed(
+    const result = await shouldAllowBaseImageUpdate(
       'github-owner',
       'github-repo',
       'sha'
@@ -167,7 +170,7 @@ describe('allNonVisualChecksHavePassed', () => {
         },
       },
     }));
-    const result = await allNonVisualChecksHavePassed(
+    const result = await shouldAllowBaseImageUpdate(
       'github-owner',
       'github-repo',
       'sha'
@@ -201,7 +204,37 @@ describe('allNonVisualChecksHavePassed', () => {
         },
       },
     }));
-    const result = await allNonVisualChecksHavePassed(
+    const result = await shouldAllowBaseImageUpdate(
+      'github-owner',
+      'github-repo',
+      'sha'
+    );
+    expect(result).toBe(false);
+  });
+
+  it('should return false when visual tests failed to execute successfully', async () => {
+    (getOctokit as jest.Mock).mockImplementation(() => ({
+      rest: {
+        repos: {
+          listCommitStatusesForRef: jest.fn().mockReturnValue({
+            data: [
+              {
+                context: 'unit tests',
+                state: 'success',
+                created_at: '2023-05-02T19:11:02Z',
+              },
+              {
+                context: VISUAL_REGRESSION_CONTEXT,
+                state: 'failure',
+                description: VISUAL_TESTS_FAILED_TO_EXECUTE,
+                created_at: '2023-05-02T19:11:02Z',
+              },
+            ],
+          }),
+        },
+      },
+    }));
+    const result = await shouldAllowBaseImageUpdate(
       'github-owner',
       'github-repo',
       'sha'
