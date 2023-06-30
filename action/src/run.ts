@@ -25,7 +25,7 @@ export const run = async () => {
   await downloadBaseImages();
 
   const visualTestExitCode = await Promise.all(
-    visualTestCommands.map(cmd => exec(cmd))
+    visualTestCommands.map(cmd => exec(cmd, [], { ignoreReturnCode: true }))
   );
   if (visualTestExitCode.some(code => code !== 0)) {
     setFailed(
