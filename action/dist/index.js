@@ -11833,6 +11833,27 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 1555:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.buildComparadiseUrl = void 0;
+const core_1 = __nccwpck_require__(3610);
+const github_1 = __nccwpck_require__(1419);
+const buildComparadiseUrl = () => {
+    const bucketName = (0, core_1.getInput)('bucket-name', { required: true });
+    const commitHash = (0, core_1.getInput)('commit-hash', { required: true });
+    const comparadiseHost = (0, core_1.getInput)('comparadise-host');
+    const { owner, repo } = github_1.context.repo;
+    return `${comparadiseHost}/?hash=${commitHash}&owner=${owner}&repo=${repo}&bucket=${bucketName}`;
+};
+exports.buildComparadiseUrl = buildComparadiseUrl;
+
+
+/***/ }),
+
 /***/ 6330:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -11843,12 +11864,11 @@ exports.createGithubComment = void 0;
 const octokit_1 = __nccwpck_require__(2749);
 const github_1 = __nccwpck_require__(1419);
 const core_1 = __nccwpck_require__(3610);
+const build_comparadise_url_1 = __nccwpck_require__(1555);
 const createGithubComment = async () => {
-    const bucketName = (0, core_1.getInput)('bucket-name', { required: true });
     const commitHash = (0, core_1.getInput)('commit-hash', { required: true });
     const comparadiseHost = (0, core_1.getInput)('comparadise-host');
-    const { owner, repo } = github_1.context.repo;
-    const comparadiseUrl = `${comparadiseHost}/?hash=${commitHash}&owner=${owner}&repo=${repo}&bucket=${bucketName}`;
+    const comparadiseUrl = (0, build_comparadise_url_1.buildComparadiseUrl)();
     const comparadiseLink = comparadiseHost
         ? `[Comparadise](${comparadiseUrl})`
         : 'Comparadise';
@@ -11957,6 +11977,7 @@ const glob_1 = __nccwpck_require__(1057);
 const comment_1 = __nccwpck_require__(6330);
 const get_latest_visual_regression_status_1 = __nccwpck_require__(5399);
 const shared_1 = __nccwpck_require__(9201);
+const build_comparadise_url_1 = __nccwpck_require__(1555);
 const run = async () => {
     const visualTestCommands = (0, core_1.getMultilineInput)('visual-test-command', {
         required: true,
@@ -12007,8 +12028,9 @@ const run = async () => {
         context: shared_1.VISUAL_REGRESSION_CONTEXT,
         state: 'failure',
         description: diffFileCount === 0
-            ? 'A new visual test was created!'
-            : 'A visual regression was detected!',
+            ? 'A new visual test was created. Check Comparadise!'
+            : 'A visual regression was detected. Check Comparadise!',
+        target_url: (0, build_comparadise_url_1.buildComparadiseUrl)(),
         ...github_1.context.repo,
     });
     await (0, comment_1.createGithubComment)();

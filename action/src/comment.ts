@@ -1,13 +1,12 @@
 import { octokit } from './octokit';
 import { context } from '@actions/github';
 import { getInput } from '@actions/core';
+import { buildComparadiseUrl } from './build-comparadise-url';
 
 export const createGithubComment = async () => {
-  const bucketName = getInput('bucket-name', { required: true });
   const commitHash = getInput('commit-hash', { required: true });
   const comparadiseHost = getInput('comparadise-host');
-  const { owner, repo } = context.repo;
-  const comparadiseUrl = `${comparadiseHost}/?hash=${commitHash}&owner=${owner}&repo=${repo}&bucket=${bucketName}`;
+  const comparadiseUrl = buildComparadiseUrl();
   const comparadiseLink = comparadiseHost
     ? `[Comparadise](${comparadiseUrl})`
     : 'Comparadise';
