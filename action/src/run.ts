@@ -17,6 +17,7 @@ import {
   VISUAL_REGRESSION_CONTEXT,
   VISUAL_TESTS_FAILED_TO_EXECUTE,
 } from 'shared';
+import { buildComparadiseUrl } from './build-comparadise-url';
 
 export const run = async () => {
   const visualTestCommands = getMultilineInput('visual-test-command', {
@@ -96,8 +97,9 @@ export const run = async () => {
     state: 'failure',
     description:
       diffFileCount === 0
-        ? 'A new visual test was created!'
-        : 'A visual regression was detected!',
+        ? 'A new visual test was created. Check Comparadise!'
+        : 'A visual regression was detected. Check Comparadise!',
+    target_url: buildComparadiseUrl(),
     ...context.repo,
   });
   await createGithubComment();

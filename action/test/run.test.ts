@@ -44,6 +44,7 @@ const inputMap: Record<string, string> = {
   'bucket-name': 'some-bucket',
   'commit-hash': 'sha',
   'github-token': 'some-token',
+  'comparadise-host': 'https://comparadise.app',
 };
 (getInput as jest.Mock).mockImplementation(name => inputMap[name]);
 const multiLineInputMap: Record<string, string[]> = {
@@ -100,7 +101,9 @@ describe('main', () => {
       sha: 'sha',
       context: VISUAL_REGRESSION_CONTEXT,
       state: 'failure',
-      description: 'A visual regression was detected!',
+      description: 'A visual regression was detected. Check Comparadise!',
+      target_url:
+        'https://comparadise.app/?hash=sha&owner=owner&repo=repo&bucket=some-bucket',
     });
     expect(octokit.rest.issues.createComment).toHaveBeenCalled();
   });
@@ -119,7 +122,9 @@ describe('main', () => {
       sha: 'sha',
       context: VISUAL_REGRESSION_CONTEXT,
       state: 'failure',
-      description: 'A new visual test was created!',
+      description: 'A new visual test was created. Check Comparadise!',
+      target_url:
+        'https://comparadise.app/?hash=sha&owner=owner&repo=repo&bucket=some-bucket',
     });
     expect(octokit.rest.issues.createComment).toHaveBeenCalled();
   });
