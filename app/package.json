@@ -2,7 +2,7 @@
   "name": "app",
   "private": true,
   "devDependencies": {
-    "nodemon": "2.0.22",
+    "nodemon": "3.0.1",
     "start-server-and-test": "2.0.0"
   },
   "scripts": {
