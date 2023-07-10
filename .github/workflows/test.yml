@@ -18,6 +18,9 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
 
       - uses: nrwl/nx-set-shas@v3
 
@@ -38,5 +41,10 @@ jobs:
           if [[ $(git status --porcelain) ]]; then
             echo "Detected uncommitted changes after build. See status below:"
             git status
+            git config user.name "${{ github.actor }}"
+            git config user.email "${{ github.actor }}@users.noreply.github.com"
+            git add .
+            git commit -m "chore: committing generated code"
+            git push
             exit 1
           fi
