@@ -4,6 +4,10 @@ updates:
     directory: '/'
     schedule:
       interval: 'weekly'
+    groups:
+      trpc:
+        patterns:
+          - '@trpc/*'
     reviewers:
       - '@ExpediaGroup/comparadise-committers'
   - package-ecosystem: 'github-actions'
