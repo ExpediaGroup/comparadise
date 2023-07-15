@@ -18,13 +18,14 @@ export const getGroupedKeys = async (hash: string, bucket: string) => {
   const groupedImages = groupBy(imageObjects, 'dir');
   const groupedKeys = Object.keys(groupedImages)
     .filter(
-      key =>
-        groupedImages[key].length > 1 ||
-        groupedImages[key].find(item => item.name === NEW_IMAGE_NAME)
+      key => {
+        const groupedImage = groupedImages[key];
+        return groupedImage && (groupedImage.length > 1 || groupedImage.find(item => item.name === NEW_IMAGE_NAME))
+      }
     )
     .map(key => ({
       title: getPathFromKey(key),
-      keys: groupedImages[key].map(({ base, dir }) => join(dir, base)),
+      keys: groupedImages[key]?.map(({ base, dir }) => join(dir, base)),
     }));
 
   if (!groupedKeys.length) {

@@ -139,7 +139,11 @@ const getViewType = async (
   if (images.length === 1) {
     return undefined;
   }
-  const firstImage = images[0].base64;
+  const firstImage = images[0]?.base64;
+  if (!firstImage) {
+    return undefined;
+  }
+
   const shouldViewSideBySide = await imageIsSmallEnoughForSideBySide(
     firstImage
   );
