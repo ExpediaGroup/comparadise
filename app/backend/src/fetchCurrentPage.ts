@@ -11,7 +11,7 @@ export const fetchCurrentPage = async ({
 }: FetchCurrentPageInput) => {
   const paginatedKeys = await getGroupedKeys(hash, bucket);
   const currentPage = paginatedKeys[page - 1];
-  if (!currentPage) {
+  if (!currentPage?.keys) {
     throw new TRPCError({
       code: 'NOT_FOUND',
       message: `Page ${page} does not exist. Only ${paginatedKeys.length} pages were found.`,

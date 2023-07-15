@@ -43,8 +43,8 @@ export const SingleImageView: React.FC<SingleImageViewProps> = ({
         })}
       </div>
       <img
-        src={images[selectedImageIndex].base64}
-        alt={images[selectedImageIndex].name}
+        src={images[selectedImageIndex]?.base64}
+        alt={images[selectedImageIndex]?.name}
       />
     </div>
   );

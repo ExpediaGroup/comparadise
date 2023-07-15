@@ -34,7 +34,7 @@ export const filterNewImages = (s3Paths: string[]) => {
 
 export const getBaseImagePaths = (newImagePaths: string[]) => {
   return newImagePaths.map(path => {
-    const commitHash = path.split('/')[0];
+    const commitHash = path.split('/')[0] ?? '';
     return path
       .replace(commitHash, BASE_IMAGES_DIRECTORY)
       .replace(NEW_IMAGE_NAME, BASE_IMAGE_NAME);
