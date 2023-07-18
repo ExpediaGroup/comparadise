@@ -75,7 +75,7 @@ describe('getGroupedKeys', () => {
   it('tells us if the commit hash was not associated with a visual regression test failure', async () => {
     (getKeysFromS3 as jest.Mock).mockResolvedValue([]);
     await expect(() => getGroupedKeys('hash', 'bucket')).rejects.toThrow(
-      'The commit hash was not associated with any visual regression test failures'
+      'The commit hash was not associated with any visual regression test failures',
     );
   });
 
@@ -86,7 +86,7 @@ describe('getGroupedKeys', () => {
       'hash/EXTRA_LARGE/pdpPage/base.png',
     ]);
     await expect(() => getGroupedKeys('hash', 'bucket')).rejects.toThrow(
-      'There was no new or diff images associated with the commit hash.\nThis might be because the tests failed before a picture could be taken and it could be compared to the base.'
+      'There was no new or diff images associated with the commit hash.\nThis might be because the tests failed before a picture could be taken and it could be compared to the base.',
     );
   });
 });

@@ -8,7 +8,7 @@ import {
 export const shouldAllowBaseImageUpdate = async (
   owner: string,
   repo: string,
-  sha: string
+  sha: string,
 ): Promise<boolean> => {
   const octokit = getOctokit(owner, repo);
 
@@ -18,18 +18,18 @@ export const shouldAllowBaseImageUpdate = async (
     ref: sha,
   });
   const visualRegressionContextDescription = data.find(
-    ({ context }) => context === VISUAL_REGRESSION_CONTEXT
+    ({ context }) => context === VISUAL_REGRESSION_CONTEXT,
   )?.description;
   if (visualRegressionContextDescription === VISUAL_TESTS_FAILED_TO_EXECUTE)
     return false;
   const nonVisualStatuses = data.filter(
-    ({ context }) => context !== VISUAL_REGRESSION_CONTEXT
+    ({ context }) => context !== VISUAL_REGRESSION_CONTEXT,
   );
   const groupedNonVisualStatuses = groupBy(nonVisualStatuses, 'context');
   const mostRecentNonVisualStatuses = nonVisualStatuses.filter(status => {
     const contextsSortedByDescTime = sortBy(
       groupedNonVisualStatuses[status.context],
-      'created_at'
+      'created_at',
     ).reverse();
     return isEqual(status, contextsSortedByDescTime.find(Boolean));
   });

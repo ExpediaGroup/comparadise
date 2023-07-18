@@ -21,7 +21,7 @@ export const BaseImageStateProvider = ({
   children,
 }: React.PropsWithChildren) => {
   const [baseImageState, setBaseImageState] = useState<UpdateBaseImagesText>(
-    UpdateBaseImagesTexts.NOT_UPDATED
+    UpdateBaseImagesTexts.NOT_UPDATED,
   );
 
   return (

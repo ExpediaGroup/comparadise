@@ -28,7 +28,7 @@ export const updateBaseImagesInS3 = async ({
 
 export const filterNewImages = (s3Paths: string[]) => {
   return s3Paths.filter(path =>
-    path.match(new RegExp(`/${NEW_IMAGE_NAME}.png`))
+    path.match(new RegExp(`/${NEW_IMAGE_NAME}.png`)),
   );
 };
 
@@ -51,7 +51,7 @@ export const replaceImagesInS3 = async (s3Paths: string[], bucket: string) => {
         CopySource: `${bucket}/${newImagePaths[index]}`,
         Key: path,
         ACL: 'bucket-owner-full-control',
-      })
-    )
+      }),
+    ),
   );
 };

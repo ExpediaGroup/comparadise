@@ -37,7 +37,7 @@ describe('shouldAllowBaseImageUpdate', () => {
     const result = await shouldAllowBaseImageUpdate(
       'github-owner',
       'github-repo',
-      'sha'
+      'sha',
     );
     expect(result).toBe(true);
   });
@@ -71,7 +71,7 @@ describe('shouldAllowBaseImageUpdate', () => {
     const result = await shouldAllowBaseImageUpdate(
       'github-owner',
       'github-repo',
-      'sha'
+      'sha',
     );
     expect(result).toBe(false);
   });
@@ -105,7 +105,7 @@ describe('shouldAllowBaseImageUpdate', () => {
     const result = await shouldAllowBaseImageUpdate(
       'github-owner',
       'github-repo',
-      'sha'
+      'sha',
     );
     expect(result).toBe(false);
   });
@@ -139,7 +139,7 @@ describe('shouldAllowBaseImageUpdate', () => {
     const result = await shouldAllowBaseImageUpdate(
       'github-owner',
       'github-repo',
-      'sha'
+      'sha',
     );
     expect(result).toBe(false);
   });
@@ -173,7 +173,7 @@ describe('shouldAllowBaseImageUpdate', () => {
     const result = await shouldAllowBaseImageUpdate(
       'github-owner',
       'github-repo',
-      'sha'
+      'sha',
     );
     expect(result).toBe(true);
   });
@@ -207,7 +207,7 @@ describe('shouldAllowBaseImageUpdate', () => {
     const result = await shouldAllowBaseImageUpdate(
       'github-owner',
       'github-repo',
-      'sha'
+      'sha',
     );
     expect(result).toBe(false);
   });
@@ -237,7 +237,7 @@ describe('shouldAllowBaseImageUpdate', () => {
     const result = await shouldAllowBaseImageUpdate(
       'github-owner',
       'github-repo',
-      'sha'
+      'sha',
     );
     expect(result).toBe(false);
   });

@@ -14,7 +14,7 @@ describe('getOctokitOptions', () => {
             githubToken: 'some-token',
             githubApiUrl: 'api-url',
           },
-        })
+        }),
       ),
     }));
     getOctokit('github-owner', 'github-repo');
@@ -29,7 +29,7 @@ describe('getOctokitOptions', () => {
       toString: jest.fn(() => JSON.stringify({})),
     }));
     expect(() => getOctokit('github-owner', 'github-repo')).toThrow(
-      /No GitHub configs were found for github-owner\/github-repo/
+      /No GitHub configs were found for github-owner\/github-repo/,
     );
   });
 });

@@ -14,7 +14,7 @@ export const ClientProvider = ({ children }: React.PropsWithChildren) => {
             staleTime: Infinity,
           },
         },
-      })
+      }),
   );
   const [trpcClient] = useState(() =>
     trpc.createClient({
@@ -23,7 +23,7 @@ export const ClientProvider = ({ children }: React.PropsWithChildren) => {
           url: '/trpc',
         }),
       ],
-    })
+    }),
   );
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>

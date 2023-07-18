@@ -7,7 +7,7 @@ import { MatchScreenshotArgs } from './match-screenshot';
 
 export function setupVisualTests(
   on: Cypress.PluginEvents,
-  config: Cypress.PluginConfigOptions
+  config: Cypress.PluginConfigOptions,
 ) {
   on('after:screenshot', onAfterScreenshot);
   on('task', {

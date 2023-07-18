@@ -20,7 +20,7 @@ export const MainPage = () => {
 
   const [searchParams] = useSearchParams();
   const params: Record<string, string | undefined> = Object.fromEntries(
-    searchParams.entries()
+    searchParams.entries(),
   );
   const { hash, bucket, page: pageParam } = params;
   if (!hash || !bucket) {
@@ -134,7 +134,7 @@ const imageIsSmallEnoughForSideBySide = async (image: string) => {
 };
 
 const getViewType = async (
-  images: RouterOutput['fetchCurrentPage']['images']
+  images: RouterOutput['fetchCurrentPage']['images'],
 ) => {
   if (images.length === 1) {
     return undefined;
@@ -145,7 +145,7 @@ const getViewType = async (
   }
 
   const shouldViewSideBySide = await imageIsSmallEnoughForSideBySide(
-    firstImage
+    firstImage,
   );
   return shouldViewSideBySide ? ImageViews.SIDE_BY_SIDE : undefined;
 };

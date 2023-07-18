@@ -22,7 +22,7 @@ export const fetchCurrentPage = async ({
     keys.map(async key => ({
       name: parse(key).name,
       base64: await getBase64StringFromS3(key, bucket),
-    }))
+    })),
   );
   const nextPage = page < paginatedKeys.length ? page + 1 : undefined;
   return {

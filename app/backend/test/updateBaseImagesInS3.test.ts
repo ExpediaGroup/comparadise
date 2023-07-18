@@ -60,7 +60,7 @@ describe('updateBaseImagesInS3', () => {
         '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5/SMALL/srpPage/base.png',
         '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5/SMALL/pdpPage/base.png',
       ],
-      expectedBucket
+      expectedBucket,
     );
     expect(S3Client.copyObject).toHaveBeenCalledWith({
       Bucket: expectedBucket,
@@ -86,7 +86,7 @@ describe('updateBaseImagesInS3', () => {
         bucket: expectedBucket,
         repo: 'repo',
         owner: 'owner',
-      })
+      }),
     ).rejects.toThrow();
 
     expect(S3Client.listObjectsV2).not.toHaveBeenCalled();

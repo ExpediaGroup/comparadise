@@ -49,7 +49,7 @@ function alignImagesToSameSize(firstImage: any, secondImage: any) {
   // Calculate biggest common values
   const resizeToSameSize = createImageResizer(
     Math.max(firstImageWidth, secondImageWidth),
-    Math.max(firstImageHeight, secondImageHeight)
+    Math.max(firstImageHeight, secondImageHeight),
   );
   // Resize both images
   const resizedFirst = resizeToSameSize(firstImage);
@@ -86,7 +86,7 @@ export function getDiffPixels(basePath: string, actualPath: string) {
     diff.data,
     diff.width,
     diff.height,
-    PIXELMATCH_OPTIONS
+    PIXELMATCH_OPTIONS,
   );
 
   return { diffPixels, diff };

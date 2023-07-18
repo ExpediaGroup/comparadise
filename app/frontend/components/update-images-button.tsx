@@ -14,7 +14,7 @@ import { useSearchParams } from 'react-router-dom';
 export const UpdateImagesButton = () => {
   const [dialogIsOpen, setDialogIsOpen] = useState(false);
   const { baseImageState, setBaseImageState } = useContext(
-    BaseImageStateContext
+    BaseImageStateContext,
   );
 
   const { error: updateBaseImagesError, mutateAsync: updateBaseImages } =
@@ -24,7 +24,7 @@ export const UpdateImagesButton = () => {
 
   const [searchParams] = useSearchParams();
   const params: Record<string, string | undefined> = Object.fromEntries(
-    searchParams.entries()
+    searchParams.entries(),
   );
   const { hash, bucket, repo, owner } = params;
   if (!hash || !bucket || !owner || !repo) {

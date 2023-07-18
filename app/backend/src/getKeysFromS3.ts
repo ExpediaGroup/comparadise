@@ -8,7 +8,7 @@ export const getKeysFromS3 = async (hash: string, bucket: string) => {
 
   return (
     response?.Contents?.map(content => content.Key ?? '').filter(
-      path => path && !path.includes('actions-runner')
+      path => path && !path.includes('actions-runner'),
     ) ?? []
   );
 };
