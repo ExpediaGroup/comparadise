@@ -10,7 +10,7 @@ import { updateBaseImagesInS3 } from './updateBaseImagesInS3';
 import {
   fetchCurrentPageInputSchema,
   updateBaseImagesInputSchema,
-  updateCommitStatusInputSchema,
+  updateCommitStatusInputSchema
 } from './schema';
 
 const t = initTRPC.create();
@@ -24,7 +24,7 @@ const router = t.router({
     .mutation(({ input }) => updateBaseImagesInS3(input)),
   updateCommitStatus: t.procedure
     .input(updateCommitStatusInputSchema)
-    .mutation(({ input }) => updateCommitStatus(input)),
+    .mutation(({ input }) => updateCommitStatus(input))
 });
 
 export type AppRouter = typeof router;

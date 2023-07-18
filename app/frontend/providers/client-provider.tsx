@@ -11,18 +11,18 @@ export const ClientProvider = ({ children }: React.PropsWithChildren) => {
           queries: {
             keepPreviousData: true,
             refetchOnWindowFocus: false,
-            staleTime: Infinity,
-          },
-        },
+            staleTime: Infinity
+          }
+        }
       })
   );
   const [trpcClient] = useState(() =>
     trpc.createClient({
       links: [
         httpBatchLink({
-          url: '/trpc',
-        }),
-      ],
+          url: '/trpc'
+        })
+      ]
     })
   );
   return (

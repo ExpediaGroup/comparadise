@@ -10,7 +10,7 @@ import { RouterOutput, trpc } from '../utils/trpc';
 import {
   createSearchParams,
   useNavigate,
-  useSearchParams,
+  useSearchParams
 } from 'react-router-dom';
 import { ArrowBackIcon, ArrowForwardIcon } from './arrows';
 
@@ -56,7 +56,7 @@ export const MainPage = () => {
   const onClickBackArrow = () => {
     navigate({
       pathname: '/',
-      search: `?${createSearchParams({ ...params, page: String(page - 1) })}`,
+      search: `?${createSearchParams({ ...params, page: String(page - 1) })}`
     });
     refetch();
   };
@@ -64,7 +64,7 @@ export const MainPage = () => {
   const onClickForwardArrow = () => {
     navigate({
       pathname: '/',
-      search: `?${createSearchParams({ ...params, page: String(page + 1) })}`,
+      search: `?${createSearchParams({ ...params, page: String(page + 1) })}`
     });
     refetch();
   };

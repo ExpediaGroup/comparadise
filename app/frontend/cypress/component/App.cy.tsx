@@ -6,7 +6,7 @@ import {
   noNewImagesPage,
   onlyNewImagesFirstPage,
   onlyNewImagesSecondPage,
-  secondPage,
+  secondPage
 } from '../mocks/pages';
 import { CyHttpMessages } from 'cypress/types/net-stubbing';
 import { baseImageUpdateRejection } from '../mocks/base-image-update-rejection';
@@ -106,7 +106,7 @@ describe('App', () => {
     it('should display loader while updating base images', () => {
       cy.intercept('/trpc/updateBaseImages*', {
         body: mutationResponse,
-        delay: 5000,
+        delay: 5000
       }).as('base-images');
       cy.findByRole('button', { name: /Update all base images/i }).click();
       cy.findByText(/Are you sure/i);
@@ -155,7 +155,7 @@ describe('App', () => {
     it('should display failure message and not update commit status when base images fail to update', () => {
       cy.intercept('/trpc/updateBaseImages*', {
         statusCode: 403,
-        body: baseImageUpdateRejection,
+        body: baseImageUpdateRejection
       }).as('base-images');
       cy.findByRole('button', { name: /Update all base images/i }).click();
       cy.findByText(/Are you sure/i);

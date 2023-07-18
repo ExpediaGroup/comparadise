@@ -3,7 +3,7 @@ import { PNG } from 'pngjs';
 import pixelmatch from 'pixelmatch';
 
 const PIXELMATCH_OPTIONS = {
-  threshold: 0.3,
+  threshold: 0.3
 };
 
 /**
@@ -57,7 +57,7 @@ function alignImagesToSameSize(firstImage: any, secondImage: any) {
   // Fill resized area with black transparent pixels
   return [
     fillSizeDifference(firstImageWidth, firstImageHeight)(resizedFirst),
-    fillSizeDifference(secondImageWidth, secondImageHeight)(resizedSecond),
+    fillSizeDifference(secondImageWidth, secondImageHeight)(resizedSecond)
   ];
 }
 

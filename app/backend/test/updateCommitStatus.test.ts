@@ -7,9 +7,9 @@ const createCommitStatus = jest.fn(() => ({ catch: jest.fn() }));
 (getOctokit as jest.Mock).mockImplementation(() => ({
   rest: {
     repos: {
-      createCommitStatus,
-    },
-  },
+      createCommitStatus
+    }
+  }
 }));
 
 describe('updateCommitStatus', () => {
@@ -17,7 +17,7 @@ describe('updateCommitStatus', () => {
     await updateCommitStatus({
       owner: 'github-owner',
       repo: 'github-repo',
-      hash: 'hash',
+      hash: 'hash'
     });
     expect(createCommitStatus).toHaveBeenCalledWith({
       owner: 'github-owner',
@@ -25,7 +25,7 @@ describe('updateCommitStatus', () => {
       sha: 'hash',
       state: 'success',
       description: 'Your visual tests have passed.',
-      context: VISUAL_REGRESSION_CONTEXT,
+      context: VISUAL_REGRESSION_CONTEXT
     });
   });
 });

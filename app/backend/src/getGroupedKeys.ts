@@ -10,7 +10,7 @@ export const getGroupedKeys = async (hash: string, bucket: string) => {
     throw new TRPCError({
       code: 'NOT_FOUND',
       message:
-        'The commit hash was not associated with any visual regression test failures.',
+        'The commit hash was not associated with any visual regression test failures.'
     });
   }
 
@@ -27,14 +27,14 @@ export const getGroupedKeys = async (hash: string, bucket: string) => {
     })
     .map(key => ({
       title: getPathFromKey(key),
-      keys: groupedImages[key]?.map(({ base, dir }) => join(dir, base)),
+      keys: groupedImages[key]?.map(({ base, dir }) => join(dir, base))
     }));
 
   if (!groupedKeys.length) {
     throw new TRPCError({
       code: 'NOT_FOUND',
       message:
-        'There was no new or diff images associated with the commit hash.\nThis might be because the tests failed before a picture could be taken and it could be compared to the base.',
+        'There was no new or diff images associated with the commit hash.\nThis might be because the tests failed before a picture could be taken and it could be compared to the base.'
     });
   }
 

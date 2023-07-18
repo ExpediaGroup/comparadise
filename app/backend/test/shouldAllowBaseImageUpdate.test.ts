@@ -2,7 +2,7 @@ import { shouldAllowBaseImageUpdate } from '../src/shouldAllowBaseImageUpdate';
 import { getOctokit } from '../src/getOctokit';
 import {
   VISUAL_REGRESSION_CONTEXT,
-  VISUAL_TESTS_FAILED_TO_EXECUTE,
+  VISUAL_TESTS_FAILED_TO_EXECUTE
 } from 'shared';
 
 jest.mock('../src/getOctokit');
@@ -17,22 +17,22 @@ describe('shouldAllowBaseImageUpdate', () => {
               {
                 context: 'unit tests',
                 state: 'success',
-                created_at: '2023-05-02T19:11:02Z',
+                created_at: '2023-05-02T19:11:02Z'
               },
               {
                 context: VISUAL_REGRESSION_CONTEXT,
                 state: 'failure',
-                created_at: '2023-05-02T19:11:02Z',
+                created_at: '2023-05-02T19:11:02Z'
               },
               {
                 context: 'other tests',
                 state: 'success',
-                created_at: '2023-05-02T19:11:02Z',
-              },
-            ],
-          }),
-        },
-      },
+                created_at: '2023-05-02T19:11:02Z'
+              }
+            ]
+          })
+        }
+      }
     }));
     const result = await shouldAllowBaseImageUpdate(
       'github-owner',
@@ -51,22 +51,22 @@ describe('shouldAllowBaseImageUpdate', () => {
               {
                 context: 'unit tests',
                 state: 'success',
-                created_at: '2023-05-02T19:11:02Z',
+                created_at: '2023-05-02T19:11:02Z'
               },
               {
                 context: VISUAL_REGRESSION_CONTEXT,
                 state: 'failure',
-                created_at: '2023-05-02T19:11:02Z',
+                created_at: '2023-05-02T19:11:02Z'
               },
               {
                 context: 'visual tests',
                 state: 'failure',
-                created_at: '2023-05-02T19:11:02Z',
-              },
-            ],
-          }),
-        },
-      },
+                created_at: '2023-05-02T19:11:02Z'
+              }
+            ]
+          })
+        }
+      }
     }));
     const result = await shouldAllowBaseImageUpdate(
       'github-owner',
@@ -85,22 +85,22 @@ describe('shouldAllowBaseImageUpdate', () => {
               {
                 context: 'unit tests',
                 state: 'success',
-                created_at: '2023-05-02T19:11:02Z',
+                created_at: '2023-05-02T19:11:02Z'
               },
               {
                 context: VISUAL_REGRESSION_CONTEXT,
                 state: 'failure',
-                created_at: '2023-05-02T19:11:02Z',
+                created_at: '2023-05-02T19:11:02Z'
               },
               {
                 context: 'other tests',
                 state: 'failure',
-                created_at: '2023-05-02T19:11:02Z',
-              },
-            ],
-          }),
-        },
-      },
+                created_at: '2023-05-02T19:11:02Z'
+              }
+            ]
+          })
+        }
+      }
     }));
     const result = await shouldAllowBaseImageUpdate(
       'github-owner',
@@ -119,22 +119,22 @@ describe('shouldAllowBaseImageUpdate', () => {
               {
                 context: 'unit tests',
                 state: 'success',
-                created_at: '2023-05-02T19:11:02Z',
+                created_at: '2023-05-02T19:11:02Z'
               },
               {
                 context: VISUAL_REGRESSION_CONTEXT,
                 state: 'failure',
-                created_at: '2023-05-02T19:11:02Z',
+                created_at: '2023-05-02T19:11:02Z'
               },
               {
                 context: 'other tests',
                 state: 'pending',
-                created_at: '2023-05-02T19:11:02Z',
-              },
-            ],
-          }),
-        },
-      },
+                created_at: '2023-05-02T19:11:02Z'
+              }
+            ]
+          })
+        }
+      }
     }));
     const result = await shouldAllowBaseImageUpdate(
       'github-owner',
@@ -153,22 +153,22 @@ describe('shouldAllowBaseImageUpdate', () => {
               {
                 context: 'unit tests',
                 state: 'failure',
-                created_at: '2023-05-02T19:10:02Z',
+                created_at: '2023-05-02T19:10:02Z'
               },
               {
                 context: 'unit tests',
                 state: 'success',
-                created_at: '2023-05-02T19:11:02Z',
+                created_at: '2023-05-02T19:11:02Z'
               },
               {
                 context: VISUAL_REGRESSION_CONTEXT,
                 state: 'failure',
-                created_at: '2023-05-02T19:11:02Z',
-              },
-            ],
-          }),
-        },
-      },
+                created_at: '2023-05-02T19:11:02Z'
+              }
+            ]
+          })
+        }
+      }
     }));
     const result = await shouldAllowBaseImageUpdate(
       'github-owner',
@@ -187,22 +187,22 @@ describe('shouldAllowBaseImageUpdate', () => {
               {
                 context: 'unit tests',
                 state: 'failure',
-                created_at: '2023-05-02T19:11:02Z',
+                created_at: '2023-05-02T19:11:02Z'
               },
               {
                 context: 'unit tests',
                 state: 'failure',
-                created_at: '2023-05-02T19:10:02Z',
+                created_at: '2023-05-02T19:10:02Z'
               },
               {
                 context: VISUAL_REGRESSION_CONTEXT,
                 state: 'failure',
-                created_at: '2023-05-02T19:11:02Z',
-              },
-            ],
-          }),
-        },
-      },
+                created_at: '2023-05-02T19:11:02Z'
+              }
+            ]
+          })
+        }
+      }
     }));
     const result = await shouldAllowBaseImageUpdate(
       'github-owner',
@@ -221,18 +221,18 @@ describe('shouldAllowBaseImageUpdate', () => {
               {
                 context: 'unit tests',
                 state: 'success',
-                created_at: '2023-05-02T19:11:02Z',
+                created_at: '2023-05-02T19:11:02Z'
               },
               {
                 context: VISUAL_REGRESSION_CONTEXT,
                 state: 'failure',
                 description: VISUAL_TESTS_FAILED_TO_EXECUTE,
-                created_at: '2023-05-02T19:11:02Z',
-              },
-            ],
-          }),
-        },
-      },
+                created_at: '2023-05-02T19:11:02Z'
+              }
+            ]
+          })
+        }
+      }
     }));
     const result = await shouldAllowBaseImageUpdate(
       'github-owner',

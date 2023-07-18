@@ -3,7 +3,7 @@ import {
   getMultilineInput,
   info,
   setFailed,
-  warning,
+  warning
 } from '@actions/core';
 import { downloadBaseImages, uploadBaseImages } from './s3-operations';
 import { exec } from '@actions/exec';
@@ -15,13 +15,13 @@ import { createGithubComment } from './comment';
 import { getLatestVisualRegressionStatus } from './get-latest-visual-regression-status';
 import {
   VISUAL_REGRESSION_CONTEXT,
-  VISUAL_TESTS_FAILED_TO_EXECUTE,
+  VISUAL_TESTS_FAILED_TO_EXECUTE
 } from 'shared';
 import { buildComparadiseUrl } from './build-comparadise-url';
 
 export const run = async () => {
   const visualTestCommands = getMultilineInput('visual-test-command', {
-    required: true,
+    required: true
   });
   const commitHash = getInput('commit-hash', { required: true });
   const screenshotsDirectory = getInput('screenshots-directory');
@@ -40,7 +40,7 @@ export const run = async () => {
       context: VISUAL_REGRESSION_CONTEXT,
       state: 'failure',
       description: VISUAL_TESTS_FAILED_TO_EXECUTE,
-      ...context.repo,
+      ...context.repo
     });
   }
 
@@ -70,7 +70,7 @@ export const run = async () => {
       context: VISUAL_REGRESSION_CONTEXT,
       state: 'success',
       description: 'Visual tests passed!',
-      ...context.repo,
+      ...context.repo
     });
   }
 
@@ -100,7 +100,7 @@ export const run = async () => {
         ? 'A new visual test was created. Check Comparadise!'
         : 'A visual regression was detected. Check Comparadise!',
     target_url: buildComparadiseUrl(),
-    ...context.repo,
+    ...context.repo
   });
   await createGithubComment();
 };

@@ -3,7 +3,7 @@ import { PrimaryButton, SecondaryButton } from './buttons';
 
 export const ImageViews = {
   SINGLE: 'SINGLE',
-  SIDE_BY_SIDE: 'SIDE_BY_SIDE',
+  SIDE_BY_SIDE: 'SIDE_BY_SIDE'
 } as const;
 export type ImageView = keyof typeof ImageViews;
 
@@ -14,7 +14,7 @@ interface ViewToggleProps {
 
 export const ViewToggle: React.FC<ViewToggleProps> = ({
   selectedView,
-  onSelectView,
+  onSelectView
 }) => {
   const SideBySideButton =
     selectedView === ImageViews.SIDE_BY_SIDE ? PrimaryButton : SecondaryButton;

@@ -12,21 +12,21 @@ describe('getOctokitOptions', () => {
         JSON.stringify({
           'github-owner/github-repo': {
             githubToken: 'some-token',
-            githubApiUrl: 'api-url',
-          },
+            githubApiUrl: 'api-url'
+          }
         })
-      ),
+      )
     }));
     getOctokit('github-owner', 'github-repo');
     expect(Octokit).toHaveBeenCalledWith({
       auth: 'some-token',
-      baseUrl: 'api-url',
+      baseUrl: 'api-url'
     });
   });
 
   it('throws error if config not found', () => {
     (readFileSync as jest.Mock).mockImplementation(() => ({
-      toString: jest.fn(() => JSON.stringify({})),
+      toString: jest.fn(() => JSON.stringify({}))
     }));
     expect(() => getOctokit('github-owner', 'github-repo')).toThrow(
       /No GitHub configs were found for github-owner\/github-repo/

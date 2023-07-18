@@ -11879,12 +11879,12 @@ const createGithubComment = async () => {
         : comparadiseBaseComment;
     const { data } = await octokit_1.octokit.rest.repos.listPullRequestsAssociatedWithCommit({
         commit_sha: commitHash,
-        ...github_1.context.repo,
+        ...github_1.context.repo
     });
     const prNumber = data.find(Boolean)?.number ?? github_1.context.issue.number;
     const { data: comments } = await octokit_1.octokit.rest.issues.listComments({
         issue_number: prNumber,
-        ...github_1.context.repo,
+        ...github_1.context.repo
     });
     const githubActionsCommentBodies = comments.map(comment => comment.body);
     const comparadiseCommentExists = githubActionsCommentBodies.some(body => body?.includes(comparadiseBaseComment));
@@ -11892,7 +11892,7 @@ const createGithubComment = async () => {
         await octokit_1.octokit.rest.issues.createComment({
             body: comparadiseComment,
             issue_number: prNumber,
-            ...github_1.context.repo,
+            ...github_1.context.repo
         });
     }
 };
@@ -11914,7 +11914,7 @@ const shared_1 = __nccwpck_require__(9201);
 const getLatestVisualRegressionStatus = async (commitHash) => {
     const { data } = await octokit_1.octokit.rest.repos.listCommitStatusesForRef({
         ref: commitHash,
-        ...github_1.context.repo,
+        ...github_1.context.repo
     });
     return data.find(status => status.context === shared_1.VISUAL_REGRESSION_CONTEXT);
 };
@@ -11980,7 +11980,7 @@ const shared_1 = __nccwpck_require__(9201);
 const build_comparadise_url_1 = __nccwpck_require__(1555);
 const run = async () => {
     const visualTestCommands = (0, core_1.getMultilineInput)('visual-test-command', {
-        required: true,
+        required: true
     });
     const commitHash = (0, core_1.getInput)('commit-hash', { required: true });
     const screenshotsDirectory = (0, core_1.getInput)('screenshots-directory');
@@ -11993,7 +11993,7 @@ const run = async () => {
             context: shared_1.VISUAL_REGRESSION_CONTEXT,
             state: 'failure',
             description: shared_1.VISUAL_TESTS_FAILED_TO_EXECUTE,
-            ...github_1.context.repo,
+            ...github_1.context.repo
         });
     }
     const screenshotsPath = path.join(process.cwd(), screenshotsDirectory);
@@ -12012,7 +12012,7 @@ const run = async () => {
             context: shared_1.VISUAL_REGRESSION_CONTEXT,
             state: 'success',
             description: 'Visual tests passed!',
-            ...github_1.context.repo,
+            ...github_1.context.repo
         });
     }
     const latestVisualRegressionStatus = await (0, get_latest_visual_regression_status_1.getLatestVisualRegressionStatus)(commitHash);
@@ -12031,7 +12031,7 @@ const run = async () => {
             ? 'A new visual test was created. Check Comparadise!'
             : 'A visual regression was detected. Check Comparadise!',
         target_url: (0, build_comparadise_url_1.buildComparadiseUrl)(),
-        ...github_1.context.repo,
+        ...github_1.context.repo
     });
     await (0, comment_1.createGithubComment)();
 };

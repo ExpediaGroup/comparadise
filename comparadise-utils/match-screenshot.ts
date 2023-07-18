@@ -41,7 +41,7 @@ function getTestFolderPathFromScripts(rawName?: string) {
 
   return {
     name,
-    screenshotsFolder,
+    screenshotsFolder
   };
 }
 

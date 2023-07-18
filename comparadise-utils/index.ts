@@ -1,7 +1,7 @@
 import {
   baseExists,
   compareScreenshots,
-  onAfterScreenshot,
+  onAfterScreenshot
 } from './screenshots';
 import { MatchScreenshotArgs } from './match-screenshot';
 
@@ -16,7 +16,7 @@ export function setupVisualTests(
     log: (message: string) => {
       console.log(message);
       return null;
-    },
+    }
   });
 
   return config;

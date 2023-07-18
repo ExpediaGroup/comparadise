@@ -5,7 +5,7 @@ export const UpdateBaseImagesTexts = {
   NOT_UPDATED: 'Update all base images',
   UPDATING: 'Updating...',
   UPDATED: 'All images updated!',
-  ERROR: 'Base image update failed',
+  ERROR: 'Base image update failed'
 } as const;
 export type UpdateBaseImagesText =
   (typeof UpdateBaseImagesTexts)[keyof typeof UpdateBaseImagesTexts];
@@ -18,7 +18,7 @@ export type BaseImageStateProvider = {
 export const BaseImageStateContext = createContext<BaseImageStateProvider>({});
 
 export const BaseImageStateProvider = ({
-  children,
+  children
 }: React.PropsWithChildren) => {
   const [baseImageState, setBaseImageState] = useState<UpdateBaseImagesText>(
     UpdateBaseImagesTexts.NOT_UPDATED

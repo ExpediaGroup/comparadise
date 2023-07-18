@@ -15,7 +15,7 @@ interface SingleImageViewProps extends ImageViewChildProps {
 export const SingleImageView: React.FC<SingleImageViewProps> = ({
   images,
   selectedImageIndex,
-  onSelectImage,
+  onSelectImage
 }) => {
   if (!images[selectedImageIndex]) {
     onSelectImage(0);
@@ -65,7 +65,7 @@ const getImageButtonStyles = (images: Images, imageIndex: number) => {
 };
 
 export const SideBySideImageView: React.FC<ImageViewChildProps> = ({
-  images,
+  images
 }) => {
   return (
     <div className="flex justify-center">

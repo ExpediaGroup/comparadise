@@ -4,7 +4,7 @@ import { Error } from './error';
 import {
   BaseImageStateContext,
   UpdateBaseImagesTexts,
-  UpdateBaseImagesText,
+  UpdateBaseImagesText
 } from '../providers/base-image-state-provider';
 import { trpc } from '../utils/trpc';
 import { Dialog, Transition } from '@headlessui/react';

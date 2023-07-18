@@ -22,13 +22,13 @@ const config = {
       /** @type {import('@docusaurus/preset-classic').Options} */
       {
         docs: {
-          sidebarPath: require.resolve('./sidebars.js'),
+          sidebarPath: require.resolve('./sidebars.js')
         },
         theme: {
-          customCss: require.resolve('./src/css/custom.css'),
-        },
-      },
-    ],
+          customCss: require.resolve('./src/css/custom.css')
+        }
+      }
+    ]
   ],
 
   themeConfig:
@@ -38,42 +38,42 @@ const config = {
         title: 'Comparadise',
         logo: {
           alt: 'Island',
-          src: 'img/island.svg',
+          src: 'img/island.svg'
         },
         items: [
           {
             type: 'docSidebar',
             sidebarId: 'docsSidebar',
             position: 'left',
-            label: 'Docs',
+            label: 'Docs'
           },
           {
             type: 'html',
             position: 'right',
             className: 'header-release-link',
             value:
-              '<a href="https://github.com/ExpediaGroup/comparadise/releases/latest"><img alt="latest-release" src="https://img.shields.io/github/v/release/ExpediaGroup/comparadise"/></a>',
+              '<a href="https://github.com/ExpediaGroup/comparadise/releases/latest"><img alt="latest-release" src="https://img.shields.io/github/v/release/ExpediaGroup/comparadise"/></a>'
           },
           {
             href: 'https://github.com/ExpediaGroup/comparadise',
             className: 'header-github-link',
-            position: 'right',
-          },
-        ],
+            position: 'right'
+          }
+        ]
       },
       footer: {
         style: 'dark',
-        copyright: `Copyright © ${new Date().getFullYear()} Expedia, Inc.`,
+        copyright: `Copyright © ${new Date().getFullYear()} Expedia, Inc.`
       },
       algolia: {
         appId: '5VSB7HP4TJ',
         apiKey: '02cd188072c53a27485cb9444004d83e',
         indexName: 'opensource-expediagroup',
         extraUrls: [
-          'https://opensource.expediagroup.com/comparadise/docs/overview/visual-testing',
-        ],
-      },
-    },
+          'https://opensource.expediagroup.com/comparadise/docs/overview/visual-testing'
+        ]
+      }
+    }
 };
 
 module.exports = config;

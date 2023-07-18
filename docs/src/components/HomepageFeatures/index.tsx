@@ -19,7 +19,7 @@ const FeatureList: FeatureItem[] = [
         Comparadise makes it easy to review visual changes on pull requests, and
         getting started is a breeze.
       </>
-    ),
+    )
   },
   {
     title: 'Lightweight',
@@ -30,7 +30,7 @@ const FeatureList: FeatureItem[] = [
         Start leveraging cloud storage for managing base images, and stop
         committing images to source control!
       </>
-    ),
+    )
   },
   {
     title: 'All in One Solution',
@@ -41,8 +41,8 @@ const FeatureList: FeatureItem[] = [
         Comparadise provides all the tools necessary to get started with visual
         regression testing from scratch, with no learning curve!
       </>
-    ),
-  },
+    )
+  }
 ];
 
 function Feature({ title, imageSrc, description }: FeatureItem) {

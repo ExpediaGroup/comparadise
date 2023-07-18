@@ -20,7 +20,7 @@
     "@types/react": "18.2.14",
     "@types/react-dom": "18.2.6",
     "@types/testing-library__cypress": "5.0.9",
-    "prettier-plugin-tailwindcss": "0.3.0"
+    "prettier-plugin-tailwindcss": "0.4.1"
   },
   "scripts": {
     "build": "tsc && pnpm prod",

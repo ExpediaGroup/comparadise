@@ -4,7 +4,7 @@ import { S3Client } from './s3Client';
 export const getBase64StringFromS3 = async (key: string, bucket: string) => {
   const response = await S3Client.getObject({
     Bucket: bucket,
-    Key: key,
+    Key: key
   });
 
   return streamToString(response.Body as Readable);

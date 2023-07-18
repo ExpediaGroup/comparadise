@@ -2,7 +2,7 @@ import { getOctokit } from './getOctokit';
 import { groupBy, isEqual, sortBy } from 'lodash';
 import {
   VISUAL_REGRESSION_CONTEXT,
-  VISUAL_TESTS_FAILED_TO_EXECUTE,
+  VISUAL_TESTS_FAILED_TO_EXECUTE
 } from 'shared';
 
 export const shouldAllowBaseImageUpdate = async (
@@ -15,7 +15,7 @@ export const shouldAllowBaseImageUpdate = async (
   const { data } = await octokit.rest.repos.listCommitStatusesForRef({
     owner,
     repo,
-    ref: sha,
+    ref: sha
   });
   const visualRegressionContextDescription = data.find(
     ({ context }) => context === VISUAL_REGRESSION_CONTEXT
