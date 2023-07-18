@@ -10,14 +10,14 @@ export const downloadBaseImages = async () => {
     return Promise.all(
       packagePaths.map(packagePath =>
         exec(
-          `aws s3 cp s3://${bucketName}/${BASE_IMAGES_DIRECTORY}/${packagePath} ${screenshotsDirectory}/${packagePath} --recursive`,
-        ),
-      ),
+          `aws s3 cp s3://${bucketName}/${BASE_IMAGES_DIRECTORY}/${packagePath} ${screenshotsDirectory}/${packagePath} --recursive`
+        )
+      )
     );
   }
 
   return exec(
-    `aws s3 cp s3://${bucketName}/${BASE_IMAGES_DIRECTORY} ${screenshotsDirectory} --recursive`,
+    `aws s3 cp s3://${bucketName}/${BASE_IMAGES_DIRECTORY} ${screenshotsDirectory} --recursive`
   );
 };
 
@@ -30,13 +30,13 @@ export const uploadBaseImages = async () => {
     return Promise.all(
       packagePaths.map(packagePath =>
         exec(
-          `aws s3 cp ${screenshotsDirectory}/${packagePath} s3://${bucketName}/${commitHash}/${packagePath} --recursive`,
-        ),
-      ),
+          `aws s3 cp ${screenshotsDirectory}/${packagePath} s3://${bucketName}/${commitHash}/${packagePath} --recursive`
+        )
+      )
     );
   }
 
   return exec(
-    `aws s3 cp ${screenshotsDirectory} s3://${bucketName}/${commitHash} --recursive`,
+    `aws s3 cp ${screenshotsDirectory} s3://${bucketName}/${commitHash} --recursive`
   );
 };

@@ -10,11 +10,11 @@ export default defineConfig({
         target: 'http://localhost:8080',
         changeOrigin: true,
         secure: false,
-        ws: true,
-      },
-    },
+        ws: true
+      }
+    }
   },
   define: {
-    'process.env.DEBUG_PRINT_LIMIT': 10000,
-  },
+    'process.env.DEBUG_PRINT_LIMIT': 10000
+  }
 });

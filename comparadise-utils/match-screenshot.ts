@@ -10,7 +10,7 @@ function forceFont() {
     const style = contentDocument.createElement('style');
     style.type = 'text/css';
     style.appendChild(
-      contentDocument.createTextNode('* { font-family: Arial !important; }'),
+      contentDocument.createTextNode('* { font-family: Arial !important; }')
     );
     contentDocument.head.appendChild(style);
     return style;
@@ -24,24 +24,24 @@ function getTestFolderPathFromScripts(rawName?: string) {
 
   if (!relativeTestPath) {
     throw new Error(
-      '❌ Could not find matching script in the Cypress DOM to infer the test folder path',
+      '❌ Could not find matching script in the Cypress DOM to infer the test folder path'
     );
   }
 
   const testName = relativeTestPath.substring(
     relativeTestPath.lastIndexOf('/') + 1,
-    relativeTestPath.lastIndexOf(SUFFIX_TEST_IDENTIFIER),
+    relativeTestPath.lastIndexOf(SUFFIX_TEST_IDENTIFIER)
   );
   const name = rawName || testName;
 
   const screenshotsFolder = `${SCREENSHOTS_FOLDER_NAME}/${relativeTestPath.substring(
     0,
-    relativeTestPath.lastIndexOf(testName),
+    relativeTestPath.lastIndexOf(testName)
   )}${name}`;
 
   return {
     name,
-    screenshotsFolder,
+    screenshotsFolder
   };
 }
 
@@ -68,7 +68,7 @@ export type MatchScreenshotArgs = {
 
 export function matchScreenshot(
   subject: Cypress.JQueryWithSelector | Window | Document | void,
-  args?: MatchScreenshotArgs,
+  args?: MatchScreenshotArgs
 ) {
   const { rawName, options = {} } = args || {};
   // Set up screen
@@ -84,13 +84,13 @@ export function matchScreenshot(
     // For easy slicing of path ignoring the root screenshot folder
     target.screenshot(
       `${PREFIX_DIFFERENTIATOR}${screenshotsFolder}/new`,
-      options,
+      options
     );
 
     if (!hasBase) {
       cy.task(
         'log',
-        `✅ A new base image was created for ${name}. Create this as a new base image via Comparadise!`,
+        `✅ A new base image was created for ${name}. Create this as a new base image via Comparadise!`
       );
 
       return null;
@@ -102,7 +102,7 @@ export function matchScreenshot(
       } else {
         cy.task(
           'log',
-          `❌ Actual image of ${name} differed by ${diffPixels} pixels.`,
+          `❌ Actual image of ${name} differed by ${diffPixels} pixels.`
         );
       }
 
@@ -116,5 +116,5 @@ export function matchScreenshot(
 Cypress.Commands.add(
   'matchScreenshot',
   { prevSubject: ['optional', 'element', 'window', 'document'] },
-  matchScreenshot,
+  matchScreenshot
 );

@@ -6,7 +6,7 @@ import {
   noNewImagesPage,
   onlyNewImagesFirstPage,
   onlyNewImagesSecondPage,
-  secondPage,
+  secondPage
 } from '../mocks/pages';
 import { CyHttpMessages } from 'cypress/types/net-stubbing';
 import { baseImageUpdateRejection } from '../mocks/base-image-update-rejection';
@@ -22,7 +22,7 @@ describe('App', () => {
       cy.mount(
         <MemoryRouter initialEntries={['/']}>
           <App />
-        </MemoryRouter>,
+        </MemoryRouter>
       );
       cy.findByText(/Welcome to Comparadise/);
     });
@@ -36,17 +36,17 @@ describe('App', () => {
         req.reply(body);
       });
       cy.intercept('/trpc/updateBaseImages*', { body: mutationResponse }).as(
-        'base-images',
+        'base-images'
       );
       cy.intercept('/trpc/updateCommitStatus*', { body: mutationResponse }).as(
-        'commit-status',
+        'commit-status'
       );
       cy.mount(
         <MemoryRouter
           initialEntries={['/?hash=123&bucket=bucket&repo=repo&owner=owner']}
         >
           <App />
-        </MemoryRouter>,
+        </MemoryRouter>
       );
     });
 
@@ -106,7 +106,7 @@ describe('App', () => {
     it('should display loader while updating base images', () => {
       cy.intercept('/trpc/updateBaseImages*', {
         body: mutationResponse,
-        delay: 5000,
+        delay: 5000
       }).as('base-images');
       cy.findByRole('button', { name: /Update all base images/i }).click();
       cy.findByText(/Are you sure/i);
@@ -128,7 +128,7 @@ describe('App', () => {
       cy.findByText(/Are you sure/i);
       cy.findByRole('button', { name: /cancel/i }).click();
       cy.findByRole('button', { name: /Update all base images/i }).should(
-        'be.visible',
+        'be.visible'
       );
     });
 
@@ -138,31 +138,31 @@ describe('App', () => {
       cy.findByRole('button', { name: /update/i }).click();
       cy.wait(['@base-images', '@commit-status']);
       cy.findByRole('button', { name: /all images updated/i }).should(
-        'be.disabled',
+        'be.disabled'
       );
       cy.findByRole('button', { name: /forward-arrow/ }).click();
       cy.findByRole('heading', { name: 'small/example' });
       cy.findByRole('button', { name: /all images updated/i }).should(
-        'be.disabled',
+        'be.disabled'
       );
       cy.findByRole('button', { name: /back-arrow/ }).click();
       cy.findByRole('heading', { name: 'large/example' });
       cy.findByRole('button', { name: /all images updated/i }).should(
-        'be.disabled',
+        'be.disabled'
       );
     });
 
     it('should display failure message and not update commit status when base images fail to update', () => {
       cy.intercept('/trpc/updateBaseImages*', {
         statusCode: 403,
-        body: baseImageUpdateRejection,
+        body: baseImageUpdateRejection
       }).as('base-images');
       cy.findByRole('button', { name: /Update all base images/i }).click();
       cy.findByText(/Are you sure/i);
       cy.findByRole('button', { name: /update/i }).click();
       cy.wait('@base-images');
       cy.findByRole('button', { name: /all images updated/i }).should(
-        'not.exist',
+        'not.exist'
       );
       cy.findByRole('heading', { name: /Error/ }).should('be.visible');
       cy.findByText(UPDATE_BASE_IMAGES_ERROR_MESSAGE).should('be.visible');
@@ -182,7 +182,7 @@ describe('App', () => {
           initialEntries={['?hash=123&bucket=bucket&repo=repo&owner=owner']}
         >
           <App />
-        </MemoryRouter>,
+        </MemoryRouter>
       );
     });
 
@@ -212,7 +212,7 @@ describe('App', () => {
           initialEntries={['?hash=123&bucket=bucket&repo=repo&owner=owner']}
         >
           <App />
-        </MemoryRouter>,
+        </MemoryRouter>
       );
     });
 

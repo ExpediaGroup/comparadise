@@ -3,7 +3,7 @@ import {
   BASE_IMAGE_NAME,
   BASE_IMAGES_DIRECTORY,
   NEW_IMAGE_NAME,
-  UPDATE_BASE_IMAGES_ERROR_MESSAGE,
+  UPDATE_BASE_IMAGES_ERROR_MESSAGE
 } from 'shared';
 import { shouldAllowBaseImageUpdate } from './shouldAllowBaseImageUpdate';
 import { TRPCError } from '@trpc/server';
@@ -14,12 +14,12 @@ export const updateBaseImagesInS3 = async ({
   hash,
   bucket,
   owner,
-  repo,
+  repo
 }: UpdateBaseImagesInput) => {
   if (!(await shouldAllowBaseImageUpdate(owner, repo, hash))) {
     throw new TRPCError({
       code: 'FORBIDDEN',
-      message: UPDATE_BASE_IMAGES_ERROR_MESSAGE,
+      message: UPDATE_BASE_IMAGES_ERROR_MESSAGE
     });
   }
   const s3Paths = await getKeysFromS3(hash, bucket);
@@ -28,7 +28,7 @@ export const updateBaseImagesInS3 = async ({
 
 export const filterNewImages = (s3Paths: string[]) => {
   return s3Paths.filter(path =>
-    path.match(new RegExp(`/${NEW_IMAGE_NAME}.png`)),
+    path.match(new RegExp(`/${NEW_IMAGE_NAME}.png`))
   );
 };
 
@@ -50,8 +50,8 @@ export const replaceImagesInS3 = async (s3Paths: string[], bucket: string) => {
         Bucket: bucket,
         CopySource: `${bucket}/${newImagePaths[index]}`,
         Key: path,
-        ACL: 'bucket-owner-full-control',
-      }),
-    ),
+        ACL: 'bucket-owner-full-control'
+      })
+    )
   );
 };

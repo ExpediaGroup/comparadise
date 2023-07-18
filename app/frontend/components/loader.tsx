@@ -3,7 +3,7 @@ import Island from '../resources/island.svg';
 
 export const LoaderViews = {
   FULL_SCREEN: 'FULL_SCREEN',
-  PARTIAL: 'PARTIAL',
+  PARTIAL: 'PARTIAL'
 } as const;
 type View = keyof typeof LoaderViews;
 

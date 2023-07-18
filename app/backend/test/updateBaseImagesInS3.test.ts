@@ -3,7 +3,7 @@ import {
   filterNewImages,
   replaceImagesInS3,
   getBaseImagePaths,
-  updateBaseImagesInS3,
+  updateBaseImagesInS3
 } from '../src/updateBaseImagesInS3';
 import { BASE_IMAGES_DIRECTORY } from 'shared';
 import { shouldAllowBaseImageUpdate } from '../src/shouldAllowBaseImageUpdate';
@@ -27,11 +27,11 @@ describe('filterNewImages', () => {
       '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5/SMALL/pdpPage/new.png',
       '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5/SMALL/pdpPage/diff.png',
       '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5/LARGE/srpPage/new.png',
-      '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5/LARGE/pdpPage/base.png',
+      '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5/LARGE/pdpPage/base.png'
     ]);
     expect(images).toEqual([
       '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5/SMALL/pdpPage/new.png',
-      '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5/LARGE/srpPage/new.png',
+      '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5/LARGE/srpPage/new.png'
     ]);
   });
 });
@@ -40,12 +40,12 @@ describe('getBaseImagesPaths', () => {
   it('should return the base image paths given the new image paths', () => {
     const paths = [
       '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5/SMALL/pdpPage/new.png',
-      '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5/LARGE/srpPage/new.png',
+      '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5/LARGE/srpPage/new.png'
     ];
     const result = getBaseImagePaths(paths);
     expect(result).toEqual([
       `${BASE_IMAGES_DIRECTORY}/SMALL/pdpPage/base.png`,
-      `${BASE_IMAGES_DIRECTORY}/LARGE/srpPage/base.png`,
+      `${BASE_IMAGES_DIRECTORY}/LARGE/srpPage/base.png`
     ]);
   });
 });
@@ -58,21 +58,21 @@ describe('updateBaseImagesInS3', () => {
         '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5/SMALL/pdpPage/new.png',
         '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5/SMALL/srpPage/new.png',
         '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5/SMALL/srpPage/base.png',
-        '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5/SMALL/pdpPage/base.png',
+        '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5/SMALL/pdpPage/base.png'
       ],
-      expectedBucket,
+      expectedBucket
     );
     expect(S3Client.copyObject).toHaveBeenCalledWith({
       Bucket: expectedBucket,
       CopySource: `${expectedBucket}/030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5/SMALL/pdpPage/new.png`,
       Key: `${BASE_IMAGES_DIRECTORY}/SMALL/pdpPage/base.png`,
-      ACL: 'bucket-owner-full-control',
+      ACL: 'bucket-owner-full-control'
     });
     expect(S3Client.copyObject).toHaveBeenCalledWith({
       Bucket: expectedBucket,
       CopySource: `${expectedBucket}/030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5/SMALL/srpPage/new.png`,
       Key: `${BASE_IMAGES_DIRECTORY}/SMALL/srpPage/base.png`,
-      ACL: 'bucket-owner-full-control',
+      ACL: 'bucket-owner-full-control'
     });
   });
 
@@ -85,8 +85,8 @@ describe('updateBaseImagesInS3', () => {
         hash: '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5',
         bucket: expectedBucket,
         repo: 'repo',
-        owner: 'owner',
-      }),
+        owner: 'owner'
+      })
     ).rejects.toThrow();
 
     expect(S3Client.listObjectsV2).not.toHaveBeenCalled();

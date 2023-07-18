@@ -14,7 +14,7 @@ export function baseExists(path: string) {
 
   if (!exists) {
     console.log(
-      'Base image does not exist. This means a new one will be created. If your base should exist, something went wrong.',
+      'Base image does not exist. This means a new one will be created. If your base should exist, something went wrong.'
     );
   }
   return exists;
@@ -39,7 +39,7 @@ export function compareScreenshots(screenshotFolder: string) {
         if (err) {
           console.error('❌ Diff exists but unable to create diff.png', err);
         }
-      },
+      }
     );
   } else {
     // Delete created new.png. Not needed if there's no diff
@@ -59,7 +59,7 @@ export function compareScreenshots(screenshotFolder: string) {
  * @param {Cypress.ScreenshotDetails} details
  */
 export function onAfterScreenshot(
-  details: Cypress.ScreenshotDetails,
+  details: Cypress.ScreenshotDetails
 ): Promise<Cypress.AfterScreenshotReturnObject> {
   console.log('🧸 Screenshot was saved to:', details.path);
   if (!details.path.match('cypress')) {

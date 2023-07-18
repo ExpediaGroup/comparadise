@@ -19,23 +19,23 @@ export const createGithubComment = async () => {
   const { data } =
     await octokit.rest.repos.listPullRequestsAssociatedWithCommit({
       commit_sha: commitHash,
-      ...context.repo,
+      ...context.repo
     });
   const prNumber = data.find(Boolean)?.number ?? context.issue.number;
 
   const { data: comments } = await octokit.rest.issues.listComments({
     issue_number: prNumber,
-    ...context.repo,
+    ...context.repo
   });
   const githubActionsCommentBodies = comments.map(comment => comment.body);
   const comparadiseCommentExists = githubActionsCommentBodies.some(
-    body => body?.includes(comparadiseBaseComment),
+    body => body?.includes(comparadiseBaseComment)
   );
   if (!comparadiseCommentExists) {
     await octokit.rest.issues.createComment({
       body: comparadiseComment,
       issue_number: prNumber,
-      ...context.repo,
+      ...context.repo
     });
   }
 };

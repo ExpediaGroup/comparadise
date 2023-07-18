@@ -5,12 +5,12 @@ jest.mock('../src/s3Client');
 (S3Client.listObjectsV2 as jest.Mock).mockResolvedValue({
   Contents: [
     {
-      Key: 'ome/actions-runner/something',
+      Key: 'ome/actions-runner/something'
     },
     {
-      Key: 'a/normal/key',
-    },
-  ],
+      Key: 'a/normal/key'
+    }
+  ]
 });
 
 describe('listAllS3PathsForHash', () => {

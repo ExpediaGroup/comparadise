@@ -1,13 +1,13 @@
 import {
   baseExists,
   compareScreenshots,
-  onAfterScreenshot,
+  onAfterScreenshot
 } from './screenshots';
 import { MatchScreenshotArgs } from './match-screenshot';
 
 export function setupVisualTests(
   on: Cypress.PluginEvents,
-  config: Cypress.PluginConfigOptions,
+  config: Cypress.PluginConfigOptions
 ) {
   on('after:screenshot', onAfterScreenshot);
   on('task', {
@@ -16,7 +16,7 @@ export function setupVisualTests(
     log: (message: string) => {
       console.log(message);
       return null;
-    },
+    }
   });
 
   return config;

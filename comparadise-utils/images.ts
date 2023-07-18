@@ -3,7 +3,7 @@ import { PNG } from 'pngjs';
 import pixelmatch from 'pixelmatch';
 
 const PIXELMATCH_OPTIONS = {
-  threshold: 0.3,
+  threshold: 0.3
 };
 
 /**
@@ -49,7 +49,7 @@ function alignImagesToSameSize(firstImage: any, secondImage: any) {
   // Calculate biggest common values
   const resizeToSameSize = createImageResizer(
     Math.max(firstImageWidth, secondImageWidth),
-    Math.max(firstImageHeight, secondImageHeight),
+    Math.max(firstImageHeight, secondImageHeight)
   );
   // Resize both images
   const resizedFirst = resizeToSameSize(firstImage);
@@ -57,7 +57,7 @@ function alignImagesToSameSize(firstImage: any, secondImage: any) {
   // Fill resized area with black transparent pixels
   return [
     fillSizeDifference(firstImageWidth, firstImageHeight)(resizedFirst),
-    fillSizeDifference(secondImageWidth, secondImageHeight)(resizedSecond),
+    fillSizeDifference(secondImageWidth, secondImageHeight)(resizedSecond)
   ];
 }
 
@@ -86,7 +86,7 @@ export function getDiffPixels(basePath: string, actualPath: string) {
     diff.data,
     diff.width,
     diff.height,
-    PIXELMATCH_OPTIONS,
+    PIXELMATCH_OPTIONS
   );
 
   return { diffPixels, diff };
