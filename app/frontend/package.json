@@ -4,9 +4,9 @@
   "dependencies": {
     "@headlessui/react": "1.7.15",
     "@tanstack/react-query": "4.32.0",
-    "@trpc/client": "10.35.0",
-    "@trpc/react-query": "10.35.0",
-    "@trpc/server": "10.35.0",
+    "@trpc/client": "10.36.0",
+    "@trpc/react-query": "10.36.0",
+    "@trpc/server": "10.36.0",
     "@vitejs/plugin-react-swc": "3.3.2",
     "react": "18.2.0",
     "react-dom": "18.2.0",
