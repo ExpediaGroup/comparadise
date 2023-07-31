@@ -122,8 +122,8 @@ importers:
   app/frontend:
     dependencies:
       '@headlessui/react':
-        specifier: 1.7.15
-        version: 1.7.15(react-dom@18.2.0)(react@18.2.0)
+        specifier: 1.7.16
+        version: 1.7.16(react-dom@18.2.0)(react@18.2.0)
       '@tanstack/react-query':
         specifier: 4.32.0
         version: 4.32.0(react-dom@18.2.0)(react@18.2.0)
@@ -3437,8 +3437,8 @@ packages:
     dependencies:
       '@hapi/hoek': 9.3.0
 
-  /@headlessui/react@1.7.15(react-dom@18.2.0)(react@18.2.0):
-    resolution: {integrity: sha512-OTO0XtoRQ6JPB1cKNFYBZv2Q0JMqMGNhYP1CjPvcJvjz8YGokz8oAj89HIYZGN0gZzn/4kk9iUpmMF4Q21Gsqw==}
+  /@headlessui/react@1.7.16(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-2MphIAZdSUacZBT6EXk8AJkj+EuvaaJbtCyHTJrPsz8inhzCl7qeNPI1uk1AUvCgWylVtdN8cVVmnhUDPxPy3g==}
     engines: {node: '>=10'}
     peerDependencies:
       react: ^16 || ^17 || ^18
