@@ -1,6 +1,5 @@
 import * as React from 'react';
 import App from '../../App';
-import { UPDATE_BASE_IMAGES_ERROR_MESSAGE } from 'shared';
 import {
   firstPage,
   noNewImagesPage,
@@ -9,7 +8,10 @@ import {
   secondPage
 } from '../mocks/pages';
 import { CyHttpMessages } from 'cypress/types/net-stubbing';
-import { baseImageUpdateRejection } from '../mocks/base-image-update-rejection';
+import {
+  baseImageUpdateRejection,
+  MOCK_ERROR_MESSAGE
+} from '../mocks/base-image-update-rejection';
 import { mutationResponse } from '../mocks/mutation';
 import { MemoryRouter } from 'react-router-dom';
 
@@ -165,7 +167,7 @@ describe('App', () => {
         'not.exist'
       );
       cy.findByRole('heading', { name: /Error/ }).should('be.visible');
-      cy.findByText(UPDATE_BASE_IMAGES_ERROR_MESSAGE).should('be.visible');
+      cy.findByText(MOCK_ERROR_MESSAGE).should('be.visible');
     });
   });
 

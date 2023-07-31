@@ -1,4 +1,4 @@
-import { shouldAllowBaseImageUpdate } from '../src/shouldAllowBaseImageUpdate';
+import { findReasonToPreventBaseImageUpdate } from '../src/findReasonToPreventBaseImageUpdate';
 import { getOctokit } from '../src/getOctokit';
 import {
   VISUAL_REGRESSION_CONTEXT,
@@ -7,8 +7,8 @@ import {
 
 jest.mock('../src/getOctokit');
 
-describe('shouldAllowBaseImageUpdate', () => {
-  it('should return true when all non-visual pr checks pass', async () => {
+describe('findReasonToPreventBaseImageUpdate', () => {
+  it('should return undefined when all non-visual pr checks pass', async () => {
     (getOctokit as jest.Mock).mockImplementation(() => ({
       rest: {
         repos: {
@@ -34,49 +34,15 @@ describe('shouldAllowBaseImageUpdate', () => {
         }
       }
     }));
-    const result = await shouldAllowBaseImageUpdate(
+    const result = await findReasonToPreventBaseImageUpdate(
       'github-owner',
       'github-repo',
       'sha'
     );
-    expect(result).toBe(true);
+    expect(result).toBeUndefined();
   });
 
-  it('should return false when at least one visual test job failed', async () => {
-    (getOctokit as jest.Mock).mockImplementation(() => ({
-      rest: {
-        repos: {
-          listCommitStatusesForRef: jest.fn().mockReturnValue({
-            data: [
-              {
-                context: 'unit tests',
-                state: 'success',
-                created_at: '2023-05-02T19:11:02Z'
-              },
-              {
-                context: VISUAL_REGRESSION_CONTEXT,
-                state: 'failure',
-                created_at: '2023-05-02T19:11:02Z'
-              },
-              {
-                context: 'visual tests',
-                state: 'failure',
-                created_at: '2023-05-02T19:11:02Z'
-              }
-            ]
-          })
-        }
-      }
-    }));
-    const result = await shouldAllowBaseImageUpdate(
-      'github-owner',
-      'github-repo',
-      'sha'
-    );
-    expect(result).toBe(false);
-  });
-
-  it('should return false when at least one non-visual check failed', async () => {
+  it('should return a reason to prevent update when at least one non-visual check failed', async () => {
     (getOctokit as jest.Mock).mockImplementation(() => ({
       rest: {
         repos: {
@@ -96,21 +62,28 @@ describe('shouldAllowBaseImageUpdate', () => {
                 context: 'other tests',
                 state: 'failure',
                 created_at: '2023-05-02T19:11:02Z'
+              },
+              {
+                context: 'even more tests',
+                state: 'failure',
+                created_at: '2023-05-02T19:11:02Z'
               }
             ]
           })
         }
       }
     }));
-    const result = await shouldAllowBaseImageUpdate(
+    const result = await findReasonToPreventBaseImageUpdate(
       'github-owner',
       'github-repo',
       'sha'
     );
-    expect(result).toBe(false);
+    expect(result).toBe(
+      'All other PR checks must pass before updating base images! These checks have not passed on your PR: other tests, even more tests'
+    );
   });
 
-  it('should return false when all non-visual pr checks pass but some are pending', async () => {
+  it('should return a reason to prevent update when all non-visual pr checks pass but some are pending', async () => {
     (getOctokit as jest.Mock).mockImplementation(() => ({
       rest: {
         repos: {
@@ -136,15 +109,17 @@ describe('shouldAllowBaseImageUpdate', () => {
         }
       }
     }));
-    const result = await shouldAllowBaseImageUpdate(
+    const result = await findReasonToPreventBaseImageUpdate(
       'github-owner',
       'github-repo',
       'sha'
     );
-    expect(result).toBe(false);
+    expect(result).toBe(
+      'All other PR checks must pass before updating base images! These checks have not passed on your PR: other tests'
+    );
   });
 
-  it('should return true when a non-visual check failed on an early run but passed on the latest run', async () => {
+  it('should return undefined when a non-visual check failed on an early run but passed on the latest run', async () => {
     (getOctokit as jest.Mock).mockImplementation(() => ({
       rest: {
         repos: {
@@ -170,15 +145,15 @@ describe('shouldAllowBaseImageUpdate', () => {
         }
       }
     }));
-    const result = await shouldAllowBaseImageUpdate(
+    const result = await findReasonToPreventBaseImageUpdate(
       'github-owner',
       'github-repo',
       'sha'
     );
-    expect(result).toBe(true);
+    expect(result).toBeUndefined();
   });
 
-  it('should return false when a non-visual check fails on multiple runs and never passed', async () => {
+  it('should return a reason to prevent update when a non-visual check fails on multiple runs and never passed', async () => {
     (getOctokit as jest.Mock).mockImplementation(() => ({
       rest: {
         repos: {
@@ -204,12 +179,14 @@ describe('shouldAllowBaseImageUpdate', () => {
         }
       }
     }));
-    const result = await shouldAllowBaseImageUpdate(
+    const result = await findReasonToPreventBaseImageUpdate(
       'github-owner',
       'github-repo',
       'sha'
     );
-    expect(result).toBe(false);
+    expect(result).toBe(
+      'All other PR checks must pass before updating base images! These checks have not passed on your PR: unit tests'
+    );
   });
 
   it('should return false when visual tests failed to execute successfully', async () => {
@@ -234,11 +211,13 @@ describe('shouldAllowBaseImageUpdate', () => {
         }
       }
     }));
-    const result = await shouldAllowBaseImageUpdate(
+    const result = await findReasonToPreventBaseImageUpdate(
       'github-owner',
       'github-repo',
       'sha'
     );
-    expect(result).toBe(false);
+    expect(result).toBe(
+      'At least one visual test job failed to take a screenshot. All jobs must take a screenshot before reviewing and updating base images!'
+    );
   });
 });

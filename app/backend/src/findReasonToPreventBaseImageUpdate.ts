@@ -5,11 +5,11 @@ import {
   VISUAL_TESTS_FAILED_TO_EXECUTE
 } from 'shared';
 
-export const shouldAllowBaseImageUpdate = async (
+export const findReasonToPreventBaseImageUpdate = async (
   owner: string,
   repo: string,
   sha: string
-): Promise<boolean> => {
+) => {
   const octokit = getOctokit(owner, repo);
 
   const { data } = await octokit.rest.repos.listCommitStatusesForRef({
@@ -21,7 +21,7 @@ export const shouldAllowBaseImageUpdate = async (
     ({ context }) => context === VISUAL_REGRESSION_CONTEXT
   )?.description;
   if (visualRegressionContextDescription === VISUAL_TESTS_FAILED_TO_EXECUTE)
-    return false;
+    return 'At least one visual test job failed to take a screenshot. All jobs must take a screenshot before reviewing and updating base images!';
   const nonVisualStatuses = data.filter(
     ({ context }) => context !== VISUAL_REGRESSION_CONTEXT
   );
@@ -33,5 +33,12 @@ export const shouldAllowBaseImageUpdate = async (
     ).reverse();
     return isEqual(status, contextsSortedByDescTime.find(Boolean));
   });
-  return mostRecentNonVisualStatuses.every(({ state }) => state === 'success');
+  const nonVisualChecksThatHaveNotPassed = mostRecentNonVisualStatuses
+    .filter(({ state }) => state !== 'success')
+    .map(({ context }) => context);
+  if (nonVisualChecksThatHaveNotPassed.length) {
+    return `All other PR checks must pass before updating base images! These checks have not passed on your PR: ${nonVisualChecksThatHaveNotPassed.join(
+      ', '
+    )}`;
+  }
 };

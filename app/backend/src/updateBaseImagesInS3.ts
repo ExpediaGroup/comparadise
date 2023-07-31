@@ -1,11 +1,6 @@
 import { S3Client } from './s3Client';
-import {
-  BASE_IMAGE_NAME,
-  BASE_IMAGES_DIRECTORY,
-  NEW_IMAGE_NAME,
-  UPDATE_BASE_IMAGES_ERROR_MESSAGE
-} from 'shared';
-import { shouldAllowBaseImageUpdate } from './shouldAllowBaseImageUpdate';
+import { BASE_IMAGE_NAME, BASE_IMAGES_DIRECTORY, NEW_IMAGE_NAME } from 'shared';
+import { findReasonToPreventBaseImageUpdate } from './findReasonToPreventBaseImageUpdate';
 import { TRPCError } from '@trpc/server';
 import { UpdateBaseImagesInput } from './schema';
 import { getKeysFromS3 } from './getKeysFromS3';
@@ -16,10 +11,15 @@ export const updateBaseImagesInS3 = async ({
   owner,
   repo
 }: UpdateBaseImagesInput) => {
-  if (!(await shouldAllowBaseImageUpdate(owner, repo, hash))) {
+  const reasonToPreventUpdate = await findReasonToPreventBaseImageUpdate(
+    owner,
+    repo,
+    hash
+  );
+  if (reasonToPreventUpdate) {
     throw new TRPCError({
       code: 'FORBIDDEN',
-      message: UPDATE_BASE_IMAGES_ERROR_MESSAGE
+      message: reasonToPreventUpdate
     });
   }
   const s3Paths = await getKeysFromS3(hash, bucket);
