@@ -12084,13 +12084,12 @@ exports.uploadBaseImages = uploadBaseImages;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.VISUAL_TESTS_FAILED_TO_EXECUTE = exports.UPDATE_BASE_IMAGES_ERROR_MESSAGE = exports.NEW_IMAGE_NAME = exports.DIFF_IMAGE_NAME = exports.BASE_IMAGE_NAME = exports.BASE_IMAGES_DIRECTORY = exports.VISUAL_REGRESSION_CONTEXT = void 0;
+exports.VISUAL_TESTS_FAILED_TO_EXECUTE = exports.NEW_IMAGE_NAME = exports.DIFF_IMAGE_NAME = exports.BASE_IMAGE_NAME = exports.BASE_IMAGES_DIRECTORY = exports.VISUAL_REGRESSION_CONTEXT = void 0;
 exports.VISUAL_REGRESSION_CONTEXT = 'Visual Regression';
 exports.BASE_IMAGES_DIRECTORY = 'base-images';
 exports.BASE_IMAGE_NAME = 'base';
 exports.DIFF_IMAGE_NAME = 'diff';
 exports.NEW_IMAGE_NAME = 'new';
-exports.UPDATE_BASE_IMAGES_ERROR_MESSAGE = 'At least one non-visual status check has not passed on your PR. Please ensure all other checks have passed before updating base images!';
 exports.VISUAL_TESTS_FAILED_TO_EXECUTE = 'Visual tests failed to execute successfully.';
 
 
