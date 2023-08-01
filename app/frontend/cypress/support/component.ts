@@ -2,7 +2,7 @@ import './commands';
 
 import { mount } from 'cypress/react18';
 import '../../App.css';
-import { UPDATE_BASE_IMAGES_ERROR_MESSAGE } from 'shared';
+import { MOCK_ERROR_MESSAGE } from '../mocks/base-image-update-rejection';
 
 declare global {
   namespace Cypress {
@@ -15,7 +15,7 @@ declare global {
 Cypress.Commands.add('mount', mount);
 
 Cypress.on('uncaught:exception', err => {
-  if (err.message.includes(UPDATE_BASE_IMAGES_ERROR_MESSAGE)) {
+  if (err.message.includes(MOCK_ERROR_MESSAGE)) {
     return false;
   }
 });

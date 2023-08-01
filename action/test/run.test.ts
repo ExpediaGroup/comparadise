@@ -1,5 +1,6 @@
 import { run } from '../src/run';
 import { exec } from '@actions/exec';
+import { context } from '@actions/github';
 import { getInput, getMultilineInput, setFailed } from '@actions/core';
 import { octokit } from '../src/octokit';
 import { sync } from 'glob';
@@ -13,7 +14,7 @@ jest.mock('glob');
 jest.mock('@actions/core');
 jest.mock('@actions/exec');
 jest.mock('@actions/github', () => ({
-  context: { repo: { repo: 'repo', owner: 'owner' } },
+  context: { repo: { repo: 'repo', owner: 'owner' }, runNumber: 1 },
   getOctokit: jest.fn(() => ({
     rest: {
       repos: {
@@ -224,7 +225,7 @@ describe('main', () => {
     expect(octokit.rest.repos.createCommitStatus).toHaveBeenCalled();
   });
 
-  it('should not set failure commit status or create comment if the latest Visual Regression status is failure because tests failed to execute successfully', async () => {
+  it('should not set commit status or create comment if the latest Visual Regression status is failure because tests failed to execute successfully', async () => {
     (exec as jest.Mock).mockResolvedValue(0);
     (sync as unknown as jest.Mock).mockReturnValue([
       'path/to/screenshots/base.png',
@@ -257,5 +258,75 @@ describe('main', () => {
     expect(setFailed).not.toHaveBeenCalled();
     expect(octokit.rest.repos.createCommitStatus).not.toHaveBeenCalled();
     expect(octokit.rest.issues.createComment).not.toHaveBeenCalled();
+  });
+});
+
+describe('main with rerun', () => {
+  beforeEach(() => {
+    context.runNumber = 2;
+  });
+
+  it('should set successful commit status if a visual test failed to execute but this is a re-run', async () => {
+    (exec as jest.Mock).mockResolvedValue(0);
+    (sync as unknown as jest.Mock).mockReturnValue([
+      'path/to/screenshots/base.png'
+    ]);
+    (
+      octokit.rest.repos.listCommitStatusesForRef as unknown as jest.Mock
+    ).mockResolvedValue({
+      data: [
+        {
+          context: 'some context',
+          created_at: '2023-05-21T16:51:29Z',
+          state: 'success'
+        },
+        {
+          context: VISUAL_REGRESSION_CONTEXT,
+          created_at: '2023-05-21T16:51:29Z',
+          state: 'failure',
+          description: VISUAL_TESTS_FAILED_TO_EXECUTE
+        },
+        {
+          context: VISUAL_REGRESSION_CONTEXT,
+          created_at: '2023-05-21T15:51:29Z',
+          state: 'success'
+        }
+      ]
+    });
+    await run();
+    expect(octokit.rest.repos.createCommitStatus).toHaveBeenCalled();
+  });
+
+  it('should set failure commit status if a visual test failed to execute but this is a re-run', async () => {
+    (exec as jest.Mock).mockResolvedValue(0);
+    (sync as unknown as jest.Mock).mockReturnValue([
+      'path/to/screenshots/base.png',
+      'path/to/screenshots/diff.png',
+      'path/to/screenshots/new.png'
+    ]);
+    (
+      octokit.rest.repos.listCommitStatusesForRef as unknown as jest.Mock
+    ).mockResolvedValue({
+      data: [
+        {
+          context: 'some context',
+          created_at: '2023-05-21T16:51:29Z',
+          state: 'success'
+        },
+        {
+          context: VISUAL_REGRESSION_CONTEXT,
+          created_at: '2023-05-21T16:51:29Z',
+          state: 'failure',
+          description: VISUAL_TESTS_FAILED_TO_EXECUTE
+        },
+        {
+          context: VISUAL_REGRESSION_CONTEXT,
+          created_at: '2023-05-21T15:51:29Z',
+          state: 'success'
+        }
+      ]
+    });
+    await run();
+    expect(octokit.rest.repos.createCommitStatus).toHaveBeenCalled();
   });
 });

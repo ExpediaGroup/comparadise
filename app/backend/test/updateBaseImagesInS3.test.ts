@@ -6,9 +6,9 @@ import {
   updateBaseImagesInS3
 } from '../src/updateBaseImagesInS3';
 import { BASE_IMAGES_DIRECTORY } from 'shared';
-import { shouldAllowBaseImageUpdate } from '../src/shouldAllowBaseImageUpdate';
+import { findReasonToPreventBaseImageUpdate } from '../src/findReasonToPreventBaseImageUpdate';
 
-jest.mock('../src/shouldAllowBaseImageUpdate');
+jest.mock('../src/findReasonToPreventBaseImageUpdate');
 jest.mock('../src/s3Client');
 
 describe('filterNewImages', () => {
@@ -77,7 +77,9 @@ describe('updateBaseImagesInS3', () => {
   });
 
   it('should throw error if other required checks have not yet passed', async () => {
-    (shouldAllowBaseImageUpdate as jest.Mock).mockResolvedValue(false);
+    (findReasonToPreventBaseImageUpdate as jest.Mock).mockResolvedValue(
+      'Some reason to prevent update'
+    );
 
     const expectedBucket = 'expected-bucket-name';
     await expect(
