@@ -1,9 +1,8 @@
-FROM node:18.16.0-slim
-
+FROM node:20-slim
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
 WORKDIR /app
-
-RUN apt-get update && apt-get -qq -y install curl
-RUN curl -f https://get.pnpm.io/v6.16.js | node - add --global pnpm
 
 RUN useradd -ms /bin/sh admin
 RUN chown -R admin .
