@@ -58,10 +58,7 @@ export const run = async () => {
     const latestVisualRegressionStatus = await getLatestVisualRegressionStatus(
       commitHash
     );
-    if (
-      latestVisualRegressionStatus?.state === 'failure' &&
-      context.runNumber === 1
-    ) {
+    if (latestVisualRegressionStatus?.state === 'failure') {
       info(
         'Visual Regression status has already been set to failed, so skipping status update.'
       );
@@ -82,9 +79,7 @@ export const run = async () => {
   );
   if (
     latestVisualRegressionStatus?.state === 'failure' &&
-    latestVisualRegressionStatus?.description ===
-      VISUAL_TESTS_FAILED_TO_EXECUTE &&
-    context.runNumber === 1
+    latestVisualRegressionStatus?.description === VISUAL_TESTS_FAILED_TO_EXECUTE
   ) {
     warning(
       'Some other Visual Regression tests failed to execute successfully, so skipping status update and comment.'

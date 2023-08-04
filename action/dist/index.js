@@ -12003,8 +12003,7 @@ const run = async () => {
     if (diffFileCount === 0 && newFileCount === 0) {
         (0, core_1.info)('All visual tests passed, and no diffs found!');
         const latestVisualRegressionStatus = await (0, get_latest_visual_regression_status_1.getLatestVisualRegressionStatus)(commitHash);
-        if (latestVisualRegressionStatus?.state === 'failure' &&
-            github_1.context.runNumber === 1) {
+        if (latestVisualRegressionStatus?.state === 'failure') {
             (0, core_1.info)('Visual Regression status has already been set to failed, so skipping status update.');
             return;
         }
@@ -12018,9 +12017,7 @@ const run = async () => {
     }
     const latestVisualRegressionStatus = await (0, get_latest_visual_regression_status_1.getLatestVisualRegressionStatus)(commitHash);
     if (latestVisualRegressionStatus?.state === 'failure' &&
-        latestVisualRegressionStatus?.description ===
-            shared_1.VISUAL_TESTS_FAILED_TO_EXECUTE &&
-        github_1.context.runNumber === 1) {
+        latestVisualRegressionStatus?.description === shared_1.VISUAL_TESTS_FAILED_TO_EXECUTE) {
         (0, core_1.warning)('Some other Visual Regression tests failed to execute successfully, so skipping status update and comment.');
         return;
     }
