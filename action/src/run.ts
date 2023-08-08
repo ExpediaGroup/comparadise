@@ -80,7 +80,9 @@ export const run = async () => {
   );
   if (
     latestVisualRegressionStatus?.state === 'failure' &&
-    latestVisualRegressionStatus?.description === VISUAL_TESTS_FAILED_TO_EXECUTE && runAttempt === 1
+    latestVisualRegressionStatus?.description ===
+      VISUAL_TESTS_FAILED_TO_EXECUTE &&
+    runAttempt === 1
   ) {
     warning(
       'Some other Visual Regression tests failed to execute successfully, so skipping status update and comment.'

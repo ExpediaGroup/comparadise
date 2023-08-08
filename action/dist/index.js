@@ -12018,7 +12018,9 @@ const run = async () => {
     }
     const latestVisualRegressionStatus = await (0, get_latest_visual_regression_status_1.getLatestVisualRegressionStatus)(commitHash);
     if (latestVisualRegressionStatus?.state === 'failure' &&
-        latestVisualRegressionStatus?.description === shared_1.VISUAL_TESTS_FAILED_TO_EXECUTE && runAttempt === 1) {
+        latestVisualRegressionStatus?.description ===
+            shared_1.VISUAL_TESTS_FAILED_TO_EXECUTE &&
+        runAttempt === 1) {
         (0, core_1.warning)('Some other Visual Regression tests failed to execute successfully, so skipping status update and comment.');
         return;
     }

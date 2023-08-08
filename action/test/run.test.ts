@@ -270,7 +270,7 @@ describe('main', () => {
       'path/to/screenshots/base.png'
     ]);
     (
-        octokit.rest.repos.listCommitStatusesForRef as unknown as jest.Mock
+      octokit.rest.repos.listCommitStatusesForRef as unknown as jest.Mock
     ).mockResolvedValue({
       data: [
         {
@@ -304,7 +304,7 @@ describe('main', () => {
       'path/to/screenshots/new.png'
     ]);
     (
-        octokit.rest.repos.listCommitStatusesForRef as unknown as jest.Mock
+      octokit.rest.repos.listCommitStatusesForRef as unknown as jest.Mock
     ).mockResolvedValue({
       data: [
         {
