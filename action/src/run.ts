@@ -20,6 +20,7 @@ import {
 import { buildComparadiseUrl } from './build-comparadise-url';
 
 export const run = async () => {
+  const runAttempt = Number(process.env.GITHUB_RUN_ATTEMPT);
   const visualTestCommands = getMultilineInput('visual-test-command', {
     required: true
   });
@@ -58,7 +59,7 @@ export const run = async () => {
     const latestVisualRegressionStatus = await getLatestVisualRegressionStatus(
       commitHash
     );
-    if (latestVisualRegressionStatus?.state === 'failure') {
+    if (latestVisualRegressionStatus?.state === 'failure' && runAttempt === 1) {
       info(
         'Visual Regression status has already been set to failed, so skipping status update.'
       );
@@ -79,7 +80,9 @@ export const run = async () => {
   );
   if (
     latestVisualRegressionStatus?.state === 'failure' &&
-    latestVisualRegressionStatus?.description === VISUAL_TESTS_FAILED_TO_EXECUTE
+    latestVisualRegressionStatus?.description ===
+      VISUAL_TESTS_FAILED_TO_EXECUTE &&
+    runAttempt === 1
   ) {
     warning(
       'Some other Visual Regression tests failed to execute successfully, so skipping status update and comment.'
