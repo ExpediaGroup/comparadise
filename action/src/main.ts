@@ -1,3 +1,4 @@
-import { run } from './run';
+import {info} from "@actions/core";
 
-run();
+info('The current run number:');
+info(process.env.GITHUB_RUN_ATTEMPT ?? 'No run attempt');

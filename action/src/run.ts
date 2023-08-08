@@ -20,9 +20,6 @@ import {
 import { buildComparadiseUrl } from './build-comparadise-url';
 
 export const run = async () => {
-  info('The current run number:');
-  info(process.env.GITHUB_RUN_ATTEMPT ?? 'No run attempt');
-  return;
   const visualTestCommands = getMultilineInput('visual-test-command', {
     required: true
   });

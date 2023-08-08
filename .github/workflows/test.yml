@@ -24,7 +24,8 @@ jobs:
 
       - uses: ./
         with:
-          visual-test-command: exit 0
+          visual-test-command: |
+            exit 0
           bucket-name: test
           commit-hash: test
 
