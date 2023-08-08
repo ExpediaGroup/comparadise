@@ -55,6 +55,10 @@ const multiLineInputMap: Record<string, string[]> = {
 );
 
 describe('main', () => {
+  beforeEach(() => {
+    process.env.GITHUB_RUN_ATTEMPT = '1';
+  });
+
   it('should fail if visual tests fail', async () => {
     (exec as jest.Mock).mockResolvedValue(1);
     await run();
@@ -257,5 +261,71 @@ describe('main', () => {
     expect(setFailed).not.toHaveBeenCalled();
     expect(octokit.rest.repos.createCommitStatus).not.toHaveBeenCalled();
     expect(octokit.rest.issues.createComment).not.toHaveBeenCalled();
+  });
+
+  it('should set successful commit status if a visual test failed to execute but this is a re-run', async () => {
+    process.env.GITHUB_RUN_ATTEMPT = '2';
+    (exec as jest.Mock).mockResolvedValue(0);
+    (sync as unknown as jest.Mock).mockReturnValue([
+      'path/to/screenshots/base.png'
+    ]);
+    (
+        octokit.rest.repos.listCommitStatusesForRef as unknown as jest.Mock
+    ).mockResolvedValue({
+      data: [
+        {
+          context: 'some context',
+          created_at: '2023-05-21T16:51:29Z',
+          state: 'success'
+        },
+        {
+          context: VISUAL_REGRESSION_CONTEXT,
+          created_at: '2023-05-21T16:51:29Z',
+          state: 'failure',
+          description: VISUAL_TESTS_FAILED_TO_EXECUTE
+        },
+        {
+          context: VISUAL_REGRESSION_CONTEXT,
+          created_at: '2023-05-21T15:51:29Z',
+          state: 'success'
+        }
+      ]
+    });
+    await run();
+    expect(octokit.rest.repos.createCommitStatus).toHaveBeenCalled();
+  });
+
+  it('should set failure commit status if a visual test failed to execute but this is a re-run', async () => {
+    process.env.GITHUB_RUN_ATTEMPT = '2';
+    (exec as jest.Mock).mockResolvedValue(0);
+    (sync as unknown as jest.Mock).mockReturnValue([
+      'path/to/screenshots/base.png',
+      'path/to/screenshots/diff.png',
+      'path/to/screenshots/new.png'
+    ]);
+    (
+        octokit.rest.repos.listCommitStatusesForRef as unknown as jest.Mock
+    ).mockResolvedValue({
+      data: [
+        {
+          context: 'some context',
+          created_at: '2023-05-21T16:51:29Z',
+          state: 'success'
+        },
+        {
+          context: VISUAL_REGRESSION_CONTEXT,
+          created_at: '2023-05-21T16:51:29Z',
+          state: 'failure',
+          description: VISUAL_TESTS_FAILED_TO_EXECUTE
+        },
+        {
+          context: VISUAL_REGRESSION_CONTEXT,
+          created_at: '2023-05-21T15:51:29Z',
+          state: 'success'
+        }
+      ]
+    });
+    await run();
+    expect(octokit.rest.repos.createCommitStatus).toHaveBeenCalled();
   });
 });
