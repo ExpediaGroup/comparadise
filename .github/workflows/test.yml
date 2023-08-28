@@ -33,8 +33,17 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
 
+      - name: Setup Cypress cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/Cypress
+          key: ${{ runner.os }}-cypress-${{ hashFiles('**/pnpm-lock.yaml') }}
+
       - name: Install
         run: pnpm install
+
+      - name: Install Cypress binary if not cached
+        run: pnpm cypress install
 
       - name: Format Code
         run: pnpm format
