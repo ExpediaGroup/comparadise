@@ -11,7 +11,7 @@
     "lodash": "4.17.21",
     "shared": "workspace:*",
     "ts-node": "10.9.1",
-    "zod": "3.21.4"
+    "zod": "3.22.2"
   },
   "devDependencies": {
     "@types/cors": "2.8.13",
