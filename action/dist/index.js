@@ -11973,7 +11973,7 @@ const exec_1 = __nccwpck_require__(5045);
 const octokit_1 = __nccwpck_require__(2749);
 const github_1 = __nccwpck_require__(1419);
 const path = __importStar(__nccwpck_require__(1017));
-const glob_1 = __nccwpck_require__(764);
+const glob_1 = __nccwpck_require__(3315);
 const comment_1 = __nccwpck_require__(6330);
 const get_latest_visual_regression_status_1 = __nccwpck_require__(5399);
 const shared_1 = __nccwpck_require__(9201);
@@ -12255,7 +12255,7 @@ module.exports = require("zlib");
 
 /***/ }),
 
-/***/ 530:
+/***/ 9197:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -12265,8 +12265,8 @@ exports.Glob = void 0;
 const minimatch_1 = __nccwpck_require__(6809);
 const path_scurry_1 = __nccwpck_require__(6196);
 const url_1 = __nccwpck_require__(7310);
-const pattern_js_1 = __nccwpck_require__(6490);
-const walker_js_1 = __nccwpck_require__(4823);
+const pattern_js_1 = __nccwpck_require__(6781);
+const walker_js_1 = __nccwpck_require__(4217);
 // if no process global, just call it linux.
 // so we default to case-sensitive, / separators
 const defaultPlatform = typeof process === 'object' &&
@@ -12500,7 +12500,7 @@ exports.Glob = Glob;
 
 /***/ }),
 
-/***/ 8556:
+/***/ 6130:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -12534,7 +12534,7 @@ exports.hasMagic = hasMagic;
 
 /***/ }),
 
-/***/ 5293:
+/***/ 2353:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -12546,7 +12546,7 @@ exports.hasMagic = hasMagic;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Ignore = void 0;
 const minimatch_1 = __nccwpck_require__(6809);
-const pattern_js_1 = __nccwpck_require__(6490);
+const pattern_js_1 = __nccwpck_require__(6781);
 const defaultPlatform = typeof process === 'object' &&
     process &&
     typeof process.platform === 'string'
@@ -12644,7 +12644,7 @@ exports.Ignore = Ignore;
 
 /***/ }),
 
-/***/ 764:
+/***/ 3315:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -12652,8 +12652,8 @@ exports.Ignore = Ignore;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.glob = exports.hasMagic = exports.Glob = exports.unescape = exports.escape = exports.sync = exports.iterate = exports.iterateSync = exports.stream = exports.streamSync = exports.globIterate = exports.globIterateSync = exports.globSync = exports.globStream = exports.globStreamSync = void 0;
 const minimatch_1 = __nccwpck_require__(6809);
-const glob_js_1 = __nccwpck_require__(530);
-const has_magic_js_1 = __nccwpck_require__(8556);
+const glob_js_1 = __nccwpck_require__(9197);
+const has_magic_js_1 = __nccwpck_require__(6130);
 function globStreamSync(pattern, options = {}) {
     return new glob_js_1.Glob(pattern, options).streamSync();
 }
@@ -12692,9 +12692,9 @@ exports.sync = Object.assign(globSync, {
 var minimatch_2 = __nccwpck_require__(6809);
 Object.defineProperty(exports, "escape", ({ enumerable: true, get: function () { return minimatch_2.escape; } }));
 Object.defineProperty(exports, "unescape", ({ enumerable: true, get: function () { return minimatch_2.unescape; } }));
-var glob_js_2 = __nccwpck_require__(530);
+var glob_js_2 = __nccwpck_require__(9197);
 Object.defineProperty(exports, "Glob", ({ enumerable: true, get: function () { return glob_js_2.Glob; } }));
-var has_magic_js_2 = __nccwpck_require__(8556);
+var has_magic_js_2 = __nccwpck_require__(6130);
 Object.defineProperty(exports, "hasMagic", ({ enumerable: true, get: function () { return has_magic_js_2.hasMagic; } }));
 /* c8 ignore stop */
 exports.glob = Object.assign(glob_, {
@@ -12719,7 +12719,7 @@ exports.glob.glob = exports.glob;
 
 /***/ }),
 
-/***/ 6490:
+/***/ 6781:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -12945,7 +12945,7 @@ exports.Pattern = Pattern;
 
 /***/ }),
 
-/***/ 4190:
+/***/ 6942:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -13089,9 +13089,6 @@ class Processor {
             while (typeof (p = pattern.pattern()) === 'string' &&
                 (rest = pattern.rest())) {
                 const c = t.resolve(p);
-                // we can be reasonably sure that .. is a readable dir
-                if (c.isUnknown() && p !== '..')
-                    break;
                 t = c;
                 pattern = rest;
                 changed = true;
@@ -13107,14 +13104,10 @@ class Processor {
             // more strings for an unknown entry,
             // or a pattern starting with magic, mounted on t.
             if (typeof p === 'string') {
-                // must be final entry
-                if (!rest) {
-                    const ifDir = p === '..' || p === '' || p === '.';
-                    this.matches.add(t.resolve(p), absolute, ifDir);
-                }
-                else {
-                    this.subwalks.add(t, pattern);
-                }
+                // must not be final entry, otherwise we would have
+                // concatenated it earlier.
+                const ifDir = p === '..' || p === '' || p === '.';
+                this.matches.add(t.resolve(p), absolute, ifDir);
                 continue;
             }
             else if (p === minimatch_1.GLOBSTAR) {
@@ -13261,7 +13254,7 @@ exports.Processor = Processor;
 
 /***/ }),
 
-/***/ 4823:
+/***/ 4217:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -13275,8 +13268,8 @@ exports.GlobStream = exports.GlobWalker = exports.GlobUtil = void 0;
  * @module
  */
 const minipass_1 = __nccwpck_require__(9508);
-const ignore_js_1 = __nccwpck_require__(5293);
-const processor_js_1 = __nccwpck_require__(4190);
+const ignore_js_1 = __nccwpck_require__(2353);
+const processor_js_1 = __nccwpck_require__(6942);
 const makeIgnore = (ignore, opts) => typeof ignore === 'string'
     ? new ignore_js_1.Ignore([ignore], opts)
     : Array.isArray(ignore)
