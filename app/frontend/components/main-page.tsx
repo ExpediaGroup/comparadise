@@ -144,8 +144,7 @@ const getViewType = async (
     return undefined;
   }
 
-  const shouldViewSideBySide = await imageIsSmallEnoughForSideBySide(
-    firstImage
-  );
+  const shouldViewSideBySide =
+    await imageIsSmallEnoughForSideBySide(firstImage);
   return shouldViewSideBySide ? ImageViews.SIDE_BY_SIDE : undefined;
 };
