@@ -13,7 +13,7 @@
     "react-router-dom": "6.15.0",
     "shared": "workspace:*",
     "tailwindcss": "3.3.3",
-    "vite": "4.4.8"
+    "vite": "4.4.9"
   },
   "devDependencies": {
     "@testing-library/cypress": "9.0.0",
