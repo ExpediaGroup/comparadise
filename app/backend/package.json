@@ -22,7 +22,7 @@
   "scripts": {
     "build": "tsc",
     "lint": "eslint . --max-warnings=0",
-    "start": "ts-node --swc src/server.ts",
+    "start": "ts-node src/server.ts",
     "test": "jest"
   }
 }
