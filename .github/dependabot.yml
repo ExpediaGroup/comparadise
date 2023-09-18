@@ -8,6 +8,9 @@ updates:
       trpc:
         patterns:
           - '@trpc/*'
+      docusaurus:
+        patterns:
+          - '@docusaurus/*'
     reviewers:
       - '@ExpediaGroup/comparadise-committers'
   - package-ecosystem: 'github-actions'
