@@ -7,7 +7,7 @@
     "@trpc/client": "10.38.5",
     "@trpc/react-query": "10.38.5",
     "@trpc/server": "10.38.5",
-    "@vitejs/plugin-react-swc": "3.3.2",
+    "@vitejs/plugin-react-swc": "3.4.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-router-dom": "6.15.0",
