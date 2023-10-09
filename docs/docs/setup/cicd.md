@@ -35,11 +35,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-    
+
       - run: npm install
-      
-      # Some AWS authentication step here 
-    
+
+      # Some AWS authentication step here
+
       - name: Take Screenshots
         uses: ExpediaGroup/comparadise@v1
         with:
@@ -71,11 +71,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-    
+
       - run: npm install
-    
-      # Some AWS authentication step here 
-    
+
+      # Some AWS authentication step here
+
       - name: Run Visual Tests
         uses: ExpediaGroup/comparadise@v1
         with:
