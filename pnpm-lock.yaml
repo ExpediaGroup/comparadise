@@ -187,8 +187,8 @@ importers:
         specifier: 5.2.4
         version: 5.2.4
       '@types/pngjs':
-        specifier: 6.0.1
-        version: 6.0.1
+        specifier: 6.0.2
+        version: 6.0.2
       cypress:
         specifier: 13.2.0
         version: 13.2.0
@@ -5375,8 +5375,8 @@ packages:
       '@types/node': 20.8.0
     dev: true
 
-  /@types/pngjs@6.0.1:
-    resolution: {integrity: sha512-J39njbdW1U/6YyVXvC9+1iflZghP8jgRf2ndYghdJb5xL49LYDB+1EuAxfbuJ2IBbWIL3AjHPQhgaTxT3YaYeg==}
+  /@types/pngjs@6.0.2:
+    resolution: {integrity: sha512-GO2/2guBQrrb4g+93j55VR30xaMCgmSXa/ifPbHS5MgheDRJy5x12fFB61Hn0juCo+VBFhYMFkJd6CBt8HRx4w==}
     dependencies:
       '@types/node': 20.8.0
     dev: true
