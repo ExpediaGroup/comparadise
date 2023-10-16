@@ -4,7 +4,7 @@
   "devDependencies": {
     "@swc/jest": "0.2.29",
     "@types/jest": "29.5.5",
-    "@typescript-eslint/eslint-plugin": "6.7.4",
+    "@typescript-eslint/eslint-plugin": "6.7.5",
     "cypress": "13.2.0",
     "eslint": "8.50.0",
     "eslint-plugin-react": "7.33.2",
