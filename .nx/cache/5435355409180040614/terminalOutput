@@ -1,0 +1,4 @@
+
+> docs@ lint /home/runner/work/comparadise/comparadise/docs
+> eslint . --max-warnings=0
+

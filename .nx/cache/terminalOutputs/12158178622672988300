@@ -1,0 +1,18 @@
+
+> frontend@ build /home/runner/work/comparadise/comparadise/app/frontend
+> tsc && pnpm prod
+
+
+> frontend@ prod /home/runner/work/comparadise/comparadise/app/frontend
+> vite build
+
+[36mvite v4.4.9 [32mbuilding for production...[36m[39m
+transforming...
+[32m✓[39m 184 modules transformed.
+rendering chunks...
+computing gzip size...
+[2mdist/[22m[32mindex.html                  [39m[1m[2m  0.60 kB[22m[1m[22m[2m │ gzip:  0.38 kB[22m
+[2mdist/[22m[2massets/[22m[32misland-ffdaa466.svg  [39m[1m[2m  1.73 kB[22m[1m[22m[2m │ gzip:  0.85 kB[22m
+[2mdist/[22m[2massets/[22m[35mindex-102f2825.css   [39m[1m[2m 12.11 kB[22m[1m[22m[2m │ gzip:  3.07 kB[22m
+[2mdist/[22m[2massets/[22m[36mindex-be85a7bb.js    [39m[1m[2m299.48 kB[22m[1m[22m[2m │ gzip: 95.92 kB[22m
+[32m✓ built in 15.23s[39m

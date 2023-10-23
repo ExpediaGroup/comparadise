@@ -1,0 +1,17 @@
+
+> backend@ test /home/runner/work/comparadise/comparadise/app/backend
+> jest
+
+[0m[7m[1m[32m PASS [39m[22m[27m[0m [2mtest/[22m[1mfindReasonToPreventBaseImageUpdate.test.ts[22m
+[0m[7m[1m[32m PASS [39m[22m[27m[0m [2mtest/[22m[1mupdateBaseImagesInS3.test.ts[22m
+[0m[7m[1m[32m PASS [39m[22m[27m[0m [2mtest/[22m[1mgetGroupedKeys.test.ts[22m
+[0m[7m[1m[32m PASS [39m[22m[27m[0m [2mtest/[22m[1mfetchCurrentPage.test.ts[22m
+[0m[7m[1m[32m PASS [39m[22m[27m[0m [2mtest/[22m[1mgetOctokit.test.ts[22m
+[0m[7m[1m[32m PASS [39m[22m[27m[0m [2mtest/[22m[1mupdateCommitStatus.test.ts[22m
+[0m[7m[1m[32m PASS [39m[22m[27m[0m [2mtest/[22m[1mgetKeysFromS3.test.ts[22m
+
+[1mTest Suites: [22m[1m[32m7 passed[39m[22m, 7 total
+[1mTests:       [22m[1m[32m23 passed[39m[22m, 23 total
+[1mSnapshots:   [22m0 total
+[1mTime:[22m        10.407 s
+[2mRan all test suites[22m[2m.[22m

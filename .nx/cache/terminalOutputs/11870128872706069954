@@ -1,0 +1,245 @@
+
+> app@ test /home/runner/work/comparadise/comparadise/app
+> start-server-and-test docker http://localhost:8080 cypress:e2e
+
+1: starting server using command "npm run docker"
+and when url "[ 'http://localhost:8080' ]" is responding with HTTP status code 200
+running tests using command "npm run cypress:e2e"
+
+
+> docker
+> nx docker comparadise
+
+
+[2m> [22m[2mnx run[22m comparadise:docker
+
+> docker
+> docker build . --tag comparadise && docker-compose up
+#0 building with "default" instance using docker driver
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 390B done
+#1 DONE 0.0s
+#2 [internal] load .dockerignore
+#2 transferring context: 148B done
+#2 DONE 0.0s
+#3 [auth] library/node:pull token for registry-1.docker.io
+#3 DONE 0.0s
+#4 [internal] load metadata for docker.io/library/node:20-slim
+#4 DONE 0.5s
+#5 [1/8] FROM docker.io/library/node:20-slim@sha256:4fa1430cd19507875e65896fdf3176fc1674bc5bbf51b5f750fa30484885c18d
+#5 resolve docker.io/library/node:20-slim@sha256:4fa1430cd19507875e65896fdf3176fc1674bc5bbf51b5f750fa30484885c18d done
+#5 sha256:4fa1430cd19507875e65896fdf3176fc1674bc5bbf51b5f750fa30484885c18d 1.21kB / 1.21kB done
+#5 sha256:01e0a13c8c2daecd73908e922207e9695a82d9d41019a96628751fa9f7c0d853 1.37kB / 1.37kB done
+#5 sha256:319c256a8c372d502b4110d7b3a88754130675ddd56bed61e5e645c63bd38f51 7.31kB / 7.31kB done
+#5 sha256:a378f10b321842c3042cdeff4f6997f34f4cb21f2eff27704b7f6193ab7b5fea 0B / 29.15MB 0.1s
+#5 sha256:bc194d4002b7a538754445d95c1ab78a0cf9f6b0b58999a3b53d58d319f44a2d 0B / 3.36kB 0.1s
+#5 sha256:7532c62b45b7db627168f2c374c05b1fc39fb78f84e293e5809f97605a1b8b4d 0B / 48.30MB 0.1s
+#5 sha256:a378f10b321842c3042cdeff4f6997f34f4cb21f2eff27704b7f6193ab7b5fea 5.24MB / 29.15MB 0.2s
+#5 sha256:bc194d4002b7a538754445d95c1ab78a0cf9f6b0b58999a3b53d58d319f44a2d 3.36kB / 3.36kB 0.1s done
+#5 sha256:7532c62b45b7db627168f2c374c05b1fc39fb78f84e293e5809f97605a1b8b4d 7.34MB / 48.30MB 0.2s
+#5 sha256:72b2742586dcd88172af4b1c241cc55849cdbff38a75fc0221bd391b27d54157 0B / 2.67MB 0.2s
+#5 sha256:a378f10b321842c3042cdeff4f6997f34f4cb21f2eff27704b7f6193ab7b5fea 16.78MB / 29.15MB 0.4s
+#5 sha256:7532c62b45b7db627168f2c374c05b1fc39fb78f84e293e5809f97605a1b8b4d 19.92MB / 48.30MB 0.4s
+#5 sha256:72b2742586dcd88172af4b1c241cc55849cdbff38a75fc0221bd391b27d54157 2.67MB / 2.67MB 0.4s done
+#5 sha256:a378f10b321842c3042cdeff4f6997f34f4cb21f2eff27704b7f6193ab7b5fea 20.29MB / 29.15MB 0.5s
+#5 sha256:7532c62b45b7db627168f2c374c05b1fc39fb78f84e293e5809f97605a1b8b4d 24.82MB / 48.30MB 0.5s
+#5 sha256:6853edb1629a90598362e060000da09ab71eec8c7ca5cd693d4d17881bb05061 454B / 454B 0.5s done
+#5 ...
+#6 [internal] load build context
+#6 transferring context: 9.67MB 0.7s done
+#6 DONE 0.7s
+#5 [1/8] FROM docker.io/library/node:20-slim@sha256:4fa1430cd19507875e65896fdf3176fc1674bc5bbf51b5f750fa30484885c18d
+#5 sha256:a378f10b321842c3042cdeff4f6997f34f4cb21f2eff27704b7f6193ab7b5fea 29.15MB / 29.15MB 0.7s done
+#5 sha256:7532c62b45b7db627168f2c374c05b1fc39fb78f84e293e5809f97605a1b8b4d 38.80MB / 48.30MB 0.7s
+#5 sha256:7532c62b45b7db627168f2c374c05b1fc39fb78f84e293e5809f97605a1b8b4d 44.04MB / 48.30MB 0.8s
+#5 extracting sha256:a378f10b321842c3042cdeff4f6997f34f4cb21f2eff27704b7f6193ab7b5fea
+#5 sha256:7532c62b45b7db627168f2c374c05b1fc39fb78f84e293e5809f97605a1b8b4d 48.30MB / 48.30MB 0.9s
+#5 sha256:7532c62b45b7db627168f2c374c05b1fc39fb78f84e293e5809f97605a1b8b4d 48.30MB / 48.30MB 0.9s done
+#5 extracting sha256:a378f10b321842c3042cdeff4f6997f34f4cb21f2eff27704b7f6193ab7b5fea 2.9s done
+#5 extracting sha256:bc194d4002b7a538754445d95c1ab78a0cf9f6b0b58999a3b53d58d319f44a2d
+#5 extracting sha256:bc194d4002b7a538754445d95c1ab78a0cf9f6b0b58999a3b53d58d319f44a2d done
+#5 extracting sha256:7532c62b45b7db627168f2c374c05b1fc39fb78f84e293e5809f97605a1b8b4d
+#5 extracting sha256:7532c62b45b7db627168f2c374c05b1fc39fb78f84e293e5809f97605a1b8b4d 4.9s done
+#5 extracting sha256:72b2742586dcd88172af4b1c241cc55849cdbff38a75fc0221bd391b27d54157 0.1s
+#5 extracting sha256:72b2742586dcd88172af4b1c241cc55849cdbff38a75fc0221bd391b27d54157 0.2s done
+#5 extracting sha256:6853edb1629a90598362e060000da09ab71eec8c7ca5cd693d4d17881bb05061
+#5 extracting sha256:6853edb1629a90598362e060000da09ab71eec8c7ca5cd693d4d17881bb05061 done
+#5 DONE 10.1s
+#7 [2/8] RUN corepack enable
+#7 DONE 0.6s
+#8 [3/8] WORKDIR /app
+#8 DONE 0.0s
+#9 [4/8] RUN useradd -ms /bin/sh admin
+#9 DONE 0.5s
+#10 [5/8] RUN chown -R admin .
+#10 DONE 0.6s
+#11 [6/8] COPY --chown=admin . .
+#11 DONE 0.2s
+#12 [7/8] RUN pnpm --filter backend --filter frontend install --ignore-scripts
+#12 2.614 Scope: 2 of 6 workspace projects
+#12 2.748 
+#12 2.748    ╭─────────────────────────────────────────────────────────────────╮
+#12 2.748    │                                                                 │
+#12 2.748    │                Update available! 8.6.2 → 8.9.2.                 │
+#12 2.748    │   Changelog: https://github.com/pnpm/pnpm/releases/tag/v8.9.2   │
+#12 2.748    │     Run "corepack prepare pnpm@8.9.2 --activate" to update.     │
+#12 2.748    │                                                                 │
+#12 2.748    │     Follow @pnpmjs for updates: https://twitter.com/pnpmjs      │
+#12 2.748    │                                                                 │
+#12 2.748    ╰─────────────────────────────────────────────────────────────────╯
+#12 2.748 
+#12 3.008 Lockfile is up to date, resolution step is skipped
+#12 3.236 Progress: resolved 1, reused 0, downloaded 0, added 0
+#12 4.226 .                                        |    +1672 ++++++++++++++++++++++++++++
+#12 4.300 Progress: resolved 1672, reused 0, downloaded 0, added 0
+#12 7.142 Progress: resolved 1672, reused 0, downloaded 1, added 0
+#12 8.172 Progress: resolved 1672, reused 0, downloaded 32, added 0
+#12 9.191 Progress: resolved 1672, reused 0, downloaded 56, added 0
+#12 10.16 Packages are hard linked from the content-addressable store to the virtual store.
+#12 10.16   Content-addressable store is at: /app/.pnpm-store/v3
+#12 10.16   Virtual store is at:             node_modules/.pnpm
+#12 10.21 Progress: resolved 1672, reused 0, downloaded 86, added 1
+#12 11.24 Progress: resolved 1672, reused 0, downloaded 132, added 13
+#12 12.24 Progress: resolved 1672, reused 0, downloaded 175, added 30
+#12 13.28 Progress: resolved 1672, reused 0, downloaded 203, added 56
+#12 14.29 Progress: resolved 1672, reused 0, downloaded 206, added 89
+#12 15.31 Progress: resolved 1672, reused 0, downloaded 210, added 116
+#12 16.34 Progress: resolved 1672, reused 0, downloaded 216, added 147
+#12 17.35 Progress: resolved 1672, reused 0, downloaded 219, added 218
+#12 18.42 Progress: resolved 1672, reused 0, downloaded 232, added 226
+#12 19.42 Progress: resolved 1672, reused 0, downloaded 244, added 240
+#12 20.42 Progress: resolved 1672, reused 0, downloaded 284, added 277
+#12 21.43 Progress: resolved 1672, reused 0, downloaded 323, added 315
+#12 22.43 Progress: resolved 1672, reused 0, downloaded 360, added 351
+#12 23.43 Progress: resolved 1672, reused 0, downloaded 411, added 406
+#12 24.44 Progress: resolved 1672, reused 0, downloaded 451, added 445
+#12 25.45 Progress: resolved 1672, reused 0, downloaded 489, added 487
+#12 26.53 Progress: resolved 1672, reused 0, downloaded 504, added 503
+#12 27.53 Progress: resolved 1672, reused 0, downloaded 535, added 533
+#12 28.57 Progress: resolved 1672, reused 0, downloaded 543, added 544
+#12 29.62 Progress: resolved 1672, reused 0, downloaded 559, added 555
+#12 30.64 Progress: resolved 1672, reused 0, downloaded 590, added 584
+#12 31.64 Progress: resolved 1672, reused 0, downloaded 602, added 601
+#12 32.71 Progress: resolved 1672, reused 0, downloaded 631, added 627
+#12 33.72 Progress: resolved 1672, reused 0, downloaded 654, added 648
+#12 34.76 Progress: resolved 1672, reused 0, downloaded 676, added 675
+#12 35.77 Progress: resolved 1672, reused 0, downloaded 696, added 693
+#12 36.78 Progress: resolved 1672, reused 0, downloaded 728, added 718
+#12 37.80 Progress: resolved 1672, reused 0, downloaded 767, added 760
+#12 38.80 Progress: resolved 1672, reused 0, downloaded 812, added 807
+#12 39.81 Progress: resolved 1672, reused 0, downloaded 852, added 848
+#12 40.81 Progress: resolved 1672, reused 0, downloaded 892, added 884
+#12 41.81 Progress: resolved 1672, reused 0, downloaded 953, added 945
+#12 42.84 Progress: resolved 1672, reused 0, downloaded 991, added 975
+#12 43.85 Progress: resolved 1672, reused 0, downloaded 1021, added 1017
+#12 44.87 Progress: resolved 1672, reused 0, downloaded 1064, added 1059
+#12 45.87 Progress: resolved 1672, reused 0, downloaded 1113, added 1106
+#12 46.89 Progress: resolved 1672, reused 0, downloaded 1166, added 1160
+#12 47.92 Progress: resolved 1672, reused 0, downloaded 1231, added 1224
+#12 48.94 Progress: resolved 1672, reused 0, downloaded 1275, added 1269
+#12 49.95 Progress: resolved 1672, reused 0, downloaded 1301, added 1298
+#12 50.98 Progress: resolved 1672, reused 0, downloaded 1329, added 1324
+#12 51.99 Progress: resolved 1672, reused 0, downloaded 1355, added 1353
+#12 53.02 Progress: resolved 1672, reused 0, downloaded 1401, added 1397
+#12 54.02 Progress: resolved 1672, reused 0, downloaded 1439, added 1432
+#12 55.03 Progress: resolved 1672, reused 0, downloaded 1462, added 1456
+#12 56.04 Progress: resolved 1672, reused 0, downloaded 1487, added 1485
+#12 57.05 Progress: resolved 1672, reused 0, downloaded 1503, added 1500
+#12 58.08 Progress: resolved 1672, reused 0, downloaded 1534, added 1531
+#12 59.12 Progress: resolved 1672, reused 0, downloaded 1559, added 1556
+#12 60.13 Progress: resolved 1672, reused 0, downloaded 1582, added 1577
+#12 61.14 Progress: resolved 1672, reused 0, downloaded 1604, added 1600
+#12 62.15 Progress: resolved 1672, reused 0, downloaded 1642, added 1636
+#12 63.19 Progress: resolved 1672, reused 0, downloaded 1666, added 1667
+#12 64.19 Progress: resolved 1672, reused 0, downloaded 1667, added 1668
+#12 65.24 Progress: resolved 1672, reused 0, downloaded 1668, added 1668
+#12 66.25 Progress: resolved 1672, reused 0, downloaded 1669, added 1669
+#12 67.24 Progress: resolved 1672, reused 0, downloaded 1671, added 1671
+#12 68.26 Progress: resolved 1672, reused 0, downloaded 1671, added 1672, done
+#12 70.71 Done in 1m 8.8s
+#12 DONE 71.6s
+#13 [8/8] RUN pnpm --filter frontend prod
+#13 1.212 
+#13 1.212 > frontend@ prod /app/app/frontend
+#13 1.212 > vite build
+#13 1.212 
+#13 1.689 vite v4.4.9 building for production...
+#13 1.853 transforming...
+#13 8.384 ✓ 184 modules transformed.
+#13 8.852 rendering chunks...
+#13 8.881 computing gzip size...
+#13 8.914 dist/index.html                    0.60 kB │ gzip:  0.38 kB
+#13 8.914 dist/assets/island-ffdaa466.svg    1.73 kB │ gzip:  0.85 kB
+#13 8.914 dist/assets/index-102f2825.css    12.11 kB │ gzip:  3.07 kB
+#13 8.914 dist/assets/index-be85a7bb.js    299.48 kB │ gzip: 95.94 kB
+#13 8.914 ✓ built in 7.21s
+#13 DONE 9.1s
+#14 exporting to image
+#14 exporting layers
+#14 exporting layers 37.5s done
+#14 writing image sha256:464e867c3589a6680e707321ffb84a338cdf3574890696476268f0247e5ab790 done
+#14 naming to docker.io/library/comparadise done
+#14 DONE 37.5s
+Creating network "comparadise_default" with the default driver
+Creating comparadise ... 
+Creating comparadise ... done
+Attaching to comparadise
+[36mcomparadise    |[0m 
+[36mcomparadise    |[0m > backend@ start /app/app/backend
+[36mcomparadise    |[0m > ts-node src/server.ts
+[36mcomparadise    |[0m 
+[36mcomparadise    |[0m Server listening on 8080
+
+> cypress:e2e
+> nx test:e2e frontend
+
+
+[2m> [22m[2mnx run[22m frontend:"test:e2e"
+
+> test:e2e
+> cypress run --e2e --browser chrome
+DevTools listening on ws://127.0.0.1:35857/devtools/browser/d79ad02d-025e-4007-8e2b-a6e24b4fef61
+Missing baseUrl in compilerOptions. tsconfig-paths will be skipped
+tput: No value for $TERM and no -T specified
+[90m====================================================================================================[39m
+[0m  ([4m[1mRun Starting[22m[24m)[0m
+[90m  ┌[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m┐[39m
+[90m  │[39m [90mCypress:[39m        13.2.0                                                                         [90m│[39m
+[90m  │[39m [90mBrowser:[39m        Chrome 118 [90m(headless)[39m                                                          [90m│[39m
+[90m  │[39m [90mNode Version:[39m   [0mv20.5.0 [90m(/opt/hostedtoolcache/node/20.5.0/x64/bin/node)[39m[0m                        [90m│[39m
+[90m  │[39m [90mSpecs:[39m          [0m1 found (home-page.cy.ts)[0m                                                      [90m│[39m
+[90m  │[39m [90mSearched:[39m       [0mcypress/e2e/**/*.cy.{js,jsx,ts,tsx}[0m                                            [90m│[39m
+[90m  └[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m┘[39m
+[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m
+                                                                                                    
+  Running:  [90mhome-page.cy.ts[39m                                                                 [90m(1 of 1)[39m
+[0m[0m
+[0m  Homepage[0m
+  [32m  ✓[0m[90m should visit the home page[0m[90m (626ms)[0m
+[92m [0m[32m 1 passing[0m[90m (865ms)[0m
+[32m  ([4m[1mResults[22m[24m)[39m
+[90m  ┌[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m┐[39m
+[90m  │[39m [90mTests:[39m        [32m1[39m                                                                                [90m│[39m
+[90m  │[39m [90mPassing:[39m      [32m1[39m                                                                                [90m│[39m
+[90m  │[39m [90mFailing:[39m      [32m0[39m                                                                                [90m│[39m
+[90m  │[39m [90mPending:[39m      [32m0[39m                                                                                [90m│[39m
+[90m  │[39m [90mSkipped:[39m      [32m0[39m                                                                                [90m│[39m
+[90m  │[39m [90mScreenshots:[39m  [32m0[39m                                                                                [90m│[39m
+[90m  │[39m [90mVideo:[39m        [32mfalse[39m                                                                            [90m│[39m
+[90m  │[39m [90mDuration:[39m     [32m0 seconds[39m                                                                        [90m│[39m
+[90m  │[39m [90mSpec Ran:[39m     [32m[32mhome-page.cy.ts[32m[39m                                                                  [90m│[39m
+[90m  └[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m┘[39m
+tput: No value for $TERM and no -T specified
+[90m====================================================================================================[39m
+[0m  ([4m[1mRun Finished[22m[24m)[0m
+[90m   [39m    [90mSpec[39m                                              [90mTests[39m  [90mPassing[39m  [90mFailing[39m  [90mPending[39m  [90mSkipped[39m [90m [39m
+[90m  ┌[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m┐[39m
+[90m  │[39m [32m✔[39m  [0mhome-page.cy.ts[0m                          [90m680ms[39m        [0m1[0m        [32m1[39m        [90m-[39m        [90m-[39m        [90m-[39m [90m│[39m
+[90m  └[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m─[39m[90m┘[39m
+[90m   [39m [32m✔[39m  [32mAll specs passed![39m                        [90m680ms[39m        [0m1[0m        [32m1[39m        [90m-[39m        [90m-[39m        [90m-[39m [90m [39m
+
+ 
+
+ [32m>[39m [0m[7m[1m[32m NX [39m[22m[27m[0m  [32mSuccessfully ran target test:e2e for project frontend[39m
+
+

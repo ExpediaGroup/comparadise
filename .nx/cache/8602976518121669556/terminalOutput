@@ -1,0 +1,11 @@
+
+> docs@ build /home/runner/work/comparadise/comparadise/docs
+> tsc && docusaurus build
+
+[36m[1m[INFO][22m[39m [34m[1m[en][22m[39m Creating an optimized production build...
+[info] [webpackbar] Compiling Client
+[info] [webpackbar] Compiling Server
+[success] [webpackbar] Client: Compiled successfully in 1.57m
+[success] [webpackbar] Server: Compiled successfully in 1.64m
+[32m[1m[SUCCESS][22m[39m Generated static files in [36m[4m"build"[24m[39m.
+[36m[1m[INFO][22m[39m Use [36m`npm run serve`[39m command to test your build locally.
