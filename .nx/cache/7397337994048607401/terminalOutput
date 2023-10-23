@@ -1,5 +1,0 @@
-
-> backend@ lint /home/runner/work/comparadise/comparadise/app/backend
-> eslint . --max-warnings=0
-
-Warning: React version was set to "detect" in eslint-plugin-react settings, but the "react" package is not installed. Assuming latest React version for linting.

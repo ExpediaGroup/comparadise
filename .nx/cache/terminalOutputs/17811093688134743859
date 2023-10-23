@@ -1,5 +1,0 @@
-
-> comparadise-utils@ lint /home/runner/work/comparadise/comparadise/comparadise-utils
-> eslint . --max-warnings=0
-
-Warning: React version was set to "detect" in eslint-plugin-react settings, but the "react" package is not installed. Assuming latest React version for linting.

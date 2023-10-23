@@ -1,4 +1,0 @@
-
-> frontend@ lint /home/runner/work/comparadise/comparadise/app/frontend
-> eslint . --max-warnings=0
-
