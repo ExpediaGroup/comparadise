@@ -70,7 +70,7 @@ describe('MyComponent visual test', () => {
 
 By default, `matchScreenshot` will infer the name of your test from the name of your file and create a folder to save the base, new, and diff images to.
 
-However, if you have multiple visual tests in a single file, you should pass a different `rawName` for each test to vary the paths where screenshots will be saved.
+However, if you have multiple visual tests in a single file, you are required to provide a different `rawName` for each test to vary the paths where screenshots will be saved.
 
 #### options - optional (Cypress.ScreenshotOptions)
 
