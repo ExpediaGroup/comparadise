@@ -28,9 +28,15 @@ function getTestFolderPathFromScripts(rawName?: string) {
     );
   }
 
-  const currentTestNumber = Cypress.mocha.getRunner().currentRunnable?.order
-  if (!rawName && typeof currentTestNumber === 'number' && currentTestNumber > 1) {
-    throw new Error('❌ The rawName argument was not provided to matchScreenshot and is required for test files containing multiple tests!')
+  const currentTestNumber = Cypress.mocha.getRunner().currentRunnable?.order;
+  if (
+    !rawName &&
+    typeof currentTestNumber === 'number' &&
+    currentTestNumber > 1
+  ) {
+    throw new Error(
+      '❌ The rawName argument was not provided to matchScreenshot and is required for test files containing multiple tests!'
+    );
   }
 
   const testName = relativeTestPath.substring(
@@ -127,7 +133,7 @@ Cypress.Commands.add(
 interface ExtendedCurrentRunnable extends Mocha.Runnable {
   currentRunnable?: {
     order?: unknown;
-  }
+  };
 }
 
 declare global {
