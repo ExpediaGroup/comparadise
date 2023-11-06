@@ -184,8 +184,8 @@ importers:
         version: 7.0.0
     devDependencies:
       '@types/pixelmatch':
-        specifier: 5.2.4
-        version: 5.2.4
+        specifier: 5.2.5
+        version: 5.2.5
       '@types/pngjs':
         specifier: 6.0.2
         version: 6.0.2
@@ -5319,8 +5319,8 @@ packages:
     resolution: {integrity: sha512-//oorEZjL6sbPcKUaCdIGlIUeH26mgzimjBB77G6XRgnDl/L5wOnpyBGRe/Mmf5CVW3PwEBE1NjiMZ/ssFh4wA==}
     dev: false
 
-  /@types/pixelmatch@5.2.4:
-    resolution: {integrity: sha512-HDaSHIAv9kwpMN7zlmwfTv6gax0PiporJOipcrGsVNF3Ba+kryOZc0Pio5pn6NhisgWr7TaajlPEKTbTAypIBQ==}
+  /@types/pixelmatch@5.2.5:
+    resolution: {integrity: sha512-di/HknmWA+KNjlLczJiLft9g1mHJZl5qGAXtDct8KsJg8KPrXKJa8Avumj53fgdJOBbfHABYhp3EjyitmKPdBg==}
     dependencies:
       '@types/node': 20.8.0
     dev: true
