@@ -7,7 +7,7 @@ import { TRPCError } from '@trpc/server';
 export const fetchCurrentPage = async ({
   hash,
   bucket,
-  page
+  cursor: page
 }: FetchCurrentPageInput) => {
   const paginatedKeys = await getGroupedKeys(hash, bucket);
   const currentPage = paginatedKeys[page - 1];
@@ -24,10 +24,10 @@ export const fetchCurrentPage = async ({
       base64: await getBase64StringFromS3(key, bucket)
     }))
   );
-  const nextPage = page < paginatedKeys.length ? page + 1 : undefined;
+  const hasNextPage = page < paginatedKeys.length;
   return {
     title,
     images,
-    nextPage
+    hasNextPage
   };
 };

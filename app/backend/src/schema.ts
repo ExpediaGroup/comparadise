@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const fetchCurrentPageInputSchema = z.object({
   bucket: z.string().min(1),
   hash: z.string().min(1),
-  page: z.number()
+  cursor: z.number()
 });
 export const updateBaseImagesInputSchema = z.object({
   hash: z.string().min(1),

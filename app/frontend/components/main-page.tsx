@@ -28,16 +28,18 @@ export const MainPage = () => {
   }
 
   const page = Number(pageParam ?? 1);
-  const { isLoading, data, isFetching, refetch, error } =
-    trpc.fetchCurrentPage.useQuery({ hash, bucket, page });
+  const {
+    isLoading,
+    data: infiniteData,
+    isFetching,
+    fetchNextPage,
+    fetchPreviousPage,
+    error
+  } = trpc.fetchCurrentPage.useInfiniteQuery({ hash, bucket });
 
-  const nextPageExists = Boolean(data?.nextPage);
-
+  const data = infiniteData?.pages[page - 1] ?? infiniteData?.pages[page - 2];
+  const nextPageExists = Boolean(data?.hasNextPage);
   const navigate = useNavigate();
-  const utils = trpc.useContext();
-  if (nextPageExists) {
-    utils.fetchCurrentPage.prefetch({ hash, bucket, page: page + 1 });
-  }
 
   useEffect(() => {
     if (data) {
@@ -49,7 +51,7 @@ export const MainPage = () => {
     return <Error error={error} />;
   }
 
-  if (isLoading) {
+  if (isLoading || !data) {
     return <Loader view={LoaderViews.FULL_SCREEN} />;
   }
 
@@ -58,7 +60,7 @@ export const MainPage = () => {
       pathname: '/',
       search: `?${createSearchParams({ ...params, page: String(page - 1) })}`
     });
-    refetch();
+    fetchPreviousPage({ pageParam: page - 1 });
   };
 
   const onClickForwardArrow = () => {
@@ -66,7 +68,7 @@ export const MainPage = () => {
       pathname: '/',
       search: `?${createSearchParams({ ...params, page: String(page + 1) })}`
     });
-    refetch();
+    fetchNextPage({ pageParam: page + 1 });
   };
 
   const getImageBody = () => {
