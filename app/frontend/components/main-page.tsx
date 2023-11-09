@@ -40,6 +40,10 @@ export const MainPage = () => {
   const data = infiniteData?.pages[page - 1] ?? infiniteData?.pages[page - 2];
   const nextPageExists = Boolean(data?.hasNextPage);
   const navigate = useNavigate();
+  const utils = trpc.useUtils();
+  if (nextPageExists) {
+    utils.fetchCurrentPage.prefetchInfinite({ hash, bucket, cursor: page + 1 });
+  }
 
   useEffect(() => {
     if (data) {

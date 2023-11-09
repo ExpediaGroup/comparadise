@@ -26,7 +26,7 @@ describe('fetchCurrentPage', () => {
     const result = await fetchCurrentPage({
       hash: 'hash',
       bucket: 'bucket',
-      page: 1
+      cursor: 1
     });
     expect(result).toEqual({
       title: 'SMALL/srpPage',
@@ -44,7 +44,7 @@ describe('fetchCurrentPage', () => {
           base64: 'base64'
         }
       ],
-      nextPage: 2
+      hasNextPage: true
     });
   });
 
@@ -52,7 +52,7 @@ describe('fetchCurrentPage', () => {
     const result = await fetchCurrentPage({
       hash: 'hash',
       bucket: 'bucket',
-      page: 2
+      cursor: 2
     });
     expect(result).toEqual({
       title: 'EXTRA_LARGE/pdpPage',
@@ -62,7 +62,7 @@ describe('fetchCurrentPage', () => {
           base64: 'base64'
         }
       ],
-      nextPage: undefined
+      hasNextPage: false
     });
   });
 
@@ -71,7 +71,7 @@ describe('fetchCurrentPage', () => {
       fetchCurrentPage({
         hash: 'hash',
         bucket: 'bucket',
-        page: 12
+        cursor: 12
       })
     ).rejects.toThrow('Page 12 does not exist. Only 2 pages were found.');
   });
