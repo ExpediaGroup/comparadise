@@ -3,7 +3,7 @@ import { getTemporaryObjectUrl } from '../src/getTemporaryObjectUrl';
 import { getGroupedKeys } from '../src/getGroupedKeys';
 
 jest.mock('../src/getGroupedKeys');
-jest.mock('../src/getBase64StringFromS3');
+jest.mock('../src/getTemporaryObjectUrl');
 
 (getGroupedKeys as jest.Mock).mockResolvedValue([
   {
@@ -19,7 +19,7 @@ jest.mock('../src/getBase64StringFromS3');
     keys: ['hash/EXTRA_LARGE/pdpPage/new.png']
   }
 ]);
-(getTemporaryObjectUrl as jest.Mock).mockResolvedValue('base64');
+(getTemporaryObjectUrl as jest.Mock).mockResolvedValue('url');
 
 describe('fetchCurrentPage', () => {
   it('should get first page of images', async () => {
@@ -33,15 +33,15 @@ describe('fetchCurrentPage', () => {
       images: [
         {
           name: 'base',
-          base64: 'base64'
+          url: 'url'
         },
         {
           name: 'diff',
-          base64: 'base64'
+          url: 'url'
         },
         {
           name: 'new',
-          base64: 'base64'
+          url: 'url'
         }
       ],
       nextPage: 2
@@ -59,7 +59,7 @@ describe('fetchCurrentPage', () => {
       images: [
         {
           name: 'new',
-          base64: 'base64'
+          url: 'url'
         }
       ],
       nextPage: undefined
