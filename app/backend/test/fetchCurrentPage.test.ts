@@ -1,5 +1,5 @@
 import { fetchCurrentPage } from '../src/fetchCurrentPage';
-import { getBase64StringFromS3 } from '../src/getBase64StringFromS3';
+import { getTemporaryObjectUrl } from '../src/getTemporaryObjectUrl';
 import { getGroupedKeys } from '../src/getGroupedKeys';
 
 jest.mock('../src/getGroupedKeys');
@@ -19,7 +19,7 @@ jest.mock('../src/getBase64StringFromS3');
     keys: ['hash/EXTRA_LARGE/pdpPage/new.png']
   }
 ]);
-(getBase64StringFromS3 as jest.Mock).mockResolvedValue('base64');
+(getTemporaryObjectUrl as jest.Mock).mockResolvedValue('base64');
 
 describe('fetchCurrentPage', () => {
   it('should get first page of images', async () => {
