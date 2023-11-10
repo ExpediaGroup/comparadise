@@ -1,4 +1,4 @@
-import { getBase64StringFromS3 } from './getBase64StringFromS3';
+import { getTemporaryObjectUrl } from './getTemporaryObjectUrl';
 import { FetchCurrentPageInput } from './schema';
 import { parse } from 'path';
 import { getGroupedKeys } from './getGroupedKeys';
@@ -21,7 +21,7 @@ export const fetchCurrentPage = async ({
   const images = await Promise.all(
     keys.map(async key => ({
       name: parse(key).name,
-      base64: await getBase64StringFromS3(key, bucket)
+      url: await getTemporaryObjectUrl(key, bucket)
     }))
   );
   const nextPage = page < paginatedKeys.length ? page + 1 : undefined;

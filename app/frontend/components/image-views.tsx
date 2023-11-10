@@ -43,7 +43,7 @@ export const SingleImageView: React.FC<SingleImageViewProps> = ({
         })}
       </div>
       <img
-        src={images[selectedImageIndex]?.base64}
+        src={images[selectedImageIndex]?.url}
         alt={images[selectedImageIndex]?.name}
       />
     </div>
@@ -72,7 +72,7 @@ export const SideBySideImageView: React.FC<ImageViewChildProps> = ({
       {images.map(image => (
         <div key={image.name}>
           <h2 className="text-center">{image.name}</h2>
-          <img src={image.base64} alt={image.name} />
+          <img src={image.url} alt={image.name} />
         </div>
       ))}
     </div>
