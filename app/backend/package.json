@@ -3,7 +3,7 @@
   "private": true,
   "dependencies": {
     "@aws-sdk/client-s3": "3.445.0",
-    "@aws-sdk/s3-request-presigner": "3.445.0",
+    "@aws-sdk/s3-request-presigner": "3.449.0",
     "@octokit/rest": "20.0.2",
     "@trpc/server": "10.43.1",
     "cors": "2.8.5",
