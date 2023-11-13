@@ -99,8 +99,8 @@ describe('App', () => {
       cy.findByAltText('diff');
       cy.findByAltText('new');
       cy.findByRole('button', { name: /single/i }).click();
-      cy.findByAltText('base');
-      cy.findByAltText('diff').should('not.exist');
+      cy.findByAltText('diff');
+      cy.findByAltText('base').should('not.exist');
       cy.findByAltText('new').should('not.exist');
       cy.findByRole('button', { name: /side-by-side/i }).should('be.enabled');
     });
