@@ -16,7 +16,7 @@ import { ArrowBackIcon, ArrowForwardIcon } from './arrows';
 
 export const MainPage = () => {
   const [viewType, setViewType] = React.useState<ImageView | undefined>();
-  const [singleImageViewIndex, setSingleImageViewIndex] = React.useState(0);
+  const [singleImageViewIndex, setSingleImageViewIndex] = React.useState(1);
 
   const [searchParams] = useSearchParams();
   const params: Record<string, string | undefined> = Object.fromEntries(
