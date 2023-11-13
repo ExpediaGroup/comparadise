@@ -52,9 +52,9 @@ describe('App', () => {
       );
     });
 
-    it('should default to the base image view of the first spec in the response list', () => {
+    it('should default to the diff image view of the first spec in the response list', () => {
       cy.findByRole('heading', { name: 'large/example' });
-      cy.findByAltText('base');
+      cy.findByAltText('diff');
       cy.findByRole('button', { name: /back-arrow/ }).should('be.disabled');
     });
 
@@ -70,13 +70,13 @@ describe('App', () => {
       cy.findByAltText('new');
     });
 
-    it('should switch between specs and default to base image for each one', () => {
+    it('should switch between specs and default to diff image for each one', () => {
       cy.findByRole('button', { name: /forward-arrow/ }).click();
       cy.findByRole('heading', { name: 'small/example' });
-      cy.findByAltText('base');
+      cy.findByAltText('diff');
       cy.findByRole('button', { name: /back-arrow/ }).click();
       cy.findByRole('heading', { name: 'large/example' });
-      cy.findByAltText('base');
+      cy.findByAltText('diff');
       cy.findByRole('button', { name: /side-by-side/i }).should('be.disabled');
     });
 
@@ -218,12 +218,12 @@ describe('App', () => {
       );
     });
 
-    it('should default to base when no new image was found and the currently selected image is new', () => {
+    it('should default to diff when no new image was found and the currently selected image is new', () => {
       cy.findByRole('heading', { name: 'large/example' });
       cy.findByRole('button', { name: /new/ }).click();
       cy.findByAltText('new');
       cy.findByRole('button', { name: /forward-arrow/ }).click();
-      cy.findByAltText('base');
+      cy.findByAltText('diff');
     });
   });
 });
