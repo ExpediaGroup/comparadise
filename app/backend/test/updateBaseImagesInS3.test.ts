@@ -7,9 +7,11 @@ import {
 } from '../src/updateBaseImagesInS3';
 import { BASE_IMAGES_DIRECTORY } from 'shared';
 import { findReasonToPreventBaseImageUpdate } from '../src/findReasonToPreventBaseImageUpdate';
+import { updateCommitStatus } from '../src/updateCommitStatus';
 
 jest.mock('../src/findReasonToPreventBaseImageUpdate');
 jest.mock('../src/s3Client');
+jest.mock('../src/updateCommitStatus');
 
 describe('filterNewImages', () => {
   it('should filter only the new images from the given paths', () => {
@@ -93,5 +95,6 @@ describe('updateBaseImagesInS3', () => {
 
     expect(S3Client.listObjectsV2).not.toHaveBeenCalled();
     expect(S3Client.copyObject).not.toHaveBeenCalled();
+    expect(updateCommitStatus).not.toHaveBeenCalled();
   });
 });

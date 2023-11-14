@@ -4,6 +4,7 @@ import { findReasonToPreventBaseImageUpdate } from './findReasonToPreventBaseIma
 import { TRPCError } from '@trpc/server';
 import { UpdateBaseImagesInput } from './schema';
 import { getKeysFromS3 } from './getKeysFromS3';
+import { updateCommitStatus } from './updateCommitStatus';
 
 export const updateBaseImagesInS3 = async ({
   hash,
@@ -23,7 +24,8 @@ export const updateBaseImagesInS3 = async ({
     });
   }
   const s3Paths = await getKeysFromS3(hash, bucket);
-  return await replaceImagesInS3(s3Paths, bucket);
+  await replaceImagesInS3(s3Paths, bucket);
+  await updateCommitStatus({ owner, repo, hash });
 };
 
 export const filterNewImages = (s3Paths: string[]) => {

@@ -5,7 +5,11 @@ import { Error } from './error';
 import { Loader, LoaderViews } from './loader';
 import { ViewToggle, ImageViews, ImageView } from './view-toggle';
 import { UpdateImagesButton } from './update-images-button';
-import { Image, SideBySideImageView, SingleImageView } from './image-views';
+import {
+  type Image,
+  SideBySideImageView,
+  SingleImageView
+} from './image-views';
 import { RouterOutput, trpc } from '../utils/trpc';
 import {
   createSearchParams,

@@ -40,9 +40,6 @@ describe('App', () => {
       cy.intercept('/trpc/updateBaseImages*', { body: mutationResponse }).as(
         'base-images'
       );
-      cy.intercept('/trpc/updateCommitStatus*', { body: mutationResponse }).as(
-        'commit-status'
-      );
       cy.mount(
         <MemoryRouter
           initialEntries={['/?hash=123&bucket=bucket&repo=repo&owner=owner']}
@@ -121,7 +118,7 @@ describe('App', () => {
       cy.findByRole('button', { name: /Update all base images/i }).click();
       cy.findByText(/Are you sure/i);
       cy.findByRole('button', { name: /update/i }).click();
-      cy.wait(['@base-images', '@commit-status']);
+      cy.wait('@base-images');
       cy.findByRole('button', { name: /all images updated/i });
     });
 
@@ -138,7 +135,7 @@ describe('App', () => {
       cy.findByRole('button', { name: /Update all base images/i }).click();
       cy.findByText(/Are you sure/i);
       cy.findByRole('button', { name: /update/i }).click();
-      cy.wait(['@base-images', '@commit-status']);
+      cy.wait('@base-images');
       cy.findByRole('button', { name: /all images updated/i }).should(
         'be.disabled'
       );

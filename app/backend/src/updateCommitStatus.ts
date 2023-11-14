@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { UpdateCommitStatusInput } from './schema';
+import { UpdateBaseImagesInput } from './schema';
 import { getOctokit } from './getOctokit';
 import { VISUAL_REGRESSION_CONTEXT } from 'shared';
 
@@ -7,7 +7,7 @@ export const updateCommitStatus = async ({
   owner,
   repo,
   hash
-}: UpdateCommitStatusInput) => {
+}: Omit<UpdateBaseImagesInput, 'bucket'>) => {
   const octokit = getOctokit(owner, repo);
   return octokit.rest.repos
     .createCommitStatus({

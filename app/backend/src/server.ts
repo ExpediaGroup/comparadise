@@ -4,13 +4,11 @@ import rateLimit from 'express-rate-limit';
 import * as path from 'path';
 import * as trpcExpress from '@trpc/server/adapters/express';
 import { initTRPC } from '@trpc/server';
-import { updateCommitStatus } from './updateCommitStatus';
 import { fetchCurrentPage } from './fetchCurrentPage';
 import { updateBaseImagesInS3 } from './updateBaseImagesInS3';
 import {
   fetchCurrentPageInputSchema,
-  updateBaseImagesInputSchema,
-  updateCommitStatusInputSchema
+  updateBaseImagesInputSchema
 } from './schema';
 
 const t = initTRPC.create();
@@ -21,10 +19,7 @@ const router = t.router({
     .query(({ input }) => fetchCurrentPage(input)),
   updateBaseImages: t.procedure
     .input(updateBaseImagesInputSchema)
-    .mutation(({ input }) => updateBaseImagesInS3(input)),
-  updateCommitStatus: t.procedure
-    .input(updateCommitStatusInputSchema)
-    .mutation(({ input }) => updateCommitStatus(input))
+    .mutation(({ input }) => updateBaseImagesInS3(input))
 });
 
 export type AppRouter = typeof router;

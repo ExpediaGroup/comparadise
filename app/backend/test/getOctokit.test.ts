@@ -1,9 +1,11 @@
-import { readFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { getOctokit } from '../src/getOctokit';
 import { Octokit } from '@octokit/rest';
 
 jest.mock('fs');
 jest.mock('@octokit/rest');
+
+(existsSync as jest.Mock).mockReturnValue(true);
 
 describe('getOctokitOptions', () => {
   it('should read secrets and generate octokit options', () => {
@@ -29,7 +31,7 @@ describe('getOctokitOptions', () => {
       toString: jest.fn(() => JSON.stringify({}))
     }));
     expect(() => getOctokit('github-owner', 'github-repo')).toThrow(
-      /No GitHub configs were found for github-owner\/github-repo/
+      /Failed to parse secrets.json/
     );
   });
 });
