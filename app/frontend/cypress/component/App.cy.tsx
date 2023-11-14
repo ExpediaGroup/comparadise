@@ -16,7 +16,7 @@ import { mutationResponse } from '../mocks/mutation';
 import { MemoryRouter } from 'react-router-dom';
 
 const getPageFromRequest = (req: CyHttpMessages.IncomingHttpRequest) =>
-  JSON.parse(req.query.input as string)['0'].page;
+  (JSON.parse(req.query.input as string) as any)['0'].page;
 
 describe('App', () => {
   describe('homepage', () => {

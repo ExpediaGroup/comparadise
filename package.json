@@ -3,6 +3,7 @@
   "packageManager": "pnpm@8.6.2",
   "devDependencies": {
     "@swc/jest": "0.2.29",
+    "@total-typescript/ts-reset": "0.5.1",
     "@types/jest": "29.5.5",
     "@typescript-eslint/eslint-plugin": "6.8.0",
     "cypress": "13.2.0",

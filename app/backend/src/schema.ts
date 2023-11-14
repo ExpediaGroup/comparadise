@@ -21,3 +21,14 @@ export type UpdateBaseImagesInput = z.infer<typeof updateBaseImagesInputSchema>;
 export type UpdateCommitStatusInput = z.infer<
   typeof updateCommitStatusInputSchema
 >;
+export const FILE_NAMES = {
+  BASE: 'base',
+  DIFF: 'diff',
+  NEW: 'new'
+} as const;
+export const fileNameSchema = z.enum([
+  FILE_NAMES.BASE,
+  FILE_NAMES.DIFF,
+  FILE_NAMES.NEW
+]);
+export type FileName = z.infer<typeof fileNameSchema>;

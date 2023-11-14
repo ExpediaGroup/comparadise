@@ -13,10 +13,13 @@ import {
   useSearchParams
 } from 'react-router-dom';
 import { ArrowBackIcon, ArrowForwardIcon } from './arrows';
+import { FILE_NAMES, FileName } from '../../backend/src/schema';
 
 export const MainPage = () => {
   const [viewType, setViewType] = React.useState<ImageView | undefined>();
-  const [singleImageViewIndex, setSingleImageViewIndex] = React.useState(1);
+  const [selectedImage, setSelectedImage] = React.useState<FileName>(
+    FILE_NAMES.DIFF
+  );
 
   const [searchParams] = useSearchParams();
   const params: Record<string, string | undefined> = Object.fromEntries(
@@ -79,8 +82,8 @@ export const MainPage = () => {
       ) : (
         <SingleImageView
           images={data.images}
-          selectedImageIndex={singleImageViewIndex}
-          onSelectImage={setSingleImageViewIndex}
+          selectedImage={selectedImage}
+          setSelectedImage={setSelectedImage}
         />
       );
     return <div className="mt-8">{imageView}</div>;

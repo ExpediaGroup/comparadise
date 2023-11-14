@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { RouterOutput } from '../utils/trpc';
 import { PrimaryButton, SecondaryButton } from './buttons';
+import { FileName } from '../../backend/src/schema';
 
 type Images = RouterOutput['fetchCurrentPage']['images'];
 interface ImageViewChildProps {
@@ -8,17 +9,19 @@ interface ImageViewChildProps {
 }
 
 interface SingleImageViewProps extends ImageViewChildProps {
-  selectedImageIndex: number;
-  onSelectImage: (index: number) => void;
+  selectedImage: FileName;
+  setSelectedImage: (file: FileName) => void;
 }
 
 export const SingleImageView: React.FC<SingleImageViewProps> = ({
   images,
-  selectedImageIndex,
-  onSelectImage
+  selectedImage,
+  setSelectedImage
 }) => {
-  if (!images[selectedImageIndex]) {
-    onSelectImage(0);
+  const currentImage = images.find(image => image.name === selectedImage);
+  const firstImageName = images.find(Boolean)?.name;
+  if (!currentImage && firstImageName) {
+    setSelectedImage(firstImageName);
     return null;
   }
 
@@ -26,9 +29,9 @@ export const SingleImageView: React.FC<SingleImageViewProps> = ({
     <div className="mb-12 mt-5 flex justify-center">
       <div className="fixed bottom-20">
         {images.map((image, index) => {
-          const onClick = () => onSelectImage(index);
+          const onClick = () => setSelectedImage(image.name);
           const Button =
-            selectedImageIndex === index ? PrimaryButton : SecondaryButton;
+            selectedImage === image.name ? PrimaryButton : SecondaryButton;
           const extraStyles = getImageButtonStyles(images, index);
           return (
             <Button
@@ -42,10 +45,7 @@ export const SingleImageView: React.FC<SingleImageViewProps> = ({
           );
         })}
       </div>
-      <img
-        src={images[selectedImageIndex]?.url}
-        alt={images[selectedImageIndex]?.name}
-      />
+      <img src={currentImage?.url} alt={currentImage?.name} />
     </div>
   );
 };
