@@ -5,7 +5,7 @@ import { Error } from './error';
 import { Loader, LoaderViews } from './loader';
 import { ViewToggle, ImageViews, ImageView } from './view-toggle';
 import { UpdateImagesButton } from './update-images-button';
-import { SideBySideImageView, SingleImageView } from './image-views';
+import { Image, SideBySideImageView, SingleImageView } from './image-views';
 import { RouterOutput, trpc } from '../utils/trpc';
 import {
   createSearchParams,
@@ -13,13 +13,11 @@ import {
   useSearchParams
 } from 'react-router-dom';
 import { ArrowBackIcon, ArrowForwardIcon } from './arrows';
-import { FILE_NAMES, FileName } from '../../backend/src/schema';
+import { FILE_NAMES } from '../../backend/src/schema';
 
 export const MainPage = () => {
   const [viewType, setViewType] = React.useState<ImageView | undefined>();
-  const [selectedImage, setSelectedImage] = React.useState<FileName>(
-    FILE_NAMES.DIFF
-  );
+  const [selectedImage, setSelectedImage] = React.useState<Image>();
 
   const [searchParams] = useSearchParams();
   const params: Record<string, string | undefined> = Object.fromEntries(
@@ -37,7 +35,7 @@ export const MainPage = () => {
   const nextPageExists = Boolean(data?.nextPage);
 
   const navigate = useNavigate();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   if (nextPageExists) {
     utils.fetchCurrentPage.prefetch({ hash, bucket, page: page + 1 });
   }
@@ -82,7 +80,11 @@ export const MainPage = () => {
       ) : (
         <SingleImageView
           images={data.images}
-          selectedImage={selectedImage}
+          selectedImage={
+            selectedImage ??
+            data.images.find(image => image.name === FILE_NAMES.DIFF) ??
+            data.images[0]
+          }
           setSelectedImage={setSelectedImage}
         />
       );
