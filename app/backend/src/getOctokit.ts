@@ -8,7 +8,7 @@ export const getOctokit = (owner: string, repo: string) => {
   if (!existsSync(secretsFilePath)) {
     throw new TRPCError({
       code: 'UNAUTHORIZED',
-      message: `No GitHub configs were found for ${owner}/${repo}`
+      message: 'Missing secrets.json file'
     });
   }
   const parsedJson = JSON.parse(readFileSync(secretsFilePath).toString());
@@ -23,7 +23,7 @@ export const getOctokit = (owner: string, repo: string) => {
   const { githubToken, githubApiUrl } = repoSecrets ?? {};
   if (!githubToken) {
     throw new TRPCError({
-      code: 'INTERNAL_SERVER_ERROR',
+      code: 'UNAUTHORIZED',
       message: `Missing githubToken for repo ${owner}/${repo}`
     });
   }

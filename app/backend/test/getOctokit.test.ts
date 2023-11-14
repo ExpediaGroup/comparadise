@@ -26,7 +26,7 @@ describe('getOctokitOptions', () => {
     });
   });
 
-  it('throws error if config not found', () => {
+  it('throws error if token not found', () => {
     (readFileSync as jest.Mock).mockImplementation(() => ({
       toString: jest.fn(() => JSON.stringify({}))
     }));
