@@ -31,7 +31,7 @@ describe('getOctokitOptions', () => {
       toString: jest.fn(() => JSON.stringify({}))
     }));
     expect(() => getOctokit('github-owner', 'github-repo')).toThrow(
-      /Failed to parse secrets.json/
+      'Missing githubToken for repo github-owner/github-repo'
     );
   });
 });

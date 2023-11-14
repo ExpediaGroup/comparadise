@@ -21,11 +21,10 @@ export const getOctokit = (owner: string, repo: string) => {
   }
   const repoSecrets = result.data[`${owner}/${repo}`];
   const { githubToken, githubApiUrl } = repoSecrets ?? {};
-  if (!githubToken || !githubApiUrl) {
+  if (!githubToken) {
     throw new TRPCError({
       code: 'INTERNAL_SERVER_ERROR',
-      message:
-        'Failed to parse secrets.json: missing githubToken or githubApiUrl'
+      message: `Missing githubToken for repo ${owner}/${repo}`
     });
   }
   return new Octokit({
