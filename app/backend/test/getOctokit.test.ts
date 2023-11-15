@@ -1,9 +1,11 @@
-import { readFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { getOctokit } from '../src/getOctokit';
 import { Octokit } from '@octokit/rest';
 
 jest.mock('fs');
 jest.mock('@octokit/rest');
+
+(existsSync as jest.Mock).mockReturnValue(true);
 
 describe('getOctokitOptions', () => {
   it('should read secrets and generate octokit options', () => {
@@ -24,12 +26,12 @@ describe('getOctokitOptions', () => {
     });
   });
 
-  it('throws error if config not found', () => {
+  it('throws error if token not found', () => {
     (readFileSync as jest.Mock).mockImplementation(() => ({
       toString: jest.fn(() => JSON.stringify({}))
     }));
     expect(() => getOctokit('github-owner', 'github-repo')).toThrow(
-      /No GitHub configs were found for github-owner\/github-repo/
+      'Missing githubToken for repo github-owner/github-repo'
     );
   });
 });

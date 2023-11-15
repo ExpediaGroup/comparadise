@@ -17,10 +17,19 @@ export const UpdateImagesButton = () => {
     BaseImageStateContext
   );
 
-  const { error: updateBaseImagesError, mutateAsync: updateBaseImages } =
-    trpc.updateBaseImages.useMutation();
-  const { error: updateCommitStatusError, mutateAsync: updateCommitStatus } =
-    trpc.updateCommitStatus.useMutation();
+  const { error: updateBaseImagesError, mutate: updateBaseImages } =
+    trpc.updateBaseImages.useMutation({
+      onMutate: () => {
+        setBaseImageState?.(UpdateBaseImagesTexts.UPDATING);
+      },
+      onSuccess: () => {
+        setDialogIsOpen(false);
+        setBaseImageState?.(UpdateBaseImagesTexts.UPDATED);
+      },
+      onError: () => {
+        setBaseImageState?.(UpdateBaseImagesTexts.ERROR);
+      }
+    });
 
   const [searchParams] = useSearchParams();
   const params: Record<string, string | undefined> = Object.fromEntries(
@@ -39,18 +48,7 @@ export const UpdateImagesButton = () => {
     setDialogIsOpen(false);
   };
 
-  const handleUpdate = async () => {
-    setBaseImageState?.(UpdateBaseImagesTexts.UPDATING);
-    await updateBaseImages({ hash, bucket, owner, repo });
-    await updateCommitStatus({ hash, owner, repo });
-    setDialogIsOpen(false);
-    setBaseImageState?.(UpdateBaseImagesTexts.UPDATED);
-  };
-
-  const error = updateBaseImagesError || updateCommitStatusError;
-  if (error) {
-    setBaseImageState?.(UpdateBaseImagesTexts.ERROR);
-  }
+  const handleUpdate = () => updateBaseImages({ hash, bucket, owner, repo });
 
   const dialogTitleText = 'Are you sure you want to update the base images?';
   const updateText =
@@ -96,7 +94,9 @@ export const UpdateImagesButton = () => {
       </Dialog.Title>
     </div>
   );
-  const dialogErrorContent = error && <Error error={error} />;
+  const dialogErrorContent = updateBaseImagesError && (
+    <Error error={updateBaseImagesError} />
+  );
   const getDialogContent = (state?: UpdateBaseImagesText) => {
     switch (state) {
       case UpdateBaseImagesTexts.NOT_UPDATED:

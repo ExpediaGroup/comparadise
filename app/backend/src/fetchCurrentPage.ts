@@ -1,5 +1,5 @@
 import { getTemporaryObjectUrl } from './getTemporaryObjectUrl';
-import { FetchCurrentPageInput } from './schema';
+import { FetchCurrentPageInput, fileNameSchema } from './schema';
 import { parse } from 'path';
 import { getGroupedKeys } from './getGroupedKeys';
 import { TRPCError } from '@trpc/server';
@@ -18,12 +18,21 @@ export const fetchCurrentPage = async ({
     });
   }
   const { keys, title } = currentPage;
-  const images = await Promise.all(
-    keys.map(async key => ({
-      name: parse(key).name,
-      url: await getTemporaryObjectUrl(key, bucket)
-    }))
-  );
+  const images = (
+    await Promise.all(
+      keys.map(async key => {
+        const result = fileNameSchema.safeParse(parse(key).name);
+        if (!result.success) {
+          return;
+        }
+
+        return {
+          name: result.data,
+          url: await getTemporaryObjectUrl(key, bucket)
+        };
+      })
+    )
+  ).filter(Boolean);
   const nextPage = page < paginatedKeys.length ? page + 1 : undefined;
   return {
     title,

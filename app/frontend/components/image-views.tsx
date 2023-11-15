@@ -6,29 +6,29 @@ type Images = RouterOutput['fetchCurrentPage']['images'];
 interface ImageViewChildProps {
   images: Images;
 }
+export type Image = Images[number];
 
 interface SingleImageViewProps extends ImageViewChildProps {
-  selectedImageIndex: number;
-  onSelectImage: (index: number) => void;
+  selectedImage?: Image;
+  setSelectedImage: (file: Image) => void;
 }
 
 export const SingleImageView: React.FC<SingleImageViewProps> = ({
   images,
-  selectedImageIndex,
-  onSelectImage
+  selectedImage,
+  setSelectedImage
 }) => {
-  if (!images[selectedImageIndex]) {
-    onSelectImage(0);
-    return null;
+  if (!selectedImage) {
+    return <p>No images found.</p>;
   }
 
   return (
     <div className="mb-12 mt-5 flex justify-center">
       <div className="fixed bottom-20">
         {images.map((image, index) => {
-          const onClick = () => onSelectImage(index);
+          const onClick = () => setSelectedImage(image);
           const Button =
-            selectedImageIndex === index ? PrimaryButton : SecondaryButton;
+            selectedImage.name === image.name ? PrimaryButton : SecondaryButton;
           const extraStyles = getImageButtonStyles(images, index);
           return (
             <Button
@@ -42,10 +42,7 @@ export const SingleImageView: React.FC<SingleImageViewProps> = ({
           );
         })}
       </div>
-      <img
-        src={images[selectedImageIndex]?.url}
-        alt={images[selectedImageIndex]?.name}
-      />
+      <img src={selectedImage.url} alt={selectedImage.name} />
     </div>
   );
 };
