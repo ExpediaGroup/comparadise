@@ -26,6 +26,22 @@ describe('getOctokitOptions', () => {
     });
   });
 
+  it('does not throw if githubApiUrl is not provided', () => {
+    (readFileSync as jest.Mock).mockImplementation(() => ({
+      toString: jest.fn(() =>
+        JSON.stringify({
+          'github-owner/github-repo': {
+            githubToken: 'some-token'
+          }
+        })
+      )
+    }));
+    getOctokit('github-owner', 'github-repo');
+    expect(Octokit).toHaveBeenCalledWith({
+      auth: 'some-token'
+    });
+  });
+
   it('throws error if token not found', () => {
     (readFileSync as jest.Mock).mockImplementation(() => ({
       toString: jest.fn(() => JSON.stringify({}))

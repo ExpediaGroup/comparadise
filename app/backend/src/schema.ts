@@ -14,8 +14,8 @@ export const updateBaseImagesInputSchema = z.object({
 export const secretsJsonSchema = z.record(
   z.string(),
   z.object({
-    githubToken: z.string(),
-    githubApiUrl: z.string()
+    githubToken: z.string().min(1),
+    githubApiUrl: z.string().optional()
   })
 );
 export type FetchCurrentPageInput = z.infer<typeof fetchCurrentPageInputSchema>;
