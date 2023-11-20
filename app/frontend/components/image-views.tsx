@@ -1,6 +1,7 @@
-import * as React from 'react';
+import React, { useState } from 'react';
 import { RouterOutput } from '../utils/trpc';
 import { PrimaryButton, SecondaryButton } from './buttons';
+import { Loader, LoaderViews } from './loader';
 
 type Images = RouterOutput['fetchCurrentPage']['images'];
 interface ImageViewChildProps {
@@ -42,7 +43,7 @@ export const SingleImageView: React.FC<SingleImageViewProps> = ({
           );
         })}
       </div>
-      <img src={selectedImage.url} alt={selectedImage.name} />
+      <Image src={selectedImage.url} alt={selectedImage.name} />
     </div>
   );
 };
@@ -69,9 +70,29 @@ export const SideBySideImageView: React.FC<ImageViewChildProps> = ({
       {images.map(image => (
         <div key={image.name}>
           <h2 className="text-center">{image.name}</h2>
-          <img src={image.url} alt={image.name} />
+          <Image src={image.url} alt={image.name} />
         </div>
       ))}
     </div>
+  );
+};
+
+const Image = (
+  props: React.DetailedHTMLProps<
+    React.ImgHTMLAttributes<HTMLImageElement>,
+    HTMLImageElement
+  >
+) => {
+  const [isLoading, setIsLoading] = useState(true);
+
+  return (
+    <>
+      {isLoading && <Loader view={LoaderViews.PARTIAL} />}
+      <img
+        {...props}
+        onLoad={() => setIsLoading(false)}
+        className={isLoading ? 'hidden' : ''}
+      />
+    </>
   );
 };
