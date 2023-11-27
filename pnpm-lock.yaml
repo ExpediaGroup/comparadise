@@ -131,14 +131,14 @@ importers:
         specifier: 1.7.17
         version: 1.7.17(react-dom@18.2.0)(react@18.2.0)
       '@tanstack/react-query':
-        specifier: 4.35.0
-        version: 4.35.0(react-dom@18.2.0)(react@18.2.0)
+        specifier: 5.8.7
+        version: 5.8.7(react-dom@18.2.0)(react@18.2.0)
       '@trpc/client':
         specifier: 10.43.6
         version: 10.43.6(@trpc/server@10.43.6)
       '@trpc/react-query':
         specifier: 10.43.6
-        version: 10.43.6(@tanstack/react-query@4.35.0)(@trpc/client@10.43.6)(@trpc/server@10.43.6)(react-dom@18.2.0)(react@18.2.0)
+        version: 10.43.6(@tanstack/react-query@5.8.7)(@trpc/client@10.43.6)(@trpc/server@10.43.6)(react-dom@18.2.0)(react@18.2.0)
       '@trpc/server':
         specifier: 10.43.6
         version: 10.43.6
@@ -4973,15 +4973,15 @@ packages:
       defer-to-connect: 2.0.1
     dev: false
 
-  /@tanstack/query-core@4.35.0:
-    resolution: {integrity: sha512-4GMcKQuLZQi6RFBiBZNsLhl+hQGYScRZ5ZoVq8QAzfqz9M7vcGin/2YdSESwl7WaV+Qzsb5CZOAbMBes4lNTnA==}
+  /@tanstack/query-core@5.8.7:
+    resolution: {integrity: sha512-58xOSkxxZK4SGQ/uzX8MDZHLGZCkxlgkPxnfhxUOL2uchnNHyay2UVcR3mQNMgaMwH1e2l+0n+zfS7+UJ/MAJw==}
     dev: false
 
-  /@tanstack/react-query@4.35.0(react-dom@18.2.0)(react@18.2.0):
-    resolution: {integrity: sha512-LLYDNnM9ewYHgjm2rzhk4KG/puN2rdoqCUD+N9+V7SwlsYwJk5ypX58rpkoZAhFyZ+KmFUJ7Iv2lIEOoUqydIg==}
+  /@tanstack/react-query@5.8.7(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-RYSSMmkhbJ7tPkf8w+MSRIXQLoUCm7DRnTLDcdf+uampupnriEsob3fVWTt9oaEj+AJWEKeCErDBdZeNcAzURQ==}
     peerDependencies:
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0
-      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
+      react: ^18.0.0
+      react-dom: ^18.0.0
       react-native: '*'
     peerDependenciesMeta:
       react-dom:
@@ -4989,10 +4989,9 @@ packages:
       react-native:
         optional: true
     dependencies:
-      '@tanstack/query-core': 4.35.0
+      '@tanstack/query-core': 5.8.7
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
-      use-sync-external-store: 1.2.0(react@18.2.0)
     dev: false
 
   /@testing-library/cypress@10.0.1(cypress@13.2.0):
@@ -5046,7 +5045,7 @@ packages:
       '@trpc/server': 10.43.6
     dev: false
 
-  /@trpc/react-query@10.43.6(@tanstack/react-query@4.35.0)(@trpc/client@10.43.6)(@trpc/server@10.43.6)(react-dom@18.2.0)(react@18.2.0):
+  /@trpc/react-query@10.43.6(@tanstack/react-query@5.8.7)(@trpc/client@10.43.6)(@trpc/server@10.43.6)(react-dom@18.2.0)(react@18.2.0):
     resolution: {integrity: sha512-Twf0/wvcrDwmaJ6OLf0YVNwiv8+gtoSFyKYqe+5lMkFtUYSl+4KGvSqiN9ynbnofHCvuPgjJmjdS8pxYkcWxCw==}
     peerDependencies:
       '@tanstack/react-query': ^4.18.0
@@ -5055,7 +5054,7 @@ packages:
       react: '>=16.8.0'
       react-dom: '>=16.8.0'
     dependencies:
-      '@tanstack/react-query': 4.35.0(react-dom@18.2.0)(react@18.2.0)
+      '@tanstack/react-query': 5.8.7(react-dom@18.2.0)(react@18.2.0)
       '@trpc/client': 10.43.6(@trpc/server@10.43.6)
       '@trpc/server': 10.43.6
       react: 18.2.0
@@ -14478,14 +14477,6 @@ packages:
       '@types/react': 18.2.37
       react: 18.2.0
       use-isomorphic-layout-effect: 1.1.2(@types/react@18.2.37)(react@18.2.0)
-    dev: false
-
-  /use-sync-external-store@1.2.0(react@18.2.0):
-    resolution: {integrity: sha512-eEgnFxGQ1Ife9bzYs6VLi8/4X6CObHMw9Qr9tPY43iKwsPw8xE8+EFsf/2cFZ5S3esXgpWgtSCtLNS41F+sKPA==}
-    peerDependencies:
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0
-    dependencies:
-      react: 18.2.0
     dev: false
 
   /util-deprecate@1.0.2:
