@@ -3,7 +3,7 @@
   "private": true,
   "devDependencies": {
     "nodemon": "3.0.1",
-    "start-server-and-test": "2.0.2"
+    "start-server-and-test": "2.0.3"
   },
   "scripts": {
     "cypress:e2e": "nx test:e2e frontend",
