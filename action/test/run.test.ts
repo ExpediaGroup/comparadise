@@ -8,7 +8,9 @@ import {
   VISUAL_REGRESSION_CONTEXT,
   VISUAL_TESTS_FAILED_TO_EXECUTE
 } from 'shared';
+import { disableAutoMerge } from '../src/disableAutoMerge';
 
+jest.mock('../src/disableAutoMerge');
 jest.mock('glob');
 jest.mock('@actions/core');
 jest.mock('@actions/exec');
@@ -263,7 +265,7 @@ describe('main', () => {
     expect(octokit.rest.issues.createComment).not.toHaveBeenCalled();
   });
 
-  it('should set successful commit status if a visual test failed to execute but this is a re-run', async () => {
+  it('should set successful commit status (and disable auto merge) if a visual test failed to execute but this is a re-run', async () => {
     process.env.GITHUB_RUN_ATTEMPT = '2';
     (exec as jest.Mock).mockResolvedValue(0);
     (sync as unknown as jest.Mock).mockReturnValue([
@@ -292,10 +294,11 @@ describe('main', () => {
       ]
     });
     await run();
+    expect(disableAutoMerge).toHaveBeenCalled();
     expect(octokit.rest.repos.createCommitStatus).toHaveBeenCalled();
   });
 
-  it('should set failure commit status if a visual test failed to execute but this is a re-run', async () => {
+  it('should set failure commit status (and not disable auto merge) if a visual test failed to execute but this is a re-run', async () => {
     process.env.GITHUB_RUN_ATTEMPT = '2';
     (exec as jest.Mock).mockResolvedValue(0);
     (sync as unknown as jest.Mock).mockReturnValue([
@@ -326,6 +329,7 @@ describe('main', () => {
       ]
     });
     await run();
+    expect(disableAutoMerge).not.toHaveBeenCalled();
     expect(octokit.rest.repos.createCommitStatus).toHaveBeenCalled();
   });
 });
