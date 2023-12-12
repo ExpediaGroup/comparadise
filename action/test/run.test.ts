@@ -34,9 +34,6 @@ jest.mock('@actions/github', () => ({
       issues: {
         createComment: jest.fn(),
         listComments: jest.fn(() => ({ data: [{ id: 1 }] }))
-      },
-      actions: {
-        listJobsForWorkflowRun: jest.fn(() => ({ data: { jobs: [] } }))
       }
     }
   }))
@@ -266,7 +263,7 @@ describe('main', () => {
     expect(octokit.rest.issues.createComment).not.toHaveBeenCalled();
   });
 
-  it('should set successful commit status if a visual test failed to execute but this is a re-run and it passes', async () => {
+  it('should set successful commit status if a visual test failed to execute but this is a re-run', async () => {
     process.env.GITHUB_RUN_ATTEMPT = '2';
     (exec as jest.Mock).mockResolvedValue(0);
     (sync as unknown as jest.Mock).mockReturnValue([
@@ -298,7 +295,7 @@ describe('main', () => {
     expect(octokit.rest.repos.createCommitStatus).toHaveBeenCalled();
   });
 
-  it('should set failure commit status if a visual test failed to execute but this is a re-run and visual diffs are found', async () => {
+  it('should set failure commit status if a visual test failed to execute but this is a re-run', async () => {
     process.env.GITHUB_RUN_ATTEMPT = '2';
     (exec as jest.Mock).mockResolvedValue(0);
     (sync as unknown as jest.Mock).mockReturnValue([
@@ -330,32 +327,5 @@ describe('main', () => {
     });
     await run();
     expect(octokit.rest.repos.createCommitStatus).toHaveBeenCalled();
-  });
-
-  it('should not set commit status if this is a re-run and not all other jobs have finished', async () => {
-    process.env.GITHUB_RUN_ATTEMPT = '2';
-    (exec as jest.Mock).mockResolvedValue(0);
-    (sync as unknown as jest.Mock).mockReturnValue([
-      'path/to/screenshots/base.png'
-    ]);
-    (
-      octokit.rest.repos.listCommitStatusesForRef as unknown as jest.Mock
-    ).mockResolvedValue({
-      data: [
-        {
-          context: 'some context',
-          created_at: '2023-05-21T16:51:29Z',
-          state: 'success'
-        },
-        {
-          context: VISUAL_REGRESSION_CONTEXT,
-          created_at: '2023-05-21T16:51:29Z',
-          state: 'failure',
-          description: 'A visual regression was detected. Check Comparadise!'
-        }
-      ]
-    });
-    await run();
-    expect(octokit.rest.repos.createCommitStatus).not.toHaveBeenCalled();
   });
 });
