@@ -46,7 +46,7 @@ export const run = async () => {
   }
 
   const latestVisualRegressionStatus =
-      await getLatestVisualRegressionStatus(commitHash);
+    await getLatestVisualRegressionStatus(commitHash);
   const screenshotsPath = path.join(process.cwd(), screenshotsDirectory);
   const filesInScreenshotDirectory = sync(`${screenshotsPath}/**`);
   const diffFileCount = filesInScreenshotDirectory.filter(file =>
