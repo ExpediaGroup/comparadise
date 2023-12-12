@@ -11979,6 +11979,10 @@ const get_latest_visual_regression_status_1 = __nccwpck_require__(8656);
 const shared_1 = __nccwpck_require__(1863);
 const build_comparadise_url_1 = __nccwpck_require__(7088);
 const run = async () => {
+    (0, core_1.info)('Printing context.job');
+    (0, core_1.info)(github_1.context.job);
+    (0, core_1.info)('Printing GITHUB_JOB');
+    (0, core_1.info)(process.env.GITHUB_JOB ?? 'none');
     const runAttempt = Number(process.env.GITHUB_RUN_ATTEMPT);
     const visualTestCommands = (0, core_1.getMultilineInput)('visual-test-command', {
         required: true
@@ -12001,11 +12005,20 @@ const run = async () => {
     const filesInScreenshotDirectory = (0, glob_1.sync)(`${screenshotsPath}/**`);
     const diffFileCount = filesInScreenshotDirectory.filter(file => file.endsWith('diff.png')).length;
     const newFileCount = filesInScreenshotDirectory.filter(file => file.endsWith('new.png')).length;
+    const latestVisualRegressionStatus = await (0, get_latest_visual_regression_status_1.getLatestVisualRegressionStatus)(commitHash);
     if (diffFileCount === 0 && newFileCount === 0) {
         (0, core_1.info)('All visual tests passed, and no diffs found!');
-        const latestVisualRegressionStatus = await (0, get_latest_visual_regression_status_1.getLatestVisualRegressionStatus)(commitHash);
-        if (latestVisualRegressionStatus?.state === 'failure' && runAttempt === 1) {
-            (0, core_1.info)('Visual Regression status has already been set to failed, so skipping status update.');
+        const { data: { jobs } } = await octokit_1.octokit.rest.actions.listJobsForWorkflowRun({
+            run_id: github_1.context.runId,
+            ...github_1.context.repo
+        });
+        const notAllOtherJobsAreFinished = jobs.filter(job => job.name !== github_1.context.job).some(job => job.status !== 'completed');
+        if (notAllOtherJobsAreFinished) {
+            (0, core_1.info)('Skipping status update since not all jobs are finished.');
+            return;
+        }
+        else if (latestVisualRegressionStatus?.state === 'failure') {
+            (0, core_1.info)('Skipping status update since Visual Regression status has already been set to failed.');
             return;
         }
         return octokit_1.octokit.rest.repos.createCommitStatus({
@@ -12016,7 +12029,6 @@ const run = async () => {
             ...github_1.context.repo
         });
     }
-    const latestVisualRegressionStatus = await (0, get_latest_visual_regression_status_1.getLatestVisualRegressionStatus)(commitHash);
     if (latestVisualRegressionStatus?.state === 'failure' &&
         latestVisualRegressionStatus?.description ===
             shared_1.VISUAL_TESTS_FAILED_TO_EXECUTE &&

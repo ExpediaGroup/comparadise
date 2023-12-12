@@ -20,6 +20,10 @@ import {
 import { buildComparadiseUrl } from './build-comparadise-url';
 
 export const run = async () => {
+  info('Printing context.job')
+  info(context.job)
+  info('Printing GITHUB_JOB')
+  info(process.env.GITHUB_JOB ?? 'none')
   const runAttempt = Number(process.env.GITHUB_RUN_ATTEMPT);
   const visualTestCommands = getMultilineInput('visual-test-command', {
     required: true
@@ -53,15 +57,21 @@ export const run = async () => {
   const newFileCount = filesInScreenshotDirectory.filter(file =>
     file.endsWith('new.png')
   ).length;
+  const latestVisualRegressionStatus = await getLatestVisualRegressionStatus(commitHash);
+
   if (diffFileCount === 0 && newFileCount === 0) {
     info('All visual tests passed, and no diffs found!');
 
-    const latestVisualRegressionStatus =
-      await getLatestVisualRegressionStatus(commitHash);
-    if (latestVisualRegressionStatus?.state === 'failure' && runAttempt === 1) {
-      info(
-        'Visual Regression status has already been set to failed, so skipping status update.'
-      );
+    const { data: { jobs } } = await octokit.rest.actions.listJobsForWorkflowRun({
+      run_id: context.runId,
+      ...context.repo
+    });
+    const notAllOtherJobsAreFinished = jobs.filter(job => job.name !== context.job).some(job => job.status !== 'completed');
+    if (notAllOtherJobsAreFinished) {
+      info('Skipping status update since not all jobs are finished.');
+      return;
+    } else if (latestVisualRegressionStatus?.state === 'failure') {
+      info('Skipping status update since Visual Regression status has already been set to failed.');
       return;
     }
 
@@ -74,8 +84,6 @@ export const run = async () => {
     });
   }
 
-  const latestVisualRegressionStatus =
-    await getLatestVisualRegressionStatus(commitHash);
   if (
     latestVisualRegressionStatus?.state === 'failure' &&
     latestVisualRegressionStatus?.description ===

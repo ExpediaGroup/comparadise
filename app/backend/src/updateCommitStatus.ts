@@ -15,7 +15,7 @@ export const updateCommitStatus = async ({
       repo,
       sha: hash,
       state: 'success',
-      description: 'Your visual tests have passed.',
+      description: 'Base images updated successfully.',
       context: VISUAL_REGRESSION_CONTEXT
     })
     .catch(error => {
