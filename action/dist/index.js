@@ -11901,6 +11901,37 @@ exports.createGithubComment = createGithubComment;
 
 /***/ }),
 
+/***/ 1057:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.disableAutoMerge = void 0;
+const octokit_1 = __nccwpck_require__(8078);
+const core_1 = __nccwpck_require__(6108);
+const github_1 = __nccwpck_require__(8099);
+const disableAutoMerge = async (mergeMethod = 'SQUASH') => {
+    try {
+        const { data: pullRequest } = await octokit_1.octokit.rest.pulls.get({ pull_number: github_1.context.issue.number, ...github_1.context.repo });
+        return await octokit_1.octokit.graphql(`
+    mutation {
+      disablePullRequestAutoMerge(input: { pullRequestId: "${pullRequest.node_id}", mergeMethod: ${mergeMethod} }) {
+        clientMutationId
+      }
+    }
+  `);
+    }
+    catch (error) {
+        (0, core_1.warning)('Auto merge could not be disabled, probably because it is disabled for this repo.');
+        (0, core_1.warning)(error);
+    }
+};
+exports.disableAutoMerge = disableAutoMerge;
+
+
+/***/ }),
+
 /***/ 8656:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -11978,8 +12009,10 @@ const comment_1 = __nccwpck_require__(5912);
 const get_latest_visual_regression_status_1 = __nccwpck_require__(8656);
 const shared_1 = __nccwpck_require__(1863);
 const build_comparadise_url_1 = __nccwpck_require__(7088);
+const disableAutoMerge_1 = __nccwpck_require__(1057);
 const run = async () => {
     const runAttempt = Number(process.env.GITHUB_RUN_ATTEMPT);
+    const isRetry = runAttempt > 1;
     const visualTestCommands = (0, core_1.getMultilineInput)('visual-test-command', {
         required: true
     });
@@ -12004,22 +12037,26 @@ const run = async () => {
     const newFileCount = filesInScreenshotDirectory.filter(file => file.endsWith('new.png')).length;
     if (diffFileCount === 0 && newFileCount === 0) {
         (0, core_1.info)('All visual tests passed, and no diffs found!');
-        if (latestVisualRegressionStatus?.state === 'failure' && runAttempt === 1) {
-            (0, core_1.info)('Visual Regression status has already been set to failed, so skipping status update.');
+        if (isRetry) {
+            (0, core_1.warning)('Disabling auto merge because this is a retry attempt. This is to avoid auto merging prematurely.');
+            await (0, disableAutoMerge_1.disableAutoMerge)();
+        }
+        else if (latestVisualRegressionStatus?.state === 'failure') {
+            (0, core_1.info)('Skipping status update since Visual Regression status has already been set to failed.');
             return;
         }
         return octokit_1.octokit.rest.repos.createCommitStatus({
             sha: commitHash,
             context: shared_1.VISUAL_REGRESSION_CONTEXT,
             state: 'success',
-            description: 'Visual tests passed!',
+            description: `Visual tests passed${isRetry ? ' on retry' : ''}!`,
             ...github_1.context.repo
         });
     }
     if (latestVisualRegressionStatus?.state === 'failure' &&
         latestVisualRegressionStatus?.description ===
             shared_1.VISUAL_TESTS_FAILED_TO_EXECUTE &&
-        runAttempt === 1) {
+        !isRetry) {
         (0, core_1.warning)('Some other Visual Regression tests failed to execute successfully, so skipping status update and comment.');
         return;
     }

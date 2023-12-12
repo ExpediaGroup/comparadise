@@ -18,9 +18,11 @@ import {
   VISUAL_TESTS_FAILED_TO_EXECUTE
 } from 'shared';
 import { buildComparadiseUrl } from './build-comparadise-url';
+import { disableAutoMerge } from './disableAutoMerge';
 
 export const run = async () => {
   const runAttempt = Number(process.env.GITHUB_RUN_ATTEMPT);
+  const isRetry = runAttempt > 1;
   const visualTestCommands = getMultilineInput('visual-test-command', {
     required: true
   });
@@ -58,9 +60,14 @@ export const run = async () => {
   if (diffFileCount === 0 && newFileCount === 0) {
     info('All visual tests passed, and no diffs found!');
 
-    if (latestVisualRegressionStatus?.state === 'failure' && runAttempt === 1) {
+    if (isRetry) {
+      warning(
+        'Disabling auto merge because this is a retry attempt. This is to avoid auto merging prematurely.'
+      );
+      await disableAutoMerge();
+    } else if (latestVisualRegressionStatus?.state === 'failure') {
       info(
-        'Visual Regression status has already been set to failed, so skipping status update.'
+        'Skipping status update since Visual Regression status has already been set to failed.'
       );
       return;
     }
@@ -69,7 +76,7 @@ export const run = async () => {
       sha: commitHash,
       context: VISUAL_REGRESSION_CONTEXT,
       state: 'success',
-      description: 'Visual tests passed!',
+      description: `Visual tests passed${isRetry ? ' on retry' : ''}!`,
       ...context.repo
     });
   }
@@ -78,7 +85,7 @@ export const run = async () => {
     latestVisualRegressionStatus?.state === 'failure' &&
     latestVisualRegressionStatus?.description ===
       VISUAL_TESTS_FAILED_TO_EXECUTE &&
-    runAttempt === 1
+    !isRetry
   ) {
     warning(
       'Some other Visual Regression tests failed to execute successfully, so skipping status update and comment.'
