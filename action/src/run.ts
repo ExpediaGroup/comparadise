@@ -45,6 +45,8 @@ export const run = async () => {
     });
   }
 
+  const latestVisualRegressionStatus =
+    await getLatestVisualRegressionStatus(commitHash);
   const screenshotsPath = path.join(process.cwd(), screenshotsDirectory);
   const filesInScreenshotDirectory = sync(`${screenshotsPath}/**`);
   const diffFileCount = filesInScreenshotDirectory.filter(file =>
@@ -56,8 +58,6 @@ export const run = async () => {
   if (diffFileCount === 0 && newFileCount === 0) {
     info('All visual tests passed, and no diffs found!');
 
-    const latestVisualRegressionStatus =
-      await getLatestVisualRegressionStatus(commitHash);
     if (latestVisualRegressionStatus?.state === 'failure' && runAttempt === 1) {
       info(
         'Visual Regression status has already been set to failed, so skipping status update.'
@@ -74,8 +74,6 @@ export const run = async () => {
     });
   }
 
-  const latestVisualRegressionStatus =
-    await getLatestVisualRegressionStatus(commitHash);
   if (
     latestVisualRegressionStatus?.state === 'failure' &&
     latestVisualRegressionStatus?.description ===
