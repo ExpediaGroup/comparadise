@@ -11913,7 +11913,10 @@ const core_1 = __nccwpck_require__(6108);
 const github_1 = __nccwpck_require__(8099);
 const disableAutoMerge = async (mergeMethod = 'SQUASH') => {
     try {
-        const { data: pullRequest } = await octokit_1.octokit.rest.pulls.get({ pull_number: github_1.context.issue.number, ...github_1.context.repo });
+        const { data: pullRequest } = await octokit_1.octokit.rest.pulls.get({
+            pull_number: github_1.context.issue.number,
+            ...github_1.context.repo
+        });
         return await octokit_1.octokit.graphql(`
     mutation {
       disablePullRequestAutoMerge(input: { pullRequestId: "${pullRequest.node_id}", mergeMethod: ${mergeMethod} }) {
