@@ -11911,12 +11911,17 @@ exports.disableAutoMerge = void 0;
 const octokit_1 = __nccwpck_require__(8078);
 const core_1 = __nccwpck_require__(6108);
 const github_1 = __nccwpck_require__(8099);
-const disableAutoMerge = async (mergeMethod = 'SQUASH') => {
+const disableAutoMerge = async (commitHash, mergeMethod = 'SQUASH') => {
     try {
-        const { data: pullRequest } = await octokit_1.octokit.rest.pulls.get({
-            pull_number: github_1.context.issue.number,
+        const { data } = await octokit_1.octokit.rest.repos.listPullRequestsAssociatedWithCommit({
+            commit_sha: commitHash,
             ...github_1.context.repo
         });
+        const pullRequest = data.find(Boolean);
+        if (!pullRequest) {
+            (0, core_1.warning)('Auto merge could not be disabled - could not find pull request from commit hash.');
+            return;
+        }
         return await octokit_1.octokit.graphql(`
     mutation {
       disablePullRequestAutoMerge(input: { pullRequestId: "${pullRequest.node_id}", mergeMethod: ${mergeMethod} }) {
@@ -12042,7 +12047,7 @@ const run = async () => {
         (0, core_1.info)('All visual tests passed, and no diffs found!');
         if (isRetry) {
             (0, core_1.warning)('Disabling auto merge because this is a retry attempt. This is to avoid auto merging prematurely.');
-            await (0, disableAutoMerge_1.disableAutoMerge)();
+            await (0, disableAutoMerge_1.disableAutoMerge)(commitHash);
         }
         else if (latestVisualRegressionStatus?.state === 'failure') {
             (0, core_1.info)('Skipping status update since Visual Regression status has already been set to failed.');

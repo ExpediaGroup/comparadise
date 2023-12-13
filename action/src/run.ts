@@ -64,7 +64,7 @@ export const run = async () => {
       warning(
         'Disabling auto merge because this is a retry attempt. This is to avoid auto merging prematurely.'
       );
-      await disableAutoMerge();
+      await disableAutoMerge(commitHash);
     } else if (latestVisualRegressionStatus?.state === 'failure') {
       info(
         'Skipping status update since Visual Regression status has already been set to failed.'
