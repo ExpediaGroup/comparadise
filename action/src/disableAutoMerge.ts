@@ -2,12 +2,23 @@ import { octokit } from './octokit';
 import { warning } from '@actions/core';
 import { context } from '@actions/github';
 
-export const disableAutoMerge = async (mergeMethod = 'SQUASH') => {
+export const disableAutoMerge = async (
+  commitHash: string,
+  mergeMethod = 'SQUASH'
+) => {
   try {
-    const { data: pullRequest } = await octokit.rest.pulls.get({
-      pull_number: context.issue.number,
-      ...context.repo
-    });
+    const { data } =
+      await octokit.rest.repos.listPullRequestsAssociatedWithCommit({
+        commit_sha: commitHash,
+        ...context.repo
+      });
+    const pullRequest = data.find(Boolean);
+    if (!pullRequest) {
+      warning(
+        'Auto merge could not be disabled - could not find pull request from commit hash.'
+      );
+      return;
+    }
     return await octokit.graphql(`
     mutation {
       disablePullRequestAutoMerge(input: { pullRequestId: "${pullRequest.node_id}", mergeMethod: ${mergeMethod} }) {
