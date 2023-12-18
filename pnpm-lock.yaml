@@ -21,8 +21,8 @@ importers:
         specifier: 6.8.0
         version: 6.8.0(@typescript-eslint/parser@6.13.1)(eslint@8.56.0)(typescript@5.2.2)
       cypress:
-        specifier: 13.6.0
-        version: 13.6.0
+        specifier: 13.6.1
+        version: 13.6.1
       eslint:
         specifier: 8.56.0
         version: 8.56.0
@@ -166,7 +166,7 @@ importers:
     devDependencies:
       '@testing-library/cypress':
         specifier: 10.0.1
-        version: 10.0.1(cypress@13.6.0)
+        version: 10.0.1(cypress@13.6.1)
       '@types/react':
         specifier: 18.2.45
         version: 18.2.45
@@ -196,8 +196,8 @@ importers:
         specifier: 6.0.4
         version: 6.0.4
       cypress:
-        specifier: 13.6.0
-        version: 13.6.0
+        specifier: 13.6.1
+        version: 13.6.1
 
   docs:
     dependencies:
@@ -5080,7 +5080,7 @@ packages:
       use-sync-external-store: 1.2.0(react@18.2.0)
     dev: false
 
-  /@testing-library/cypress@10.0.1(cypress@13.6.0):
+  /@testing-library/cypress@10.0.1(cypress@13.6.1):
     resolution: {integrity: sha512-e8uswjTZIBhaIXjzEcrQQ8nHRWHgZH7XBxKuIWxZ/T7FxfWhCR48nFhUX5nfPizjVOKSThEfOSv67jquc1ASkw==}
     engines: {node: '>=12', npm: '>=6'}
     peerDependencies:
@@ -5088,7 +5088,7 @@ packages:
     dependencies:
       '@babel/runtime': 7.22.5
       '@testing-library/dom': 9.3.3
-      cypress: 13.6.0
+      cypress: 13.6.1
     dev: true
 
   /@testing-library/dom@7.31.2:
@@ -5519,7 +5519,7 @@ packages:
     resolution: {integrity: sha512-yPX+krAP5nSdimnSbdOICDocAwJSS+GOPiGtKEvBzuiSRADYQkAfnNFZS8WljjFVZZiDpj78AnZNo8m7adRvCw==}
     dependencies:
       '@testing-library/dom': 7.31.2
-      cypress: 13.6.0
+      cypress: 13.6.1
     dev: true
 
   /@types/unist@2.0.6:
@@ -7282,8 +7282,8 @@ packages:
   /csstype@3.1.2:
     resolution: {integrity: sha512-I7K1Uu0MBPzaFKg4nI5Q7Vs2t+3gWWW648spaF+Rg7pI9ds18Ugn+lvg4SHczUdKlHI5LWBXyqfS8+DufyBsgQ==}
 
-  /cypress@13.6.0:
-    resolution: {integrity: sha512-quIsnFmtj4dBUEJYU4OH0H12bABJpSujvWexC24Ju1gTlKMJbeT6tTO0vh7WNfiBPPjoIXLN+OUqVtiKFs6SGw==}
+  /cypress@13.6.1:
+    resolution: {integrity: sha512-k1Wl5PQcA/4UoTffYKKaxA0FJKwg8yenYNYRzLt11CUR0Kln+h7Udne6mdU1cUIdXBDTVZWtmiUjzqGs7/pEpw==}
     engines: {node: ^16.0.0 || ^18.0.0 || >=20.0.0}
     hasBin: true
     requiresBuild: true
