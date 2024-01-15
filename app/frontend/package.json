@@ -17,7 +17,7 @@
   },
   "devDependencies": {
     "@testing-library/cypress": "10.0.1",
-    "@types/react": "18.2.45",
+    "@types/react": "18.2.47",
     "@types/react-dom": "18.2.18",
     "@types/testing-library__cypress": "5.0.13",
     "prettier-plugin-tailwindcss": "0.5.7"
