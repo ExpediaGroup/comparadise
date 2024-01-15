@@ -11,7 +11,7 @@
     "express-rate-limit": "7.1.5",
     "lodash": "4.17.21",
     "shared": "workspace:*",
-    "ts-node": "10.9.1",
+    "ts-node": "10.9.2",
     "zod": "3.22.4"
   },
   "devDependencies": {
