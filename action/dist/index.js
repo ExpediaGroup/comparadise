@@ -11911,7 +11911,7 @@ exports.disableAutoMerge = void 0;
 const octokit_1 = __nccwpck_require__(8078);
 const core_1 = __nccwpck_require__(6108);
 const github_1 = __nccwpck_require__(8099);
-const disableAutoMerge = async (commitHash, mergeMethod = 'SQUASH') => {
+const disableAutoMerge = async (commitHash) => {
     try {
         const { data } = await octokit_1.octokit.rest.repos.listPullRequestsAssociatedWithCommit({
             commit_sha: commitHash,
@@ -11924,7 +11924,7 @@ const disableAutoMerge = async (commitHash, mergeMethod = 'SQUASH') => {
         }
         return await octokit_1.octokit.graphql(`
     mutation {
-      disablePullRequestAutoMerge(input: { pullRequestId: "${pullRequest.node_id}", mergeMethod: ${mergeMethod} }) {
+      disablePullRequestAutoMerge(input: { pullRequestId: "${pullRequest.node_id}"}) {
         clientMutationId
       }
     }
