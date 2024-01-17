@@ -20,7 +20,7 @@ import { ArrowBackIcon, ArrowForwardIcon } from './arrows';
 import { FILE_NAMES } from '../../backend/src/schema';
 
 export const MainPage = () => {
-  const [viewType, setViewType] = React.useState<ImageView | undefined>();
+  const [viewType, setViewType] = React.useState<ImageView>(ImageViews.SINGLE);
   const [selectedImage, setSelectedImage] = React.useState<Image>();
 
   const [searchParams] = useSearchParams();
@@ -47,6 +47,7 @@ export const MainPage = () => {
   useEffect(() => {
     if (data) {
       getViewType(data.images).then(newViewType => setViewType(newViewType));
+      setSelectedImage(data.images?.[1]);
     }
   }, [data]);
 
@@ -146,14 +147,13 @@ const getViewType = async (
   images: RouterOutput['fetchCurrentPage']['images']
 ) => {
   if (images.length === 1) {
-    return undefined;
+    return ImageViews.SINGLE;
   }
-  const firstImage = images[0]?.url;
-  if (!firstImage) {
-    return undefined;
+  const diffImage = images[1]?.url;
+  if (!diffImage) {
+    return ImageViews.SINGLE;
   }
 
-  const shouldViewSideBySide =
-    await imageIsSmallEnoughForSideBySide(firstImage);
-  return shouldViewSideBySide ? ImageViews.SIDE_BY_SIDE : undefined;
+  const shouldViewSideBySide = await imageIsSmallEnoughForSideBySide(diffImage);
+  return shouldViewSideBySide ? ImageViews.SIDE_BY_SIDE : ImageViews.SINGLE;
 };

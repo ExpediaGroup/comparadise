@@ -19,12 +19,32 @@ export const SingleImageView: React.FC<SingleImageViewProps> = ({
   selectedImage,
   setSelectedImage
 }) => {
+  const [isNextLoading, setIsNextLoading] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsNextLoading(true);
+  }, [selectedImage?.url]);
+
   if (!selectedImage) {
     return <p>No images found.</p>;
   }
 
   return (
     <div className="mb-12 mt-5 flex justify-center">
+      <div className="relative">
+        {isNextLoading && (
+          <div className="absolute bottom-0 left-0 right-0 top-0 bg-gray-800/40 backdrop-blur-sm">
+            <div className="sticky top-1/3">
+              <Loader view={LoaderViews.OVERLAY} />
+            </div>
+          </div>
+        )}
+        <ImageComponent
+          src={selectedImage.url}
+          alt={selectedImage.name}
+          onLoadFinished={() => setIsNextLoading(false)}
+        />
+      </div>
       <div className="fixed bottom-20">
         {images.map((image, index) => {
           const onClick = () => setSelectedImage(image);
@@ -43,7 +63,6 @@ export const SingleImageView: React.FC<SingleImageViewProps> = ({
           );
         })}
       </div>
-      <Image src={selectedImage.url} alt={selectedImage.name} />
     </div>
   );
 };
@@ -70,29 +89,36 @@ export const SideBySideImageView: React.FC<ImageViewChildProps> = ({
       {images.map(image => (
         <div key={image.name}>
           <h2 className="text-center">{image.name}</h2>
-          <Image src={image.url} alt={image.name} />
+          <ImageComponent src={image.url} alt={image.name} />
         </div>
       ))}
     </div>
   );
 };
 
-const Image = (
+const ImageComponent = (
   props: React.DetailedHTMLProps<
     React.ImgHTMLAttributes<HTMLImageElement>,
     HTMLImageElement
-  >
+  > & { onLoadFinished?: () => void }
 ) => {
-  const [isLoading, setIsLoading] = useState(true);
+  const [currentSRC, setCurrentSRC] = useState(props.src);
+  const { onLoadFinished, ...derrivedProps } = props;
 
-  return (
-    <>
-      {isLoading && <Loader view={LoaderViews.PARTIAL} />}
-      <img
-        {...props}
-        onLoad={() => setIsLoading(false)}
-        className={isLoading ? 'hidden' : ''}
-      />
-    </>
-  );
+  React.useEffect(() => {
+    const loadImage = async () => {
+      if (props.src) {
+        const image = new Image();
+        image.src = props.src;
+        await image.decode();
+
+        setCurrentSRC(props.src);
+        onLoadFinished?.();
+      }
+    };
+
+    loadImage().then(() => {});
+  }, [props.src]);
+
+  return <img key={props.src} {...derrivedProps} src={currentSRC} />;
 };
