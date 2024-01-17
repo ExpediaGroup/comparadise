@@ -33,13 +33,13 @@ export const SingleImageView: React.FC<SingleImageViewProps> = ({
     <div className="mb-12 mt-5 flex justify-center">
       <div className="relative">
         {isNextLoading && (
-          <div className="absolute bottom-0 left-0 right-0 top-0 bg-gray-800/40 backdrop-blur-sm">
+          <div className="absolute bottom-0 left-0 right-0 top-0 backdrop-blur-sm">
             <div className="sticky top-1/3">
               <Loader view={LoaderViews.OVERLAY} />
             </div>
           </div>
         )}
-        <ImageComponent
+        <LazyImage
           src={selectedImage.url}
           alt={selectedImage.name}
           onLoadFinished={() => setIsNextLoading(false)}
@@ -89,36 +89,36 @@ export const SideBySideImageView: React.FC<ImageViewChildProps> = ({
       {images.map(image => (
         <div key={image.name}>
           <h2 className="text-center">{image.name}</h2>
-          <ImageComponent src={image.url} alt={image.name} />
+          <LazyImage src={image.url} alt={image.name} />
         </div>
       ))}
     </div>
   );
 };
 
-const ImageComponent = (
+const LazyImage = (
   props: React.DetailedHTMLProps<
     React.ImgHTMLAttributes<HTMLImageElement>,
     HTMLImageElement
   > & { onLoadFinished?: () => void }
 ) => {
   const [currentSRC, setCurrentSRC] = useState(props.src);
-  const { onLoadFinished, ...derrivedProps } = props;
+  const { onLoadFinished, ...derivedProps } = props;
 
   React.useEffect(() => {
-    const loadImage = async () => {
-      if (props.src) {
-        const image = new Image();
-        image.src = props.src;
-        await image.decode();
-
-        setCurrentSRC(props.src);
+    const image = new Image();
+    const loadImage = async (elem: HTMLImageElement, src: string) => {
+      elem.src = src;
+      elem.onload = () => {
         onLoadFinished?.();
-      }
+        setCurrentSRC(src);
+      };
     };
 
-    loadImage().then(() => {});
+    if (props.src) {
+      loadImage(image, props.src).then(() => {});
+    }
   }, [props.src]);
 
-  return <img key={props.src} {...derrivedProps} src={currentSRC} />;
+  return <img key={props.src} {...derivedProps} src={currentSRC} />;
 };
