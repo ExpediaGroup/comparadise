@@ -11,7 +11,9 @@ import { Dialog, Transition } from '@headlessui/react';
 import { PrimaryButton, TertiaryButton } from './buttons';
 import { useSearchParams } from 'react-router-dom';
 
-export const UpdateImagesButton = () => {
+export const UpdateImagesButton: React.FC<{ disabled: boolean }> = ({
+  disabled
+}) => {
   const [dialogIsOpen, setDialogIsOpen] = useState(false);
   const { baseImageState, setBaseImageState } = useContext(
     BaseImageStateContext
@@ -114,7 +116,7 @@ export const UpdateImagesButton = () => {
   return (
     <>
       <PrimaryButton
-        disabled={shouldDisableBaseImageButton}
+        disabled={disabled || shouldDisableBaseImageButton}
         onClick={handleDialogOpen}
       >
         {baseImageState}

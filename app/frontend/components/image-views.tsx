@@ -84,11 +84,8 @@ export const SideBySideImageView: React.FC<ImageViewChildProps> = ({
 
   React.useEffect(() => {
     Promise.allSettled(
-      images.map(async elem => {
-        const image = new Image();
-        image.src = elem.url;
-        await image.decode();
-
+      images.map(async image => {
+        await preloadImage(image.url);
         return image;
       })
     ).then(() => {
@@ -126,20 +123,25 @@ export const LazyImage = (
   const { onLoadFinished, ...derivedProps } = props;
 
   React.useEffect(() => {
-    const image = new Image();
-    const loadImage = async (elem: HTMLImageElement, src: string) => {
-      elem.src = src;
-
-      elem.onload = () => {
-        onLoadFinished?.();
-        setCurrentSRC(src);
-      };
-    };
-
     if (props.src) {
-      loadImage(image, props.src).then(() => {});
+      preloadImage(props.src).then(() => {
+        onLoadFinished?.();
+        setCurrentSRC(props.src);
+      });
     }
   }, [props.src]);
 
   return <img key={currentSRC} {...derivedProps} src={currentSRC} />;
+};
+
+export const preloadImage = async (src: string, elem?: HTMLImageElement) => {
+  const image = elem || new Image();
+  image.src = src;
+
+  if (image.complete) {
+    return;
+  }
+
+  await image.decode();
+  return image;
 };

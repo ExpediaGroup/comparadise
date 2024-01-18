@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { LandingPage } from './landing-page';
 import { Error } from './error';
-import { Loader, LoaderViews } from './loader';
+import { Loader } from './loader';
 import { ViewToggle, ImageViews, ImageView } from './view-toggle';
 import { UpdateImagesButton } from './update-images-button';
 import { RouterOutput, trpc } from '../utils/trpc';
@@ -13,13 +13,15 @@ import {
 import { ArrowBackIcon, ArrowForwardIcon } from './arrows';
 import { ImageContainer } from './image-container';
 import { useEffect } from 'react';
+import { preloadImage } from './image-views';
 
-const imageIsSmallEnoughForSideBySide = async (image: string) => {
-  const img = new Image();
-  img.src = image;
-  await img.decode();
+const imageIsSmallEnoughForSideBySide = async (url: string) => {
+  const image = await preloadImage(url);
+  if (image) {
+    return 3 * image.naturalWidth < window.innerWidth;
+  }
 
-  return 3 * img.naturalWidth < window.innerWidth;
+  return false;
 };
 
 const getViewType = async (
@@ -39,7 +41,8 @@ const getViewType = async (
 
 export const MainPage = () => {
   const [isMounted, setIsMounted] = React.useState(false);
-  const [viewType, setViewType] = React.useState<ImageView>();
+  const [viewType, setViewType] = React.useState<ImageView>(ImageViews.SINGLE);
+  const [isViewRecalculated, setIsViewRecalculated] = React.useState(false);
 
   const [searchParams] = useSearchParams();
   const params: Record<string, string | undefined> = Object.fromEntries(
@@ -68,8 +71,10 @@ export const MainPage = () => {
 
   useEffect(() => {
     if (data?.images) {
+      setIsViewRecalculated(false);
       getViewType(data.images).then(newViewType => {
         setViewType(newViewType);
+        setIsViewRecalculated(true);
       });
     }
   }, [data?.images]);
@@ -123,19 +128,20 @@ export const MainPage = () => {
             <ArrowForwardIcon disabled={forwardButtonDisabled} />
           </button>
         </div>
-        {!isFetching && (
-          <>
-            <div className="mt-8">
-              <UpdateImagesButton />
-            </div>
-            <div className="mt-5">
-              <ViewToggle selectedView={viewType} onSelectView={setViewType} />
-            </div>
-          </>
-        )}
+
+        <div className="mt-8">
+          <UpdateImagesButton disabled={isFetching} />
+        </div>
+        <div className="mt-5">
+          <ViewToggle selectedView={viewType} onSelectView={setViewType} />
+        </div>
       </div>
-      {isMounted && data?.images && viewType && (
-        <ImageContainer images={data.images} viewType={viewType} />
+      {isMounted && data?.images && (
+        <ImageContainer
+          images={data.images}
+          viewType={viewType}
+          isViewRecalculated={isViewRecalculated}
+        />
       )}
     </>
   );
