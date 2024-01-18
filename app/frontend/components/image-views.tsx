@@ -1,48 +1,39 @@
 import React, { useState } from 'react';
 import { RouterOutput } from '../utils/trpc';
 import { PrimaryButton, SecondaryButton } from './buttons';
-import { Loader, LoaderViews } from './loader';
 
 type Images = RouterOutput['fetchCurrentPage']['images'];
-interface ImageViewChildProps {
-  images: Images;
-}
 export type Image = Images[number];
 
 interface SingleImageViewProps extends ImageViewChildProps {
   selectedImage?: Image;
   setSelectedImage: (file: Image) => void;
+  setImageLoadedStatus: (isLoaded: boolean) => void;
 }
 
 export const SingleImageView: React.FC<SingleImageViewProps> = ({
   images,
   selectedImage,
-  setSelectedImage
+  setSelectedImage,
+  setImageLoadedStatus
 }) => {
-  const [isNextLoading, setIsNextLoading] = React.useState(false);
-
-  React.useEffect(() => {
-    setIsNextLoading(true);
-  }, [selectedImage?.url]);
-
   if (!selectedImage) {
     return <p>No images found.</p>;
   }
 
+  React.useEffect(() => {
+    setImageLoadedStatus(false);
+  }, [selectedImage.url]);
+
   return (
     <div className="mb-12 mt-5 flex justify-center">
       <div className="relative">
-        {isNextLoading && (
-          <div className="absolute bottom-0 left-0 right-0 top-0 backdrop-blur-sm">
-            <div className="sticky top-1/3">
-              <Loader view={LoaderViews.OVERLAY} />
-            </div>
-          </div>
-        )}
         <LazyImage
           src={selectedImage.url}
           alt={selectedImage.name}
-          onLoadFinished={() => setIsNextLoading(false)}
+          onLoadFinished={() => {
+            setImageLoadedStatus(true);
+          }}
         />
       </div>
       <div className="fixed bottom-20">
@@ -67,7 +58,7 @@ export const SingleImageView: React.FC<SingleImageViewProps> = ({
   );
 };
 
-const getImageButtonStyles = (images: Images, imageIndex: number) => {
+export const getImageButtonStyles = (images: Images, imageIndex: number) => {
   if (images.length === 1) {
     return 'rounded-md';
   }
@@ -81,22 +72,51 @@ const getImageButtonStyles = (images: Images, imageIndex: number) => {
   }
 };
 
+interface ImageViewChildProps {
+  images: Images;
+  setImageLoadedStatus: (isLoaded: boolean) => void;
+}
 export const SideBySideImageView: React.FC<ImageViewChildProps> = ({
-  images
+  images,
+  setImageLoadedStatus
 }) => {
+  const [imagesLoaded, setImagesLoaded] = React.useState(false);
+
+  React.useEffect(() => {
+    Promise.allSettled(
+      images.map(async elem => {
+        const image = new Image();
+        image.src = elem.url;
+        await image.decode();
+
+        return image;
+      })
+    ).then(() => {
+      setImageLoadedStatus(true);
+      setImagesLoaded(true);
+    });
+
+    return () => {
+      setImageLoadedStatus(false);
+      setImagesLoaded(false);
+    };
+  }, [images?.[0]?.url]);
+
   return (
-    <div className="flex justify-center">
-      {images.map(image => (
-        <div key={image.name}>
-          <h2 className="text-center">{image.name}</h2>
-          <LazyImage src={image.url} alt={image.name} />
-        </div>
-      ))}
-    </div>
+    imagesLoaded && (
+      <div className="flex justify-center">
+        {images.map(image => (
+          <div key={image.name}>
+            <h2 className="text-center">{image.name}</h2>
+            <LazyImage src={image.url} alt={image.name} />
+          </div>
+        ))}
+      </div>
+    )
   );
 };
 
-const LazyImage = (
+export const LazyImage = (
   props: React.DetailedHTMLProps<
     React.ImgHTMLAttributes<HTMLImageElement>,
     HTMLImageElement
@@ -109,6 +129,7 @@ const LazyImage = (
     const image = new Image();
     const loadImage = async (elem: HTMLImageElement, src: string) => {
       elem.src = src;
+
       elem.onload = () => {
         onLoadFinished?.();
         setCurrentSRC(src);
@@ -120,5 +141,5 @@ const LazyImage = (
     }
   }, [props.src]);
 
-  return <img key={props.src} {...derivedProps} src={currentSRC} />;
+  return <img key={currentSRC} {...derivedProps} src={currentSRC} />;
 };

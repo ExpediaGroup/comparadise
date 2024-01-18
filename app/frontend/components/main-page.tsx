@@ -1,15 +1,9 @@
 import * as React from 'react';
-import { useEffect } from 'react';
 import { LandingPage } from './landing-page';
 import { Error } from './error';
 import { Loader, LoaderViews } from './loader';
 import { ViewToggle, ImageViews, ImageView } from './view-toggle';
 import { UpdateImagesButton } from './update-images-button';
-import {
-  type Image,
-  SideBySideImageView,
-  SingleImageView
-} from './image-views';
 import { RouterOutput, trpc } from '../utils/trpc';
 import {
   createSearchParams,
@@ -17,11 +11,35 @@ import {
   useSearchParams
 } from 'react-router-dom';
 import { ArrowBackIcon, ArrowForwardIcon } from './arrows';
-import { FILE_NAMES } from '../../backend/src/schema';
+import { ImageContainer } from './image-container';
+import { useEffect } from 'react';
+
+const imageIsSmallEnoughForSideBySide = async (image: string) => {
+  const img = new Image();
+  img.src = image;
+  await img.decode();
+
+  return 3 * img.naturalWidth < window.innerWidth;
+};
+
+const getViewType = async (
+  images: RouterOutput['fetchCurrentPage']['images']
+) => {
+  if (images.length === 1) {
+    return ImageViews.SINGLE;
+  }
+  const diffImage = images[1]?.url;
+  if (!diffImage) {
+    return ImageViews.SINGLE;
+  }
+
+  const shouldViewSideBySide = await imageIsSmallEnoughForSideBySide(diffImage);
+  return shouldViewSideBySide ? ImageViews.SIDE_BY_SIDE : ImageViews.SINGLE;
+};
 
 export const MainPage = () => {
-  const [viewType, setViewType] = React.useState<ImageView>(ImageViews.SINGLE);
-  const [selectedImage, setSelectedImage] = React.useState<Image>();
+  const [isMounted, setIsMounted] = React.useState(false);
+  const [viewType, setViewType] = React.useState<ImageView>();
 
   const [searchParams] = useSearchParams();
   const params: Record<string, string | undefined> = Object.fromEntries(
@@ -45,18 +63,23 @@ export const MainPage = () => {
   }
 
   useEffect(() => {
-    if (data) {
-      getViewType(data.images).then(newViewType => setViewType(newViewType));
-      setSelectedImage(data.images?.[1]);
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (data?.images) {
+      getViewType(data.images).then(newViewType => {
+        setViewType(newViewType);
+      });
     }
-  }, [data]);
+  }, [data?.images]);
 
   if (error) {
     return <Error error={error} />;
   }
 
-  if (isLoading) {
-    return <Loader view={LoaderViews.FULL_SCREEN} />;
+  if (isLoading && !isMounted) {
+    return <Loader view="OVERLAY" />;
   }
 
   const onClickBackArrow = () => {
@@ -75,27 +98,6 @@ export const MainPage = () => {
     refetch();
   };
 
-  const getImageBody = () => {
-    if (isFetching) {
-      return <Loader view={LoaderViews.PARTIAL} />;
-    }
-    const imageView =
-      viewType === ImageViews.SIDE_BY_SIDE ? (
-        <SideBySideImageView images={data.images} />
-      ) : (
-        <SingleImageView
-          images={data.images}
-          selectedImage={
-            selectedImage ??
-            data.images.find(image => image.name === FILE_NAMES.DIFF) ??
-            data.images[0]
-          }
-          setSelectedImage={setSelectedImage}
-        />
-      );
-    return <div className="mt-8">{imageView}</div>;
-  };
-
   const backButtonDisabled = page <= 1 || isFetching;
   const forwardButtonDisabled = !nextPageExists || isFetching;
 
@@ -110,7 +112,9 @@ export const MainPage = () => {
           >
             <ArrowBackIcon disabled={backButtonDisabled} />
           </button>
-          <h1 className="text-center text-4xl font-medium">{data.title}</h1>
+          <h1 className="text-center text-4xl font-medium">
+            {data?.title || 'Loading images...'}
+          </h1>
           <button
             disabled={forwardButtonDisabled}
             onClick={onClickForwardArrow}
@@ -130,30 +134,9 @@ export const MainPage = () => {
           </>
         )}
       </div>
-      {getImageBody()}
+      {isMounted && data?.images && viewType && (
+        <ImageContainer images={data.images} viewType={viewType} />
+      )}
     </>
   );
-};
-
-const imageIsSmallEnoughForSideBySide = async (image: string) => {
-  const img = new Image();
-  img.src = image;
-  await img.decode();
-
-  return 3 * img.naturalWidth < window.innerWidth;
-};
-
-const getViewType = async (
-  images: RouterOutput['fetchCurrentPage']['images']
-) => {
-  if (images.length === 1) {
-    return ImageViews.SINGLE;
-  }
-  const diffImage = images[1]?.url;
-  if (!diffImage) {
-    return ImageViews.SINGLE;
-  }
-
-  const shouldViewSideBySide = await imageIsSmallEnoughForSideBySide(diffImage);
-  return shouldViewSideBySide ? ImageViews.SIDE_BY_SIDE : ImageViews.SINGLE;
 };
