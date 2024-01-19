@@ -26,7 +26,9 @@ export const ViewToggle: React.FC<ViewToggleProps> = ({
         backgroundFilled
         className="rounded-e-none rounded-s-md"
         onClick={() => onSelectView(ImageViews.SIDE_BY_SIDE)}
-        disabled={selectedView === undefined}
+        disabled={
+          selectedView === ImageViews.SINGLE || selectedView === undefined
+        }
       >
         Side-by-side
       </SideBySideButton>

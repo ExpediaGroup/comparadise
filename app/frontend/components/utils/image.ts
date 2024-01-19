@@ -25,7 +25,8 @@ const imageIsSmallEnoughForSideBySide = async (url: string) => {
 export const getViewType = async (
   images: RouterOutput['fetchCurrentPage']['images']
 ) => {
-  if (images.length === 1) {
+  if (images.length === 1 && images[0]?.url) {
+    await preloadImage(images[0].url);
     return ImageViews.SINGLE;
   }
   const diffImage = images[1]?.url;
