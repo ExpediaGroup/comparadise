@@ -4,40 +4,19 @@ import { Error } from './error';
 import { Loader } from './loader';
 import { ViewToggle, ImageViews, ImageView } from './view-toggle';
 import { UpdateImagesButton } from './update-images-button';
-import { RouterOutput, trpc } from '../utils/trpc';
+import { trpc } from '../utils/trpc';
 import {
   createSearchParams,
   useNavigate,
   useSearchParams
 } from 'react-router-dom';
 import { ArrowBackIcon, ArrowForwardIcon } from './arrows';
-import { ImageContainer } from './image-container';
-import { preloadImage } from './utils';
+import { ImagesContainer } from './images-container';
+import { getViewType } from './utils';
 import { preloadAllImages } from './utils';
+import { Images } from './types';
 
-const imageIsSmallEnoughForSideBySide = async (url: string) => {
-  const image = await preloadImage(url);
-  return 3 * image.naturalWidth < window.innerWidth;
-};
-
-const getViewType = async (
-  images: RouterOutput['fetchCurrentPage']['images']
-) => {
-  if (images.length === 1) {
-    return ImageViews.SINGLE;
-  }
-  const diffImage = images[1]?.url;
-  if (!diffImage) {
-    return ImageViews.SINGLE;
-  }
-
-  const shouldViewSideBySide = await imageIsSmallEnoughForSideBySide(diffImage);
-  return shouldViewSideBySide ? ImageViews.SIDE_BY_SIDE : ImageViews.SINGLE;
-};
-
-const preloadNextPage = async (
-  images?: RouterOutput['fetchCurrentPage']['images']
-) => {
+const preloadNextPage = async (images?: Images) => {
   if (!images) {
     return;
   }
@@ -154,9 +133,9 @@ export const MainPage = () => {
           <ViewToggle selectedView={viewType} onSelectView={setViewType} />
         </div>
       </div>
-      <div className="relative">
+      <div className="relative  mt-8">
         {data?.images && (
-          <ImageContainer
+          <ImagesContainer
             images={data.images}
             viewType={viewType}
             isNextPageReady={isNextPageReady}

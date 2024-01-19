@@ -1,16 +1,16 @@
 import * as React from 'react';
 import { ImageView } from './view-toggle';
 import { Loader } from './loader';
-import { RouterOutput } from '../utils/trpc';
-import { ImageCanvas } from './image-canvas';
+import { ImagesView } from './images-view';
+import { Images } from './types';
 
 interface ImageContainerProps {
   viewType?: ImageView;
-  images: RouterOutput['fetchCurrentPage']['images'];
+  images: Images;
   isNextPageReady: boolean;
 }
 
-export const ImageContainer: React.FC<ImageContainerProps> = ({
+export const ImagesContainer: React.FC<ImageContainerProps> = ({
   images,
   viewType,
   isNextPageReady
@@ -18,8 +18,8 @@ export const ImageContainer: React.FC<ImageContainerProps> = ({
   const [isImagesLoaded, setIsImagesLoaded] = React.useState(false);
 
   return (
-    <div className="relative mt-8">
-      <ImageCanvas
+    <div className="relative">
+      <ImagesView
         viewType={viewType}
         images={images}
         setImageLoadedStatus={setIsImagesLoaded}

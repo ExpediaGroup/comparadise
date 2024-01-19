@@ -1,16 +1,16 @@
 import * as React from 'react';
-import { ImageView, ImageViews } from './view-toggle';
-import { Image, SideBySideImageView, SingleImageView } from './image-views';
-import { RouterOutput } from '../utils/trpc';
-import { FILE_NAMES } from '../../backend/src/schema';
+import { ImageView, ImageViews } from '../view-toggle';
+import { SideBySideImageView } from './side-by-side-image-view';
+import { SingleImageView } from './single-image-view';
+import { Images } from '../types';
 
 interface ImageCanvasProps {
   viewType?: ImageView;
-  images: RouterOutput['fetchCurrentPage']['images'];
+  images: Images;
   setImageLoadedStatus: (value: boolean) => void;
   isNextPageReady: boolean;
 }
-export const ImageCanvas: React.FC<ImageCanvasProps> = ({
+export const ImagesView: React.FC<ImageCanvasProps> = ({
   viewType,
   images,
   setImageLoadedStatus,
