@@ -1,5 +1,5 @@
-import { RouterOutput } from '../utils/trpc';
-import { ImageViews } from './view-toggle';
+import { RouterOutput } from '../../utils/trpc';
+import { ImageViews } from '../view-toggle';
 
 export const preloadImage = async (url: string, elem?: HTMLImageElement) => {
   const image = elem || new Image();

@@ -12,8 +12,7 @@ import {
 } from 'react-router-dom';
 import { ArrowBackIcon, ArrowForwardIcon } from './arrows';
 import { ImagesContainer } from './images-container';
-import { getViewType } from './utils';
-import { preloadAllImages } from './utils';
+import { getViewType, preloadAllImages } from './utils/image';
 import { Images } from './types';
 
 const preloadNextPage = async (images?: Images) => {
@@ -133,7 +132,7 @@ export const MainPage = () => {
           <ViewToggle selectedView={viewType} onSelectView={setViewType} />
         </div>
       </div>
-      <div className="relative  mt-8">
+      <div className="relative mt-8">
         {data?.images && (
           <ImagesContainer
             images={data.images}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { preloadImage } from '../utils';
+import { preloadImage } from '../utils/image';
 
 export const LazyImage = (
   props: React.DetailedHTMLProps<

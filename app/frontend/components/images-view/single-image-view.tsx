@@ -29,17 +29,13 @@ export const SingleImageView: React.FC<SingleImageViewProps> = ({
   const [selectedImage, setSelectedImage] = React.useState<Image>();
 
   React.useEffect(() => {
-    if (images.length === 1 && images[0]?.name === FILE_NAMES.NEW) {
+    if (images.length === 1) {
       setSelectedImage(images[0]);
     } else {
       const diffImage = images.find(img => img.name === FILE_NAMES.DIFF);
       setSelectedImage(diffImage);
     }
   }, [images?.[0]?.url]);
-
-  React.useEffect(() => {
-    setImageLoadedStatus(false);
-  }, [selectedImage?.url]);
 
   if (!selectedImage) {
     return <p>No images found.</p>;
@@ -58,7 +54,10 @@ export const SingleImageView: React.FC<SingleImageViewProps> = ({
       </div>
       <div className="fixed bottom-20">
         {images.map((image, index) => {
-          const onClick = () => setSelectedImage(image);
+          const onClick = () => {
+            setSelectedImage(image);
+            setImageLoadedStatus(false);
+          };
           const Button =
             selectedImage.name === image.name ? PrimaryButton : SecondaryButton;
           const extraStyles = getImageButtonStyles(images, index);
