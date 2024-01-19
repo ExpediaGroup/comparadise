@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { LandingPage } from './landing-page';
 import { Error } from './error';
-import { Loader } from './loader';
+import { Loader, LoaderViews } from './loader';
 import { ViewToggle, ImageViews, ImageView } from './view-toggle';
 import { UpdateImagesButton } from './update-images-button';
 import { RouterOutput, trpc } from '../utils/trpc';
@@ -12,16 +12,12 @@ import {
 } from 'react-router-dom';
 import { ArrowBackIcon, ArrowForwardIcon } from './arrows';
 import { ImageContainer } from './image-container';
-import { useEffect } from 'react';
-import { preloadImage } from './image-views';
+import { preloadImage } from './utils';
+import { preloadAllImages } from './utils';
 
 const imageIsSmallEnoughForSideBySide = async (url: string) => {
   const image = await preloadImage(url);
-  if (image) {
-    return 3 * image.naturalWidth < window.innerWidth;
-  }
-
-  return false;
+  return 3 * image.naturalWidth < window.innerWidth;
 };
 
 const getViewType = async (
@@ -39,10 +35,29 @@ const getViewType = async (
   return shouldViewSideBySide ? ImageViews.SIDE_BY_SIDE : ImageViews.SINGLE;
 };
 
+const preloadNextPage = async (
+  images?: RouterOutput['fetchCurrentPage']['images']
+) => {
+  if (!images) {
+    return ImageViews.SINGLE;
+  }
+
+  const newViewType = await getViewType(images);
+  switch (newViewType) {
+    case ImageViews.SIDE_BY_SIDE:
+      await preloadAllImages(images.map(image => image.url));
+      break;
+    case ImageViews.SINGLE:
+    default:
+      break;
+  }
+
+  return newViewType;
+};
+
 export const MainPage = () => {
-  const [isMounted, setIsMounted] = React.useState(false);
   const [viewType, setViewType] = React.useState<ImageView>(ImageViews.SINGLE);
-  const [isViewRecalculated, setIsViewRecalculated] = React.useState(false);
+  const [isNextPageReady, setIsNextPageReady] = React.useState(false);
 
   const [searchParams] = useSearchParams();
   const params: Record<string, string | undefined> = Object.fromEntries(
@@ -54,36 +69,37 @@ export const MainPage = () => {
   }
 
   const page = Number(pageParam ?? 1);
-  const { isLoading, data, isFetching, refetch, error } =
-    trpc.fetchCurrentPage.useQuery({ hash, bucket, page });
+  const { isLoading, data, isFetching, error } = trpc.fetchCurrentPage.useQuery(
+    { hash, bucket, page }
+  );
 
   const nextPageExists = Boolean(data?.nextPage);
+  const previousPageExists = page - 1 > 0;
 
   const navigate = useNavigate();
   const utils = trpc.useUtils();
+
+  if (previousPageExists) {
+    utils.fetchCurrentPage.prefetch({ hash, bucket, page: page - 1 });
+  }
   if (nextPageExists) {
     utils.fetchCurrentPage.prefetch({ hash, bucket, page: page + 1 });
   }
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (data?.images) {
-      setIsViewRecalculated(false);
-      getViewType(data.images).then(newViewType => {
+  React.useEffect(() => {
+    if (!isNextPageReady) {
+      preloadNextPage(data?.images).then(newViewType => {
+        setIsNextPageReady(true);
         setViewType(newViewType);
-        setIsViewRecalculated(true);
       });
     }
-  }, [data?.images]);
+  }, [isNextPageReady]);
 
   if (error) {
     return <Error error={error} />;
   }
 
-  if (isLoading && !isMounted) {
+  if (isLoading) {
     return <Loader view="OVERLAY" />;
   }
 
@@ -92,7 +108,7 @@ export const MainPage = () => {
       pathname: '/',
       search: `?${createSearchParams({ ...params, page: String(page - 1) })}`
     });
-    refetch();
+    setIsNextPageReady(false);
   };
 
   const onClickForwardArrow = () => {
@@ -100,7 +116,7 @@ export const MainPage = () => {
       pathname: '/',
       search: `?${createSearchParams({ ...params, page: String(page + 1) })}`
     });
-    refetch();
+    setIsNextPageReady(false);
   };
 
   const backButtonDisabled = page <= 1 || isFetching;
@@ -136,13 +152,22 @@ export const MainPage = () => {
           <ViewToggle selectedView={viewType} onSelectView={setViewType} />
         </div>
       </div>
-      {isMounted && data?.images && (
-        <ImageContainer
-          images={data.images}
-          viewType={viewType}
-          isViewRecalculated={isViewRecalculated}
-        />
-      )}
+      <div className="relative">
+        {data?.images && (
+          <ImageContainer
+            images={data.images}
+            viewType={viewType}
+            isNextPageReady={isNextPageReady}
+          />
+        )}
+        {!isNextPageReady && (
+          <div className="absolute bottom-0 left-0 right-0 top-0 backdrop-blur-sm">
+            <div className="sticky top-1/3">
+              <Loader view={LoaderViews.OVERLAY} />
+            </div>
+          </div>
+        )}
+      </div>
     </>
   );
 };

@@ -8,33 +8,32 @@ interface ImageCanvasProps {
   viewType: ImageView;
   images: RouterOutput['fetchCurrentPage']['images'];
   setImageLoadedStatus: (value: boolean) => void;
+  isNextPageReady: boolean;
 }
 export const ImageCanvas: React.FC<ImageCanvasProps> = ({
   viewType,
   images,
-  setImageLoadedStatus
+  setImageLoadedStatus,
+  isNextPageReady
 }) => {
-  const [selectedImage, setSelectedImage] = React.useState<Image>();
+  const [currentView, setCurrentView] = React.useState(viewType);
+  const [imagesState, setImagesState] = React.useState(images);
 
   React.useEffect(() => {
-    if (images.length === 1 && images[0]?.name === FILE_NAMES.NEW) {
-      setSelectedImage(images[0]);
-    } else {
-      const diffImage = images.find(img => img.name === FILE_NAMES.DIFF);
-      setSelectedImage(diffImage);
+    if (isNextPageReady) {
+      setCurrentView(viewType);
+      setImagesState(images);
     }
-  }, [images]);
+  }, [isNextPageReady, viewType]);
 
-  return viewType === ImageViews.SINGLE ? (
+  return currentView === ImageViews.SINGLE ? (
     <SingleImageView
-      images={images}
+      images={imagesState}
       setImageLoadedStatus={setImageLoadedStatus}
-      selectedImage={selectedImage}
-      setSelectedImage={setSelectedImage}
     />
   ) : (
     <SideBySideImageView
-      images={images}
+      images={imagesState}
       setImageLoadedStatus={setImageLoadedStatus}
     />
   );

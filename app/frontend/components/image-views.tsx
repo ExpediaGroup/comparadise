@@ -1,29 +1,47 @@
 import React, { useState } from 'react';
 import { RouterOutput } from '../utils/trpc';
 import { PrimaryButton, SecondaryButton } from './buttons';
+import { preloadImage } from './utils';
+import { FILE_NAMES } from '../../backend/src/schema';
 
 type Images = RouterOutput['fetchCurrentPage']['images'];
 export type Image = Images[number];
 
 interface SingleImageViewProps extends ImageViewChildProps {
-  selectedImage?: Image;
-  setSelectedImage: (file: Image) => void;
   setImageLoadedStatus: (isLoaded: boolean) => void;
 }
 
 export const SingleImageView: React.FC<SingleImageViewProps> = ({
   images,
-  selectedImage,
-  setSelectedImage,
   setImageLoadedStatus
 }) => {
-  if (!selectedImage) {
-    return <p>No images found.</p>;
-  }
+  const [selectedImage, setSelectedImage] = React.useState<Image>();
+
+  // React.useEffect(() => {
+  //   if (images.length === 1 && images[0]?.name === FILE_NAMES.NEW) {
+  //     setSelectedImage(images[0]);
+  //   } else {
+  //     const diffImage = images.find(img => img.name === FILE_NAMES.DIFF);
+  //     setSelectedImage(diffImage);
+  //   }
+  // }, [images?.[0]?.url]);
+
+  React.useEffect(() => {
+    if (images.length === 1 && images[0]?.name === FILE_NAMES.NEW) {
+      setSelectedImage(images[0]);
+    } else {
+      const diffImage = images.find(img => img.name === FILE_NAMES.DIFF);
+      setSelectedImage(diffImage);
+    }
+  }, [images?.[0]?.url]);
 
   React.useEffect(() => {
     setImageLoadedStatus(false);
-  }, [selectedImage.url]);
+  }, [selectedImage?.url]);
+
+  if (!selectedImage) {
+    return <p>No images found.</p>;
+  }
 
   return (
     <div className="mb-12 mt-5 flex justify-center">
@@ -132,16 +150,4 @@ export const LazyImage = (
   }, [props.src]);
 
   return <img key={currentSRC} {...derivedProps} src={currentSRC} />;
-};
-
-export const preloadImage = async (src: string, elem?: HTMLImageElement) => {
-  const image = elem || new Image();
-  image.src = src;
-
-  if (image.complete) {
-    return;
-  }
-
-  await image.decode();
-  return image;
 };

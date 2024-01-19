@@ -7,25 +7,24 @@ import { ImageCanvas } from './image-canvas';
 interface ImageContainerProps {
   viewType: ImageView;
   images: RouterOutput['fetchCurrentPage']['images'];
-  isViewRecalculated: boolean;
+  isNextPageReady: boolean;
 }
 
 export const ImageContainer: React.FC<ImageContainerProps> = ({
   images,
   viewType,
-  isViewRecalculated
+  isNextPageReady
 }) => {
   const [isImagesLoaded, setIsImagesLoaded] = React.useState(false);
 
   return (
     <div className="relative mt-8">
-      {isViewRecalculated && (
-        <ImageCanvas
-          viewType={viewType}
-          images={images}
-          setImageLoadedStatus={setIsImagesLoaded}
-        />
-      )}
+      <ImageCanvas
+        viewType={viewType}
+        images={images}
+        setImageLoadedStatus={setIsImagesLoaded}
+        isNextPageReady={isNextPageReady}
+      />
       {!isImagesLoaded && (
         <div className="absolute bottom-0 left-0 right-0 top-0 backdrop-blur-sm">
           <div className="sticky top-1/3">
