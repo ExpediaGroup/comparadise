@@ -5,7 +5,7 @@ import { RouterOutput } from '../utils/trpc';
 import { FILE_NAMES } from '../../backend/src/schema';
 
 interface ImageCanvasProps {
-  viewType: ImageView;
+  viewType?: ImageView;
   images: RouterOutput['fetchCurrentPage']['images'];
   setImageLoadedStatus: (value: boolean) => void;
   isNextPageReady: boolean;
@@ -17,23 +17,27 @@ export const ImageCanvas: React.FC<ImageCanvasProps> = ({
   isNextPageReady
 }) => {
   const [currentView, setCurrentView] = React.useState(viewType);
-  const [imagesState, setImagesState] = React.useState(images);
+  const [pageImages, setPageImages] = React.useState(images);
 
   React.useEffect(() => {
     if (isNextPageReady) {
       setCurrentView(viewType);
-      setImagesState(images);
+      setPageImages(images);
     }
   }, [isNextPageReady, viewType]);
 
+  if (!currentView) {
+    return null;
+  }
+
   return currentView === ImageViews.SINGLE ? (
     <SingleImageView
-      images={imagesState}
+      images={pageImages}
       setImageLoadedStatus={setImageLoadedStatus}
     />
   ) : (
     <SideBySideImageView
-      images={imagesState}
+      images={pageImages}
       setImageLoadedStatus={setImageLoadedStatus}
     />
   );

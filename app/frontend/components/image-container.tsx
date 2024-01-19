@@ -1,11 +1,11 @@
 import * as React from 'react';
 import { ImageView } from './view-toggle';
-import { Loader, LoaderViews } from './loader';
+import { Loader } from './loader';
 import { RouterOutput } from '../utils/trpc';
 import { ImageCanvas } from './image-canvas';
 
 interface ImageContainerProps {
-  viewType: ImageView;
+  viewType?: ImageView;
   images: RouterOutput['fetchCurrentPage']['images'];
   isNextPageReady: boolean;
 }
@@ -25,13 +25,7 @@ export const ImageContainer: React.FC<ImageContainerProps> = ({
         setImageLoadedStatus={setIsImagesLoaded}
         isNextPageReady={isNextPageReady}
       />
-      {!isImagesLoaded && (
-        <div className="absolute bottom-0 left-0 right-0 top-0 backdrop-blur-sm">
-          <div className="sticky top-1/3">
-            <Loader view={LoaderViews.OVERLAY} />
-          </div>
-        </div>
-      )}
+      {!isImagesLoaded && <Loader />}
     </div>
   );
 };

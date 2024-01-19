@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { LandingPage } from './landing-page';
 import { Error } from './error';
-import { Loader, LoaderViews } from './loader';
+import { Loader } from './loader';
 import { ViewToggle, ImageViews, ImageView } from './view-toggle';
 import { UpdateImagesButton } from './update-images-button';
 import { RouterOutput, trpc } from '../utils/trpc';
@@ -39,7 +39,7 @@ const preloadNextPage = async (
   images?: RouterOutput['fetchCurrentPage']['images']
 ) => {
   if (!images) {
-    return ImageViews.SINGLE;
+    return;
   }
 
   const newViewType = await getViewType(images);
@@ -56,7 +56,7 @@ const preloadNextPage = async (
 };
 
 export const MainPage = () => {
-  const [viewType, setViewType] = React.useState<ImageView>(ImageViews.SINGLE);
+  const [viewType, setViewType] = React.useState<ImageView>();
   const [isNextPageReady, setIsNextPageReady] = React.useState(false);
 
   const [searchParams] = useSearchParams();
@@ -87,20 +87,22 @@ export const MainPage = () => {
   }
 
   React.useEffect(() => {
-    if (!isNextPageReady) {
-      preloadNextPage(data?.images).then(newViewType => {
-        setIsNextPageReady(true);
-        setViewType(newViewType);
+    if (!isNextPageReady && data?.images) {
+      preloadNextPage(data.images).then(newViewType => {
+        if (newViewType) {
+          setIsNextPageReady(true);
+          setViewType(newViewType);
+        }
       });
     }
-  }, [isNextPageReady]);
+  }, [isNextPageReady, data?.images]);
 
   if (error) {
     return <Error error={error} />;
   }
 
   if (isLoading) {
-    return <Loader view="OVERLAY" />;
+    return <Loader />;
   }
 
   const onClickBackArrow = () => {
@@ -160,13 +162,7 @@ export const MainPage = () => {
             isNextPageReady={isNextPageReady}
           />
         )}
-        {!isNextPageReady && (
-          <div className="absolute bottom-0 left-0 right-0 top-0 backdrop-blur-sm">
-            <div className="sticky top-1/3">
-              <Loader view={LoaderViews.OVERLAY} />
-            </div>
-          </div>
-        )}
+        {!isNextPageReady && <Loader />}
       </div>
     </>
   );
