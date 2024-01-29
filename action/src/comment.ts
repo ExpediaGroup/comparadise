@@ -28,8 +28,8 @@ export const createGithubComment = async () => {
     ...context.repo
   });
   const githubActionsCommentBodies = comments.map(comment => comment.body);
-  const comparadiseCommentExists = githubActionsCommentBodies.some(
-    body => body?.includes(comparadiseBaseComment)
+  const comparadiseCommentExists = githubActionsCommentBodies.some(body =>
+    body?.includes(comparadiseBaseComment)
   );
   if (!comparadiseCommentExists) {
     await octokit.rest.issues.createComment({
