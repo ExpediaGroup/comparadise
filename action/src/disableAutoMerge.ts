@@ -2,10 +2,7 @@ import { octokit } from './octokit';
 import { warning } from '@actions/core';
 import { context } from '@actions/github';
 
-export const disableAutoMerge = async (
-  commitHash: string,
-  mergeMethod = 'SQUASH'
-) => {
+export const disableAutoMerge = async (commitHash: string) => {
   try {
     const { data } =
       await octokit.rest.repos.listPullRequestsAssociatedWithCommit({
@@ -21,7 +18,7 @@ export const disableAutoMerge = async (
     }
     return await octokit.graphql(`
     mutation {
-      disablePullRequestAutoMerge(input: { pullRequestId: "${pullRequest.node_id}", mergeMethod: ${mergeMethod} }) {
+      disablePullRequestAutoMerge(input: { pullRequestId: "${pullRequest.node_id}"}) {
         clientMutationId
       }
     }

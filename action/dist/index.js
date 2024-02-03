@@ -11911,7 +11911,7 @@ exports.disableAutoMerge = void 0;
 const octokit_1 = __nccwpck_require__(8078);
 const core_1 = __nccwpck_require__(6108);
 const github_1 = __nccwpck_require__(8099);
-const disableAutoMerge = async (commitHash, mergeMethod = 'SQUASH') => {
+const disableAutoMerge = async (commitHash) => {
     try {
         const { data } = await octokit_1.octokit.rest.repos.listPullRequestsAssociatedWithCommit({
             commit_sha: commitHash,
@@ -11924,7 +11924,7 @@ const disableAutoMerge = async (commitHash, mergeMethod = 'SQUASH') => {
         }
         return await octokit_1.octokit.graphql(`
     mutation {
-      disablePullRequestAutoMerge(input: { pullRequestId: "${pullRequest.node_id}", mergeMethod: ${mergeMethod} }) {
+      disablePullRequestAutoMerge(input: { pullRequestId: "${pullRequest.node_id}"}) {
         clientMutationId
       }
     }
@@ -12012,7 +12012,7 @@ const exec_1 = __nccwpck_require__(9629);
 const octokit_1 = __nccwpck_require__(8078);
 const github_1 = __nccwpck_require__(8099);
 const path = __importStar(__nccwpck_require__(1017));
-const glob_1 = __nccwpck_require__(4304);
+const glob_1 = __nccwpck_require__(2758);
 const comment_1 = __nccwpck_require__(5912);
 const get_latest_visual_regression_status_1 = __nccwpck_require__(8656);
 const shared_1 = __nccwpck_require__(1863);
@@ -12299,18 +12299,18 @@ module.exports = require("zlib");
 
 /***/ }),
 
-/***/ 6237:
+/***/ 1650:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Glob = void 0;
-const minimatch_1 = __nccwpck_require__(1838);
+const minimatch_1 = __nccwpck_require__(2739);
 const path_scurry_1 = __nccwpck_require__(6557);
 const url_1 = __nccwpck_require__(7310);
-const pattern_js_1 = __nccwpck_require__(2053);
-const walker_js_1 = __nccwpck_require__(1938);
+const pattern_js_1 = __nccwpck_require__(142);
+const walker_js_1 = __nccwpck_require__(9329);
 // if no process global, just call it linux.
 // so we default to case-sensitive, / separators
 const defaultPlatform = typeof process === 'object' &&
@@ -12467,7 +12467,12 @@ class Glob {
             return set;
         }, [[], []]);
         this.patterns = matchSet.map((set, i) => {
-            return new pattern_js_1.Pattern(set, globParts[i], 0, this.platform);
+            const g = globParts[i];
+            /* c8 ignore start */
+            if (!g)
+                throw new Error('invalid pattern object');
+            /* c8 ignore stop */
+            return new pattern_js_1.Pattern(set, g, 0, this.platform);
         });
     }
     async walk() {
@@ -12544,14 +12549,14 @@ exports.Glob = Glob;
 
 /***/ }),
 
-/***/ 5838:
+/***/ 2847:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.hasMagic = void 0;
-const minimatch_1 = __nccwpck_require__(1838);
+const minimatch_1 = __nccwpck_require__(2739);
 /**
  * Return true if the patterns provided contain any magic glob characters,
  * given the options provided.
@@ -12578,7 +12583,7 @@ exports.hasMagic = hasMagic;
 
 /***/ }),
 
-/***/ 9891:
+/***/ 3641:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -12589,8 +12594,8 @@ exports.hasMagic = hasMagic;
 // Ignores are always parsed in dot:true mode
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Ignore = void 0;
-const minimatch_1 = __nccwpck_require__(1838);
-const pattern_js_1 = __nccwpck_require__(2053);
+const minimatch_1 = __nccwpck_require__(2739);
+const pattern_js_1 = __nccwpck_require__(142);
 const defaultPlatform = typeof process === 'object' &&
     process &&
     typeof process.platform === 'string'
@@ -12637,6 +12642,11 @@ class Ignore {
             for (let i = 0; i < mm.set.length; i++) {
                 const parsed = mm.set[i];
                 const globParts = mm.globParts[i];
+                /* c8 ignore start */
+                if (!parsed || !globParts) {
+                    throw new Error('invalid pattern object');
+                }
+                /* c8 ignore stop */
                 const p = new pattern_js_1.Pattern(parsed, globParts, 0, platform);
                 const m = new minimatch_1.Minimatch(p.globString(), mmopts);
                 const children = globParts[globParts.length - 1] === '**';
@@ -12678,7 +12688,7 @@ class Ignore {
         }
         for (const m of this.absoluteChildren) {
             if (m.match(fullpath))
-                true;
+                return true;
         }
         return false;
     }
@@ -12688,16 +12698,16 @@ exports.Ignore = Ignore;
 
 /***/ }),
 
-/***/ 4304:
+/***/ 2758:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.glob = exports.hasMagic = exports.Glob = exports.unescape = exports.escape = exports.sync = exports.iterate = exports.iterateSync = exports.stream = exports.streamSync = exports.globIterate = exports.globIterateSync = exports.globSync = exports.globStream = exports.globStreamSync = void 0;
-const minimatch_1 = __nccwpck_require__(1838);
-const glob_js_1 = __nccwpck_require__(6237);
-const has_magic_js_1 = __nccwpck_require__(5838);
+const minimatch_1 = __nccwpck_require__(2739);
+const glob_js_1 = __nccwpck_require__(1650);
+const has_magic_js_1 = __nccwpck_require__(2847);
 function globStreamSync(pattern, options = {}) {
     return new glob_js_1.Glob(pattern, options).streamSync();
 }
@@ -12733,12 +12743,12 @@ exports.sync = Object.assign(globSync, {
     iterate: globIterateSync,
 });
 /* c8 ignore start */
-var minimatch_2 = __nccwpck_require__(1838);
+var minimatch_2 = __nccwpck_require__(2739);
 Object.defineProperty(exports, "escape", ({ enumerable: true, get: function () { return minimatch_2.escape; } }));
 Object.defineProperty(exports, "unescape", ({ enumerable: true, get: function () { return minimatch_2.unescape; } }));
-var glob_js_2 = __nccwpck_require__(6237);
+var glob_js_2 = __nccwpck_require__(1650);
 Object.defineProperty(exports, "Glob", ({ enumerable: true, get: function () { return glob_js_2.Glob; } }));
-var has_magic_js_2 = __nccwpck_require__(5838);
+var has_magic_js_2 = __nccwpck_require__(2847);
 Object.defineProperty(exports, "hasMagic", ({ enumerable: true, get: function () { return has_magic_js_2.hasMagic; } }));
 /* c8 ignore stop */
 exports.glob = Object.assign(glob_, {
@@ -12763,7 +12773,7 @@ exports.glob.glob = exports.glob;
 
 /***/ }),
 
-/***/ 2053:
+/***/ 142:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -12771,7 +12781,7 @@ exports.glob.glob = exports.glob;
 // this is just a very light wrapper around 2 arrays with an offset index
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Pattern = void 0;
-const minimatch_1 = __nccwpck_require__(1838);
+const minimatch_1 = __nccwpck_require__(2739);
 const isPatternList = (pl) => pl.length >= 1;
 const isGlobList = (gl) => gl.length >= 1;
 /**
@@ -12989,7 +12999,7 @@ exports.Pattern = Pattern;
 
 /***/ }),
 
-/***/ 6598:
+/***/ 8758:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -12997,7 +13007,7 @@ exports.Pattern = Pattern;
 // synchronous utility for filtering entries and calculating subwalks
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Processor = exports.SubWalks = exports.MatchRecord = exports.HasWalkedCache = void 0;
-const minimatch_1 = __nccwpck_require__(1838);
+const minimatch_1 = __nccwpck_require__(2739);
 /**
  * A cache of which patterns have been processed for a given Path
  */
@@ -13298,7 +13308,7 @@ exports.Processor = Processor;
 
 /***/ }),
 
-/***/ 1938:
+/***/ 9329:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -13312,8 +13322,8 @@ exports.GlobStream = exports.GlobWalker = exports.GlobUtil = void 0;
  * @module
  */
 const minipass_1 = __nccwpck_require__(6697);
-const ignore_js_1 = __nccwpck_require__(9891);
-const processor_js_1 = __nccwpck_require__(6598);
+const ignore_js_1 = __nccwpck_require__(3641);
+const processor_js_1 = __nccwpck_require__(8758);
 const makeIgnore = (ignore, opts) => typeof ignore === 'string'
     ? new ignore_js_1.Ignore([ignore], opts)
     : Array.isArray(ignore)
@@ -15065,7 +15075,7 @@ exports.LRUCache = LRUCache;
 
 /***/ }),
 
-/***/ 7605:
+/***/ 1516:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -15086,7 +15096,7 @@ exports.assertValidPattern = assertValidPattern;
 
 /***/ }),
 
-/***/ 4623:
+/***/ 5583:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -15094,15 +15104,15 @@ exports.assertValidPattern = assertValidPattern;
 // parse a single path portion
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.AST = void 0;
-const brace_expressions_js_1 = __nccwpck_require__(4638);
-const unescape_js_1 = __nccwpck_require__(6066);
+const brace_expressions_js_1 = __nccwpck_require__(4225);
+const unescape_js_1 = __nccwpck_require__(6951);
 const types = new Set(['!', '?', '+', '*', '@']);
 const isExtglobType = (c) => types.has(c);
 // Patterns that get prepended to bind to the start of either the
 // entire string, or just a single path portion, to prevent dots
 // and/or traversal patterns, when needed.
 // Exts don't need the ^ or / bit, because the root binds that already.
-const startNoTraversal = '(?!\\.\\.?(?:$|/))';
+const startNoTraversal = '(?!(?:^|/)\\.\\.?(?:$|/))';
 const startNoDot = '(?!\\.)';
 // characters that indicate a start of pattern needs the "no dots" bit,
 // because a dot *might* be matched. ( is not in the list, because in
@@ -15499,7 +15509,8 @@ class AST {
     // - Since the start for a join is eg /(?!\.) and the start for a part
     // is ^(?!\.), we can just prepend (?!\.) to the pattern (either root
     // or start or whatever) and prepend ^ or / at the Regexp construction.
-    toRegExpSource() {
+    toRegExpSource(allowDot) {
+        const dot = allowDot ?? !!this.#options.dot;
         if (this.#root === this)
             this.#fillNegs();
         if (!this.type) {
@@ -15508,7 +15519,7 @@ class AST {
                 .map(p => {
                 const [re, _, hasMagic, uflag] = typeof p === 'string'
                     ? AST.#parseGlob(p, this.#hasMagic, noEmpty)
-                    : p.toRegExpSource();
+                    : p.toRegExpSource(allowDot);
                 this.#hasMagic = this.#hasMagic || hasMagic;
                 this.#uflag = this.#uflag || uflag;
                 return re;
@@ -15528,14 +15539,14 @@ class AST {
                         // and prevent that.
                         const needNoTrav = 
                         // dots are allowed, and the pattern starts with [ or .
-                        (this.#options.dot && aps.has(src.charAt(0))) ||
+                        (dot && aps.has(src.charAt(0))) ||
                             // the pattern starts with \., and then [ or .
                             (src.startsWith('\\.') && aps.has(src.charAt(2))) ||
                             // the pattern starts with \.\., and then [ or .
                             (src.startsWith('\\.\\.') && aps.has(src.charAt(4)));
                         // no need to prevent dots if it can't match a dot, or if a
                         // sub-pattern will be preventing it anyway.
-                        const needNoDot = !this.#options.dot && aps.has(src.charAt(0));
+                        const needNoDot = !dot && !allowDot && aps.has(src.charAt(0));
                         start = needNoTrav ? startNoTraversal : needNoDot ? startNoDot : '';
                     }
                 }
@@ -15555,23 +15566,13 @@ class AST {
                 this.#uflag,
             ];
         }
+        // We need to calculate the body *twice* if it's a repeat pattern
+        // at the start, once in nodot mode, then again in dot mode, so a
+        // pattern like *(?) can match 'x.y'
+        const repeated = this.type === '*' || this.type === '+';
         // some kind of extglob
         const start = this.type === '!' ? '(?:(?!(?:' : '(?:';
-        const body = this.#parts
-            .map(p => {
-            // extglob ASTs should only contain parent ASTs
-            /* c8 ignore start */
-            if (typeof p === 'string') {
-                throw new Error('string type in extglob ast??');
-            }
-            /* c8 ignore stop */
-            // can ignore hasMagic, because extglobs are already always magic
-            const [re, _, _hasMagic, uflag] = p.toRegExpSource();
-            this.#uflag = this.#uflag || uflag;
-            return re;
-        })
-            .filter(p => !(this.isStart() && this.isEnd()) || !!p)
-            .join('|');
+        let body = this.#partsToRegExp(dot);
         if (this.isStart() && this.isEnd() && !body && this.type !== '!') {
             // invalid extglob, has to at least be *something* present, if it's
             // the entire path portion.
@@ -15581,22 +15582,37 @@ class AST {
             this.#hasMagic = undefined;
             return [s, (0, unescape_js_1.unescape)(this.toString()), false, false];
         }
+        // XXX abstract out this map method
+        let bodyDotAllowed = !repeated || allowDot || dot || !startNoDot
+            ? ''
+            : this.#partsToRegExp(true);
+        if (bodyDotAllowed === body) {
+            bodyDotAllowed = '';
+        }
+        if (bodyDotAllowed) {
+            body = `(?:${body})(?:${bodyDotAllowed})*?`;
+        }
         // an empty !() is exactly equivalent to a starNoEmpty
         let final = '';
         if (this.type === '!' && this.#emptyExt) {
-            final =
-                (this.isStart() && !this.#options.dot ? startNoDot : '') + starNoEmpty;
+            final = (this.isStart() && !dot ? startNoDot : '') + starNoEmpty;
         }
         else {
             const close = this.type === '!'
                 ? // !() must match something,but !(x) can match ''
                     '))' +
-                        (this.isStart() && !this.#options.dot ? startNoDot : '') +
+                        (this.isStart() && !dot && !allowDot ? startNoDot : '') +
                         star +
                         ')'
                 : this.type === '@'
                     ? ')'
-                    : `)${this.type}`;
+                    : this.type === '?'
+                        ? ')?'
+                        : this.type === '+' && bodyDotAllowed
+                            ? ')'
+                            : this.type === '*' && bodyDotAllowed
+                                ? `)?`
+                                : `)${this.type}`;
             final = start + body + close;
         }
         return [
@@ -15605,6 +15621,23 @@ class AST {
             (this.#hasMagic = !!this.#hasMagic),
             this.#uflag,
         ];
+    }
+    #partsToRegExp(dot) {
+        return this.#parts
+            .map(p => {
+            // extglob ASTs should only contain parent ASTs
+            /* c8 ignore start */
+            if (typeof p === 'string') {
+                throw new Error('string type in extglob ast??');
+            }
+            /* c8 ignore stop */
+            // can ignore hasMagic, because extglobs are already always magic
+            const [re, _, _hasMagic, uflag] = p.toRegExpSource(dot);
+            this.#uflag = this.#uflag || uflag;
+            return re;
+        })
+            .filter(p => !(this.isStart() && this.isEnd()) || !!p)
+            .join('|');
     }
     static #parseGlob(glob, hasMagic, noEmpty = false) {
         let escaping = false;
@@ -15659,7 +15692,7 @@ exports.AST = AST;
 
 /***/ }),
 
-/***/ 4638:
+/***/ 4225:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -15818,7 +15851,7 @@ exports.parseClass = parseClass;
 
 /***/ }),
 
-/***/ 7030:
+/***/ 8667:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -15847,7 +15880,7 @@ exports.escape = escape;
 
 /***/ }),
 
-/***/ 1838:
+/***/ 2739:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -15858,10 +15891,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.unescape = exports.escape = exports.AST = exports.Minimatch = exports.match = exports.makeRe = exports.braceExpand = exports.defaults = exports.filter = exports.GLOBSTAR = exports.sep = exports.minimatch = void 0;
 const brace_expansion_1 = __importDefault(__nccwpck_require__(6684));
-const assert_valid_pattern_js_1 = __nccwpck_require__(7605);
-const ast_js_1 = __nccwpck_require__(4623);
-const escape_js_1 = __nccwpck_require__(7030);
-const unescape_js_1 = __nccwpck_require__(6066);
+const assert_valid_pattern_js_1 = __nccwpck_require__(1516);
+const ast_js_1 = __nccwpck_require__(5583);
+const escape_js_1 = __nccwpck_require__(8667);
+const unescape_js_1 = __nccwpck_require__(6951);
 const minimatch = (p, pattern, options = {}) => {
     (0, assert_valid_pattern_js_1.assertValidPattern)(pattern);
     // shortcut: comments match nothing.
@@ -16850,11 +16883,11 @@ class Minimatch {
 }
 exports.Minimatch = Minimatch;
 /* c8 ignore start */
-var ast_js_2 = __nccwpck_require__(4623);
+var ast_js_2 = __nccwpck_require__(5583);
 Object.defineProperty(exports, "AST", ({ enumerable: true, get: function () { return ast_js_2.AST; } }));
-var escape_js_2 = __nccwpck_require__(7030);
+var escape_js_2 = __nccwpck_require__(8667);
 Object.defineProperty(exports, "escape", ({ enumerable: true, get: function () { return escape_js_2.escape; } }));
-var unescape_js_2 = __nccwpck_require__(6066);
+var unescape_js_2 = __nccwpck_require__(6951);
 Object.defineProperty(exports, "unescape", ({ enumerable: true, get: function () { return unescape_js_2.unescape; } }));
 /* c8 ignore stop */
 exports.minimatch.AST = ast_js_1.AST;
@@ -16865,7 +16898,7 @@ exports.minimatch.unescape = unescape_js_1.unescape;
 
 /***/ }),
 
-/***/ 6066:
+/***/ 6951:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
