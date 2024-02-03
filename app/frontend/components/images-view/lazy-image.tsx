@@ -1,20 +1,27 @@
 import React from 'react';
 import { preloadImage } from '../utils/image';
 
-export const LazyImage = (
-  props: React.DetailedHTMLProps<
-    React.ImgHTMLAttributes<HTMLImageElement>,
-    HTMLImageElement
-  > & { onLoadFinished?: () => void }
-) => {
+interface LazyImageProps {
+  beforeLoad?: () => void;
+  afterLoad?: () => void;
+}
+
+type LazyImageExtendedProps = React.DetailedHTMLProps<
+  React.ImgHTMLAttributes<HTMLImageElement>,
+  HTMLImageElement
+> &
+  LazyImageProps;
+
+export const LazyImage: React.FC<LazyImageExtendedProps> = props => {
   const [currentSRC, setCurrentSRC] = React.useState(props.src);
-  const { onLoadFinished, ...derivedProps } = props;
+  const { beforeLoad, afterLoad, ...derivedProps } = props;
 
   React.useEffect(() => {
     if (props.src) {
+      beforeLoad?.();
       preloadImage(props.src).then(() => {
         setCurrentSRC(props.src);
-        onLoadFinished?.();
+        afterLoad?.();
       });
     }
   }, [props.src]);

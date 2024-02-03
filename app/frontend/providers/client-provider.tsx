@@ -9,7 +9,6 @@ export const ClientProvider = ({ children }: React.PropsWithChildren) => {
       new QueryClient({
         defaultOptions: {
           queries: {
-            // keepPreviousData: true,
             refetchOnWindowFocus: false,
             staleTime: Infinity
           }

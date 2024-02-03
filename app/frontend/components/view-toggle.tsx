@@ -7,14 +7,24 @@ export const ImageViews = {
 } as const;
 export type ImageView = keyof typeof ImageViews;
 
+const AvailableViews = {
+  ...ImageViews,
+  BOTH: 'BOTH'
+} as const;
+
+export type AvailableView =
+  (typeof AvailableViews)[keyof typeof AvailableViews];
+
 interface ViewToggleProps {
   selectedView?: ImageView;
   onSelectView: (view: ImageView) => void;
+  availableView?: AvailableView;
 }
 
 export const ViewToggle: React.FC<ViewToggleProps> = ({
   selectedView,
-  onSelectView
+  onSelectView,
+  availableView
 }) => {
   const SideBySideButton =
     selectedView === ImageViews.SIDE_BY_SIDE ? PrimaryButton : SecondaryButton;
@@ -26,9 +36,7 @@ export const ViewToggle: React.FC<ViewToggleProps> = ({
         backgroundFilled
         className="rounded-e-none rounded-s-md"
         onClick={() => onSelectView(ImageViews.SIDE_BY_SIDE)}
-        disabled={
-          selectedView === ImageViews.SINGLE || selectedView === undefined
-        }
+        disabled={availableView === AvailableViews.SINGLE}
       >
         Side-by-side
       </SideBySideButton>

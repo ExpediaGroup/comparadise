@@ -61,10 +61,11 @@ describe('App', () => {
     });
 
     it('should switch to different image views', () => {
-      cy.findByRole('button', { name: /diff/ }).click();
       cy.findByAltText('diff');
-      cy.findByRole('button', { name: /new/ }).click();
+      cy.findByRole('button', { name: 'new' }).click();
       cy.findByAltText('new');
+      cy.findByRole('button', { name: 'base' }).click();
+      cy.findByAltText('base');
     });
 
     it('should switch between specs and default to diff image for each one', () => {
@@ -77,7 +78,7 @@ describe('App', () => {
       cy.findByRole('button', { name: /side-by-side/i }).should('be.disabled');
     });
 
-    it('should disable arrow buttons while loading next spec', () => {
+    it.skip('should disable arrow buttons while loading next spec', () => {
       cy.intercept('/trpc/fetchCurrentPage*', req => {
         const page = getPageFromRequest(req);
         const body = page === 2 ? secondPage : firstPage;

@@ -2,7 +2,12 @@ import * as React from 'react';
 import { LandingPage } from './landing-page';
 import { Error } from './error';
 import { Loader } from './loader';
-import { ViewToggle, ImageViews, ImageView } from './view-toggle';
+import {
+  ViewToggle,
+  ImageViews,
+  ImageView,
+  AvailableView
+} from './view-toggle';
 import { UpdateImagesButton } from './update-images-button';
 import { trpc } from '../utils/trpc';
 import {
@@ -35,6 +40,7 @@ const preloadNextPage = async (images?: Images) => {
 
 export const MainPage = () => {
   const [viewType, setViewType] = React.useState<ImageView>();
+  const [availableView, setAvailableView] = React.useState<AvailableView>();
   const [isNextPageReady, setIsNextPageReady] = React.useState(false);
 
   const [searchParams] = useSearchParams();
@@ -70,6 +76,11 @@ export const MainPage = () => {
         if (newViewType) {
           setIsNextPageReady(true);
           setViewType(newViewType);
+          if (newViewType === ImageViews.SIDE_BY_SIDE) {
+            setAvailableView('BOTH');
+          } else {
+            setAvailableView('SINGLE');
+          }
         }
       });
     }
@@ -129,7 +140,11 @@ export const MainPage = () => {
           <UpdateImagesButton disabled={isFetching} />
         </div>
         <div className="mt-5">
-          <ViewToggle selectedView={viewType} onSelectView={setViewType} />
+          <ViewToggle
+            selectedView={viewType}
+            availableView={availableView}
+            onSelectView={setViewType}
+          />
         </div>
       </div>
       <div className="relative mt-8">

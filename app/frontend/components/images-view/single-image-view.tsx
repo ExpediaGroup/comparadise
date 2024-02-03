@@ -35,7 +35,11 @@ export const SingleImageView: React.FC<SingleImageViewProps> = ({
       const diffImage = images.find(img => img.name === FILE_NAMES.DIFF);
       setSelectedImage(diffImage);
     }
-  }, [images?.[0]?.url]);
+  }, [images?.[0]?.url, setImageLoadedStatus]);
+
+  React.useEffect(() => {
+    setImageLoadedStatus(false);
+  }, []);
 
   if (!selectedImage) {
     return <p>No images found.</p>;
@@ -47,16 +51,14 @@ export const SingleImageView: React.FC<SingleImageViewProps> = ({
         <LazyImage
           src={selectedImage.url}
           alt={selectedImage.name}
-          onLoadFinished={() => {
-            setImageLoadedStatus(true);
-          }}
+          beforeLoad={() => setImageLoadedStatus(false)}
+          afterLoad={() => setImageLoadedStatus(true)}
         />
       </div>
       <div className="fixed bottom-20">
         {images.map((image, index) => {
           const onClick = () => {
             setSelectedImage(image);
-            setImageLoadedStatus(false);
           };
           const Button =
             selectedImage.name === image.name ? PrimaryButton : SecondaryButton;
