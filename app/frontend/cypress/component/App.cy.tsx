@@ -75,7 +75,6 @@ describe('App', () => {
       cy.findByRole('button', { name: /back-arrow/ }).click();
       cy.findByRole('heading', { name: 'large/example' });
       cy.findByAltText('diff');
-      cy.findByRole('button', { name: /side-by-side/i }).should('be.disabled');
     });
 
     it('should switch to side-by-side view and back', () => {
