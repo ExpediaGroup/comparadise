@@ -28,5 +28,6 @@ yarn-error.log*
 secrets.json
 
 cypress/screenshots
+app/frontend/cypress/videos
 
 .nx/
