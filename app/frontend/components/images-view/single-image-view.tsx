@@ -35,7 +35,7 @@ export const SingleImageView: React.FC<SingleImageViewProps> = ({
       const diffImage = images.find(img => img.name === FILE_NAMES.DIFF);
       setSelectedImage(diffImage);
     }
-  }, [images?.[0]?.url, setImageLoadedStatus]);
+  }, [images?.[0]?.url]);
 
   React.useEffect(() => {
     setImageLoadedStatus(false);
