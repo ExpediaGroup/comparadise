@@ -21,8 +21,8 @@ importers:
         specifier: 7.0.2
         version: 7.0.2(@typescript-eslint/parser@7.0.1)(eslint@8.57.0)(typescript@5.3.3)
       cypress:
-        specifier: 13.6.2
-        version: 13.6.2
+        specifier: 13.6.6
+        version: 13.6.6
       eslint:
         specifier: 8.57.0
         version: 8.57.0
@@ -169,7 +169,7 @@ importers:
     devDependencies:
       '@testing-library/cypress':
         specifier: 10.0.1
-        version: 10.0.1(cypress@13.6.2)
+        version: 10.0.1(cypress@13.6.6)
       '@types/react':
         specifier: 18.2.48
         version: 18.2.48
@@ -199,8 +199,8 @@ importers:
         specifier: 6.0.4
         version: 6.0.4
       cypress:
-        specifier: 13.6.2
-        version: 13.6.2
+        specifier: 13.6.6
+        version: 13.6.6
 
   docs:
     dependencies:
@@ -5115,7 +5115,7 @@ packages:
     resolution: {integrity: sha512-SYXOBTjJb05rXa2vl55TTwO40A6wKu0R5i1qQwhJYNDIqaIGF7D0HsLw+pJAyi2OvntlEIVusx3xtbbgSUi6zg==}
     dev: false
 
-  /@testing-library/cypress@10.0.1(cypress@13.6.2):
+  /@testing-library/cypress@10.0.1(cypress@13.6.6):
     resolution: {integrity: sha512-e8uswjTZIBhaIXjzEcrQQ8nHRWHgZH7XBxKuIWxZ/T7FxfWhCR48nFhUX5nfPizjVOKSThEfOSv67jquc1ASkw==}
     engines: {node: '>=12', npm: '>=6'}
     peerDependencies:
@@ -5123,7 +5123,7 @@ packages:
     dependencies:
       '@babel/runtime': 7.22.5
       '@testing-library/dom': 9.3.3
-      cypress: 13.6.2
+      cypress: 13.6.6
     dev: true
 
   /@testing-library/dom@7.31.2:
@@ -5418,10 +5418,6 @@ packages:
     resolution: {integrity: sha512-w+tIMs3rq2afQdsPJlODhoUEKzFP1ayaoyl1CcnwtIlsVe7K7bA1NGm4s3PraqTLlXnbIN84zuBlxBWo1u9BLw==}
     dev: false
 
-  /@types/node@18.17.17:
-    resolution: {integrity: sha512-cOxcXsQ2sxiwkykdJqvyFS+MLQPLvIdwh5l6gNg8qF6s+C7XSkEWOZjK+XhUZd+mYvHV/180g2cnCcIl4l06Pw==}
-    dev: true
-
   /@types/node@20.10.3:
     resolution: {integrity: sha512-XJavIpZqiXID5Yxnxv3RUDKTN5b81ddNC3ecsA0SoFXz/QU8OGBwZGMomiq0zw+uuqbL/krztv/DINAQ/EV4gg==}
     dependencies:
@@ -5549,7 +5545,7 @@ packages:
     resolution: {integrity: sha512-lkxNGVFBEX825Z/FrHA8FLuKv1q5L6Bccqm08Zds2MUG4gd5al32hCpplzVumke3br+hkhtVmuPTfwQadIkc5w==}
     dependencies:
       '@testing-library/dom': 7.31.2
-      cypress: 13.6.2
+      cypress: 13.6.6
     dev: true
 
   /@types/unist@2.0.6:
@@ -7387,15 +7383,14 @@ packages:
   /csstype@3.1.2:
     resolution: {integrity: sha512-I7K1Uu0MBPzaFKg4nI5Q7Vs2t+3gWWW648spaF+Rg7pI9ds18Ugn+lvg4SHczUdKlHI5LWBXyqfS8+DufyBsgQ==}
 
-  /cypress@13.6.2:
-    resolution: {integrity: sha512-TW3bGdPU4BrfvMQYv1z3oMqj71YI4AlgJgnrycicmPZAXtvywVFZW9DAToshO65D97rCWfG/kqMFsYB6Kp91gQ==}
+  /cypress@13.6.6:
+    resolution: {integrity: sha512-S+2S9S94611hXimH9a3EAYt81QM913ZVA03pUmGDfLTFa5gyp85NJ8dJGSlEAEmyRsYkioS1TtnWtbv/Fzt11A==}
     engines: {node: ^16.0.0 || ^18.0.0 || >=20.0.0}
     hasBin: true
     requiresBuild: true
     dependencies:
       '@cypress/request': 3.0.1
       '@cypress/xvfb': 1.2.4(supports-color@8.1.1)
-      '@types/node': 18.17.17
       '@types/sinonjs__fake-timers': 8.1.1
       '@types/sizzle': 2.3.3
       arch: 2.2.0
@@ -7431,7 +7426,7 @@ packages:
       process: 0.11.10
       proxy-from-env: 1.0.0
       request-progress: 3.0.0
-      semver: 7.5.4
+      semver: 7.6.0
       supports-color: 8.1.1
       tmp: 0.2.1
       untildify: 4.0.0
