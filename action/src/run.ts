@@ -103,6 +103,9 @@ export const run = async () => {
   );
 
   if (diffFileCount === 0 && newFileCount > 0) {
+    info(
+      `New visual tests found! ${newFileCount} images will be uploaded as new base images.`
+    );
     await uploadBaseImages(newFilePaths);
     return octokit.rest.repos.createCommitStatus({
       sha: commitHash,
