@@ -1,8 +1,8 @@
 import { exec } from '@actions/exec';
 import { getInput } from '@actions/core';
-import {BASE_IMAGE_NAME, BASE_IMAGES_DIRECTORY, NEW_IMAGE_NAME} from 'shared';
-import { map } from 'bluebird'
-import * as path from "path";
+import { BASE_IMAGE_NAME, BASE_IMAGES_DIRECTORY, NEW_IMAGE_NAME } from 'shared';
+import { map } from 'bluebird';
+import * as path from 'path';
 
 export const downloadBaseImages = async () => {
   const bucketName = getInput('bucket-name', { required: true });
@@ -44,13 +44,18 @@ export const uploadAllImages = async () => {
 export const uploadBaseImages = async (newFilePaths: string[]) => {
   const bucketName = getInput('bucket-name', { required: true });
   return map(newFilePaths, newFilePath =>
-      exec(
-          `aws s3 cp ${newFilePath} s3://${bucketName}/${buildBaseImagePath(newFilePath)}`
-      )
+    exec(
+      `aws s3 cp ${newFilePath} s3://${bucketName}/${buildBaseImagePath(newFilePath)}`
+    )
   );
 };
 
 function buildBaseImagePath(newFilePath: string) {
   const screenshotsDirectory = getInput('screenshots-directory');
-  return path.join(BASE_IMAGES_DIRECTORY, newFilePath.replace(screenshotsDirectory, "").replace(`${NEW_IMAGE_NAME}.png`, `${BASE_IMAGE_NAME}.png`))
+  return path.join(
+    BASE_IMAGES_DIRECTORY,
+    newFilePath
+      .replace(screenshotsDirectory, '')
+      .replace(`${NEW_IMAGE_NAME}.png`, `${BASE_IMAGE_NAME}.png`)
+  );
 }

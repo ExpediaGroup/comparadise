@@ -5,7 +5,11 @@ import {
   setFailed,
   warning
 } from '@actions/core';
-import {downloadBaseImages, uploadBaseImages, uploadAllImages} from './s3-operations';
+import {
+  downloadBaseImages,
+  uploadBaseImages,
+  uploadAllImages
+} from './s3-operations';
 import { exec } from '@actions/exec';
 import { octokit } from './octokit';
 import { context } from '@actions/github';
@@ -54,7 +58,9 @@ export const run = async () => {
   const diffFileCount = filesInScreenshotDirectory.filter(file =>
     file.endsWith('diff.png')
   ).length;
-  const newFilePaths = filesInScreenshotDirectory.filter(file => file.endsWith('new.png'));
+  const newFilePaths = filesInScreenshotDirectory.filter(file =>
+    file.endsWith('new.png')
+  );
   const newFileCount = newFilePaths.length;
   if (diffFileCount === 0 && newFileCount === 0) {
     info('All visual tests passed, and no diffs found!');
@@ -93,7 +99,7 @@ export const run = async () => {
   }
 
   info(
-      `${diffFileCount} visual differences found, and ${newFileCount} new images found.`
+    `${diffFileCount} visual differences found, and ${newFileCount} new images found.`
   );
 
   if (diffFileCount === 0 && newFileCount > 0) {

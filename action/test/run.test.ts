@@ -119,15 +119,15 @@ describe('main', () => {
     (sync as unknown as jest.Mock).mockReturnValue([
       'path/to/screenshots/existingTest/base.png',
       'path/to/screenshots/newTest1/new.png',
-      'path/to/screenshots/newTest2/new.png',
+      'path/to/screenshots/newTest2/new.png'
     ]);
     await run();
     expect(setFailed).not.toHaveBeenCalled();
     expect(exec).toHaveBeenCalledWith(
-        `aws s3 cp path/to/screenshots/newTest1/new.png s3://some-bucket/${BASE_IMAGES_DIRECTORY}/newTest1/base.png`
+      `aws s3 cp path/to/screenshots/newTest1/new.png s3://some-bucket/${BASE_IMAGES_DIRECTORY}/newTest1/base.png`
     );
     expect(exec).toHaveBeenCalledWith(
-        `aws s3 cp path/to/screenshots/newTest2/new.png s3://some-bucket/${BASE_IMAGES_DIRECTORY}/newTest2/base.png`
+      `aws s3 cp path/to/screenshots/newTest2/new.png s3://some-bucket/${BASE_IMAGES_DIRECTORY}/newTest2/base.png`
     );
     expect(octokit.rest.repos.createCommitStatus).toHaveBeenCalledWith({
       owner: 'owner',
