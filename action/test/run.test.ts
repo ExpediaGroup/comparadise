@@ -114,25 +114,30 @@ describe('main', () => {
     expect(octokit.rest.issues.createComment).toHaveBeenCalled();
   });
 
-  it('should fail if visual tests pass and only new images were created', async () => {
+  it('should pass and upload base images if visual tests pass and only new images were created', async () => {
     (exec as jest.Mock).mockResolvedValue(0);
     (sync as unknown as jest.Mock).mockReturnValue([
-      'path/to/screenshots/base.png',
-      'path/to/screenshots/new.png'
+      'path/to/screenshots/existingTest/base.png',
+      'path/to/screenshots/newTest1/new.png',
+      'path/to/screenshots/newTest2/new.png',
     ]);
     await run();
     expect(setFailed).not.toHaveBeenCalled();
+    expect(exec).toHaveBeenCalledWith(
+        `aws s3 cp path/to/screenshots/newTest1/new.png s3://some-bucket/${BASE_IMAGES_DIRECTORY}/newTest1/base.png`
+    );
+    expect(exec).toHaveBeenCalledWith(
+        `aws s3 cp path/to/screenshots/newTest2/new.png s3://some-bucket/${BASE_IMAGES_DIRECTORY}/newTest2/base.png`
+    );
     expect(octokit.rest.repos.createCommitStatus).toHaveBeenCalledWith({
       owner: 'owner',
       repo: 'repo',
       sha: 'sha',
       context: VISUAL_REGRESSION_CONTEXT,
-      state: 'failure',
-      description: 'A new visual test was created. Check Comparadise!',
-      target_url:
-        'https://comparadise.app/?hash=sha&owner=owner&repo=repo&bucket=some-bucket'
+      state: 'success',
+      description: 'New base images were created!'
     });
-    expect(octokit.rest.issues.createComment).toHaveBeenCalled();
+    expect(octokit.rest.issues.createComment).not.toHaveBeenCalled();
   });
 
   it('should use subdirectories if provided', async () => {
