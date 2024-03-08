@@ -18034,6 +18034,7 @@ const run = async () => {
     }
     (0, core_1.info)(`${diffFileCount} visual differences found, and ${newFileCount} new images found.`);
     if (diffFileCount === 0 && newFileCount > 0) {
+        (0, core_1.info)(`New visual tests found! ${newFileCount} images will be uploaded as new base images.`);
         await (0, s3_operations_1.uploadBaseImages)(newFilePaths);
         return octokit_1.octokit.rest.repos.createCommitStatus({
             sha: commitHash,
