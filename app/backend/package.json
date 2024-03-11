@@ -2,8 +2,8 @@
   "name": "backend",
   "private": true,
   "dependencies": {
-    "@aws-sdk/client-s3": "3.525.0",
-    "@aws-sdk/s3-request-presigner": "3.525.0",
+    "@aws-sdk/client-s3": "3.529.1",
+    "@aws-sdk/s3-request-presigner": "3.529.1",
     "@octokit/rest": "20.0.2",
     "@trpc/server": "next",
     "cors": "2.8.5",
@@ -18,7 +18,7 @@
     "@types/cors": "2.8.17",
     "@types/express": "4.17.21",
     "@types/lodash": "4.14.202",
-    "@types/node": "20.11.24"
+    "@types/node": "20.11.25"
   },
   "scripts": {
     "build": "tsc",
