@@ -1,6 +1,8 @@
 import { exec } from '@actions/exec';
 import { getInput } from '@actions/core';
-import { BASE_IMAGES_DIRECTORY } from 'shared';
+import { BASE_IMAGE_NAME, BASE_IMAGES_DIRECTORY, NEW_IMAGE_NAME } from 'shared';
+import { map } from 'bluebird';
+import * as path from 'path';
 
 export const downloadBaseImages = async () => {
   const bucketName = getInput('bucket-name', { required: true });
@@ -21,17 +23,15 @@ export const downloadBaseImages = async () => {
   );
 };
 
-export const uploadBaseImages = async () => {
+export const uploadAllImages = async () => {
   const bucketName = getInput('bucket-name', { required: true });
   const screenshotsDirectory = getInput('screenshots-directory');
   const commitHash = getInput('commit-hash', { required: true });
   const packagePaths = getInput('package-paths')?.split(',');
   if (packagePaths) {
-    return Promise.all(
-      packagePaths.map(packagePath =>
-        exec(
-          `aws s3 cp ${screenshotsDirectory}/${packagePath} s3://${bucketName}/${commitHash}/${packagePath} --recursive`
-        )
+    return map(packagePaths, packagePath =>
+      exec(
+        `aws s3 cp ${screenshotsDirectory}/${packagePath} s3://${bucketName}/${commitHash}/${packagePath} --recursive`
       )
     );
   }
@@ -40,3 +40,22 @@ export const uploadBaseImages = async () => {
     `aws s3 cp ${screenshotsDirectory} s3://${bucketName}/${commitHash} --recursive`
   );
 };
+
+export const uploadBaseImages = async (newFilePaths: string[]) => {
+  const bucketName = getInput('bucket-name', { required: true });
+  return map(newFilePaths, newFilePath =>
+    exec(
+      `aws s3 cp ${newFilePath} s3://${bucketName}/${buildBaseImagePath(newFilePath)}`
+    )
+  );
+};
+
+function buildBaseImagePath(newFilePath: string) {
+  const screenshotsDirectory = getInput('screenshots-directory');
+  return path.join(
+    BASE_IMAGES_DIRECTORY,
+    newFilePath
+      .replace(screenshotsDirectory, '')
+      .replace(`${NEW_IMAGE_NAME}.png`, `${BASE_IMAGE_NAME}.png`)
+  );
+}

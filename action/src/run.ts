@@ -5,7 +5,11 @@ import {
   setFailed,
   warning
 } from '@actions/core';
-import { downloadBaseImages, uploadBaseImages } from './s3-operations';
+import {
+  downloadBaseImages,
+  uploadBaseImages,
+  uploadAllImages
+} from './s3-operations';
 import { exec } from '@actions/exec';
 import { octokit } from './octokit';
 import { context } from '@actions/github';
@@ -54,9 +58,10 @@ export const run = async () => {
   const diffFileCount = filesInScreenshotDirectory.filter(file =>
     file.endsWith('diff.png')
   ).length;
-  const newFileCount = filesInScreenshotDirectory.filter(file =>
+  const newFilePaths = filesInScreenshotDirectory.filter(file =>
     file.endsWith('new.png')
-  ).length;
+  );
+  const newFileCount = newFilePaths.length;
   if (diffFileCount === 0 && newFileCount === 0) {
     info('All visual tests passed, and no diffs found!');
 
@@ -93,18 +98,30 @@ export const run = async () => {
     return;
   }
 
-  warning(
+  info(
     `${diffFileCount} visual differences found, and ${newFileCount} new images found.`
   );
-  await uploadBaseImages();
+
+  if (diffFileCount === 0 && newFileCount > 0) {
+    info(
+      `New visual tests found! ${newFileCount} images will be uploaded as new base images.`
+    );
+    await uploadBaseImages(newFilePaths);
+    return octokit.rest.repos.createCommitStatus({
+      sha: commitHash,
+      context: VISUAL_REGRESSION_CONTEXT,
+      state: 'success',
+      description: 'New base images were created!',
+      ...context.repo
+    });
+  }
+
+  await uploadAllImages();
   await octokit.rest.repos.createCommitStatus({
     sha: commitHash,
     context: VISUAL_REGRESSION_CONTEXT,
     state: 'failure',
-    description:
-      diffFileCount === 0
-        ? 'A new visual test was created. Check Comparadise!'
-        : 'A visual regression was detected. Check Comparadise!',
+    description: 'A visual regression was detected. Check Comparadise!',
     target_url: buildComparadiseUrl(),
     ...context.repo
   });
