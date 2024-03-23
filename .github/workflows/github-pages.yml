@@ -35,7 +35,7 @@ jobs:
           cache: pnpm
 
       - name: Install
-        run: pnpm install --prod --ignore-scripts
+        run: pnpm --filter docs install --ignore-scripts
 
       - name: Build Docs
         run: pnpm --filter docs build
