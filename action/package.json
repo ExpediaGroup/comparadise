@@ -7,7 +7,7 @@
     "@actions/exec": "1.1.1",
     "@actions/github": "5.1.1",
     "bluebird": "3.7.2",
-    "glob": "10.3.10",
+    "glob": "10.3.12",
     "shared": "workspace:*"
   },
   "devDependencies": {

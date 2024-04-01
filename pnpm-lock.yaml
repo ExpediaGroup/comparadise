@@ -60,8 +60,8 @@ importers:
         specifier: 3.7.2
         version: 3.7.2
       glob:
-        specifier: 10.3.10
-        version: 10.3.10
+        specifier: 10.3.12
+        version: 10.3.12
       shared:
         specifier: workspace:*
         version: link:../shared
@@ -140,14 +140,14 @@ importers:
         specifier: 1.7.18
         version: 1.7.18(react-dom@18.2.0)(react@18.2.0)
       '@tanstack/react-query':
-        specifier: 5.28.8
-        version: 5.28.8(react@18.2.0)
+        specifier: 5.28.9
+        version: 5.28.9(react@18.2.0)
       '@trpc/client':
         specifier: next
         version: 11.0.0-next-beta.308(@trpc/server@11.0.0-next-beta.308)
       '@trpc/react-query':
         specifier: next
-        version: 11.0.0-next-beta.308(@tanstack/react-query@5.28.8)(@trpc/client@11.0.0-next-beta.308)(@trpc/server@11.0.0-next-beta.308)(react-dom@18.2.0)(react@18.2.0)
+        version: 11.0.0-next-beta.308(@tanstack/react-query@5.28.9)(@trpc/client@11.0.0-next-beta.308)(@trpc/server@11.0.0-next-beta.308)(react-dom@18.2.0)(react@18.2.0)
       '@trpc/server':
         specifier: next
         version: 11.0.0-next-beta.308
@@ -5201,16 +5201,16 @@ packages:
       defer-to-connect: 2.0.1
     dev: true
 
-  /@tanstack/query-core@5.28.8:
-    resolution: {integrity: sha512-cx64XHeB0kvKxFt22ibvegPeOxnaWVFUbAuhXoIrb7+XePEexHWoB9Kq5n9qroNPkRwQZwgFAP9HNbQz5ohoIg==}
+  /@tanstack/query-core@5.28.9:
+    resolution: {integrity: sha512-hNlfCiqZevr3GRVPXS3MhaGW5hjcxvCsIQ4q6ff7EPlvFwYZaS+0d9EIIgofnegDaU2BbCDlyURoYfRl5rmzow==}
     dev: false
 
-  /@tanstack/react-query@5.28.8(react@18.2.0):
-    resolution: {integrity: sha512-4XYhoRmcThqziB32HsyiBLNXJcukaeGfYwAQ+fZqUUE3ZP4oB/Zy41UJdql+TUg98+vsezfbixxAwAbGHfc5Hg==}
+  /@tanstack/react-query@5.28.9(react@18.2.0):
+    resolution: {integrity: sha512-vwifBkGXsydsLxFOBMe3+f8kvtDoqDRDwUNjPHVDDt+FoBetCbOWAUHgZn4k+CVeZgLmy7bx6aKeDbe3e8koOQ==}
     peerDependencies:
       react: ^18.0.0
     dependencies:
-      '@tanstack/query-core': 5.28.8
+      '@tanstack/query-core': 5.28.9
       react: 18.2.0
     dev: false
 
@@ -5280,7 +5280,7 @@ packages:
       '@trpc/server': 11.0.0-next-beta.308
     dev: false
 
-  /@trpc/react-query@11.0.0-next-beta.308(@tanstack/react-query@5.28.8)(@trpc/client@11.0.0-next-beta.308)(@trpc/server@11.0.0-next-beta.308)(react-dom@18.2.0)(react@18.2.0):
+  /@trpc/react-query@11.0.0-next-beta.308(@tanstack/react-query@5.28.9)(@trpc/client@11.0.0-next-beta.308)(@trpc/server@11.0.0-next-beta.308)(react-dom@18.2.0)(react@18.2.0):
     resolution: {integrity: sha512-+0g42nW0zOXfpRN90aMuhPZ/BvwQu4IOiWP5xByRq2E+EWrWxJAFdxgS4xpKR49KlM+vKLSgkqj5yeYXyd82hw==}
     peerDependencies:
       '@tanstack/react-query': ^5.0.0
@@ -5289,7 +5289,7 @@ packages:
       react: '>=18.2.0'
       react-dom: '>=18.2.0'
     dependencies:
-      '@tanstack/react-query': 5.28.8(react@18.2.0)
+      '@tanstack/react-query': 5.28.9(react@18.2.0)
       '@trpc/client': 11.0.0-next-beta.308(@trpc/server@11.0.0-next-beta.308)
       '@trpc/server': 11.0.0-next-beta.308
       react: 18.2.0
@@ -9111,16 +9111,16 @@ packages:
     resolution: {integrity: sha512-lkX1HJXwyMcprw/5YUZc2s7DrpAiHB21/V+E1rHUrVNokkvB6bqMzT0VfV6/86ZNabt1k14YOIaT7nDvOX3Iiw==}
     dev: true
 
-  /glob@10.3.10:
-    resolution: {integrity: sha512-fa46+tv1Ak0UPK1TOy/pZrIybNNt4HCv7SDzwyfiOZkvZLEbjsZkJBPtDHVshZjbecAoAGSC20MjLDG/qr679g==}
+  /glob@10.3.12:
+    resolution: {integrity: sha512-TCNv8vJ+xz4QiqTpfOJA7HvYv+tNIRHKfUWw/q+v2jdgN4ebz+KY9tGx5J4rHP0o84mNP+ApH66HRX8us3Khqg==}
     engines: {node: '>=16 || 14 >=14.17'}
     hasBin: true
     dependencies:
       foreground-child: 3.1.1
       jackspeak: 2.3.6
       minimatch: 9.0.3
-      minipass: 6.0.2
-      path-scurry: 1.10.1
+      minipass: 7.0.4
+      path-scurry: 1.10.2
     dev: false
 
   /glob@7.1.6:
@@ -10885,6 +10885,11 @@ packages:
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
     dev: true
 
+  /lru-cache@10.2.0:
+    resolution: {integrity: sha512-2bIM8x+VAf6JT4bKAljS1qUWgMsqZRPGJS6FSahIMPVvctcNhyVp7AJu7quxOW9jwkryBReKZY5tY5JYv2n/7Q==}
+    engines: {node: 14 || >=16.14}
+    dev: false
+
   /lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
     dependencies:
@@ -10897,11 +10902,6 @@ packages:
     dependencies:
       yallist: 4.0.0
     dev: true
-
-  /lru-cache@9.1.2:
-    resolution: {integrity: sha512-ERJq3FOzJTxBbFjZ7iDs+NiK4VI9Wz+RdrrAB8dio1oV+YvdPzUEE4QNiT2VD51DkIbCYRUUzCRkssXCHqSnKQ==}
-    engines: {node: 14 || >=16.14}
-    dev: false
 
   /lz-string@1.5.0:
     resolution: {integrity: sha512-h5bgJWpxJNswbU7qCrV0tIKQCaS3blPDrqKWx+QxzuzL1zGUzij9XCWLrSLsJPu5t+eWA/ycetzYAO5IOMcWAQ==}
@@ -11648,8 +11648,8 @@ packages:
     resolution: {integrity: sha512-2yyAR8qBkN3YuheJanUpWC5U3bb5osDywNB8RzDVlDwDHbocAJveqqj1u8+SVD7jkWT4yvsHCpWqqWqAxb0zCA==}
     dev: true
 
-  /minipass@6.0.2:
-    resolution: {integrity: sha512-MzWSV5nYVT7mVyWCwn2o7JH13w2TBRmmSqSRCKzTw+lmft9X4z+3wjvs06Tzijo5z4W/kahUCDpRXTF+ZrmF/w==}
+  /minipass@7.0.4:
+    resolution: {integrity: sha512-jYofLM5Dam9279rdkWzqHozUo4ybjdZmCsDHePy5V/PbBcVMiSZR97gmAy45aqi8CK1lG2ECd356FU86avfwUQ==}
     engines: {node: '>=16 || 14 >=14.17'}
     dev: false
 
@@ -12192,12 +12192,12 @@ packages:
     resolution: {integrity: sha512-LDJzPVEEEPR+y48z93A0Ed0yXb8pAByGWo/k5YYdYgpY2/2EsOsksJrq7lOHxryrVOn1ejG6oAp8ahvOIQD8sw==}
     dev: true
 
-  /path-scurry@1.10.1:
-    resolution: {integrity: sha512-MkhCqzzBEpPvxxQ71Md0b1Kk51W01lrYvlMzSUaIzNsODdd7mqhiimSZlr+VegAz5Z6Vzt9Xg2ttE//XBhH3EQ==}
+  /path-scurry@1.10.2:
+    resolution: {integrity: sha512-7xTavNy5RQXnsjANvVvMkEjvloOinkAjv/Z6Ildz9v2RinZ4SBKTWFOVRbaF8p0vpHnyjV/UwNDdKuUv6M5qcA==}
     engines: {node: '>=16 || 14 >=14.17'}
     dependencies:
-      lru-cache: 9.1.2
-      minipass: 6.0.2
+      lru-cache: 10.2.0
+      minipass: 7.0.4
     dev: false
 
   /path-to-regexp@0.1.7:
