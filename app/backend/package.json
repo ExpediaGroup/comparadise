@@ -2,8 +2,8 @@
   "name": "backend",
   "private": true,
   "dependencies": {
-    "@aws-sdk/client-s3": "3.550.0",
-    "@aws-sdk/s3-request-presigner": "3.550.0",
+    "@aws-sdk/client-s3": "3.556.0",
+    "@aws-sdk/s3-request-presigner": "3.556.0",
     "@octokit/rest": "20.1.0",
     "@trpc/server": "next",
     "cors": "2.8.5",
