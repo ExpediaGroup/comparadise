@@ -90,12 +90,17 @@ export function matchScreenshot(
 
   const { name, screenshotsFolder } = getTestFolderPathFromScripts(rawName);
 
+  const screenshotOptions: Partial<Cypress.ScreenshotOptions> = {
+    overwrite: true,
+    ...options
+  };
+
   cy.task('baseExists', screenshotsFolder).then(hasBase => {
     const target = subject ? cy.wrap(subject) : cy;
     // For easy slicing of path ignoring the root screenshot folder
     target.screenshot(
       `${PREFIX_DIFFERENTIATOR}${screenshotsFolder}/new`,
-      options
+      screenshotOptions
     );
 
     if (!hasBase) {
