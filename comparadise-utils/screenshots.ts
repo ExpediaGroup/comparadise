@@ -65,11 +65,15 @@ const trimPostfix = (path: string) => {
 };
 
 const getNewPath = (path: string) => {
-  let newPath = path.slice(path.lastIndexOf('___') + 3);
-  console.log(newPath);
-
-  if (newPath.startsWith('/')) {
-    newPath = `.${newPath}`;
+  let newPath;
+  if (path.includes('___')) {
+    newPath = path.slice(path.lastIndexOf('___') + 3);
+    if (newPath.startsWith('/')) {
+      newPath = `.${newPath}`;
+    }
+    console.log(newPath);
+  } else {
+    newPath = path;
   }
 
   return trimPostfix(newPath);
