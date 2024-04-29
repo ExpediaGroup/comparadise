@@ -13,10 +13,10 @@
     "@docusaurus/preset-classic": "3.2.1",
     "@docusaurus/types": "3.2.1",
     "@mdx-js/react": "3.0.1",
-    "@types/react": "18.2.79",
-    "clsx": "2.1.0",
-    "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "@types/react": "18.3.1",
+    "clsx": "2.1.1",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
   },
   "browserslist": {
     "production": [
