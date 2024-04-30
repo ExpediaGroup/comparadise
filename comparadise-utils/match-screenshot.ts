@@ -86,57 +86,53 @@ export function matchScreenshot(
   args?: MatchScreenshotArgs
 ) {
   try {
-    const { rawName, options = {} } = args || {};
-    // Set up screen
-    forceFont();
+  const { rawName, options = {} } = args || {};
+  // Set up screen
+  forceFont();
 
-    // Making sure each image is visible before taking screenshots
-    verifyImages();
+  // Making sure each image is visible before taking screenshots
+  verifyImages();
 
-    const { name, screenshotsFolder } = getTestFolderPathFromScripts(rawName);
+  const { name, screenshotsFolder } = getTestFolderPathFromScripts(rawName);
 
-    let visualDiffsExist = false;
+  let visualDiffsExist = false;
 
-    cy.task('baseExists', screenshotsFolder).then(hasBase => {
-      const target = subject ? cy.wrap(subject) : cy;
-      // For easy slicing of path ignoring the root screenshot folder
-      target.screenshot(
-        `${PREFIX_DIFFERENTIATOR}${screenshotsFolder}/new`,
-        options
+  cy.task('baseExists', screenshotsFolder).then(hasBase => {
+    const target = subject ? cy.wrap(subject) : cy;
+    // For easy slicing of path ignoring the root screenshot folder
+    target.screenshot(
+      `${PREFIX_DIFFERENTIATOR}${screenshotsFolder}/new`,
+      options
+    );
+
+    if (!hasBase) {
+      cy.task(
+        'log',
+        `✅ A new base image was created for ${name}. Create this as a new base image via Comparadise!`
       );
 
-      if (!hasBase) {
+      return null;
+    }
+
+    cy.task('compareScreenshots', screenshotsFolder).then(diffPixels => {
+      if (diffPixels === 0) {
+        cy.log(`✅ Actual image of ${name} was the same as base`);
+      } else {
         cy.task(
           'log',
-          `✅ A new base image was created for ${name}. Create this as a new base image via Comparadise!`
+          `❌ Actual image of ${name} differed by ${diffPixels} pixels.`
         );
-
-        return null;
+        visualDiffsExist = true;
       }
-
-      cy.task('compareScreenshots', screenshotsFolder).then(diffPixels => {
-        if (diffPixels === 0) {
-          cy.log(`✅ Actual image of ${name} was the same as base`);
-        } else {
-          cy.task(
-            'log',
-            `❌ Actual image of ${name} differed by ${diffPixels} pixels.`
-          );
-          visualDiffsExist = true;
-        }
-
-        return null;
-      });
 
       return null;
     });
 
-    if (visualDiffsExist) {
-      process.exit(ExitCode.VISUAL_DIFFS_DETECTED);
-    }
-  } catch (error) {
-    console.error(error);
-    process.exit(ExitCode.VISUAL_TESTS_FAILED_TO_EXECUTE);
+    return null;
+  });
+
+  if (visualDiffsExist) {
+    process.exit(ExitCode.VISUAL_DIFFS_DETECTED);
   }
 }
 
