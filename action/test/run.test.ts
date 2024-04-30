@@ -5,6 +5,7 @@ import { octokit } from '../src/octokit';
 import { sync } from 'glob';
 import {
   BASE_IMAGES_DIRECTORY,
+  ExitCode,
   VISUAL_REGRESSION_CONTEXT,
   VISUAL_TESTS_FAILED_TO_EXECUTE
 } from 'shared';
@@ -62,7 +63,7 @@ describe('main', () => {
   });
 
   it('should fail if visual tests fail', async () => {
-    (exec as jest.Mock).mockResolvedValue(1);
+    (exec as jest.Mock).mockResolvedValue(ExitCode.VISUAL_TESTS_FAILED_TO_EXECUTE);
     await run();
     expect(setFailed).toHaveBeenCalled();
     expect(octokit.rest.repos.createCommitStatus).toHaveBeenCalledWith({
@@ -93,7 +94,7 @@ describe('main', () => {
   });
 
   it('should fail if visual tests pass and some diff images were created', async () => {
-    (exec as jest.Mock).mockResolvedValue(0);
+    (exec as jest.Mock).mockResolvedValue(ExitCode.VISUAL_DIFFS_DETECTED);
     (sync as unknown as jest.Mock).mockReturnValue([
       'path/to/screenshots/base.png',
       'path/to/screenshots/diff.png',
@@ -141,7 +142,7 @@ describe('main', () => {
   });
 
   it('should use subdirectories if provided', async () => {
-    (exec as jest.Mock).mockResolvedValue(0);
+    (exec as jest.Mock).mockResolvedValue(ExitCode.VISUAL_DIFFS_DETECTED);
     const extendedInputMap: Record<string, string> = {
       ...inputMap,
       'package-paths': 'path/1,path/2'
@@ -236,7 +237,7 @@ describe('main', () => {
   });
 
   it('should not set commit status or create comment if the latest Visual Regression status is failure because tests failed to execute successfully', async () => {
-    (exec as jest.Mock).mockResolvedValue(0);
+    (exec as jest.Mock).mockResolvedValue(ExitCode.VISUAL_DIFFS_DETECTED);
     (sync as unknown as jest.Mock).mockReturnValue([
       'path/to/screenshots/base.png',
       'path/to/screenshots/diff.png',
@@ -305,7 +306,7 @@ describe('main', () => {
 
   it('should set failure commit status (and not disable auto merge) if a visual test failed to execute but this is a re-run', async () => {
     process.env.GITHUB_RUN_ATTEMPT = '2';
-    (exec as jest.Mock).mockResolvedValue(0);
+    (exec as jest.Mock).mockResolvedValue(ExitCode.VISUAL_DIFFS_DETECTED);
     (sync as unknown as jest.Mock).mockReturnValue([
       'path/to/screenshots/base.png',
       'path/to/screenshots/diff.png',

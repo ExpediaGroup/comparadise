@@ -19,7 +19,8 @@ import { createGithubComment } from './comment';
 import { getLatestVisualRegressionStatus } from './get-latest-visual-regression-status';
 import {
   VISUAL_REGRESSION_CONTEXT,
-  VISUAL_TESTS_FAILED_TO_EXECUTE
+  VISUAL_TESTS_FAILED_TO_EXECUTE,
+  ExitCode
 } from 'shared';
 import { buildComparadiseUrl } from './build-comparadise-url';
 import { disableAutoMerge } from './disableAutoMerge';
@@ -38,7 +39,7 @@ export const run = async () => {
   const visualTestExitCode = await Promise.all(
     visualTestCommands.map(cmd => exec(cmd, [], { ignoreReturnCode: true }))
   );
-  if (visualTestExitCode.some(code => code !== 0)) {
+  if (visualTestExitCode.some(code => code === ExitCode.VISUAL_TESTS_FAILED_TO_EXECUTE)) {
     setFailed(
       'Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?'
     );

@@ -1,3 +1,5 @@
+import { ExitCode } from 'shared';
+
 const PREFIX_DIFFERENTIATOR = '___';
 const SUFFIX_TEST_IDENTIFIER = '.spec.ts';
 const SCREENSHOTS_FOLDER_NAME = 'screenshots';
@@ -23,9 +25,10 @@ function getTestFolderPathFromScripts(rawName?: string) {
   const relativeTestPath = Cypress.spec.relative;
 
   if (!relativeTestPath) {
-    throw new Error(
+    console.error(
       '❌ Could not find matching script in the Cypress DOM to infer the test folder path'
     );
+    process.exit(ExitCode.VISUAL_TESTS_FAILED_TO_EXECUTE);
   }
 
   const currentTestNumber = Cypress.mocha.getRunner().currentRunnable?.order;
@@ -34,9 +37,10 @@ function getTestFolderPathFromScripts(rawName?: string) {
     typeof currentTestNumber === 'number' &&
     currentTestNumber > 1
   ) {
-    throw new Error(
+    console.error(
       '❌ The rawName argument was not provided to matchScreenshot and is required for test files containing multiple tests!'
     );
+    process.exit(ExitCode.VISUAL_TESTS_FAILED_TO_EXECUTE);
   }
 
   const testName = relativeTestPath.substring(
@@ -81,47 +85,59 @@ export function matchScreenshot(
   subject: Cypress.JQueryWithSelector | Window | Document | void,
   args?: MatchScreenshotArgs
 ) {
-  const { rawName, options = {} } = args || {};
-  // Set up screen
-  forceFont();
+  try {
+    const { rawName, options = {} } = args || {};
+    // Set up screen
+    forceFont();
 
-  // Making sure each image is visible before taking screenshots
-  verifyImages();
+    // Making sure each image is visible before taking screenshots
+    verifyImages();
 
-  const { name, screenshotsFolder } = getTestFolderPathFromScripts(rawName);
+    const { name, screenshotsFolder } = getTestFolderPathFromScripts(rawName);
 
-  cy.task('baseExists', screenshotsFolder).then(hasBase => {
-    const target = subject ? cy.wrap(subject) : cy;
-    // For easy slicing of path ignoring the root screenshot folder
-    target.screenshot(
-      `${PREFIX_DIFFERENTIATOR}${screenshotsFolder}/new`,
-      options
-    );
+    let visualDiffsExist = false;
 
-    if (!hasBase) {
-      cy.task(
-        'log',
-        `✅ A new base image was created for ${name}. Create this as a new base image via Comparadise!`
+    cy.task('baseExists', screenshotsFolder).then(hasBase => {
+      const target = subject ? cy.wrap(subject) : cy;
+      // For easy slicing of path ignoring the root screenshot folder
+      target.screenshot(
+        `${PREFIX_DIFFERENTIATOR}${screenshotsFolder}/new`,
+        options
       );
 
-      return null;
-    }
-
-    cy.task('compareScreenshots', screenshotsFolder).then(diffPixels => {
-      if (diffPixels === 0) {
-        cy.log(`✅ Actual image of ${name} was the same as base`);
-      } else {
+      if (!hasBase) {
         cy.task(
           'log',
-          `❌ Actual image of ${name} differed by ${diffPixels} pixels.`
+          `✅ A new base image was created for ${name}. Create this as a new base image via Comparadise!`
         );
+
+        return null;
       }
+
+      cy.task('compareScreenshots', screenshotsFolder).then(diffPixels => {
+        if (diffPixels === 0) {
+          cy.log(`✅ Actual image of ${name} was the same as base`);
+        } else {
+          cy.task(
+            'log',
+            `❌ Actual image of ${name} differed by ${diffPixels} pixels.`
+          );
+          visualDiffsExist = true;
+        }
+
+        return null;
+      });
 
       return null;
     });
 
-    return null;
-  });
+    if (visualDiffsExist) {
+      process.exit(ExitCode.VISUAL_DIFFS_DETECTED);
+    }
+  } catch (error) {
+    console.error(error);
+    process.exit(ExitCode.VISUAL_TESTS_FAILED_TO_EXECUTE);
+  }
 }
 
 Cypress.Commands.add(
