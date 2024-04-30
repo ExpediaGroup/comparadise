@@ -39,7 +39,11 @@ export const run = async () => {
   const visualTestExitCode = await Promise.all(
     visualTestCommands.map(cmd => exec(cmd, [], { ignoreReturnCode: true }))
   );
-  if (visualTestExitCode.some(code => code === ExitCode.VISUAL_TESTS_FAILED_TO_EXECUTE)) {
+  if (
+    visualTestExitCode.some(
+      code => code === ExitCode.VISUAL_TESTS_FAILED_TO_EXECUTE
+    )
+  ) {
     setFailed(
       'Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?'
     );

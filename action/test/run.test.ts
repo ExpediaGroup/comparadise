@@ -63,7 +63,9 @@ describe('main', () => {
   });
 
   it('should fail if visual tests fail', async () => {
-    (exec as jest.Mock).mockResolvedValue(ExitCode.VISUAL_TESTS_FAILED_TO_EXECUTE);
+    (exec as jest.Mock).mockResolvedValue(
+      ExitCode.VISUAL_TESTS_FAILED_TO_EXECUTE
+    );
     await run();
     expect(setFailed).toHaveBeenCalled();
     expect(octokit.rest.repos.createCommitStatus).toHaveBeenCalledWith({

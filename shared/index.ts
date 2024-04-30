@@ -8,5 +8,5 @@ export const VISUAL_TESTS_FAILED_TO_EXECUTE =
 export const ExitCode = Object.freeze({
   SUCCESS: 0,
   VISUAL_TESTS_FAILED_TO_EXECUTE: 1,
-  VISUAL_DIFFS_DETECTED: 2,
+  VISUAL_DIFFS_DETECTED: 2
 });

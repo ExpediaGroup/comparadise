@@ -17281,7 +17281,7 @@ const run = async () => {
     const screenshotsDirectory = (0, core_1.getInput)('screenshots-directory');
     await (0, s3_operations_1.downloadBaseImages)();
     const visualTestExitCode = await Promise.all(visualTestCommands.map(cmd => (0, exec_1.exec)(cmd, [], { ignoreReturnCode: true })));
-    if (visualTestExitCode.some(code => code !== 0)) {
+    if (visualTestExitCode.some(code => code === shared_1.ExitCode.VISUAL_TESTS_FAILED_TO_EXECUTE)) {
         (0, core_1.setFailed)('Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?');
         return octokit_1.octokit.rest.repos.createCommitStatus({
             sha: commitHash,
@@ -17427,13 +17427,18 @@ function buildBaseImagePath(newFilePath) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.VISUAL_TESTS_FAILED_TO_EXECUTE = exports.NEW_IMAGE_NAME = exports.DIFF_IMAGE_NAME = exports.BASE_IMAGE_NAME = exports.BASE_IMAGES_DIRECTORY = exports.VISUAL_REGRESSION_CONTEXT = void 0;
+exports.ExitCode = exports.VISUAL_TESTS_FAILED_TO_EXECUTE = exports.NEW_IMAGE_NAME = exports.DIFF_IMAGE_NAME = exports.BASE_IMAGE_NAME = exports.BASE_IMAGES_DIRECTORY = exports.VISUAL_REGRESSION_CONTEXT = void 0;
 exports.VISUAL_REGRESSION_CONTEXT = 'Visual Regression';
 exports.BASE_IMAGES_DIRECTORY = 'base-images';
 exports.BASE_IMAGE_NAME = 'base';
 exports.DIFF_IMAGE_NAME = 'diff';
 exports.NEW_IMAGE_NAME = 'new';
 exports.VISUAL_TESTS_FAILED_TO_EXECUTE = 'Visual tests failed to execute successfully.';
+exports.ExitCode = Object.freeze({
+    SUCCESS: 0,
+    VISUAL_TESTS_FAILED_TO_EXECUTE: 1,
+    VISUAL_DIFFS_DETECTED: 2
+});
 
 
 /***/ }),
