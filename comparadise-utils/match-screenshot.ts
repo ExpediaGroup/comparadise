@@ -85,7 +85,6 @@ export function matchScreenshot(
   subject: Cypress.JQueryWithSelector | Window | Document | void,
   args?: MatchScreenshotArgs
 ) {
-  try {
   const { rawName, options = {} } = args || {};
   // Set up screen
   forceFont();
