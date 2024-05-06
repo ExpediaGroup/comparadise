@@ -1,10 +1,7 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": {
-    "declaration": false,
     "types": ["cypress"],
-    "noEmit": false,
-    "outDir": "dist"
   },
   "include": ["./**/*", "../reset.d.ts"]
 }
