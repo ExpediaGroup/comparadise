@@ -53,6 +53,32 @@ export function compareScreenshots(screenshotFolder: string) {
   return diffPixels;
 }
 
+const trimPostfix = (path: string) => {
+  const imgExt = '.png';
+  const attemptPostfixRegex = new RegExp(`\\s\\(attempt \\d+\\)${imgExt}$`);
+
+  if (attemptPostfixRegex.test(path)) {
+    return path.replace(attemptPostfixRegex, imgExt);
+  }
+
+  return path;
+};
+
+const getNewPath = (path: string) => {
+  let newPath;
+  if (path.includes('___')) {
+    newPath = path.slice(path.lastIndexOf('___') + 3);
+    if (newPath.startsWith('/')) {
+      newPath = `.${newPath}`;
+    }
+    console.log(newPath);
+  } else {
+    newPath = path;
+  }
+
+  return trimPostfix(newPath);
+};
+
 /**
  * Renames all root cypress screenshots to where the test was actually run.
  * Should NOT be used standalone. Works with the matchScreenshot task.
@@ -65,17 +91,6 @@ export function onAfterScreenshot(
   if (!details.path.match('cypress')) {
     return Promise.resolve({});
   }
-
-  const getNewPath = (path: string) => {
-    let newPath = path.slice(path.lastIndexOf('___') + 3);
-    console.log(newPath);
-
-    if (newPath.startsWith('/')) {
-      newPath = `.${newPath}`;
-    }
-
-    return newPath;
-  };
 
   const newPath = getNewPath(details.path);
   const newPathDir = newPath.substring(0, newPath.lastIndexOf('/'));

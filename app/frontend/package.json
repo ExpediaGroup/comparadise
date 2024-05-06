@@ -3,24 +3,24 @@
   "private": true,
   "dependencies": {
     "@headlessui/react": "1.7.19",
-    "@tanstack/react-query": "5.31.0",
+    "@tanstack/react-query": "5.35.1",
     "@trpc/client": "next",
     "@trpc/react-query": "next",
     "@trpc/server": "next",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
-    "react-router-dom": "6.22.3",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-router-dom": "6.23.0",
     "shared": "workspace:*"
   },
   "devDependencies": {
     "@testing-library/cypress": "10.0.1",
-    "@types/react": "18.2.79",
-    "@types/react-dom": "18.2.25",
+    "@types/react": "18.3.1",
+    "@types/react-dom": "18.3.0",
     "@types/testing-library__cypress": "5.0.13",
     "@vitejs/plugin-react-swc": "3.6.0",
     "prettier-plugin-tailwindcss": "0.5.14",
     "tailwindcss": "3.4.3",
-    "vite": "5.2.10"
+    "vite": "5.2.11"
   },
   "scripts": {
     "build": "tsc && pnpm prod",
