@@ -94,8 +94,6 @@ export function matchScreenshot(
 
   const { name, screenshotsFolder } = getTestFolderPathFromScripts(rawName);
 
-  let visualDiffsExist = false;
-
   cy.task('baseExists', screenshotsFolder).then(hasBase => {
     const target = subject ? cy.wrap(subject) : cy;
     // For easy slicing of path ignoring the root screenshot folder
@@ -121,7 +119,7 @@ export function matchScreenshot(
           'log',
           `❌ Actual image of ${name} differed by ${diffPixels} pixels.`
         );
-        visualDiffsExist = true;
+        process.exit(ExitCode.VISUAL_DIFFS_DETECTED);
       }
 
       return null;
@@ -129,10 +127,6 @@ export function matchScreenshot(
 
     return null;
   });
-
-  if (visualDiffsExist) {
-    process.exit(ExitCode.VISUAL_DIFFS_DETECTED);
-  }
 }
 
 Cypress.Commands.add(
