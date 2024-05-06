@@ -2,16 +2,16 @@
   "name": "backend",
   "private": true,
   "dependencies": {
-    "@aws-sdk/client-s3": "3.567.0",
-    "@aws-sdk/s3-request-presigner": "3.567.0",
-    "@octokit/rest": "20.1.0",
+    "@aws-sdk/client-s3": "3.569.0",
+    "@aws-sdk/s3-request-presigner": "3.569.0",
+    "@octokit/rest": "20.1.1",
     "@trpc/server": "next",
     "cors": "2.8.5",
     "express": "4.19.2",
     "express-rate-limit": "7.2.0",
     "lodash": "4.17.21",
     "shared": "workspace:*",
-    "zod": "3.23.5"
+    "zod": "3.23.6"
   },
   "devDependencies": {
     "@types/cors": "2.8.17",
