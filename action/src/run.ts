@@ -19,7 +19,7 @@ import { createGithubComment } from './comment';
 import { getLatestVisualRegressionStatus } from './get-latest-visual-regression-status';
 import {
   VISUAL_REGRESSION_CONTEXT,
-  VISUAL_TESTS_FAILED_TO_EXECUTE,
+  VISUAL_TESTS_FAILED_TO_EXECUTE
 } from 'shared';
 import { buildComparadiseUrl } from './build-comparadise-url';
 import { disableAutoMerge } from './disableAutoMerge';
