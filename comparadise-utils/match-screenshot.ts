@@ -1,5 +1,3 @@
-import { ExitCode } from 'shared';
-
 const PREFIX_DIFFERENTIATOR = '___';
 const SUFFIX_TEST_IDENTIFIER = '.spec.ts';
 const SCREENSHOTS_FOLDER_NAME = 'screenshots';
@@ -25,10 +23,9 @@ function getTestFolderPathFromScripts(rawName?: string) {
   const relativeTestPath = Cypress.spec.relative;
 
   if (!relativeTestPath) {
-    console.error(
+    throw new Error(
       '❌ Could not find matching script in the Cypress DOM to infer the test folder path'
     );
-    process.exit(ExitCode.VISUAL_TESTS_FAILED_TO_EXECUTE);
   }
 
   const currentTestNumber = Cypress.mocha.getRunner().currentRunnable?.order;
@@ -37,10 +34,9 @@ function getTestFolderPathFromScripts(rawName?: string) {
     typeof currentTestNumber === 'number' &&
     currentTestNumber > 1
   ) {
-    console.error(
+    throw new Error(
       '❌ The rawName argument was not provided to matchScreenshot and is required for test files containing multiple tests!'
     );
-    process.exit(ExitCode.VISUAL_TESTS_FAILED_TO_EXECUTE);
   }
 
   const testName = relativeTestPath.substring(
@@ -115,11 +111,7 @@ export function matchScreenshot(
       if (diffPixels === 0) {
         cy.log(`✅ Actual image of ${name} was the same as base`);
       } else {
-        cy.task(
-          'log',
-          `❌ Actual image of ${name} differed by ${diffPixels} pixels.`
-        );
-        process.exit(ExitCode.VISUAL_DIFFS_DETECTED);
+        throw new Error(`❌ Actual image of ${name} differed by ${diffPixels} pixels.`);
       }
 
       return null;

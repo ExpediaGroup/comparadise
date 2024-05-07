@@ -20,7 +20,6 @@ import { getLatestVisualRegressionStatus } from './get-latest-visual-regression-
 import {
   VISUAL_REGRESSION_CONTEXT,
   VISUAL_TESTS_FAILED_TO_EXECUTE,
-  ExitCode
 } from 'shared';
 import { buildComparadiseUrl } from './build-comparadise-url';
 import { disableAutoMerge } from './disableAutoMerge';
@@ -39,11 +38,21 @@ export const run = async () => {
   const visualTestExitCode = await Promise.all(
     visualTestCommands.map(cmd => exec(cmd, [], { ignoreReturnCode: true }))
   );
-  if (
-    visualTestExitCode.some(
-      code => code === ExitCode.VISUAL_TESTS_FAILED_TO_EXECUTE
-    )
-  ) {
+  const numVisualTestFailures = visualTestExitCode.filter(code => code !== 0).length;
+
+  const latestVisualRegressionStatus =
+    await getLatestVisualRegressionStatus(commitHash);
+  const screenshotsPath = path.join(process.cwd(), screenshotsDirectory);
+  const filesInScreenshotDirectory = sync(`${screenshotsPath}/**`) || [];
+  const diffFileCount = filesInScreenshotDirectory.filter(file =>
+    file.endsWith('diff.png')
+  ).length;
+  const newFilePaths = filesInScreenshotDirectory.filter(file =>
+    file.endsWith('new.png')
+  );
+  const newFileCount = newFilePaths.length;
+
+  if (numVisualTestFailures > diffFileCount) {
     setFailed(
       'Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?'
     );
@@ -56,17 +65,6 @@ export const run = async () => {
     });
   }
 
-  const latestVisualRegressionStatus =
-    await getLatestVisualRegressionStatus(commitHash);
-  const screenshotsPath = path.join(process.cwd(), screenshotsDirectory);
-  const filesInScreenshotDirectory = sync(`${screenshotsPath}/**`);
-  const diffFileCount = filesInScreenshotDirectory.filter(file =>
-    file.endsWith('diff.png')
-  ).length;
-  const newFilePaths = filesInScreenshotDirectory.filter(file =>
-    file.endsWith('new.png')
-  );
-  const newFileCount = newFilePaths.length;
   if (diffFileCount === 0 && newFileCount === 0) {
     info('All visual tests passed, and no diffs found!');
 
