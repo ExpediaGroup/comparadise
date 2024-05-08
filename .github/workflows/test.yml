@@ -48,6 +48,9 @@ jobs:
       - name: Format Code
         run: pnpm format
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+
       - name: Test
         run: pnpm nx affected --target=test
 
