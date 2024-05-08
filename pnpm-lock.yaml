@@ -72,6 +72,9 @@ importers:
       '@types/glob':
         specifier: 8.1.0
         version: 8.1.0
+      tsup:
+        specifier: 8.0.2
+        version: 8.0.2(@swc/core@1.5.3)(postcss@8.4.38)(ts-node@10.9.2(@swc/core@1.5.3)(@types/node@20.12.8)(typescript@5.4.5))(typescript@5.4.5)
 
   app:
     devDependencies:

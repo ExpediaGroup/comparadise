@@ -6,7 +6,7 @@ on:
       - main
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: "${{ github.workflow }}-${{ github.ref }}"
   cancel-in-progress: true
 
 jobs:
@@ -37,7 +37,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/Cypress
-          key: ${{ runner.os }}-cypress-${{ hashFiles('**/pnpm-lock.yaml') }}
+          key: "${{ runner.os }}-cypress-${{ hashFiles('**/pnpm-lock.yaml') }}"
 
       - name: Install
         run: pnpm install
@@ -47,9 +47,6 @@ jobs:
 
       - name: Format Code
         run: pnpm format
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
 
       - name: Test
         run: pnpm nx affected --target=test
