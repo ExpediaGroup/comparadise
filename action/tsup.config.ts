@@ -3,5 +3,5 @@ import { Options } from 'tsup';
 export default {
   clean: true,
   entry: ['src/main.ts'],
-  sourcemap: true,
+  sourcemap: true
 } satisfies Options;
