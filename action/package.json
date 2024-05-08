@@ -21,5 +21,6 @@
   },
   "eslintIgnore": [
     "dist"
-  ]
+  ],
+  "type": "module"
 }
