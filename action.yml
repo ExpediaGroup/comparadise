@@ -29,8 +29,8 @@ inputs:
     required: false
     default: ${{ github.token }}
 runs:
-  using: 'node16'
-  main: 'action/dist/index.js'
+  using: 'node20'
+  main: 'action/dist/main.js'
 branding:
   icon: layout
   color: green
