@@ -32,5 +32,3 @@ cypress/screenshots
 app/frontend/cypress/videos
 
 .nx/
-
-.tool-versions

@@ -23,17 +23,17 @@
   "devDependencies": {
     "@types/pixelmatch": "5.2.6",
     "@types/pngjs": "6.0.5",
-    "cypress": "13.8.1",
-    "tsup": "8.0.2"
+    "cypress": "13.8.1"
   },
   "peerDependencies": {
     "cypress": ">=12"
   },
   "scripts": {
-    "build": "tsup",
+    "build": "tsc && tsc --project tsconfig.types.json",
     "bump-version": "pnpm version $NEW_VERSION",
     "lint": "eslint . --max-warnings=0",
-    "postbuild": "echo \"require('./dist/match-screenshot');\" > commands.js",
+    "postbuild": "echo \"require('./dist/match-screenshot');\" > commands.js && echo \"export {};\" > types/index.js",
+    "prebuild": "rm -rf dist types",
     "prepack": "nx build",
     "test": "exit 0"
   },

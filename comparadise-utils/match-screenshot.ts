@@ -111,7 +111,8 @@ export function matchScreenshot(
       if (diffPixels === 0) {
         cy.log(`✅ Actual image of ${name} was the same as base`);
       } else {
-        throw new Error(
+        cy.task(
+          'log',
           `❌ Actual image of ${name} differed by ${diffPixels} pixels.`
         );
       }

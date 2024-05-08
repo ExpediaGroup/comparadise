@@ -49,17 +49,16 @@ const inputMap: Record<string, string> = {
   'comparadise-host': 'https://comparadise.app'
 };
 (getInput as jest.Mock).mockImplementation(name => inputMap[name]);
+const multiLineInputMap: Record<string, string[]> = {
+  'visual-test-command': ['run my visual tests']
+};
+(getMultilineInput as jest.Mock).mockImplementation(
+  name => multiLineInputMap[name]
+);
 
 describe('main', () => {
   beforeEach(() => {
     process.env.GITHUB_RUN_ATTEMPT = '1';
-
-    const multiLineInputMap: Record<string, string[]> = {
-      'visual-test-command': ['run my visual tests']
-    };
-    (getMultilineInput as jest.Mock).mockImplementation(
-      name => multiLineInputMap[name]
-    );
   });
 
   it('should fail if visual tests fail', async () => {
@@ -94,7 +93,7 @@ describe('main', () => {
   });
 
   it('should fail if visual tests pass and some diff images were created', async () => {
-    (exec as jest.Mock).mockResolvedValue(1);
+    (exec as jest.Mock).mockResolvedValue(0);
     (sync as unknown as jest.Mock).mockReturnValue([
       'path/to/screenshots/base.png',
       'path/to/screenshots/diff.png',
@@ -113,31 +112,6 @@ describe('main', () => {
         'https://comparadise.app/?hash=sha&owner=owner&repo=repo&bucket=some-bucket'
     });
     expect(octokit.rest.issues.createComment).toHaveBeenCalled();
-  });
-
-  it('should fail if some visual tests fail and some diff images were created', async () => {
-    const multiLineInputMapMultipleCommands: Record<string, string[]> = {
-      'visual-test-command': ['run my visual tests', 'ok thank you']
-    };
-    (getMultilineInput as jest.Mock).mockImplementation(
-      name => multiLineInputMapMultipleCommands[name]
-    );
-    (exec as jest.Mock).mockResolvedValue(1);
-    (sync as unknown as jest.Mock).mockReturnValue([
-      'path/to/screenshots/base.png',
-      'path/to/screenshots/diff.png',
-      'path/to/screenshots/new.png'
-    ]);
-    await run();
-    expect(setFailed).toHaveBeenCalled();
-    expect(octokit.rest.repos.createCommitStatus).toHaveBeenCalledWith({
-      owner: 'owner',
-      repo: 'repo',
-      sha: 'sha',
-      context: VISUAL_REGRESSION_CONTEXT,
-      state: 'failure',
-      description: VISUAL_TESTS_FAILED_TO_EXECUTE
-    });
   });
 
   it('should pass and upload base images if visual tests pass and only new images were created', async () => {
@@ -167,7 +141,7 @@ describe('main', () => {
   });
 
   it('should use subdirectories if provided', async () => {
-    (exec as jest.Mock).mockResolvedValue(1);
+    (exec as jest.Mock).mockResolvedValue(0);
     const extendedInputMap: Record<string, string> = {
       ...inputMap,
       'package-paths': 'path/1,path/2'
@@ -262,7 +236,7 @@ describe('main', () => {
   });
 
   it('should not set commit status or create comment if the latest Visual Regression status is failure because tests failed to execute successfully', async () => {
-    (exec as jest.Mock).mockResolvedValue(1);
+    (exec as jest.Mock).mockResolvedValue(0);
     (sync as unknown as jest.Mock).mockReturnValue([
       'path/to/screenshots/base.png',
       'path/to/screenshots/diff.png',
@@ -331,7 +305,7 @@ describe('main', () => {
 
   it('should set failure commit status (and not disable auto merge) if a visual test failed to execute but this is a re-run', async () => {
     process.env.GITHUB_RUN_ATTEMPT = '2';
-    (exec as jest.Mock).mockResolvedValue(1);
+    (exec as jest.Mock).mockResolvedValue(0);
     (sync as unknown as jest.Mock).mockReturnValue([
       'path/to/screenshots/base.png',
       'path/to/screenshots/diff.png',
