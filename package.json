@@ -12,11 +12,20 @@
     "jest": "29.7.0",
     "nx": "18.3.4",
     "prettier": "3.2.5",
-    "ts-node": "10.9.2",
     "typescript": "5.4.5"
   },
   "scripts": {
     "docker": "docker build . --tag comparadise && docker-compose up",
-    "format": "prettier --write ."
-  }
+    "format": "prettier --write .",
+    "start": "bun app/backend/src/server.ts"
+  },
+  "workspaces": [
+    "action",
+    "app",
+    "app/frontend",
+    "app/backend",
+    "comparadise-utils",
+    "docs",
+    "shared"
+  ]
 }
