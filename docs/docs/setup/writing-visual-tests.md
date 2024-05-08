@@ -43,7 +43,6 @@ In `cypress/support/commands.ts`:
 
 ```ts
 import 'comparadise-utils/commands';
-import 'comparadise-utils/types';
 ```
 
 ## Test Setup
