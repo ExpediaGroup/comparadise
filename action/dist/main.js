@@ -38456,6 +38456,9 @@ var run = async () => {
     (file) => file.endsWith("new.png")
   );
   const newFileCount = newFilePaths.length;
+  (0, import_core6.warning)(`numVisualTestFailures: ${numVisualTestFailures}`);
+  (0, import_core6.warning)(`diffFileCount: ${diffFileCount}, diffFiles: ${filesInScreenshotDirectory.filter((file) => file.endsWith("diff.png")).join(", ")}`);
+  (0, import_core6.warning)(`newFileCount: ${newFileCount}, newFiles: ${filesInScreenshotDirectory.filter((file) => file.endsWith("new.png")).join(", ")}`);
   if (numVisualTestFailures > diffFileCount) {
     (0, import_core6.setFailed)(
       "Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?"
