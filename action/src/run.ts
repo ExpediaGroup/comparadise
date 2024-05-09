@@ -54,6 +54,10 @@ export const run = async () => {
   );
   const newFileCount = newFilePaths.length;
 
+  warning(`numVisualTestFailures: ${numVisualTestFailures}`);
+  warning(`diffFileCount: ${diffFileCount}, diffFiles: ${filesInScreenshotDirectory.filter(file => file.endsWith('diff.png')).join(', ')}`);
+  warning(`newFileCount: ${newFileCount}, newFiles: ${filesInScreenshotDirectory.filter(file => file.endsWith('new.png')).join(', ')}`);
+
   if (numVisualTestFailures > diffFileCount) {
     setFailed(
       'Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?'
