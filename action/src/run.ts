@@ -52,13 +52,14 @@ export const run = async () => {
   const newFilePaths = filesInScreenshotDirectory.filter(file =>
     file.endsWith('new.png')
   );
-  const diffFileCount = diffFilePaths.filter((diffPath) => !newFilePaths.some((newPath) => newPath.split('new.png')[0] !== diffPath.split('diff.png')[0])).length;
+  const diffFileCount = diffFilePaths.reduce((count, diffPath) => {
+    if (!newFilePaths.some((newPath) => newPath.split('new.png')[0] !== diffPath.split('diff.png')[0])) {
+      return count + 1;
+    }
+    exec(`rm ${diffPath}`);
+    return count;
+  }, 0);
   const newFileCount = newFilePaths.length;
-
-  warning(`numVisualTestFailures: ${numVisualTestFailures}`);
-  warning(`test runs: ${visualTestExitCode.map((data) => JSON.stringify(data)).join(', ')}`);
-  warning(`diffFileCount: ${diffFileCount}`);
-  warning(`newFileCount: ${newFileCount}`);
 
   if (numVisualTestFailures > diffFileCount) {
     setFailed(

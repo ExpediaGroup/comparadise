@@ -38449,17 +38449,18 @@ var run = async () => {
   const latestVisualRegressionStatus = await getLatestVisualRegressionStatus(commitHash);
   const screenshotsPath = path3.join(process.cwd(), screenshotsDirectory);
   const filesInScreenshotDirectory = sync(`${screenshotsPath}/**`) || [];
-  const diffFileCount = filesInScreenshotDirectory.filter(
+  const diffFilePaths = filesInScreenshotDirectory.filter(
     (file) => file.endsWith("diff.png")
-  ).length;
+  );
   const newFilePaths = filesInScreenshotDirectory.filter(
     (file) => file.endsWith("new.png")
   );
+  const diffFileCount = diffFilePaths.filter((diffPath) => !newFilePaths.some((newPath) => newPath.split("new.png")[0] !== diffPath.split("diff.png")[0])).length;
   const newFileCount = newFilePaths.length;
   (0, import_core6.warning)(`numVisualTestFailures: ${numVisualTestFailures}`);
   (0, import_core6.warning)(`test runs: ${visualTestExitCode.map((data) => JSON.stringify(data)).join(", ")}`);
-  (0, import_core6.warning)(`diffFileCount: ${diffFileCount}, diffFiles: ${filesInScreenshotDirectory.filter((file) => file.endsWith("diff.png")).join(", ")}`);
-  (0, import_core6.warning)(`newFileCount: ${newFileCount}, newFiles: ${filesInScreenshotDirectory.filter((file) => file.endsWith("new.png")).join(", ")}`);
+  (0, import_core6.warning)(`diffFileCount: ${diffFileCount}`);
+  (0, import_core6.warning)(`newFileCount: ${newFileCount}`);
   if (numVisualTestFailures > diffFileCount) {
     (0, import_core6.setFailed)(
       "Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?"
