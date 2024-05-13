@@ -12,7 +12,6 @@ dist
 !action/dist
 
 # comparadise-utils
-comparadise-utils/types/
 comparadise-utils/commands.js
 
 # misc
