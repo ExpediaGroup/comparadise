@@ -38457,7 +38457,7 @@ var run = async () => {
   );
   (0, import_core6.warning)(`newFilePaths: ${newFilePaths}`);
   const diffFileCount = diffFilePaths.reduce((count, diffPath) => {
-    if (!newFilePaths.some((newPath) => newPath.split("new.png")[0] !== diffPath.split("diff.png")[0])) {
+    if (newFilePaths.some((newPath) => newPath.split("new.png")[0] === diffPath.split("diff.png")[0])) {
       return count + 1;
     }
     (0, import_exec2.exec)(`rm ${diffPath}`);

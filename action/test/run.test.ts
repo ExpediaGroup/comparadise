@@ -98,10 +98,13 @@ describe('main', () => {
     (sync as unknown as jest.Mock).mockReturnValue([
       'path/to/screenshots/base.png',
       'path/to/screenshots/diff.png',
-      'path/to/screenshots/new.png'
+      'path/to/screenshots/new.png',
+      'path/to/another-screenshot/diff.png'
     ]);
     await run();
     expect(setFailed).not.toHaveBeenCalled();
+    expect(exec).not.toHaveBeenCalledWith('rm path/to/screenshots/diff.png');
+    expect(exec).toHaveBeenCalledWith('rm path/to/another-screenshot/diff.png');
     expect(octokit.rest.repos.createCommitStatus).toHaveBeenCalledWith({
       owner: 'owner',
       repo: 'repo',
@@ -137,6 +140,24 @@ describe('main', () => {
       context: VISUAL_REGRESSION_CONTEXT,
       state: 'failure',
       description: VISUAL_TESTS_FAILED_TO_EXECUTE
+    });
+  });
+
+  it('should pass if visual tests initially fail but pass on retry', async () => {
+    (exec as jest.Mock).mockResolvedValue(0);
+    (sync as unknown as jest.Mock).mockReturnValue([
+      'path/to/screenshots/diff.png'
+    ]);
+    await run();
+    expect(setFailed).not.toHaveBeenCalled();
+    expect(exec).toHaveBeenCalledWith('rm path/to/screenshots/diff.png');
+    expect(octokit.rest.repos.createCommitStatus).toHaveBeenCalledWith({
+      owner: 'owner',
+      repo: 'repo',
+      sha: 'sha',
+      context: VISUAL_REGRESSION_CONTEXT,
+      state: 'success',
+      description: 'Visual tests passed!'
     });
   });
 
