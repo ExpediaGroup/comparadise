@@ -46,18 +46,19 @@ export const run = async () => {
     await getLatestVisualRegressionStatus(commitHash);
   const screenshotsPath = path.join(process.cwd(), screenshotsDirectory);
   const filesInScreenshotDirectory = sync(`${screenshotsPath}/**`) || [];
-  const diffFileCount = filesInScreenshotDirectory.filter(file =>
+  const diffFilePaths = filesInScreenshotDirectory.filter(file =>
     file.endsWith('diff.png')
-  ).length;
+  );
   const newFilePaths = filesInScreenshotDirectory.filter(file =>
     file.endsWith('new.png')
   );
+  const diffFileCount = diffFilePaths.filter((diffPath) => !newFilePaths.some((newPath) => newPath.split('new.png')[0] !== diffPath.split('diff.png')[0])).length;
   const newFileCount = newFilePaths.length;
 
   warning(`numVisualTestFailures: ${numVisualTestFailures}`);
   warning(`test runs: ${visualTestExitCode.map((data) => JSON.stringify(data)).join(', ')}`);
-  warning(`diffFileCount: ${diffFileCount}, diffFiles: ${filesInScreenshotDirectory.filter(file => file.endsWith('diff.png')).join(', ')}`);
-  warning(`newFileCount: ${newFileCount}, newFiles: ${filesInScreenshotDirectory.filter(file => file.endsWith('new.png')).join(', ')}`);
+  warning(`diffFileCount: ${diffFileCount}`);
+  warning(`newFileCount: ${newFileCount}`);
 
   if (numVisualTestFailures > diffFileCount) {
     setFailed(
