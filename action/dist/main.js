@@ -38455,12 +38455,14 @@ var run = async () => {
   const newFilePaths = filesInScreenshotDirectory.filter(
     (file) => file.endsWith("new.png")
   );
-  const diffFileCount = diffFilePaths.filter((diffPath) => !newFilePaths.some((newPath) => newPath.split("new.png")[0] !== diffPath.split("diff.png")[0])).length;
+  const diffFileCount = diffFilePaths.reduce((count, diffPath) => {
+    if (!newFilePaths.some((newPath) => newPath.split("new.png")[0] !== diffPath.split("diff.png")[0])) {
+      return count + 1;
+    }
+    (0, import_exec2.exec)(`rm ${diffPath}`);
+    return count;
+  }, 0);
   const newFileCount = newFilePaths.length;
-  (0, import_core6.warning)(`numVisualTestFailures: ${numVisualTestFailures}`);
-  (0, import_core6.warning)(`test runs: ${visualTestExitCode.map((data) => JSON.stringify(data)).join(", ")}`);
-  (0, import_core6.warning)(`diffFileCount: ${diffFileCount}`);
-  (0, import_core6.warning)(`newFileCount: ${newFileCount}`);
   if (numVisualTestFailures > diffFileCount) {
     (0, import_core6.setFailed)(
       "Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?"
