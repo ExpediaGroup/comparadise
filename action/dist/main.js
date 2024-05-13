@@ -34706,11 +34706,11 @@ var LRUCache = class _LRUCache {
   }
 };
 
-// ../node_modules/.pnpm/path-scurry@1.10.2/node_modules/path-scurry/dist/esm/index.js
-var import_path = require("path");
-var import_url2 = require("url");
-var actualFS = __toESM(require("fs"), 1);
+// ../node_modules/.pnpm/path-scurry@1.11.1/node_modules/path-scurry/dist/esm/index.js
+var import_node_path = require("path");
+var import_node_url = require("url");
 var import_fs = require("fs");
+var actualFS = __toESM(require("fs"), 1);
 var import_promises = require("fs/promises");
 
 // ../node_modules/.pnpm/minipass@7.1.0/node_modules/minipass/dist/esm/index.js
@@ -35591,7 +35591,7 @@ var Minipass = class extends import_events.EventEmitter {
   }
 };
 
-// ../node_modules/.pnpm/path-scurry@1.10.2/node_modules/path-scurry/dist/esm/index.js
+// ../node_modules/.pnpm/path-scurry@1.11.1/node_modules/path-scurry/dist/esm/index.js
 var realpathSync = import_fs.realpathSync.native;
 var defaultFS = {
   lstatSync: import_fs.lstatSync,
@@ -35703,6 +35703,11 @@ var PathBase = class {
    * @internal
    */
   nocase;
+  /**
+   * boolean indicating that this path is the current working directory
+   * of the PathScurry collection that contains it.
+   */
+  isCWD = false;
   // potential default fs override
   #fs;
   // Stats fields
@@ -35790,13 +35795,19 @@ var PathBase = class {
   #realpath;
   /**
    * This property is for compatibility with the Dirent class as of
-   * Node v20, where Dirent['path'] refers to the path of the directory
-   * that was passed to readdir.  So, somewhat counterintuitively, this
-   * property refers to the *parent* path, not the path object itself.
-   * For root entries, it's the path to the entry itself.
+   * Node v20, where Dirent['parentPath'] refers to the path of the
+   * directory that was passed to readdir. For root entries, it's the path
+   * to the entry itself.
+   */
+  get parentPath() {
+    return (this.parent || this).fullpath();
+  }
+  /**
+   * Deprecated alias for Dirent['parentPath'] Somewhat counterintuitively,
+   * this property refers to the *parent* path, not the path object itself.
    */
   get path() {
-    return (this.parent || this).fullpath();
+    return this.parentPath;
   }
   /**
    * Do not create new Path objects directly.  They should always be accessed
@@ -35923,6 +35934,8 @@ var PathBase = class {
    * the cwd, then this ends up being equivalent to the fullpath()
    */
   relative() {
+    if (this.isCWD)
+      return "";
     if (this.#relative !== void 0) {
       return this.#relative;
     }
@@ -35943,6 +35956,8 @@ var PathBase = class {
   relativePosix() {
     if (this.sep === "/")
       return this.relative();
+    if (this.isCWD)
+      return "";
     if (this.#relativePosix !== void 0)
       return this.#relativePosix;
     const name = this.name;
@@ -36549,6 +36564,8 @@ var PathBase = class {
   [setAsCwd](oldCwd) {
     if (oldCwd === this)
       return;
+    oldCwd.isCWD = false;
+    this.isCWD = true;
     const changed = /* @__PURE__ */ new Set([]);
     let rp = [];
     let p = this;
@@ -36595,7 +36612,7 @@ var PathWin32 = class _PathWin32 extends PathBase {
    * @internal
    */
   getRootString(path4) {
-    return import_path.win32.parse(path4).root;
+    return import_node_path.win32.parse(path4).root;
   }
   /**
    * @internal
@@ -36694,7 +36711,7 @@ var PathScurryBase = class {
   constructor(cwd = process.cwd(), pathImpl, sep2, { nocase, childrenCacheSize = 16 * 1024, fs = defaultFS } = {}) {
     this.#fs = fsFromOption(fs);
     if (cwd instanceof URL || cwd.startsWith("file://")) {
-      cwd = (0, import_url2.fileURLToPath)(cwd);
+      cwd = (0, import_node_url.fileURLToPath)(cwd);
     }
     const cwdPath = pathImpl.resolve(cwd);
     this.roots = /* @__PURE__ */ Object.create(null);
@@ -37235,7 +37252,7 @@ var PathScurryWin32 = class extends PathScurryBase {
   sep = "\\";
   constructor(cwd = process.cwd(), opts = {}) {
     const { nocase = true } = opts;
-    super(cwd, import_path.win32, "\\", { ...opts, nocase });
+    super(cwd, import_node_path.win32, "\\", { ...opts, nocase });
     this.nocase = nocase;
     for (let p = this.cwd; p; p = p.parent) {
       p.nocase = this.nocase;
@@ -37245,7 +37262,7 @@ var PathScurryWin32 = class extends PathScurryBase {
    * @internal
    */
   parseRootPath(dir) {
-    return import_path.win32.parse(dir).root.toUpperCase();
+    return import_node_path.win32.parse(dir).root.toUpperCase();
   }
   /**
    * @internal
@@ -37267,7 +37284,7 @@ var PathScurryPosix = class extends PathScurryBase {
   sep = "/";
   constructor(cwd = process.cwd(), opts = {}) {
     const { nocase = false } = opts;
-    super(cwd, import_path.posix, "/", { ...opts, nocase });
+    super(cwd, import_node_path.posix, "/", { ...opts, nocase });
     this.nocase = nocase;
   }
   /**
@@ -37298,10 +37315,10 @@ var PathScurryDarwin = class extends PathScurryPosix {
 var Path = process.platform === "win32" ? PathWin32 : PathPosix;
 var PathScurry = process.platform === "win32" ? PathScurryWin32 : process.platform === "darwin" ? PathScurryDarwin : PathScurryPosix;
 
-// ../node_modules/.pnpm/glob@10.3.12/node_modules/glob/dist/esm/glob.js
-var import_url3 = require("url");
+// ../node_modules/.pnpm/glob@10.3.15/node_modules/glob/dist/esm/glob.js
+var import_node_url2 = require("url");
 
-// ../node_modules/.pnpm/glob@10.3.12/node_modules/glob/dist/esm/pattern.js
+// ../node_modules/.pnpm/glob@10.3.15/node_modules/glob/dist/esm/pattern.js
 var isPatternList = (pl) => pl.length >= 1;
 var isGlobList = (gl) => gl.length >= 1;
 var Pattern = class _Pattern {
@@ -37466,7 +37483,7 @@ var Pattern = class _Pattern {
   }
 };
 
-// ../node_modules/.pnpm/glob@10.3.12/node_modules/glob/dist/esm/ignore.js
+// ../node_modules/.pnpm/glob@10.3.15/node_modules/glob/dist/esm/ignore.js
 var defaultPlatform2 = typeof process === "object" && process && typeof process.platform === "string" ? process.platform : "linux";
 var Ignore = class {
   relative;
@@ -37548,7 +37565,7 @@ var Ignore = class {
   }
 };
 
-// ../node_modules/.pnpm/glob@10.3.12/node_modules/glob/dist/esm/processor.js
+// ../node_modules/.pnpm/glob@10.3.15/node_modules/glob/dist/esm/processor.js
 var HasWalkedCache = class _HasWalkedCache {
   store;
   constructor(store = /* @__PURE__ */ new Map()) {
@@ -37769,7 +37786,7 @@ var Processor = class _Processor {
   }
 };
 
-// ../node_modules/.pnpm/glob@10.3.12/node_modules/glob/dist/esm/walker.js
+// ../node_modules/.pnpm/glob@10.3.15/node_modules/glob/dist/esm/walker.js
 var makeIgnore = (ignore, opts) => typeof ignore === "string" ? new Ignore([ignore], opts) : Array.isArray(ignore) ? new Ignore(ignore, opts) : ignore;
 var GlobUtil = class {
   path;
@@ -38087,7 +38104,7 @@ var GlobStream = class extends GlobUtil {
   }
 };
 
-// ../node_modules/.pnpm/glob@10.3.12/node_modules/glob/dist/esm/glob.js
+// ../node_modules/.pnpm/glob@10.3.15/node_modules/glob/dist/esm/glob.js
 var defaultPlatform3 = typeof process === "object" && process && typeof process.platform === "string" ? process.platform : "linux";
 var Glob = class {
   absolute;
@@ -38147,7 +38164,7 @@ var Glob = class {
     if (!opts.cwd) {
       this.cwd = "";
     } else if (opts.cwd instanceof URL || opts.cwd.startsWith("file://")) {
-      opts.cwd = (0, import_url3.fileURLToPath)(opts.cwd);
+      opts.cwd = (0, import_node_url2.fileURLToPath)(opts.cwd);
     }
     this.cwd = opts.cwd || "";
     this.root = opts.root;
@@ -38281,7 +38298,7 @@ var Glob = class {
   }
 };
 
-// ../node_modules/.pnpm/glob@10.3.12/node_modules/glob/dist/esm/has-magic.js
+// ../node_modules/.pnpm/glob@10.3.15/node_modules/glob/dist/esm/has-magic.js
 var hasMagic = (pattern, options = {}) => {
   if (!Array.isArray(pattern)) {
     pattern = [pattern];
@@ -38293,7 +38310,7 @@ var hasMagic = (pattern, options = {}) => {
   return false;
 };
 
-// ../node_modules/.pnpm/glob@10.3.12/node_modules/glob/dist/esm/index.js
+// ../node_modules/.pnpm/glob@10.3.15/node_modules/glob/dist/esm/index.js
 function globStreamSync(pattern, options = {}) {
   return new Glob(pattern, options).streamSync();
 }
