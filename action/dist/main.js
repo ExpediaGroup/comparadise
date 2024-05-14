@@ -38460,7 +38460,16 @@ var run = async () => {
     if (newFilePaths.some((newPath) => newPath.split("new.png")[0] === diffPath.split("diff.png")[0])) {
       return count + 1;
     }
-    (0, import_exec2.exec)(`rm ${diffPath}`);
+    let output = "";
+    (0, import_exec2.exec)(`rm ${diffPath}`, [], { listeners: {
+      stdout: (data) => {
+        output += data.toString();
+      },
+      stderr: (data) => {
+        output += data.toString();
+      }
+    } });
+    (0, import_core6.warning)(output);
     return count;
   }, 0);
   const newFileCount = newFilePaths.length;

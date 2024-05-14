@@ -57,7 +57,16 @@ export const run = async () => {
     if (newFilePaths.some((newPath) => newPath.split('new.png')[0] === diffPath.split('diff.png')[0])) {
       return count + 1;
     }
-    exec(`rm ${diffPath}`);
+    let output = '';
+    exec(`rm ${diffPath}`, [], { listeners: {
+      stdout: (data: Buffer) => {
+        output += data.toString();
+      },
+      stderr: (data: Buffer) => {
+        output += data.toString();
+      }
+    } });
+    warning(output);
     return count;
   }, 0);
   const newFileCount = newFilePaths.length;
