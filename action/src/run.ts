@@ -54,7 +54,11 @@ export const run = async () => {
   );
   warning(`newFilePaths: ${newFilePaths}`);
   const diffFileCount = diffFilePaths.reduce((count, diffPath) => {
-    if (newFilePaths.some((newPath) => path.dirname(newPath) === path.dirname(diffPath))) {
+    if (
+      newFilePaths.some(
+        newPath => path.dirname(newPath) === path.dirname(diffPath)
+      )
+    ) {
       return count + 1;
     }
     exec(`rm ${diffPath}`);
