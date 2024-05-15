@@ -38466,12 +38466,22 @@ var run = async () => {
   const latestVisualRegressionStatus = await getLatestVisualRegressionStatus(commitHash);
   const screenshotsPath = path3.join(process.cwd(), screenshotsDirectory);
   const filesInScreenshotDirectory = sync(`${screenshotsPath}/**`) || [];
-  const diffFileCount = filesInScreenshotDirectory.filter(
+  const diffFilePaths = filesInScreenshotDirectory.filter(
     (file) => file.endsWith("diff.png")
-  ).length;
+  );
   const newFilePaths = filesInScreenshotDirectory.filter(
     (file) => file.endsWith("new.png")
   );
+  (0, import_core6.warning)(`newFilePaths: ${newFilePaths}`);
+  const diffFileCount = diffFilePaths.reduce((count, diffPath) => {
+    if (newFilePaths.some(
+      (newPath) => path3.dirname(newPath) === path3.dirname(diffPath)
+    )) {
+      return count + 1;
+    }
+    (0, import_exec2.exec)(`rm ${diffPath}`);
+    return count;
+  }, 0);
   const newFileCount = newFilePaths.length;
   if (numVisualTestFailures > diffFileCount) {
     (0, import_core6.setFailed)(
