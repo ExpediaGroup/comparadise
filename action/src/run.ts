@@ -52,7 +52,6 @@ export const run = async () => {
   const newFilePaths = filesInScreenshotDirectory.filter(file =>
     file.endsWith('new.png')
   );
-  warning(`newFilePaths: ${newFilePaths}`);
   const diffFileCount = diffFilePaths.reduce((count, diffPath) => {
     if (
       newFilePaths.some(
