@@ -38472,7 +38472,6 @@ var run = async () => {
   const newFilePaths = filesInScreenshotDirectory.filter(
     (file) => file.endsWith("new.png")
   );
-  (0, import_core6.warning)(`newFilePaths: ${newFilePaths}`);
   const diffFileCount = diffFilePaths.reduce((count, diffPath) => {
     if (newFilePaths.some(
       (newPath) => path3.dirname(newPath) === path3.dirname(diffPath)
