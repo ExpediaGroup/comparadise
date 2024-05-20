@@ -32,5 +32,5 @@ app/frontend/cypress/videos
 
 .nx/
 
-app/public/
+app/public/*
 !app/public/island.svg

@@ -57,6 +57,7 @@ jobs:
           echo NEW_VERSION="${VERSION_TAG:1}" >> $GITHUB_ENV
 
       - name: Publish
+        working-directory: comparadise-utils
         run: |
           echo //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }} > .npmrc
           pnpm version $NEW_VERSION
