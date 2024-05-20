@@ -1,9 +1,29 @@
-import React from 'react';
+import React, { PropsWithChildren } from 'react';
 import { MainPage } from './frontend/components/main-page';
 import { ClientProvider } from './frontend/providers/client-provider';
 import { BaseImageStateProvider } from './frontend/providers/base-image-state-provider';
+import { LandingPage } from './frontend/components/landing-page';
+import { useSearchParams } from 'react-router-dom';
 
-export function App() {
+export function App(props: { bucket?: string; hash?: string }) {
+  const [searchParams] = useSearchParams();
+  const params: Record<string, string | undefined> = Object.fromEntries(
+    searchParams.entries()
+  );
+  const bucket = props.bucket ?? params.bucket;
+  const hash = props.hash ?? params.hash;
+  return (
+    <PageWrapper>
+      {bucket && hash ? (
+        <MainPage bucket={bucket} hash={hash} />
+      ) : (
+        <LandingPage />
+      )}
+    </PageWrapper>
+  );
+}
+
+function PageWrapper(props: PropsWithChildren) {
   return (
     <html lang="en">
       <head>
@@ -19,9 +39,7 @@ export function App() {
       </head>
       <body>
         <ClientProvider>
-          <BaseImageStateProvider>
-            <MainPage />
-          </BaseImageStateProvider>
+          <BaseImageStateProvider>{props.children}</BaseImageStateProvider>
         </ClientProvider>
       </body>
     </html>

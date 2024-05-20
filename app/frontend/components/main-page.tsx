@@ -38,7 +38,13 @@ const preloadNextPage = async (images?: Images) => {
   return newViewType;
 };
 
-export const MainPage = () => {
+export const MainPage = ({
+  hash,
+  bucket
+}: {
+  hash: string;
+  bucket: string;
+}) => {
   const [viewType, setViewType] = React.useState<ImageView>();
   const [availableView, setAvailableView] = React.useState<AvailableView>();
   const [isNextPageReady, setIsNextPageReady] = React.useState(false);
@@ -47,10 +53,7 @@ export const MainPage = () => {
   const params: Record<string, string | undefined> = Object.fromEntries(
     searchParams.entries()
   );
-  const { hash, bucket, page: pageParam } = params;
-  if (!hash || !bucket) {
-    return <LandingPage />;
-  }
+  const { page: pageParam } = params;
 
   const page = Number(pageParam ?? 1);
   const { isLoading, data, isFetching, error } = trpc.fetchCurrentPage.useQuery(
