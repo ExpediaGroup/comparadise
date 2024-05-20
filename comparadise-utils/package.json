@@ -32,6 +32,6 @@
   "scripts": {
     "build": "tsup",
     "postbuild": "echo \"require('./dist/match-screenshot');\" > commands.js",
-    "prepack": "nx build"
+    "prepack": "bun run build"
   }
 }
