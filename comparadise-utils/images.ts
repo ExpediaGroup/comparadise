@@ -9,7 +9,7 @@ const PIXELMATCH_OPTIONS = {
 /**
  * Helper function to create reusable image resizer
  */
-const createImageResizer = (width: number, height: number) => (source: any) => {
+const createImageResizer = (width: number, height: number) => (source: PNG) => {
   const resized = new PNG({ width, height, fill: true });
   PNG.bitblt(source, resized, 0, 0, source.width, source.height, 0, 0);
   return resized;
@@ -20,7 +20,7 @@ const createImageResizer = (width: number, height: number) => (source: any) => {
  * I like idea of checker board pattern, but it seems to be too complicated
  * to implement considering how low-level pngjs API is.
  */
-const fillSizeDifference = (width: number, height: number) => (image: any) => {
+const fillSizeDifference = (width: number, height: number) => (image: PNG) => {
   const inArea = (x: number, y: number) => y > height || x > width;
   for (let y = 0; y < image.height; y++) {
     for (let x = 0; x < image.width; x++) {
@@ -40,7 +40,7 @@ const fillSizeDifference = (width: number, height: number) => (image: any) => {
  * Aligns images sizes to biggest common value
  * and fills new pixels with transparent pixels
  */
-function alignImagesToSameSize(firstImage: any, secondImage: any) {
+function alignImagesToSameSize(firstImage: PNG, secondImage: PNG) {
   // Keep original sizes to fill extended area later
   const firstImageWidth = firstImage.width;
   const firstImageHeight = firstImage.height;
@@ -78,6 +78,9 @@ export function getDiffPixels(basePath: string, actualPath: string) {
     ? alignImagesToSameSize(rawBase, rawActual)
     : [rawBase, rawActual];
 
+  if (!base || !actual) {
+    throw new Error();
+  }
   const diff = new PNG({ width: base.width, height: base.height });
 
   const diffPixels = pixelmatch(

@@ -31,14 +31,7 @@
   },
   "scripts": {
     "build": "tsup",
-    "bump-version": "pnpm version $NEW_VERSION",
-    "lint": "eslint . --max-warnings=0",
     "postbuild": "echo \"require('./dist/match-screenshot');\" > commands.js",
-    "prepack": "nx build",
-    "test": "exit 0"
-  },
-  "eslintIgnore": [
-    "dist",
-    "types"
-  ]
+    "prepack": "nx build"
+  }
 }

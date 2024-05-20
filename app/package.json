@@ -1,27 +1,37 @@
 {
   "name": "app",
   "private": true,
+  "dependencies": {
+    "@aws-sdk/client-s3": "3.577.0",
+    "@aws-sdk/s3-request-presigner": "3.577.0",
+    "@elysiajs/static": "1.0.3",
+    "@headlessui/react": "2.0.3",
+    "@octokit/rest": "20.1.1",
+    "@tanstack/react-query": "5.37.1",
+    "@trpc/client": "next",
+    "@trpc/react-query": "next",
+    "@trpc/server": "next",
+    "@types/lodash": "4.17.4",
+    "@types/react": "18.3.2",
+    "@types/react-dom": "18.3.0",
+    "elysia": "1.0.20",
+    "lodash": "4.17.21",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-router-dom": "6.23.1",
+    "tailwindcss": "3.4.3",
+    "zod": "3.23.8"
+  },
   "devDependencies": {
-    "nodemon": "3.1.0",
-    "start-server-and-test": "2.0.3"
+    "@testing-library/cypress": "10.0.1",
+    "@types/testing-library__cypress": "5.0.13",
+    "prettier-plugin-tailwindcss": "0.5.14",
+    "vite": "5.2.11"
   },
   "scripts": {
-    "cypress:e2e": "nx test:e2e frontend",
-    "docker": "nx docker comparadise",
-    "start": "nx start frontend & nodemon",
-    "test": "start-server-and-test docker http://localhost:8080 cypress:e2e"
-  },
-  "nodemonConfig": {
-    "watch": [
-      "backend"
-    ],
-    "exec": "nx start backend",
-    "ext": "ts"
-  },
-  "nx": {
-    "implicitDependencies": [
-      "backend",
-      "frontend"
-    ]
+    "dev": "NODE_ENV=development bun --hot ./server.tsx",
+    "prestart": "tailwindcss -o ./public/globals.css",
+    "start": "bun ./server.tsx",
+    "test": "nx docker comparadise && nx test:e2e frontend"
   }
 }

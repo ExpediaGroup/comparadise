@@ -25,20 +25,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-
-      - name: Setup node and pnpm cache
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-          cache: pnpm
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
 
       - name: Install
-        run: pnpm --filter docs install --ignore-scripts
+        run: bun install
 
       - name: Build Docs
-        run: pnpm --filter docs build
+        run: nx build docs
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

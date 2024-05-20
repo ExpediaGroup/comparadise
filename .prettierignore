@@ -1,2 +1,4 @@
-action/dist/
-pnpm-lock.yaml
+.docusaurus/
+dist/
+build/
+bun.lockb

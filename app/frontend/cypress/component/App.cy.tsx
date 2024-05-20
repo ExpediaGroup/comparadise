@@ -1,5 +1,5 @@
 import * as React from 'react';
-import App from '../../App';
+import { App } from '../../../app';
 import {
   firstPage,
   noNewImagesPage,
@@ -16,6 +16,7 @@ import { mutationResponse } from '../mocks/mutation';
 import { MemoryRouter } from 'react-router-dom';
 
 const getPageFromRequest = (req: CyHttpMessages.IncomingHttpRequest) =>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (JSON.parse(req.query.input as string) as any)['0'].page;
 
 describe('App', () => {

@@ -1,4 +1,4 @@
-name: Test
+name: CI
 
 on:
   pull_request:
@@ -11,7 +11,7 @@ concurrency:
 
 jobs:
   test:
-    name: All Tests
+    name: Build and Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -24,32 +24,23 @@ jobs:
 
       - uses: nrwl/nx-set-shas@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-
-      - name: Setup node and pnpm cache
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-          cache: pnpm
-
-      - name: Setup Cypress cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/Cypress
-          key: "${{ runner.os }}-cypress-${{ hashFiles('**/pnpm-lock.yaml') }}"
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
 
       - name: Install
-        run: pnpm install
+        run: bun install
 
-      - name: Install Cypress binary if not cached
-        run: pnpm cypress install
+      - name: Lint
+        run: bun lint
 
-      - name: Format Code
-        run: pnpm format
+      - name: Format
+        run: bun format-check
 
-      - name: Test
-        run: pnpm nx affected --target=test
+      - name: Type Check
+        run: bun tsc
+
+      - name: Build and Test
+        run: bun nx affected --target=build,test
 
       - name: Check for any generated code that should be committed
         run: |
