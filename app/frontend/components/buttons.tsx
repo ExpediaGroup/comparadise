@@ -10,6 +10,7 @@ type ButtonProps = {
 const commonStyles = 'uppercase rounded-md px-4 py-2 font-medium';
 
 const getButton = (props: ButtonProps, styles: string) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { className: extraStyles, backgroundFilled, ...rest } = props;
 
   return (

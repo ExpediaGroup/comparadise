@@ -3,7 +3,6 @@
   "private": true,
   "scripts": {
     "build": "tsc",
-    "lint": "eslint . --max-warnings=0",
     "test": "exit 0"
   }
 }

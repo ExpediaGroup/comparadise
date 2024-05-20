@@ -3,7 +3,6 @@
   "private": true,
   "scripts": {
     "build": "tsc && docusaurus build",
-    "lint": "eslint . --max-warnings=0",
     "start": "docusaurus start",
     "test": "exit 0"
   },

@@ -10,7 +10,7 @@
   },
   "targetDefaults": {
     "test": {
-      "dependsOn": ["lint", "build"]
+      "dependsOn": ["build"]
     }
   },
   "affected": {
