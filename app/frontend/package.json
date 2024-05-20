@@ -2,10 +2,7 @@
   "name": "frontend",
   "private": true,
   "scripts": {
-    "build": "bun prod",
     "cypress:open": "cypress open --component --browser chrome",
-    "prod": "vite build",
-    "start": "vite",
     "test": "cypress run --component --browser chrome",
     "test:e2e": "cypress run --e2e --browser chrome"
   }

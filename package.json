@@ -24,6 +24,10 @@
   },
   "nx": {},
   "workspaces": [
-    "./**/*"
+    "action",
+    "app/**",
+    "comparadise-utils",
+    "docs",
+    "shared"
   ]
 }
