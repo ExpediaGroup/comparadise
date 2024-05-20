@@ -36,8 +36,11 @@ jobs:
       - name: Format
         run: bun format-check
 
+      - name: Type Check
+        run: bun tsc
+
       - name: Test
-        run: bun nx affected --target=test
+        run: bun nx affected --target=build,test
 
       - name: Check for any generated code that should be committed
         run: |

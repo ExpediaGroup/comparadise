@@ -5,6 +5,7 @@
     "@swc/jest": "0.2.36",
     "@total-typescript/ts-reset": "0.5.1",
     "@types/jest": "29.5.12",
+    "bun-types": "1.1.8",
     "cypress": "13.9.0",
     "eslint": "9.3.0",
     "eslint-plugin-react": "7.34.1",
@@ -16,12 +17,10 @@
     "typescript-eslint": "7.9.0"
   },
   "scripts": {
-    "cypress:e2e": "nx test:e2e frontend",
     "docker": "docker build . --tag comparadise && docker-compose up",
     "format": "prettier --write .",
     "format-check": "prettier --check .",
-    "lint": "eslint .",
-    "test": "start-server-and-test docker http://localhost:8080 cypress:e2e"
+    "lint": "eslint ."
   },
   "nx": {},
   "workspaces": [

@@ -21,6 +21,6 @@ module.exports = [
     }
   },
   {
-    ignores: ['**/dist', 'docs']
+    ignores: ['**/dist', 'docs', '**/public']
   }
 ];

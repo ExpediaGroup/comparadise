@@ -1,8 +1,4 @@
 {
   "name": "shared",
-  "private": true,
-  "scripts": {
-    "build": "tsc",
-    "test": "exit 0"
-  }
+  "private": true
 }

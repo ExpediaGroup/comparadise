@@ -1,5 +1,6 @@
 import { getKeysFromS3 } from '../src/getKeysFromS3';
 import { S3Client } from '../src/s3Client';
+import { expect } from '@jest/globals';
 
 jest.mock('../src/s3Client');
 (S3Client.listObjectsV2 as jest.Mock).mockResolvedValue({

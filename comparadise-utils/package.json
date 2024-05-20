@@ -32,11 +32,6 @@
   "scripts": {
     "build": "tsup",
     "postbuild": "echo \"require('./dist/match-screenshot');\" > commands.js",
-    "prepack": "nx build",
-    "test": "exit 0"
-  },
-  "eslintIgnore": [
-    "dist",
-    "types"
-  ]
+    "prepack": "nx build"
+  }
 }

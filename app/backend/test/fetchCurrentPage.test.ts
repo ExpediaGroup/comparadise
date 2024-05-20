@@ -1,6 +1,7 @@
 import { fetchCurrentPage } from '../src/fetchCurrentPage';
 import { getTemporaryObjectUrl } from '../src/getTemporaryObjectUrl';
 import { getGroupedKeys } from '../src/getGroupedKeys';
+import { expect } from '@jest/globals';
 
 jest.mock('../src/getGroupedKeys');
 jest.mock('../src/getTemporaryObjectUrl');

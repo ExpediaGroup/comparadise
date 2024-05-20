@@ -1,5 +1,6 @@
 import { getGroupedKeys } from '../src/getGroupedKeys';
 import { getKeysFromS3 } from '../src/getKeysFromS3';
+import { expect } from '@jest/globals';
 
 jest.mock('../src/getKeysFromS3');
 

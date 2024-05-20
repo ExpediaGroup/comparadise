@@ -8,6 +8,7 @@ import {
 import { BASE_IMAGES_DIRECTORY } from 'shared';
 import { findReasonToPreventBaseImageUpdate } from '../src/findReasonToPreventBaseImageUpdate';
 import { updateCommitStatus } from '../src/updateCommitStatus';
+import { expect } from '@jest/globals';
 
 jest.mock('../src/findReasonToPreventBaseImageUpdate');
 jest.mock('../src/s3Client');

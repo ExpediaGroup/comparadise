@@ -9,6 +9,7 @@ import {
   VISUAL_TESTS_FAILED_TO_EXECUTE
 } from 'shared';
 import { disableAutoMerge } from '../src/disableAutoMerge';
+import { expect } from '@jest/globals';
 
 jest.mock('../src/disableAutoMerge');
 jest.mock('glob');
