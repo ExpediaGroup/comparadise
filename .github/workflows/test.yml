@@ -24,32 +24,17 @@ jobs:
 
       - uses: nrwl/nx-set-shas@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-
-      - name: Setup node and pnpm cache
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-          cache: pnpm
-
-      - name: Setup Cypress cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/Cypress
-          key: "${{ runner.os }}-cypress-${{ hashFiles('**/pnpm-lock.yaml') }}"
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
 
       - name: Install
-        run: pnpm install
-
-      - name: Install Cypress binary if not cached
-        run: pnpm cypress install
+        run: bun install
 
       - name: Format Code
-        run: pnpm format
+        run: bun format
 
       - name: Test
-        run: pnpm nx affected --target=test
+        run: bun nx affected --target=test
 
       - name: Check for any generated code that should be committed
         run: |
@@ -63,3 +48,19 @@ jobs:
             git push
             exit 1
           fi
+
+  docker:
+    name: Build Docker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+
+      - name: Install
+        run: bun install
+
+      - name: Build Docker Image
+        run: bun docker

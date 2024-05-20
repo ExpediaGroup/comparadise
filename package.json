@@ -16,8 +16,7 @@
   },
   "scripts": {
     "docker": "docker build . --tag comparadise && docker-compose up",
-    "format": "prettier --write .",
-    "start": "bun app/backend/src/server.ts"
+    "format": "prettier --write ."
   },
   "workspaces": [
     "action",

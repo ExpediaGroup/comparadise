@@ -2,5 +2,4 @@
 app/frontend/cypress
 app/frontend/cypress.config.ts
 dist
-node_modules
 *.md
