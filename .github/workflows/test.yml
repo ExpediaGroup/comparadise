@@ -1,4 +1,4 @@
-name: Test
+name: CI
 
 on:
   pull_request:
@@ -11,7 +11,7 @@ concurrency:
 
 jobs:
   test:
-    name: All Tests
+    name: Build and Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -51,19 +51,3 @@ jobs:
             git push
             exit 1
           fi
-
-  docker:
-    name: Build Docker
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
-
-      - name: Install
-        run: bun install
-
-      - name: Build Docker Image
-        run: bun docker

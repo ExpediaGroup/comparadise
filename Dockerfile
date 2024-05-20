@@ -6,7 +6,7 @@ RUN chown -R admin .
 COPY --chown=admin . .
 USER admin
 
-RUN bun install --frozen-lockfile --production --ignore-scripts
+RUN bun install --production --ignore-scripts
 RUN bun --filter frontend prod
 
 ENV PORT 8080

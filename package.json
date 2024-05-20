@@ -15,18 +15,14 @@
     "typescript-eslint": "7.9.0"
   },
   "scripts": {
+    "cypress:e2e": "nx test:e2e frontend",
     "docker": "docker build . --tag comparadise && docker-compose up",
     "format": "prettier --write .",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test": "start-server-and-test docker http://localhost:8080 cypress:e2e"
   },
+  "nx": {},
   "workspaces": [
-    "action",
-    "app",
-    "app/frontend",
-    "app/backend",
-    "comparadise-utils",
-    "docs",
-    "shared"
-  ],
-  "type": "module"
+    "./**/*"
+  ]
 }

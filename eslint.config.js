@@ -1,9 +1,8 @@
-// @ts-check
+/* eslint-disable @typescript-eslint/no-var-requires */
+const typescriptEslint = require('typescript-eslint');
+const eslintPluginReact = require('eslint-plugin-react');
 
-import typescriptEslint from 'typescript-eslint';
-import eslintPluginReact from 'eslint-plugin-react';
-
-export default [
+module.exports = [
   ...typescriptEslint.configs.recommended,
   {
     files: ['**/*.ts', '**/*.tsx'],

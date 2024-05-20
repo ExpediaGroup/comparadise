@@ -13,20 +13,9 @@
     "@docusaurus/types": "3.3.2",
     "@mdx-js/react": "3.0.1",
     "@types/react": "18.3.2",
+    "ajv": "8.13.0",
     "clsx": "2.1.1",
     "react": "18.3.1",
     "react-dom": "18.3.1"
-  },
-  "browserslist": {
-    "production": [
-      ">0.5%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
   }
 }

@@ -6,10 +6,7 @@
     "start-server-and-test": "2.0.3"
   },
   "scripts": {
-    "cypress:e2e": "nx test:e2e frontend",
-    "docker": "nx docker comparadise",
-    "start": "nx start frontend & nodemon",
-    "test": "start-server-and-test docker http://localhost:8080 cypress:e2e"
+    "start": "nx start frontend & nodemon"
   },
   "nodemonConfig": {
     "watch": [
