@@ -33,8 +33,8 @@ importers:
         specifier: 29.7.0
         version: 29.7.0(@types/node@20.12.11)(ts-node@10.9.2(@swc/core@1.5.3)(@types/node@20.12.11)(typescript@5.4.5))
       nx:
-        specifier: 18.3.4
-        version: 18.3.4(@swc/core@1.5.3)
+        specifier: 19.0.4
+        version: 19.0.4(@swc/core@1.5.3)
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -98,7 +98,7 @@ importers:
         version: 20.1.1
       '@trpc/server':
         specifier: next
-        version: 11.0.0-rc.366
+        version: 11.0.0-rc.374
       cors:
         specifier: 2.8.5
         version: 2.8.5
@@ -144,13 +144,13 @@ importers:
         version: 5.36.0(react@18.3.1)
       '@trpc/client':
         specifier: next
-        version: 11.0.0-rc.366(@trpc/server@11.0.0-rc.366)
+        version: 11.0.0-rc.374(@trpc/server@11.0.0-rc.374)
       '@trpc/react-query':
         specifier: next
-        version: 11.0.0-rc.366(@tanstack/react-query@5.36.0(react@18.3.1))(@trpc/client@11.0.0-rc.366(@trpc/server@11.0.0-rc.366))(@trpc/server@11.0.0-rc.366)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        version: 11.0.0-rc.374(@tanstack/react-query@5.36.0(react@18.3.1))(@trpc/client@11.0.0-rc.374(@trpc/server@11.0.0-rc.374))(@trpc/server@11.0.0-rc.374)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@trpc/server':
         specifier: next
-        version: 11.0.0-rc.366
+        version: 11.0.0-rc.374
       react:
         specifier: 18.3.1
         version: 18.3.1
@@ -1812,66 +1812,66 @@ packages:
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
 
-  '@nrwl/tao@18.3.4':
-    resolution: {integrity: sha512-+7KsDYmGj1cvNaXZcjSYOPN1h17hsGFBtVX7MqnpJLLkQTUhKg2rQxqyluzshJ+RoDUVtYPGyHg1AizlB66RIA==}
+  '@nrwl/tao@19.0.4':
+    resolution: {integrity: sha512-ZoHM5hbj0fOaWiiQoN/Wjozc6lbBCCcH7jCIX7amN6aztmcwNYk+Q3NKJE5Jh0/Js5M78VTnLRG2h4KHPzKSKg==}
     hasBin: true
 
-  '@nx/nx-darwin-arm64@18.3.4':
-    resolution: {integrity: sha512-MOGk9z4fIoOkJB68diH3bwoWrC8X9IzMNsz1mu0cbVfgCRAfIV3b+lMsiwQYzWal3UWW5DE5Rkss4F8whiV5Uw==}
+  '@nx/nx-darwin-arm64@19.0.4':
+    resolution: {integrity: sha512-EwTMKVFdMF42b+DG3ACtrGVE3iiAgOw+VJ4Vekm59+ZkTg6GrZly2VNbthoNSJd6/uPQssoljx36NZH953ieBw==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [darwin]
 
-  '@nx/nx-darwin-x64@18.3.4':
-    resolution: {integrity: sha512-tSzPRnNB3QdPM+KYiIuRCUtyCwcuIRC95FfP0ZB3WvfDeNxJChEAChNqmCMDE4iFvZhGuze8WqkJuIVdte+lyQ==}
+  '@nx/nx-darwin-x64@19.0.4':
+    resolution: {integrity: sha512-W+SVaYOHWRHcws7wZVcWyxoT57r1qXLMUBvpTVBf5PsVfsI+t9sINwzZjcXWaGNVcPGrVYUZF6Cp3/exkPNUBw==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [darwin]
 
-  '@nx/nx-freebsd-x64@18.3.4':
-    resolution: {integrity: sha512-bjSPak/d+bcR95/pxHMRhnnpHc6MnrQcG6f5AjX15Esm4JdrdQKPBmG1RybuK0WKSyD5wgVhkAGc/QQUom9l8g==}
+  '@nx/nx-freebsd-x64@19.0.4':
+    resolution: {integrity: sha512-8Wl2+TOXiRDLbI8mwsbx1sHQLKAaNvfTm2e5Kf+4ay4W/UsrHONRDRA4d/LhMOLQMo+2+q2q+u8DziqT0w0Vaw==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [freebsd]
 
-  '@nx/nx-linux-arm-gnueabihf@18.3.4':
-    resolution: {integrity: sha512-/1HnUL7jhH0S7PxJqf6R1pk3QlAU22GY89EQV9fd+RDUtp7IyzaTlkebijTIqfxlSjC4OO3bPizaxEaxdd3uKQ==}
+  '@nx/nx-linux-arm-gnueabihf@19.0.4':
+    resolution: {integrity: sha512-C3PBsyNM5Npq8G8h/WHjUwwlKZpfWK4tK1ZeNseb6LtoNIgNF0PVrJQERqXABt29lanoQ4SeJ8RPgppB3xgCwg==}
     engines: {node: '>= 10'}
     cpu: [arm]
     os: [linux]
 
-  '@nx/nx-linux-arm64-gnu@18.3.4':
-    resolution: {integrity: sha512-g/2IaB2bZTKaBNPEf9LxtIXb1XHdhh3VO9PnePIrwkkixPMLN0dTxT5Sttt75lvLP3EU1AUR5w3Aaz2Q1mYtWA==}
+  '@nx/nx-linux-arm64-gnu@19.0.4':
+    resolution: {integrity: sha512-d7gJv/QlaaBKTHpN+DmnQvo1FBNOGfh9b819WMaNXgDLSNpw9CpaOBZPbPgduee3OaGwbfWmll8VDYzUZgKWuw==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
 
-  '@nx/nx-linux-arm64-musl@18.3.4':
-    resolution: {integrity: sha512-MgfKLoEF6I1cCS+0ooFLEjJSSVdCYyCT9Q96IHRJntAEL8u/0GR2OUoBoLC+q1lnbIkJr/uqTJxA2Jh+sJTIbA==}
+  '@nx/nx-linux-arm64-musl@19.0.4':
+    resolution: {integrity: sha512-lQ76O4AtXAQJ6r1MdVDVp4GG+o2vylWFjcyZvZpclhjag+fWKSdO0igL/14HsqNwCPmcPtaHmgqQNlw3MMtL3w==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
 
-  '@nx/nx-linux-x64-gnu@18.3.4':
-    resolution: {integrity: sha512-vbHxv7m3gjthBvw50EYCtgyY0Zg5nVTaQtX+wRsmKybV2i7wHbw5zIe1aL4zHUm6TcPGbIQK+utVM+hyCqKHVA==}
+  '@nx/nx-linux-x64-gnu@19.0.4':
+    resolution: {integrity: sha512-1K95WMdKHM4pMACzsO9m9TWqSXwL5cg9/1UuS9LUKhjY/bX2y3iTtzT0tFBptCVzRVLZG8wAZphxwQfBIQvnCQ==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
 
-  '@nx/nx-linux-x64-musl@18.3.4':
-    resolution: {integrity: sha512-qIJKJCYFRLVSALsvg3avjReOjuYk91Q0hFXMJ2KaEM1Y3tdzcFN0fKBiaHexgbFIUk8zJuS4dJObTqSYMXowbg==}
+  '@nx/nx-linux-x64-musl@19.0.4':
+    resolution: {integrity: sha512-iZ+TH/qT2R6nb+bqL8oJDDeUUEJmzYxtacFlf5yLjaiG5nvOxq7cu/lUw/LEqT+BUgK33T7acr3BDC0/q2bFZQ==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
 
-  '@nx/nx-win32-arm64-msvc@18.3.4':
-    resolution: {integrity: sha512-UxC8mRkFTPdZbKFprZkiBqVw8624xU38kI0xyooxKlFpt5lccTBwJ0B7+R8p1RoWyvh2DSyFI9VvfD7lczg1lA==}
+  '@nx/nx-win32-arm64-msvc@19.0.4':
+    resolution: {integrity: sha512-YiRyGZecH4hIy5shZz8SNX5NwY+dZC3Xs09QlMeLKNhf6klfmjJYNtd+9250V4cjJS3opKYf08uG4x+EtuEB5A==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [win32]
 
-  '@nx/nx-win32-x64-msvc@18.3.4':
-    resolution: {integrity: sha512-/RqEjNU9hxIBxRLafCNKoH3SaB2FShf+1ZnIYCdAoCZBxLJebDpnhiyrVs0lPnMj9248JbizEMdJj1+bs/bXig==}
+  '@nx/nx-win32-x64-msvc@19.0.4':
+    resolution: {integrity: sha512-eHEdPjV0GlblyBM501xfe47tPRzugw2U+YOkZh++Ago9MDOrs/ULS9+RM3NhvZl2WnkpNYDbQMjzbQ0r7rxlTA==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [win32]
@@ -2482,22 +2482,22 @@ packages:
   '@total-typescript/ts-reset@0.5.1':
     resolution: {integrity: sha512-AqlrT8YA1o7Ff5wPfMOL0pvL+1X+sw60NN6CcOCqs658emD6RfiXhF7Gu9QcfKBH7ELY2nInLhKSCWVoNL70MQ==}
 
-  '@trpc/client@11.0.0-rc.366':
-    resolution: {integrity: sha512-bIbcF/UhCifU5i9hbbaMlmOS2NgnRq5W0pJH2SJhrp6jyIIaCF+uNAIZtkfO0GriBb0agBmGIXqvGLFEexiTKA==}
+  '@trpc/client@11.0.0-rc.374':
+    resolution: {integrity: sha512-Ha1GaTT9FCq9BRPQPa+KKRTXSDRwvjHpsoYVl683vNoXnJRtTycMsPdydr/zdL10vuUHjutpLMZNycSRQ9yN0g==}
     peerDependencies:
-      '@trpc/server': 11.0.0-rc.366+237dbb3f9
+      '@trpc/server': 11.0.0-rc.374+5027209bc
 
-  '@trpc/react-query@11.0.0-rc.366':
-    resolution: {integrity: sha512-LCdJFymEdaKBBNRQPVAcEw9qNu3m+n9hH3qIPKDanLWYlo4h+8lQnj8JIhYpClD2G3gkvD0ZSZ+F54QvwrI3nA==}
+  '@trpc/react-query@11.0.0-rc.374':
+    resolution: {integrity: sha512-zv/KjlxfeuOS5f0G2wl4L3AKzI/shYLj1sKxbtfGKkLRPMbCBqLlw4b37wRf5BLX4gi8f87FXm11Wwa8okD6aQ==}
     peerDependencies:
       '@tanstack/react-query': ^5.25.0
-      '@trpc/client': 11.0.0-rc.366+237dbb3f9
-      '@trpc/server': 11.0.0-rc.366+237dbb3f9
+      '@trpc/client': 11.0.0-rc.374+5027209bc
+      '@trpc/server': 11.0.0-rc.374+5027209bc
       react: '>=18.2.0'
       react-dom: '>=18.2.0'
 
-  '@trpc/server@11.0.0-rc.366':
-    resolution: {integrity: sha512-Pr7SdpIVrOGtIGt9vs7i3v0hqzlpXbi8/8RV7XfrXVJ5hlzKYOz5VE0AjckhHXuhrUlpTGTDm0/2nz0ywLcQ2g==}
+  '@trpc/server@11.0.0-rc.374':
+    resolution: {integrity: sha512-7r76KJwbSV5mffEYQMGBIAVrrJdPot0JzYQD9ZvcInO8q9sn+uVVZQ8XCAq93zXDSodvzGBJhRu3Kn1qXPw5Xg==}
 
   '@trysound/sax@0.2.0':
     resolution: {integrity: sha512-L7z9BgrNEcYyUYtF+HaEfiS5ebkh9jXqbszz7pC0hRBPaatV0XjSD3+eHrpqFemQfgwiFF0QPIarnIihIDn7OA==}
@@ -5733,8 +5733,8 @@ packages:
   nth-check@2.1.1:
     resolution: {integrity: sha512-lqjrjmaOoAnWfMmBPL+XNnynZh2+swxiX3WUE0s4yEHI6m+AwrK2UZOimIRl3X/4QctVqS8AiZjFqyOGrMXb/w==}
 
-  nx@18.3.4:
-    resolution: {integrity: sha512-7rOHRyxpnZGJ3pHnwmpoAMHt9hNuwibWhOhPBJDhJVcbQJtGfwcWWyV/iSEnVXwKZ2lfHVE3TwE+gXFdT/GFiw==}
+  nx@19.0.4:
+    resolution: {integrity: sha512-E+wkP3H+23Vu9jso6Xw7cbXPzy2PMyrPukrEUDWkQrr/eCqf0Npkj5zky1/lKFSBaLtNYgsFD21co+b4rwxtdw==}
     hasBin: true
     peerDependencies:
       '@swc-node/register': ^1.8.0
@@ -10355,43 +10355,43 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.17.1
 
-  '@nrwl/tao@18.3.4(@swc/core@1.5.3)':
+  '@nrwl/tao@19.0.4(@swc/core@1.5.3)':
     dependencies:
-      nx: 18.3.4(@swc/core@1.5.3)
+      nx: 19.0.4(@swc/core@1.5.3)
       tslib: 2.6.2
     transitivePeerDependencies:
       - '@swc-node/register'
       - '@swc/core'
       - debug
 
-  '@nx/nx-darwin-arm64@18.3.4':
+  '@nx/nx-darwin-arm64@19.0.4':
     optional: true
 
-  '@nx/nx-darwin-x64@18.3.4':
+  '@nx/nx-darwin-x64@19.0.4':
     optional: true
 
-  '@nx/nx-freebsd-x64@18.3.4':
+  '@nx/nx-freebsd-x64@19.0.4':
     optional: true
 
-  '@nx/nx-linux-arm-gnueabihf@18.3.4':
+  '@nx/nx-linux-arm-gnueabihf@19.0.4':
     optional: true
 
-  '@nx/nx-linux-arm64-gnu@18.3.4':
+  '@nx/nx-linux-arm64-gnu@19.0.4':
     optional: true
 
-  '@nx/nx-linux-arm64-musl@18.3.4':
+  '@nx/nx-linux-arm64-musl@19.0.4':
     optional: true
 
-  '@nx/nx-linux-x64-gnu@18.3.4':
+  '@nx/nx-linux-x64-gnu@19.0.4':
     optional: true
 
-  '@nx/nx-linux-x64-musl@18.3.4':
+  '@nx/nx-linux-x64-musl@19.0.4':
     optional: true
 
-  '@nx/nx-win32-arm64-msvc@18.3.4':
+  '@nx/nx-win32-arm64-msvc@19.0.4':
     optional: true
 
-  '@nx/nx-win32-x64-msvc@18.3.4':
+  '@nx/nx-win32-x64-msvc@19.0.4':
     optional: true
 
   '@octokit/auth-token@2.5.0':
@@ -11131,19 +11131,19 @@ snapshots:
 
   '@total-typescript/ts-reset@0.5.1': {}
 
-  '@trpc/client@11.0.0-rc.366(@trpc/server@11.0.0-rc.366)':
+  '@trpc/client@11.0.0-rc.374(@trpc/server@11.0.0-rc.374)':
     dependencies:
-      '@trpc/server': 11.0.0-rc.366
+      '@trpc/server': 11.0.0-rc.374
 
-  '@trpc/react-query@11.0.0-rc.366(@tanstack/react-query@5.36.0(react@18.3.1))(@trpc/client@11.0.0-rc.366(@trpc/server@11.0.0-rc.366))(@trpc/server@11.0.0-rc.366)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@trpc/react-query@11.0.0-rc.374(@tanstack/react-query@5.36.0(react@18.3.1))(@trpc/client@11.0.0-rc.374(@trpc/server@11.0.0-rc.374))(@trpc/server@11.0.0-rc.374)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@tanstack/react-query': 5.36.0(react@18.3.1)
-      '@trpc/client': 11.0.0-rc.366(@trpc/server@11.0.0-rc.366)
-      '@trpc/server': 11.0.0-rc.366
+      '@trpc/client': 11.0.0-rc.374(@trpc/server@11.0.0-rc.374)
+      '@trpc/server': 11.0.0-rc.374
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
 
-  '@trpc/server@11.0.0-rc.366': {}
+  '@trpc/server@11.0.0-rc.374': {}
 
   '@trysound/sax@0.2.0': {}
 
@@ -15359,9 +15359,9 @@ snapshots:
     dependencies:
       boolbase: 1.0.0
 
-  nx@18.3.4(@swc/core@1.5.3):
+  nx@19.0.4(@swc/core@1.5.3):
     dependencies:
-      '@nrwl/tao': 18.3.4(@swc/core@1.5.3)
+      '@nrwl/tao': 19.0.4(@swc/core@1.5.3)
       '@yarnpkg/lockfile': 1.1.0
       '@yarnpkg/parsers': 3.0.0-rc.46
       '@zkochan/js-yaml': 0.0.6
@@ -15396,16 +15396,16 @@ snapshots:
       yargs: 17.7.2
       yargs-parser: 21.1.1
     optionalDependencies:
-      '@nx/nx-darwin-arm64': 18.3.4
-      '@nx/nx-darwin-x64': 18.3.4
-      '@nx/nx-freebsd-x64': 18.3.4
-      '@nx/nx-linux-arm-gnueabihf': 18.3.4
-      '@nx/nx-linux-arm64-gnu': 18.3.4
-      '@nx/nx-linux-arm64-musl': 18.3.4
-      '@nx/nx-linux-x64-gnu': 18.3.4
-      '@nx/nx-linux-x64-musl': 18.3.4
-      '@nx/nx-win32-arm64-msvc': 18.3.4
-      '@nx/nx-win32-x64-msvc': 18.3.4
+      '@nx/nx-darwin-arm64': 19.0.4
+      '@nx/nx-darwin-x64': 19.0.4
+      '@nx/nx-freebsd-x64': 19.0.4
+      '@nx/nx-linux-arm-gnueabihf': 19.0.4
+      '@nx/nx-linux-arm64-gnu': 19.0.4
+      '@nx/nx-linux-arm64-musl': 19.0.4
+      '@nx/nx-linux-x64-gnu': 19.0.4
+      '@nx/nx-linux-x64-musl': 19.0.4
+      '@nx/nx-win32-arm64-msvc': 19.0.4
+      '@nx/nx-win32-x64-msvc': 19.0.4
       '@swc/core': 1.5.3
     transitivePeerDependencies:
       - debug
