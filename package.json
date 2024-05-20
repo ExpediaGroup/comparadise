@@ -18,6 +18,7 @@
     "cypress:e2e": "nx test:e2e frontend",
     "docker": "docker build . --tag comparadise && docker-compose up",
     "format": "prettier --write .",
+    "format-check": "prettier --check .",
     "lint": "eslint .",
     "test": "start-server-and-test docker http://localhost:8080 cypress:e2e"
   },

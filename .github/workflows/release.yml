@@ -12,10 +12,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          fetch-depth: 0
+          node-version: latest
 
       - name: Create Release
-        run: npx semantic-release@v19.0.5 --debug --no-ci
+        run: npx semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}

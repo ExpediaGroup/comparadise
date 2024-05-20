@@ -33,8 +33,8 @@ jobs:
       - name: Lint
         run: bun lint
 
-      - name: Format Code
-        run: bun format
+      - name: Format
+        run: bun format-check
 
       - name: Test
         run: bun nx affected --target=test

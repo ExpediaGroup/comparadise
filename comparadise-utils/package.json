@@ -31,7 +31,6 @@
   },
   "scripts": {
     "build": "tsup",
-    "bump-version": "pnpm version $NEW_VERSION",
     "postbuild": "echo \"require('./dist/match-screenshot');\" > commands.js",
     "prepack": "nx build",
     "test": "exit 0"

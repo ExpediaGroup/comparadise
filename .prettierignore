@@ -1,2 +1,4 @@
-action/dist/
+.docusaurus/
+dist/
+build/
 bun.lockb
