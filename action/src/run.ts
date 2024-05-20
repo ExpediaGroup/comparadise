@@ -46,12 +46,23 @@ export const run = async () => {
     await getLatestVisualRegressionStatus(commitHash);
   const screenshotsPath = path.join(process.cwd(), screenshotsDirectory);
   const filesInScreenshotDirectory = sync(`${screenshotsPath}/**`) || [];
-  const diffFileCount = filesInScreenshotDirectory.filter(file =>
+  const diffFilePaths = filesInScreenshotDirectory.filter(file =>
     file.endsWith('diff.png')
-  ).length;
+  );
   const newFilePaths = filesInScreenshotDirectory.filter(file =>
     file.endsWith('new.png')
   );
+  const diffFileCount = diffFilePaths.reduce((count, diffPath) => {
+    if (
+      newFilePaths.some(
+        newPath => path.dirname(newPath) === path.dirname(diffPath)
+      )
+    ) {
+      return count + 1;
+    }
+    exec(`rm ${diffPath}`);
+    return count;
+  }, 0);
   const newFileCount = newFilePaths.length;
 
   if (numVisualTestFailures > diffFileCount) {
