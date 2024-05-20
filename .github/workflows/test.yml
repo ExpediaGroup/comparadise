@@ -39,7 +39,7 @@ jobs:
       - name: Type Check
         run: bun tsc
 
-      - name: Test
+      - name: Build and Test
         run: bun nx affected --target=build,test
 
       - name: Check for any generated code that should be committed
