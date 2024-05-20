@@ -7,7 +7,6 @@ COPY --chown=admin . .
 USER admin
 
 RUN bun install --production --ignore-scripts
-RUN bun tailwind
 
 ENV PORT 8080
 CMD [ "bun", "--filter", "app", "start" ]

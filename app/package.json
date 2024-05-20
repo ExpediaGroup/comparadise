@@ -26,15 +26,12 @@
     "@testing-library/cypress": "10.0.1",
     "@types/testing-library__cypress": "5.0.13",
     "prettier-plugin-tailwindcss": "0.5.14",
-    "start-server-and-test": "2.0.3",
     "vite": "5.2.11"
   },
   "scripts": {
-    "cypress:e2e": "nx test:e2e frontend",
-    "dev": "bun --hot ./server.tsx",
-    "docker": "nx docker comparadise",
+    "dev": "NODE_ENV=development bun --hot ./server.tsx",
+    "prestart": "tailwindcss -o ./public/globals.css",
     "start": "bun ./server.tsx",
-    "tailwind": "tailwindcss -o ./public/globals.css",
-    "test": "start-server-and-test docker http://localhost:8080 cypress:e2e"
+    "test": "nx docker comparadise && nx test:e2e frontend"
   }
 }

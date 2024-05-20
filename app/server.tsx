@@ -21,7 +21,9 @@ const app = new Elysia()
     const stream = await renderToReadableStream(
       <StaticRouter location={context.path}>
         <App />
-        <script src="https://cdn.tailwindcss.com" />
+        {process.env.NODE_ENV === 'development' && (
+          <script src="https://cdn.tailwindcss.com" />
+        )}
       </StaticRouter>,
       {
         bootstrapScripts: ['./public/client.js']
