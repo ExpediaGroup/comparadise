@@ -62,7 +62,7 @@ jobs:
         working-directory: comparadise-utils
         run: |
           echo //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }} > .npmrc
-          pnpm version $NEW_VERSION
+          pnpm version $NEW_VERSION --workspaces-update false
           pnpm publish --no-git-checks
 
   publish-tags:
