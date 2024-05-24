@@ -42,6 +42,7 @@ export default defineConfig({
 In `cypress/support/commands.ts`:
 
 ```ts
+import 'comparadise-utils';
 import 'comparadise-utils/commands';
 ```
 
