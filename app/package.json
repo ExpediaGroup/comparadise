@@ -23,10 +23,10 @@
     "zod": "3.23.8"
   },
   "devDependencies": {
-    "@testing-library/cypress": "10.0.1",
+    "@testing-library/cypress": "10.0.2",
     "@types/testing-library__cypress": "5.0.13",
-    "prettier-plugin-tailwindcss": "0.5.14",
-    "vite": "5.2.11"
+    "prettier-plugin-tailwindcss": "0.6.1",
+    "vite": "5.2.12"
   },
   "scripts": {
     "dev": "NODE_ENV=development bun --hot ./server.tsx",
