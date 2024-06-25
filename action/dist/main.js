@@ -36960,6 +36960,8 @@ var run = async () => {
     return count;
   }, 0);
   const newFileCount = newFilePaths.length;
+  (0, import_core6.info)(diffFilePaths.join(", "));
+  (0, import_core6.info)(newFilePaths.join(", "));
   if (numVisualTestFailures > diffFileCount) {
     (0, import_core6.setFailed)(
       "Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?"
