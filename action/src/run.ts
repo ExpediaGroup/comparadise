@@ -65,8 +65,8 @@ export const run = async () => {
   }, 0);
   const newFileCount = newFilePaths.length;
 
-  console.log('diffFilePaths', diffFilePaths);
-  console.log('newFilePaths', newFilePaths);
+  info(diffFilePaths.join(', '));
+  info(newFilePaths.join(', '));
 
   if (numVisualTestFailures > diffFileCount) {
     setFailed(
