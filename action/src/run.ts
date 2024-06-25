@@ -65,6 +65,9 @@ export const run = async () => {
   }, 0);
   const newFileCount = newFilePaths.length;
 
+  console.log('diffFilePaths', diffFilePaths);
+  console.log('newFilePaths', newFilePaths);
+
   if (numVisualTestFailures > diffFileCount) {
     setFailed(
       'Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?'
