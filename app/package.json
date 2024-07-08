@@ -26,7 +26,7 @@
     "@testing-library/cypress": "10.0.2",
     "@types/testing-library__cypress": "5.0.13",
     "prettier-plugin-tailwindcss": "0.6.5",
-    "vite": "5.3.2"
+    "vite": "5.3.3"
   },
   "scripts": {
     "dev": "NODE_ENV=development bun --hot ./server.tsx",
