@@ -1280,7 +1280,7 @@ var require_util = __commonJS({
     var [nodeMajor, nodeMinor] = process.versions.node.split(".").map((v) => Number(v));
     function nop() {
     }
-    function isStream3(obj2) {
+    function isStream2(obj2) {
       return obj2 && typeof obj2 === "object" && typeof obj2.pipe === "function" && typeof obj2.on === "function";
     }
     function isBlobLike(object) {
@@ -1379,7 +1379,7 @@ var require_util = __commonJS({
     function bodyLength(body) {
       if (body == null) {
         return 0;
-      } else if (isStream3(body)) {
+      } else if (isStream2(body)) {
         const state = body._readableState;
         return state && state.objectMode === false && state.ended === true && Number.isFinite(state.length) ? state.length : null;
       } else if (isBlobLike(body)) {
@@ -1397,7 +1397,7 @@ var require_util = __commonJS({
       return isDestroyed(stream3) && state && !state.endEmitted;
     }
     function destroy(stream3, err) {
-      if (stream3 == null || !isStream3(stream3) || isDestroyed(stream3)) {
+      if (stream3 == null || !isStream2(stream3) || isDestroyed(stream3)) {
         return;
       }
       if (typeof stream3.destroy === "function") {
@@ -1507,7 +1507,7 @@ var require_util = __commonJS({
         nodeUtil.inspect(body)
       )));
     }
-    function isReadable3(body) {
+    function isReadable2(body) {
       return !!(body && (stream2.isReadable ? stream2.isReadable(body) : /state: 'readable'/.test(
         nodeUtil.inspect(body)
       )));
@@ -1612,14 +1612,14 @@ var require_util = __commonJS({
       nop,
       isDisturbed,
       isErrored,
-      isReadable: isReadable3,
+      isReadable: isReadable2,
       toUSVString,
       isReadableAborted,
       isBlobLike,
       parseOrigin,
       parseURL,
       getServerName,
-      isStream: isStream3,
+      isStream: isStream2,
       isIterable,
       isAsyncIterable,
       isDestroyed,
@@ -1733,7 +1733,7 @@ var require_timers = __commonJS({
 var require_sbmh = __commonJS({
   "../node_modules/@fastify/busboy/deps/streamsearch/sbmh.js"(exports2, module2) {
     "use strict";
-    var EventEmitter3 = require("events").EventEmitter;
+    var EventEmitter2 = require("events").EventEmitter;
     var inherits2 = require("util").inherits;
     function SBMH(needle) {
       if (typeof needle === "string") {
@@ -1760,7 +1760,7 @@ var require_sbmh = __commonJS({
         this._occ[needle[i]] = needleLength - 1 - i;
       }
     }
-    inherits2(SBMH, EventEmitter3);
+    inherits2(SBMH, EventEmitter2);
     SBMH.prototype.reset = function() {
       this._lookbehind_size = 0;
       this.matches = 0;
@@ -1902,7 +1902,7 @@ var require_getLimit = __commonJS({
 var require_HeaderParser = __commonJS({
   "../node_modules/@fastify/busboy/deps/dicer/lib/HeaderParser.js"(exports2, module2) {
     "use strict";
-    var EventEmitter3 = require("events").EventEmitter;
+    var EventEmitter2 = require("events").EventEmitter;
     var inherits2 = require("util").inherits;
     var getLimit = require_getLimit();
     var StreamSearch = require_sbmh();
@@ -1910,7 +1910,7 @@ var require_HeaderParser = __commonJS({
     var RE_CRLF = /\r\n/g;
     var RE_HDR = /^([^:]+):[ \t]?([\x00-\xFF]+)?$/;
     function HeaderParser(cfg) {
-      EventEmitter3.call(this);
+      EventEmitter2.call(this);
       cfg = cfg || {};
       const self2 = this;
       this.nread = 0;
@@ -1938,7 +1938,7 @@ var require_HeaderParser = __commonJS({
         }
       });
     }
-    inherits2(HeaderParser, EventEmitter3);
+    inherits2(HeaderParser, EventEmitter2);
     HeaderParser.prototype.push = function(data) {
       const r = this.ss.push(data);
       if (this.finished) {
@@ -6311,8 +6311,8 @@ var require_request = __commonJS({
 var require_dispatcher = __commonJS({
   "../node_modules/undici/lib/dispatcher.js"(exports2, module2) {
     "use strict";
-    var EventEmitter3 = require("events");
-    var Dispatcher = class extends EventEmitter3 {
+    var EventEmitter2 = require("events");
+    var Dispatcher = class extends EventEmitter2 {
       dispatch() {
         throw new Error("not implemented");
       }
@@ -6673,34 +6673,34 @@ var require_constants3 = __commonJS({
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.SPECIAL_HEADERS = exports2.HEADER_STATE = exports2.MINOR = exports2.MAJOR = exports2.CONNECTION_TOKEN_CHARS = exports2.HEADER_CHARS = exports2.TOKEN = exports2.STRICT_TOKEN = exports2.HEX = exports2.URL_CHAR = exports2.STRICT_URL_CHAR = exports2.USERINFO_CHARS = exports2.MARK = exports2.ALPHANUM = exports2.NUM = exports2.HEX_MAP = exports2.NUM_MAP = exports2.ALPHA = exports2.FINISH = exports2.H_METHOD_MAP = exports2.METHOD_MAP = exports2.METHODS_RTSP = exports2.METHODS_ICE = exports2.METHODS_HTTP = exports2.METHODS = exports2.LENIENT_FLAGS = exports2.FLAGS = exports2.TYPE = exports2.ERROR = void 0;
     var utils_1 = require_utils2();
-    var ERROR3;
-    (function(ERROR4) {
-      ERROR4[ERROR4["OK"] = 0] = "OK";
-      ERROR4[ERROR4["INTERNAL"] = 1] = "INTERNAL";
-      ERROR4[ERROR4["STRICT"] = 2] = "STRICT";
-      ERROR4[ERROR4["LF_EXPECTED"] = 3] = "LF_EXPECTED";
-      ERROR4[ERROR4["UNEXPECTED_CONTENT_LENGTH"] = 4] = "UNEXPECTED_CONTENT_LENGTH";
-      ERROR4[ERROR4["CLOSED_CONNECTION"] = 5] = "CLOSED_CONNECTION";
-      ERROR4[ERROR4["INVALID_METHOD"] = 6] = "INVALID_METHOD";
-      ERROR4[ERROR4["INVALID_URL"] = 7] = "INVALID_URL";
-      ERROR4[ERROR4["INVALID_CONSTANT"] = 8] = "INVALID_CONSTANT";
-      ERROR4[ERROR4["INVALID_VERSION"] = 9] = "INVALID_VERSION";
-      ERROR4[ERROR4["INVALID_HEADER_TOKEN"] = 10] = "INVALID_HEADER_TOKEN";
-      ERROR4[ERROR4["INVALID_CONTENT_LENGTH"] = 11] = "INVALID_CONTENT_LENGTH";
-      ERROR4[ERROR4["INVALID_CHUNK_SIZE"] = 12] = "INVALID_CHUNK_SIZE";
-      ERROR4[ERROR4["INVALID_STATUS"] = 13] = "INVALID_STATUS";
-      ERROR4[ERROR4["INVALID_EOF_STATE"] = 14] = "INVALID_EOF_STATE";
-      ERROR4[ERROR4["INVALID_TRANSFER_ENCODING"] = 15] = "INVALID_TRANSFER_ENCODING";
-      ERROR4[ERROR4["CB_MESSAGE_BEGIN"] = 16] = "CB_MESSAGE_BEGIN";
-      ERROR4[ERROR4["CB_HEADERS_COMPLETE"] = 17] = "CB_HEADERS_COMPLETE";
-      ERROR4[ERROR4["CB_MESSAGE_COMPLETE"] = 18] = "CB_MESSAGE_COMPLETE";
-      ERROR4[ERROR4["CB_CHUNK_HEADER"] = 19] = "CB_CHUNK_HEADER";
-      ERROR4[ERROR4["CB_CHUNK_COMPLETE"] = 20] = "CB_CHUNK_COMPLETE";
-      ERROR4[ERROR4["PAUSED"] = 21] = "PAUSED";
-      ERROR4[ERROR4["PAUSED_UPGRADE"] = 22] = "PAUSED_UPGRADE";
-      ERROR4[ERROR4["PAUSED_H2_UPGRADE"] = 23] = "PAUSED_H2_UPGRADE";
-      ERROR4[ERROR4["USER"] = 24] = "USER";
-    })(ERROR3 = exports2.ERROR || (exports2.ERROR = {}));
+    var ERROR2;
+    (function(ERROR3) {
+      ERROR3[ERROR3["OK"] = 0] = "OK";
+      ERROR3[ERROR3["INTERNAL"] = 1] = "INTERNAL";
+      ERROR3[ERROR3["STRICT"] = 2] = "STRICT";
+      ERROR3[ERROR3["LF_EXPECTED"] = 3] = "LF_EXPECTED";
+      ERROR3[ERROR3["UNEXPECTED_CONTENT_LENGTH"] = 4] = "UNEXPECTED_CONTENT_LENGTH";
+      ERROR3[ERROR3["CLOSED_CONNECTION"] = 5] = "CLOSED_CONNECTION";
+      ERROR3[ERROR3["INVALID_METHOD"] = 6] = "INVALID_METHOD";
+      ERROR3[ERROR3["INVALID_URL"] = 7] = "INVALID_URL";
+      ERROR3[ERROR3["INVALID_CONSTANT"] = 8] = "INVALID_CONSTANT";
+      ERROR3[ERROR3["INVALID_VERSION"] = 9] = "INVALID_VERSION";
+      ERROR3[ERROR3["INVALID_HEADER_TOKEN"] = 10] = "INVALID_HEADER_TOKEN";
+      ERROR3[ERROR3["INVALID_CONTENT_LENGTH"] = 11] = "INVALID_CONTENT_LENGTH";
+      ERROR3[ERROR3["INVALID_CHUNK_SIZE"] = 12] = "INVALID_CHUNK_SIZE";
+      ERROR3[ERROR3["INVALID_STATUS"] = 13] = "INVALID_STATUS";
+      ERROR3[ERROR3["INVALID_EOF_STATE"] = 14] = "INVALID_EOF_STATE";
+      ERROR3[ERROR3["INVALID_TRANSFER_ENCODING"] = 15] = "INVALID_TRANSFER_ENCODING";
+      ERROR3[ERROR3["CB_MESSAGE_BEGIN"] = 16] = "CB_MESSAGE_BEGIN";
+      ERROR3[ERROR3["CB_HEADERS_COMPLETE"] = 17] = "CB_HEADERS_COMPLETE";
+      ERROR3[ERROR3["CB_MESSAGE_COMPLETE"] = 18] = "CB_MESSAGE_COMPLETE";
+      ERROR3[ERROR3["CB_CHUNK_HEADER"] = 19] = "CB_CHUNK_HEADER";
+      ERROR3[ERROR3["CB_CHUNK_COMPLETE"] = 20] = "CB_CHUNK_COMPLETE";
+      ERROR3[ERROR3["PAUSED"] = 21] = "PAUSED";
+      ERROR3[ERROR3["PAUSED_UPGRADE"] = 22] = "PAUSED_UPGRADE";
+      ERROR3[ERROR3["PAUSED_H2_UPGRADE"] = 23] = "PAUSED_H2_UPGRADE";
+      ERROR3[ERROR3["USER"] = 24] = "USER";
+    })(ERROR2 = exports2.ERROR || (exports2.ERROR = {}));
     var TYPE2;
     (function(TYPE3) {
       TYPE3[TYPE3["BOTH"] = 0] = "BOTH";
@@ -13315,7 +13315,7 @@ var require_fetch = __commonJS({
     var { kHeadersList } = require_symbols();
     var EE = require("events");
     var { Readable, pipeline } = require("stream");
-    var { addAbortListener, isErrored, isReadable: isReadable3, nodeMajor, nodeMinor } = require_util();
+    var { addAbortListener, isErrored, isReadable: isReadable2, nodeMajor, nodeMinor } = require_util();
     var { dataURLProcessor, serializeAMimeType } = require_dataURL();
     var { TransformStream } = require("stream/web");
     var { getGlobalDispatcher } = require_global2();
@@ -13461,7 +13461,7 @@ var require_fetch = __commonJS({
         error = new DOMException2("The operation was aborted.", "AbortError");
       }
       p.reject(error);
-      if (request2.body != null && isReadable3(request2.body?.stream)) {
+      if (request2.body != null && isReadable2(request2.body?.stream)) {
         request2.body.stream.cancel(error).catch((err) => {
           if (err.code === "ERR_INVALID_STATE") {
             return;
@@ -13473,7 +13473,7 @@ var require_fetch = __commonJS({
         return;
       }
       const response = responseObject[kState];
-      if (response.body != null && isReadable3(response.body?.stream)) {
+      if (response.body != null && isReadable2(response.body?.stream)) {
         response.body.stream.cancel(error).catch((err) => {
           if (err.code === "ERR_INVALID_STATE") {
             return;
@@ -14135,13 +14135,13 @@ var require_fetch = __commonJS({
       function onAborted(reason) {
         if (isAborted(fetchParams)) {
           response.aborted = true;
-          if (isReadable3(stream2)) {
+          if (isReadable2(stream2)) {
             fetchParams.controller.controller.error(
               fetchParams.controller.serializedAbortReason
             );
           }
         } else {
-          if (isReadable3(stream2)) {
+          if (isReadable2(stream2)) {
             fetchParams.controller.controller.error(new TypeError("terminated", {
               cause: isErrorLike(reason) ? reason : void 0
             }));
@@ -14678,7 +14678,7 @@ var require_util4 = __commonJS({
     var { DOMException: DOMException2 } = require_constants2();
     var { serializeAMimeType, parseMIMEType } = require_dataURL();
     var { types: types2 } = require("util");
-    var { StringDecoder: StringDecoder3 } = require("string_decoder");
+    var { StringDecoder: StringDecoder2 } = require("string_decoder");
     var { btoa } = require("buffer");
     var staticPropertyDescriptors = {
       enumerable: true,
@@ -14769,7 +14769,7 @@ var require_util4 = __commonJS({
             dataURL += serializeAMimeType(parsed);
           }
           dataURL += ";base64,";
-          const decoder = new StringDecoder3("latin1");
+          const decoder = new StringDecoder2("latin1");
           for (const chunk of bytes) {
             dataURL += btoa(decoder.write(chunk));
           }
@@ -14798,7 +14798,7 @@ var require_util4 = __commonJS({
         }
         case "BinaryString": {
           let binaryString = "";
-          const decoder = new StringDecoder3("latin1");
+          const decoder = new StringDecoder2("latin1");
           for (const chunk of bytes) {
             binaryString += decoder.write(chunk);
           }
@@ -30714,10 +30714,11 @@ var Minimatch = class {
     for (let i = 0; i < globParts.length - 1; i++) {
       for (let j = i + 1; j < globParts.length; j++) {
         const matched = this.partsMatch(globParts[i], globParts[j], !this.preserveMultipleSlashes);
-        if (!matched)
-          continue;
-        globParts[i] = matched;
-        globParts[j] = [];
+        if (matched) {
+          globParts[i] = [];
+          globParts[j] = matched;
+          break;
+        }
       }
     }
     return globParts.filter((gs) => gs.length);
@@ -31095,14 +31096,13 @@ var Stack = class _Stack {
   }
 };
 var LRUCache = class _LRUCache {
-  // properties coming in from the options of these, only max and maxSize
-  // really *need* to be protected. The rest can be modified, as they just
-  // set defaults for various methods.
+  // options that cannot be changed without disaster
   #max;
   #maxSize;
   #dispose;
   #disposeAfter;
   #fetchMethod;
+  #memoMethod;
   /**
    * {@link LRUCache.OptionsBase.ttl}
    */
@@ -31248,6 +31248,9 @@ var LRUCache = class _LRUCache {
   get fetchMethod() {
     return this.#fetchMethod;
   }
+  get memoMethod() {
+    return this.#memoMethod;
+  }
   /**
    * {@link LRUCache.OptionsBase.dispose} (read-only)
    */
@@ -31261,7 +31264,7 @@ var LRUCache = class _LRUCache {
     return this.#disposeAfter;
   }
   constructor(options) {
-    const { max = 0, ttl, ttlResolution = 1, ttlAutopurge, updateAgeOnGet, updateAgeOnHas, allowStale, dispose, disposeAfter, noDisposeOnSet, noUpdateTTL, maxSize = 0, maxEntrySize = 0, sizeCalculation, fetchMethod, noDeleteOnFetchRejection, noDeleteOnStaleGet, allowStaleOnFetchRejection, allowStaleOnFetchAbort, ignoreFetchAbort } = options;
+    const { max = 0, ttl, ttlResolution = 1, ttlAutopurge, updateAgeOnGet, updateAgeOnHas, allowStale, dispose, disposeAfter, noDisposeOnSet, noUpdateTTL, maxSize = 0, maxEntrySize = 0, sizeCalculation, fetchMethod, memoMethod, noDeleteOnFetchRejection, noDeleteOnStaleGet, allowStaleOnFetchRejection, allowStaleOnFetchAbort, ignoreFetchAbort } = options;
     if (max !== 0 && !isPosInt(max)) {
       throw new TypeError("max option must be a nonnegative integer");
     }
@@ -31281,6 +31284,10 @@ var LRUCache = class _LRUCache {
         throw new TypeError("sizeCalculation set to non-function");
       }
     }
+    if (memoMethod !== void 0 && typeof memoMethod !== "function") {
+      throw new TypeError("memoMethod must be a function if defined");
+    }
+    this.#memoMethod = memoMethod;
     if (fetchMethod !== void 0 && typeof fetchMethod !== "function") {
       throw new TypeError("fetchMethod must be a function if specified");
     }
@@ -31351,7 +31358,8 @@ var LRUCache = class _LRUCache {
     }
   }
   /**
-   * Return the remaining TTL time for a given entry key
+   * Return the number of ms left in the item's TTL. If item is not in cache,
+   * returns `0`. Returns `Infinity` if item is in cache without a defined TTL.
    */
   getRemainingTTL(key) {
     return this.#keyMap.has(key) ? Infinity : 0;
@@ -31367,7 +31375,7 @@ var LRUCache = class _LRUCache {
       if (ttl !== 0 && this.ttlAutopurge) {
         const t = setTimeout(() => {
           if (this.#isStale(index)) {
-            this.delete(this.#keyList[index]);
+            this.#delete(this.#keyList[index], "expire");
           }
         }, ttl + 1);
         if (t.unref) {
@@ -31604,13 +31612,14 @@ var LRUCache = class _LRUCache {
     return this.entries();
   }
   /**
-   * A String value that is used in the creation of the default string description of an object.
-   * Called by the built-in method Object.prototype.toString.
+   * A String value that is used in the creation of the default string
+   * description of an object. Called by the built-in method
+   * `Object.prototype.toString`.
    */
   [Symbol.toStringTag] = "LRUCache";
   /**
    * Find a value for which the supplied fn method returns a truthy value,
-   * similar to Array.find().  fn is called as fn(value, key, cache).
+   * similar to `Array.find()`. fn is called as `fn(value, key, cache)`.
    */
   find(fn, getOptions = {}) {
     for (const i of this.#indexes()) {
@@ -31624,10 +31633,15 @@ var LRUCache = class _LRUCache {
     }
   }
   /**
-   * Call the supplied function on each item in the cache, in order from
-   * most recently used to least recently used.  fn is called as
-   * fn(value, key, cache).  Does not update age or recenty of use.
-   * Does not iterate over stale values.
+   * Call the supplied function on each item in the cache, in order from most
+   * recently used to least recently used.
+   *
+   * `fn` is called as `fn(value, key, cache)`.
+   *
+   * If `thisp` is provided, function will be called in the `this`-context of
+   * the provided object, or the cache if no `thisp` object is provided.
+   *
+   * Does not update age or recenty of use, or iterate over stale values.
    */
   forEach(fn, thisp = this) {
     for (const i of this.#indexes()) {
@@ -31659,7 +31673,7 @@ var LRUCache = class _LRUCache {
     let deleted = false;
     for (const i of this.#rindexes({ allowStale: true })) {
       if (this.#isStale(i)) {
-        this.delete(this.#keyList[i]);
+        this.#delete(this.#keyList[i], "expire");
         deleted = true;
       }
     }
@@ -31667,9 +31681,15 @@ var LRUCache = class _LRUCache {
   }
   /**
    * Get the extended info about a given entry, to get its value, size, and
-   * TTL info simultaneously. Like {@link LRUCache#dump}, but just for a
-   * single key. Always returns stale values, if their info is found in the
-   * cache, so be sure to check for expired TTLs if relevant.
+   * TTL info simultaneously. Returns `undefined` if the key is not present.
+   *
+   * Unlike {@link LRUCache#dump}, which is designed to be portable and survive
+   * serialization, the `start` value is always the current timestamp, and the
+   * `ttl` is a calculated remaining time to live (negative if expired).
+   *
+   * Always returns stale values, if their info is found in the cache, so be
+   * sure to check for expirations (ie, a negative {@link LRUCache.Entry#ttl})
+   * if relevant.
    */
   info(key) {
     const i = this.#keyMap.get(key);
@@ -31696,7 +31716,16 @@ var LRUCache = class _LRUCache {
   }
   /**
    * Return an array of [key, {@link LRUCache.Entry}] tuples which can be
-   * passed to cache.load()
+   * passed to {@link LRLUCache#load}.
+   *
+   * The `start` fields are calculated relative to a portable `Date.now()`
+   * timestamp, even if `performance.now()` is available.
+   *
+   * Stale entries are always included in the `dump`, even if
+   * {@link LRUCache.OptionsBase.allowStale} is false.
+   *
+   * Note: this returns an actual array, not a generator, so it can be more
+   * easily passed around.
    */
   dump() {
     const arr = [];
@@ -31721,8 +31750,12 @@ var LRUCache = class _LRUCache {
   }
   /**
    * Reset the cache and load in the items in entries in the order listed.
-   * Note that the shape of the resulting cache may be different if the
-   * same options are not used in both caches.
+   *
+   * The shape of the resulting cache may be different if the same options are
+   * not used in both caches.
+   *
+   * The `start` fields are assumed to be calculated relative to a portable
+   * `Date.now()` timestamp, even if `performance.now()` is available.
    */
   load(arr) {
     this.clear();
@@ -31739,6 +31772,30 @@ var LRUCache = class _LRUCache {
    *
    * Note: if `undefined` is specified as a value, this is an alias for
    * {@link LRUCache#delete}
+   *
+   * Fields on the {@link LRUCache.SetOptions} options param will override
+   * their corresponding values in the constructor options for the scope
+   * of this single `set()` operation.
+   *
+   * If `start` is provided, then that will set the effective start
+   * time for the TTL calculation. Note that this must be a previous
+   * value of `performance.now()` if supported, or a previous value of
+   * `Date.now()` if not.
+   *
+   * Options object may also include `size`, which will prevent
+   * calling the `sizeCalculation` function and just use the specified
+   * number if it is a positive integer, and `noDisposeOnSet` which
+   * will prevent calling a `dispose` function in the case of
+   * overwrites.
+   *
+   * If the `size` (or return value of `sizeCalculation`) for a given
+   * entry is greater than `maxEntrySize`, then the item will not be
+   * added to the cache.
+   *
+   * Will update the recency of the entry.
+   *
+   * If the value is `undefined`, then this is an alias for
+   * `cache.delete(key)`. `undefined` is never stored in the cache.
    */
   set(k, v, setOptions = {}) {
     if (v === void 0) {
@@ -31753,7 +31810,7 @@ var LRUCache = class _LRUCache {
         status.set = "miss";
         status.maxEntrySizeExceeded = true;
       }
-      this.delete(k);
+      this.#delete(k, "set");
       return this;
     }
     let index = this.#size === 0 ? void 0 : this.#keyMap.get(k);
@@ -31887,6 +31944,14 @@ var LRUCache = class _LRUCache {
    * Will return false if the item is stale, even though it is technically
    * in the cache.
    *
+   * Check if a key is in the cache, without updating the recency of
+   * use. Age is updated if {@link LRUCache.OptionsBase.updateAgeOnHas} is set
+   * to `true` in either the options or the constructor.
+   *
+   * Will return `false` if the item is stale, even though it is technically in
+   * the cache. The difference can be determined (if it matters) by using a
+   * `status` argument, and inspecting the `has` field.
+   *
    * Will not update item age unless
    * {@link LRUCache.OptionsBase.updateAgeOnHas} is set.
    */
@@ -31969,7 +32034,7 @@ var LRUCache = class _LRUCache {
           if (bf2.__staleWhileFetching) {
             this.#valList[index] = bf2.__staleWhileFetching;
           } else {
-            this.delete(k);
+            this.#delete(k, "fetch");
           }
         } else {
           if (options.status)
@@ -31995,7 +32060,7 @@ var LRUCache = class _LRUCache {
       if (this.#valList[index] === p) {
         const del = !noDelete || bf2.__staleWhileFetching === void 0;
         if (del) {
-          this.delete(k);
+          this.#delete(k, "fetch");
         } else if (!allowStaleAborted) {
           this.#valList[index] = bf2.__staleWhileFetching;
         }
@@ -32133,6 +32198,28 @@ var LRUCache = class _LRUCache {
       return staleVal ? p.__staleWhileFetching : p.__returned = p;
     }
   }
+  async forceFetch(k, fetchOptions = {}) {
+    const v = await this.fetch(k, fetchOptions);
+    if (v === void 0)
+      throw new Error("fetch() returned undefined");
+    return v;
+  }
+  memo(k, memoOptions = {}) {
+    const memoMethod = this.#memoMethod;
+    if (!memoMethod) {
+      throw new Error("no memoMethod provided to constructor");
+    }
+    const { context: context6, forceRefresh, ...options } = memoOptions;
+    const v = this.get(k, options);
+    if (!forceRefresh && v !== void 0)
+      return v;
+    const vv = memoMethod(k, v, {
+      options,
+      context: context6
+    });
+    this.set(k, vv, options);
+    return vv;
+  }
   /**
    * Return a value from the cache. Will update the recency of the cache
    * entry found.
@@ -32152,7 +32239,7 @@ var LRUCache = class _LRUCache {
           status.get = "stale";
         if (!fetching) {
           if (!noDeleteOnStaleGet) {
-            this.delete(k);
+            this.#delete(k, "expire");
           }
           if (status && allowStale)
             status.returnedStale = true;
@@ -32196,16 +32283,20 @@ var LRUCache = class _LRUCache {
   }
   /**
    * Deletes a key out of the cache.
+   *
    * Returns true if the key was deleted, false otherwise.
    */
   delete(k) {
+    return this.#delete(k, "delete");
+  }
+  #delete(k, reason) {
     let deleted = false;
     if (this.#size !== 0) {
       const index = this.#keyMap.get(k);
       if (index !== void 0) {
         deleted = true;
         if (this.#size === 1) {
-          this.clear();
+          this.#clear(reason);
         } else {
           this.#removeItemSize(index);
           const v = this.#valList[index];
@@ -32213,10 +32304,10 @@ var LRUCache = class _LRUCache {
             v.__abortController.abort(new Error("deleted"));
           } else if (this.#hasDispose || this.#hasDisposeAfter) {
             if (this.#hasDispose) {
-              this.#dispose?.(v, k, "delete");
+              this.#dispose?.(v, k, reason);
             }
             if (this.#hasDisposeAfter) {
-              this.#disposed?.push([v, k, "delete"]);
+              this.#disposed?.push([v, k, reason]);
             }
           }
           this.#keyMap.delete(k);
@@ -32250,6 +32341,9 @@ var LRUCache = class _LRUCache {
    * Clear the cache entirely, throwing away all values.
    */
   clear() {
+    return this.#clear("delete");
+  }
+  #clear(reason) {
     for (const index of this.#rindexes({ allowStale: true })) {
       const v = this.#valList[index];
       if (this.#isBackgroundFetch(v)) {
@@ -32257,10 +32351,10 @@ var LRUCache = class _LRUCache {
       } else {
         const k = this.#keyList[index];
         if (this.#hasDispose) {
-          this.#dispose?.(v, k, "delete");
+          this.#dispose?.(v, k, reason);
         }
         if (this.#hasDisposeAfter) {
-          this.#disposed?.push([v, k, "delete"]);
+          this.#disposed?.push([v, k, reason]);
         }
       }
     }
@@ -32296,7 +32390,7 @@ var import_fs = require("fs");
 var actualFS = __toESM(require("fs"), 1);
 var import_promises = require("fs/promises");
 
-// ../node_modules/path-scurry/node_modules/minipass/dist/esm/index.js
+// ../node_modules/minipass/dist/esm/index.js
 var import_node_events = require("events");
 var import_node_stream = __toESM(require("stream"), 1);
 var import_node_string_decoder = require("string_decoder");
@@ -33388,6 +33482,8 @@ var PathBase = class {
   /**
    * Deprecated alias for Dirent['parentPath'] Somewhat counterintuitively,
    * this property refers to the *parent* path, not the path object itself.
+   *
+   * @deprecated
    */
   get path() {
     return this.parentPath;
@@ -35063,884 +35159,6 @@ var Pattern = class _Pattern {
   }
 };
 
-// ../node_modules/minipass/dist/esm/index.js
-var import_node_events2 = require("events");
-var import_node_stream2 = __toESM(require("stream"), 1);
-var import_node_string_decoder2 = require("string_decoder");
-var proc2 = typeof process === "object" && process ? process : {
-  stdout: null,
-  stderr: null
-};
-var isStream2 = (s) => !!s && typeof s === "object" && (s instanceof Minipass2 || s instanceof import_node_stream2.default || isReadable2(s) || isWritable2(s));
-var isReadable2 = (s) => !!s && typeof s === "object" && s instanceof import_node_events2.EventEmitter && typeof s.pipe === "function" && // node core Writable streams have a pipe() method, but it throws
-s.pipe !== import_node_stream2.default.Writable.prototype.pipe;
-var isWritable2 = (s) => !!s && typeof s === "object" && s instanceof import_node_events2.EventEmitter && typeof s.write === "function" && typeof s.end === "function";
-var EOF2 = Symbol("EOF");
-var MAYBE_EMIT_END2 = Symbol("maybeEmitEnd");
-var EMITTED_END2 = Symbol("emittedEnd");
-var EMITTING_END2 = Symbol("emittingEnd");
-var EMITTED_ERROR2 = Symbol("emittedError");
-var CLOSED2 = Symbol("closed");
-var READ2 = Symbol("read");
-var FLUSH2 = Symbol("flush");
-var FLUSHCHUNK2 = Symbol("flushChunk");
-var ENCODING2 = Symbol("encoding");
-var DECODER2 = Symbol("decoder");
-var FLOWING2 = Symbol("flowing");
-var PAUSED2 = Symbol("paused");
-var RESUME2 = Symbol("resume");
-var BUFFER2 = Symbol("buffer");
-var PIPES2 = Symbol("pipes");
-var BUFFERLENGTH2 = Symbol("bufferLength");
-var BUFFERPUSH2 = Symbol("bufferPush");
-var BUFFERSHIFT2 = Symbol("bufferShift");
-var OBJECTMODE2 = Symbol("objectMode");
-var DESTROYED2 = Symbol("destroyed");
-var ERROR2 = Symbol("error");
-var EMITDATA2 = Symbol("emitData");
-var EMITEND3 = Symbol("emitEnd");
-var EMITEND22 = Symbol("emitEnd2");
-var ASYNC2 = Symbol("async");
-var ABORT2 = Symbol("abort");
-var ABORTED2 = Symbol("aborted");
-var SIGNAL2 = Symbol("signal");
-var DATALISTENERS2 = Symbol("dataListeners");
-var DISCARDED2 = Symbol("discarded");
-var defer2 = (fn) => Promise.resolve().then(fn);
-var nodefer2 = (fn) => fn();
-var isEndish2 = (ev) => ev === "end" || ev === "finish" || ev === "prefinish";
-var isArrayBufferLike2 = (b) => b instanceof ArrayBuffer || !!b && typeof b === "object" && b.constructor && b.constructor.name === "ArrayBuffer" && b.byteLength >= 0;
-var isArrayBufferView2 = (b) => !Buffer.isBuffer(b) && ArrayBuffer.isView(b);
-var Pipe2 = class {
-  src;
-  dest;
-  opts;
-  ondrain;
-  constructor(src, dest, opts) {
-    this.src = src;
-    this.dest = dest;
-    this.opts = opts;
-    this.ondrain = () => src[RESUME2]();
-    this.dest.on("drain", this.ondrain);
-  }
-  unpipe() {
-    this.dest.removeListener("drain", this.ondrain);
-  }
-  // only here for the prototype
-  /* c8 ignore start */
-  proxyErrors(_er) {
-  }
-  /* c8 ignore stop */
-  end() {
-    this.unpipe();
-    if (this.opts.end)
-      this.dest.end();
-  }
-};
-var PipeProxyErrors2 = class extends Pipe2 {
-  unpipe() {
-    this.src.removeListener("error", this.proxyErrors);
-    super.unpipe();
-  }
-  constructor(src, dest, opts) {
-    super(src, dest, opts);
-    this.proxyErrors = (er) => dest.emit("error", er);
-    src.on("error", this.proxyErrors);
-  }
-};
-var isObjectModeOptions2 = (o) => !!o.objectMode;
-var isEncodingOptions2 = (o) => !o.objectMode && !!o.encoding && o.encoding !== "buffer";
-var Minipass2 = class extends import_node_events2.EventEmitter {
-  [FLOWING2] = false;
-  [PAUSED2] = false;
-  [PIPES2] = [];
-  [BUFFER2] = [];
-  [OBJECTMODE2];
-  [ENCODING2];
-  [ASYNC2];
-  [DECODER2];
-  [EOF2] = false;
-  [EMITTED_END2] = false;
-  [EMITTING_END2] = false;
-  [CLOSED2] = false;
-  [EMITTED_ERROR2] = null;
-  [BUFFERLENGTH2] = 0;
-  [DESTROYED2] = false;
-  [SIGNAL2];
-  [ABORTED2] = false;
-  [DATALISTENERS2] = 0;
-  [DISCARDED2] = false;
-  /**
-   * true if the stream can be written
-   */
-  writable = true;
-  /**
-   * true if the stream can be read
-   */
-  readable = true;
-  /**
-   * If `RType` is Buffer, then options do not need to be provided.
-   * Otherwise, an options object must be provided to specify either
-   * {@link Minipass.SharedOptions.objectMode} or
-   * {@link Minipass.SharedOptions.encoding}, as appropriate.
-   */
-  constructor(...args) {
-    const options = args[0] || {};
-    super();
-    if (options.objectMode && typeof options.encoding === "string") {
-      throw new TypeError("Encoding and objectMode may not be used together");
-    }
-    if (isObjectModeOptions2(options)) {
-      this[OBJECTMODE2] = true;
-      this[ENCODING2] = null;
-    } else if (isEncodingOptions2(options)) {
-      this[ENCODING2] = options.encoding;
-      this[OBJECTMODE2] = false;
-    } else {
-      this[OBJECTMODE2] = false;
-      this[ENCODING2] = null;
-    }
-    this[ASYNC2] = !!options.async;
-    this[DECODER2] = this[ENCODING2] ? new import_node_string_decoder2.StringDecoder(this[ENCODING2]) : null;
-    if (options && options.debugExposeBuffer === true) {
-      Object.defineProperty(this, "buffer", { get: () => this[BUFFER2] });
-    }
-    if (options && options.debugExposePipes === true) {
-      Object.defineProperty(this, "pipes", { get: () => this[PIPES2] });
-    }
-    const { signal } = options;
-    if (signal) {
-      this[SIGNAL2] = signal;
-      if (signal.aborted) {
-        this[ABORT2]();
-      } else {
-        signal.addEventListener("abort", () => this[ABORT2]());
-      }
-    }
-  }
-  /**
-   * The amount of data stored in the buffer waiting to be read.
-   *
-   * For Buffer strings, this will be the total byte length.
-   * For string encoding streams, this will be the string character length,
-   * according to JavaScript's `string.length` logic.
-   * For objectMode streams, this is a count of the items waiting to be
-   * emitted.
-   */
-  get bufferLength() {
-    return this[BUFFERLENGTH2];
-  }
-  /**
-   * The `BufferEncoding` currently in use, or `null`
-   */
-  get encoding() {
-    return this[ENCODING2];
-  }
-  /**
-   * @deprecated - This is a read only property
-   */
-  set encoding(_enc) {
-    throw new Error("Encoding must be set at instantiation time");
-  }
-  /**
-   * @deprecated - Encoding may only be set at instantiation time
-   */
-  setEncoding(_enc) {
-    throw new Error("Encoding must be set at instantiation time");
-  }
-  /**
-   * True if this is an objectMode stream
-   */
-  get objectMode() {
-    return this[OBJECTMODE2];
-  }
-  /**
-   * @deprecated - This is a read-only property
-   */
-  set objectMode(_om) {
-    throw new Error("objectMode must be set at instantiation time");
-  }
-  /**
-   * true if this is an async stream
-   */
-  get ["async"]() {
-    return this[ASYNC2];
-  }
-  /**
-   * Set to true to make this stream async.
-   *
-   * Once set, it cannot be unset, as this would potentially cause incorrect
-   * behavior.  Ie, a sync stream can be made async, but an async stream
-   * cannot be safely made sync.
-   */
-  set ["async"](a) {
-    this[ASYNC2] = this[ASYNC2] || !!a;
-  }
-  // drop everything and get out of the flow completely
-  [ABORT2]() {
-    this[ABORTED2] = true;
-    this.emit("abort", this[SIGNAL2]?.reason);
-    this.destroy(this[SIGNAL2]?.reason);
-  }
-  /**
-   * True if the stream has been aborted.
-   */
-  get aborted() {
-    return this[ABORTED2];
-  }
-  /**
-   * No-op setter. Stream aborted status is set via the AbortSignal provided
-   * in the constructor options.
-   */
-  set aborted(_) {
-  }
-  write(chunk, encoding, cb) {
-    if (this[ABORTED2])
-      return false;
-    if (this[EOF2])
-      throw new Error("write after end");
-    if (this[DESTROYED2]) {
-      this.emit("error", Object.assign(new Error("Cannot call write after a stream was destroyed"), { code: "ERR_STREAM_DESTROYED" }));
-      return true;
-    }
-    if (typeof encoding === "function") {
-      cb = encoding;
-      encoding = "utf8";
-    }
-    if (!encoding)
-      encoding = "utf8";
-    const fn = this[ASYNC2] ? defer2 : nodefer2;
-    if (!this[OBJECTMODE2] && !Buffer.isBuffer(chunk)) {
-      if (isArrayBufferView2(chunk)) {
-        chunk = Buffer.from(chunk.buffer, chunk.byteOffset, chunk.byteLength);
-      } else if (isArrayBufferLike2(chunk)) {
-        chunk = Buffer.from(chunk);
-      } else if (typeof chunk !== "string") {
-        throw new Error("Non-contiguous data written to non-objectMode stream");
-      }
-    }
-    if (this[OBJECTMODE2]) {
-      if (this[FLOWING2] && this[BUFFERLENGTH2] !== 0)
-        this[FLUSH2](true);
-      if (this[FLOWING2])
-        this.emit("data", chunk);
-      else
-        this[BUFFERPUSH2](chunk);
-      if (this[BUFFERLENGTH2] !== 0)
-        this.emit("readable");
-      if (cb)
-        fn(cb);
-      return this[FLOWING2];
-    }
-    if (!chunk.length) {
-      if (this[BUFFERLENGTH2] !== 0)
-        this.emit("readable");
-      if (cb)
-        fn(cb);
-      return this[FLOWING2];
-    }
-    if (typeof chunk === "string" && // unless it is a string already ready for us to use
-    !(encoding === this[ENCODING2] && !this[DECODER2]?.lastNeed)) {
-      chunk = Buffer.from(chunk, encoding);
-    }
-    if (Buffer.isBuffer(chunk) && this[ENCODING2]) {
-      chunk = this[DECODER2].write(chunk);
-    }
-    if (this[FLOWING2] && this[BUFFERLENGTH2] !== 0)
-      this[FLUSH2](true);
-    if (this[FLOWING2])
-      this.emit("data", chunk);
-    else
-      this[BUFFERPUSH2](chunk);
-    if (this[BUFFERLENGTH2] !== 0)
-      this.emit("readable");
-    if (cb)
-      fn(cb);
-    return this[FLOWING2];
-  }
-  /**
-   * Low-level explicit read method.
-   *
-   * In objectMode, the argument is ignored, and one item is returned if
-   * available.
-   *
-   * `n` is the number of bytes (or in the case of encoding streams,
-   * characters) to consume. If `n` is not provided, then the entire buffer
-   * is returned, or `null` is returned if no data is available.
-   *
-   * If `n` is greater that the amount of data in the internal buffer,
-   * then `null` is returned.
-   */
-  read(n) {
-    if (this[DESTROYED2])
-      return null;
-    this[DISCARDED2] = false;
-    if (this[BUFFERLENGTH2] === 0 || n === 0 || n && n > this[BUFFERLENGTH2]) {
-      this[MAYBE_EMIT_END2]();
-      return null;
-    }
-    if (this[OBJECTMODE2])
-      n = null;
-    if (this[BUFFER2].length > 1 && !this[OBJECTMODE2]) {
-      this[BUFFER2] = [
-        this[ENCODING2] ? this[BUFFER2].join("") : Buffer.concat(this[BUFFER2], this[BUFFERLENGTH2])
-      ];
-    }
-    const ret2 = this[READ2](n || null, this[BUFFER2][0]);
-    this[MAYBE_EMIT_END2]();
-    return ret2;
-  }
-  [READ2](n, chunk) {
-    if (this[OBJECTMODE2])
-      this[BUFFERSHIFT2]();
-    else {
-      const c = chunk;
-      if (n === c.length || n === null)
-        this[BUFFERSHIFT2]();
-      else if (typeof c === "string") {
-        this[BUFFER2][0] = c.slice(n);
-        chunk = c.slice(0, n);
-        this[BUFFERLENGTH2] -= n;
-      } else {
-        this[BUFFER2][0] = c.subarray(n);
-        chunk = c.subarray(0, n);
-        this[BUFFERLENGTH2] -= n;
-      }
-    }
-    this.emit("data", chunk);
-    if (!this[BUFFER2].length && !this[EOF2])
-      this.emit("drain");
-    return chunk;
-  }
-  end(chunk, encoding, cb) {
-    if (typeof chunk === "function") {
-      cb = chunk;
-      chunk = void 0;
-    }
-    if (typeof encoding === "function") {
-      cb = encoding;
-      encoding = "utf8";
-    }
-    if (chunk !== void 0)
-      this.write(chunk, encoding);
-    if (cb)
-      this.once("end", cb);
-    this[EOF2] = true;
-    this.writable = false;
-    if (this[FLOWING2] || !this[PAUSED2])
-      this[MAYBE_EMIT_END2]();
-    return this;
-  }
-  // don't let the internal resume be overwritten
-  [RESUME2]() {
-    if (this[DESTROYED2])
-      return;
-    if (!this[DATALISTENERS2] && !this[PIPES2].length) {
-      this[DISCARDED2] = true;
-    }
-    this[PAUSED2] = false;
-    this[FLOWING2] = true;
-    this.emit("resume");
-    if (this[BUFFER2].length)
-      this[FLUSH2]();
-    else if (this[EOF2])
-      this[MAYBE_EMIT_END2]();
-    else
-      this.emit("drain");
-  }
-  /**
-   * Resume the stream if it is currently in a paused state
-   *
-   * If called when there are no pipe destinations or `data` event listeners,
-   * this will place the stream in a "discarded" state, where all data will
-   * be thrown away. The discarded state is removed if a pipe destination or
-   * data handler is added, if pause() is called, or if any synchronous or
-   * asynchronous iteration is started.
-   */
-  resume() {
-    return this[RESUME2]();
-  }
-  /**
-   * Pause the stream
-   */
-  pause() {
-    this[FLOWING2] = false;
-    this[PAUSED2] = true;
-    this[DISCARDED2] = false;
-  }
-  /**
-   * true if the stream has been forcibly destroyed
-   */
-  get destroyed() {
-    return this[DESTROYED2];
-  }
-  /**
-   * true if the stream is currently in a flowing state, meaning that
-   * any writes will be immediately emitted.
-   */
-  get flowing() {
-    return this[FLOWING2];
-  }
-  /**
-   * true if the stream is currently in a paused state
-   */
-  get paused() {
-    return this[PAUSED2];
-  }
-  [BUFFERPUSH2](chunk) {
-    if (this[OBJECTMODE2])
-      this[BUFFERLENGTH2] += 1;
-    else
-      this[BUFFERLENGTH2] += chunk.length;
-    this[BUFFER2].push(chunk);
-  }
-  [BUFFERSHIFT2]() {
-    if (this[OBJECTMODE2])
-      this[BUFFERLENGTH2] -= 1;
-    else
-      this[BUFFERLENGTH2] -= this[BUFFER2][0].length;
-    return this[BUFFER2].shift();
-  }
-  [FLUSH2](noDrain = false) {
-    do {
-    } while (this[FLUSHCHUNK2](this[BUFFERSHIFT2]()) && this[BUFFER2].length);
-    if (!noDrain && !this[BUFFER2].length && !this[EOF2])
-      this.emit("drain");
-  }
-  [FLUSHCHUNK2](chunk) {
-    this.emit("data", chunk);
-    return this[FLOWING2];
-  }
-  /**
-   * Pipe all data emitted by this stream into the destination provided.
-   *
-   * Triggers the flow of data.
-   */
-  pipe(dest, opts) {
-    if (this[DESTROYED2])
-      return dest;
-    this[DISCARDED2] = false;
-    const ended = this[EMITTED_END2];
-    opts = opts || {};
-    if (dest === proc2.stdout || dest === proc2.stderr)
-      opts.end = false;
-    else
-      opts.end = opts.end !== false;
-    opts.proxyErrors = !!opts.proxyErrors;
-    if (ended) {
-      if (opts.end)
-        dest.end();
-    } else {
-      this[PIPES2].push(!opts.proxyErrors ? new Pipe2(this, dest, opts) : new PipeProxyErrors2(this, dest, opts));
-      if (this[ASYNC2])
-        defer2(() => this[RESUME2]());
-      else
-        this[RESUME2]();
-    }
-    return dest;
-  }
-  /**
-   * Fully unhook a piped destination stream.
-   *
-   * If the destination stream was the only consumer of this stream (ie,
-   * there are no other piped destinations or `'data'` event listeners)
-   * then the flow of data will stop until there is another consumer or
-   * {@link Minipass#resume} is explicitly called.
-   */
-  unpipe(dest) {
-    const p = this[PIPES2].find((p2) => p2.dest === dest);
-    if (p) {
-      if (this[PIPES2].length === 1) {
-        if (this[FLOWING2] && this[DATALISTENERS2] === 0) {
-          this[FLOWING2] = false;
-        }
-        this[PIPES2] = [];
-      } else
-        this[PIPES2].splice(this[PIPES2].indexOf(p), 1);
-      p.unpipe();
-    }
-  }
-  /**
-   * Alias for {@link Minipass#on}
-   */
-  addListener(ev, handler2) {
-    return this.on(ev, handler2);
-  }
-  /**
-   * Mostly identical to `EventEmitter.on`, with the following
-   * behavior differences to prevent data loss and unnecessary hangs:
-   *
-   * - Adding a 'data' event handler will trigger the flow of data
-   *
-   * - Adding a 'readable' event handler when there is data waiting to be read
-   *   will cause 'readable' to be emitted immediately.
-   *
-   * - Adding an 'endish' event handler ('end', 'finish', etc.) which has
-   *   already passed will cause the event to be emitted immediately and all
-   *   handlers removed.
-   *
-   * - Adding an 'error' event handler after an error has been emitted will
-   *   cause the event to be re-emitted immediately with the error previously
-   *   raised.
-   */
-  on(ev, handler2) {
-    const ret2 = super.on(ev, handler2);
-    if (ev === "data") {
-      this[DISCARDED2] = false;
-      this[DATALISTENERS2]++;
-      if (!this[PIPES2].length && !this[FLOWING2]) {
-        this[RESUME2]();
-      }
-    } else if (ev === "readable" && this[BUFFERLENGTH2] !== 0) {
-      super.emit("readable");
-    } else if (isEndish2(ev) && this[EMITTED_END2]) {
-      super.emit(ev);
-      this.removeAllListeners(ev);
-    } else if (ev === "error" && this[EMITTED_ERROR2]) {
-      const h = handler2;
-      if (this[ASYNC2])
-        defer2(() => h.call(this, this[EMITTED_ERROR2]));
-      else
-        h.call(this, this[EMITTED_ERROR2]);
-    }
-    return ret2;
-  }
-  /**
-   * Alias for {@link Minipass#off}
-   */
-  removeListener(ev, handler2) {
-    return this.off(ev, handler2);
-  }
-  /**
-   * Mostly identical to `EventEmitter.off`
-   *
-   * If a 'data' event handler is removed, and it was the last consumer
-   * (ie, there are no pipe destinations or other 'data' event listeners),
-   * then the flow of data will stop until there is another consumer or
-   * {@link Minipass#resume} is explicitly called.
-   */
-  off(ev, handler2) {
-    const ret2 = super.off(ev, handler2);
-    if (ev === "data") {
-      this[DATALISTENERS2] = this.listeners("data").length;
-      if (this[DATALISTENERS2] === 0 && !this[DISCARDED2] && !this[PIPES2].length) {
-        this[FLOWING2] = false;
-      }
-    }
-    return ret2;
-  }
-  /**
-   * Mostly identical to `EventEmitter.removeAllListeners`
-   *
-   * If all 'data' event handlers are removed, and they were the last consumer
-   * (ie, there are no pipe destinations), then the flow of data will stop
-   * until there is another consumer or {@link Minipass#resume} is explicitly
-   * called.
-   */
-  removeAllListeners(ev) {
-    const ret2 = super.removeAllListeners(ev);
-    if (ev === "data" || ev === void 0) {
-      this[DATALISTENERS2] = 0;
-      if (!this[DISCARDED2] && !this[PIPES2].length) {
-        this[FLOWING2] = false;
-      }
-    }
-    return ret2;
-  }
-  /**
-   * true if the 'end' event has been emitted
-   */
-  get emittedEnd() {
-    return this[EMITTED_END2];
-  }
-  [MAYBE_EMIT_END2]() {
-    if (!this[EMITTING_END2] && !this[EMITTED_END2] && !this[DESTROYED2] && this[BUFFER2].length === 0 && this[EOF2]) {
-      this[EMITTING_END2] = true;
-      this.emit("end");
-      this.emit("prefinish");
-      this.emit("finish");
-      if (this[CLOSED2])
-        this.emit("close");
-      this[EMITTING_END2] = false;
-    }
-  }
-  /**
-   * Mostly identical to `EventEmitter.emit`, with the following
-   * behavior differences to prevent data loss and unnecessary hangs:
-   *
-   * If the stream has been destroyed, and the event is something other
-   * than 'close' or 'error', then `false` is returned and no handlers
-   * are called.
-   *
-   * If the event is 'end', and has already been emitted, then the event
-   * is ignored. If the stream is in a paused or non-flowing state, then
-   * the event will be deferred until data flow resumes. If the stream is
-   * async, then handlers will be called on the next tick rather than
-   * immediately.
-   *
-   * If the event is 'close', and 'end' has not yet been emitted, then
-   * the event will be deferred until after 'end' is emitted.
-   *
-   * If the event is 'error', and an AbortSignal was provided for the stream,
-   * and there are no listeners, then the event is ignored, matching the
-   * behavior of node core streams in the presense of an AbortSignal.
-   *
-   * If the event is 'finish' or 'prefinish', then all listeners will be
-   * removed after emitting the event, to prevent double-firing.
-   */
-  emit(ev, ...args) {
-    const data = args[0];
-    if (ev !== "error" && ev !== "close" && ev !== DESTROYED2 && this[DESTROYED2]) {
-      return false;
-    } else if (ev === "data") {
-      return !this[OBJECTMODE2] && !data ? false : this[ASYNC2] ? (defer2(() => this[EMITDATA2](data)), true) : this[EMITDATA2](data);
-    } else if (ev === "end") {
-      return this[EMITEND3]();
-    } else if (ev === "close") {
-      this[CLOSED2] = true;
-      if (!this[EMITTED_END2] && !this[DESTROYED2])
-        return false;
-      const ret3 = super.emit("close");
-      this.removeAllListeners("close");
-      return ret3;
-    } else if (ev === "error") {
-      this[EMITTED_ERROR2] = data;
-      super.emit(ERROR2, data);
-      const ret3 = !this[SIGNAL2] || this.listeners("error").length ? super.emit("error", data) : false;
-      this[MAYBE_EMIT_END2]();
-      return ret3;
-    } else if (ev === "resume") {
-      const ret3 = super.emit("resume");
-      this[MAYBE_EMIT_END2]();
-      return ret3;
-    } else if (ev === "finish" || ev === "prefinish") {
-      const ret3 = super.emit(ev);
-      this.removeAllListeners(ev);
-      return ret3;
-    }
-    const ret2 = super.emit(ev, ...args);
-    this[MAYBE_EMIT_END2]();
-    return ret2;
-  }
-  [EMITDATA2](data) {
-    for (const p of this[PIPES2]) {
-      if (p.dest.write(data) === false)
-        this.pause();
-    }
-    const ret2 = this[DISCARDED2] ? false : super.emit("data", data);
-    this[MAYBE_EMIT_END2]();
-    return ret2;
-  }
-  [EMITEND3]() {
-    if (this[EMITTED_END2])
-      return false;
-    this[EMITTED_END2] = true;
-    this.readable = false;
-    return this[ASYNC2] ? (defer2(() => this[EMITEND22]()), true) : this[EMITEND22]();
-  }
-  [EMITEND22]() {
-    if (this[DECODER2]) {
-      const data = this[DECODER2].end();
-      if (data) {
-        for (const p of this[PIPES2]) {
-          p.dest.write(data);
-        }
-        if (!this[DISCARDED2])
-          super.emit("data", data);
-      }
-    }
-    for (const p of this[PIPES2]) {
-      p.end();
-    }
-    const ret2 = super.emit("end");
-    this.removeAllListeners("end");
-    return ret2;
-  }
-  /**
-   * Return a Promise that resolves to an array of all emitted data once
-   * the stream ends.
-   */
-  async collect() {
-    const buf = Object.assign([], {
-      dataLength: 0
-    });
-    if (!this[OBJECTMODE2])
-      buf.dataLength = 0;
-    const p = this.promise();
-    this.on("data", (c) => {
-      buf.push(c);
-      if (!this[OBJECTMODE2])
-        buf.dataLength += c.length;
-    });
-    await p;
-    return buf;
-  }
-  /**
-   * Return a Promise that resolves to the concatenation of all emitted data
-   * once the stream ends.
-   *
-   * Not allowed on objectMode streams.
-   */
-  async concat() {
-    if (this[OBJECTMODE2]) {
-      throw new Error("cannot concat in objectMode");
-    }
-    const buf = await this.collect();
-    return this[ENCODING2] ? buf.join("") : Buffer.concat(buf, buf.dataLength);
-  }
-  /**
-   * Return a void Promise that resolves once the stream ends.
-   */
-  async promise() {
-    return new Promise((resolve, reject) => {
-      this.on(DESTROYED2, () => reject(new Error("stream destroyed")));
-      this.on("error", (er) => reject(er));
-      this.on("end", () => resolve());
-    });
-  }
-  /**
-   * Asynchronous `for await of` iteration.
-   *
-   * This will continue emitting all chunks until the stream terminates.
-   */
-  [Symbol.asyncIterator]() {
-    this[DISCARDED2] = false;
-    let stopped = false;
-    const stop = async () => {
-      this.pause();
-      stopped = true;
-      return { value: void 0, done: true };
-    };
-    const next = () => {
-      if (stopped)
-        return stop();
-      const res = this.read();
-      if (res !== null)
-        return Promise.resolve({ done: false, value: res });
-      if (this[EOF2])
-        return stop();
-      let resolve;
-      let reject;
-      const onerr = (er) => {
-        this.off("data", ondata);
-        this.off("end", onend);
-        this.off(DESTROYED2, ondestroy);
-        stop();
-        reject(er);
-      };
-      const ondata = (value) => {
-        this.off("error", onerr);
-        this.off("end", onend);
-        this.off(DESTROYED2, ondestroy);
-        this.pause();
-        resolve({ value, done: !!this[EOF2] });
-      };
-      const onend = () => {
-        this.off("error", onerr);
-        this.off("data", ondata);
-        this.off(DESTROYED2, ondestroy);
-        stop();
-        resolve({ done: true, value: void 0 });
-      };
-      const ondestroy = () => onerr(new Error("stream destroyed"));
-      return new Promise((res2, rej) => {
-        reject = rej;
-        resolve = res2;
-        this.once(DESTROYED2, ondestroy);
-        this.once("error", onerr);
-        this.once("end", onend);
-        this.once("data", ondata);
-      });
-    };
-    return {
-      next,
-      throw: stop,
-      return: stop,
-      [Symbol.asyncIterator]() {
-        return this;
-      }
-    };
-  }
-  /**
-   * Synchronous `for of` iteration.
-   *
-   * The iteration will terminate when the internal buffer runs out, even
-   * if the stream has not yet terminated.
-   */
-  [Symbol.iterator]() {
-    this[DISCARDED2] = false;
-    let stopped = false;
-    const stop = () => {
-      this.pause();
-      this.off(ERROR2, stop);
-      this.off(DESTROYED2, stop);
-      this.off("end", stop);
-      stopped = true;
-      return { done: true, value: void 0 };
-    };
-    const next = () => {
-      if (stopped)
-        return stop();
-      const value = this.read();
-      return value === null ? stop() : { done: false, value };
-    };
-    this.once("end", stop);
-    this.once(ERROR2, stop);
-    this.once(DESTROYED2, stop);
-    return {
-      next,
-      throw: stop,
-      return: stop,
-      [Symbol.iterator]() {
-        return this;
-      }
-    };
-  }
-  /**
-   * Destroy a stream, preventing it from being used for any further purpose.
-   *
-   * If the stream has a `close()` method, then it will be called on
-   * destruction.
-   *
-   * After destruction, any attempt to write data, read data, or emit most
-   * events will be ignored.
-   *
-   * If an error argument is provided, then it will be emitted in an
-   * 'error' event.
-   */
-  destroy(er) {
-    if (this[DESTROYED2]) {
-      if (er)
-        this.emit("error", er);
-      else
-        this.emit(DESTROYED2);
-      return this;
-    }
-    this[DESTROYED2] = true;
-    this[DISCARDED2] = true;
-    this[BUFFER2].length = 0;
-    this[BUFFERLENGTH2] = 0;
-    const wc = this;
-    if (typeof wc.close === "function" && !this[CLOSED2])
-      wc.close();
-    if (er)
-      this.emit("error", er);
-    else
-      this.emit(DESTROYED2);
-    return this;
-  }
-  /**
-   * Alias for {@link isStream}
-   *
-   * Former export location, maintained for backwards compatibility.
-   *
-   * @deprecated
-   */
-  static get isStream() {
-    return isStream2;
-  }
-};
-
 // ../node_modules/glob/dist/esm/ignore.js
 var defaultPlatform2 = typeof process === "object" && process && typeof process.platform === "string" ? process.platform : "linux";
 var Ignore = class {
@@ -36544,7 +35762,7 @@ var GlobStream = class extends GlobUtil {
   results;
   constructor(patterns, path4, opts) {
     super(patterns, path4, opts);
-    this.results = new Minipass2({
+    this.results = new Minipass({
       signal: this.signal,
       objectMode: true
     });
