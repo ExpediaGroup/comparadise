@@ -96,34 +96,34 @@ describe('App', () => {
         body: mutationResponse,
         delay: 5000
       }).as('base-images');
-      cy.findByRole('button', { name: /Update all base images/i }).click();
+      cy.findByRole('button', { name: 'Update all base images' }).click();
       cy.findByText(/Are you sure/i);
-      cy.findByRole('button', { name: /update/i }).click();
+      cy.findByRole('button', { name: 'Update' }).click();
       cy.findByText('Updating base images...').should('be.visible');
       cy.findByLabelText('loader').should('be.visible');
     });
 
     it('should update base images', () => {
-      cy.findByRole('button', { name: /Update all base images/i }).click();
+      cy.findByRole('button', { name: 'Update all base images' }).click();
       cy.findByText(/Are you sure/i);
-      cy.findByRole('button', { name: /update/i }).click();
+      cy.findByRole('button', { name: 'Update' }).click();
       cy.wait('@base-images');
       cy.findByRole('button', { name: /all images updated/i });
     });
 
     it('should do nothing if user cancels', () => {
-      cy.findByRole('button', { name: /Update all base images/i }).click();
+      cy.findByRole('button', { name: 'Update all base images' }).click();
       cy.findByText(/Are you sure/i);
       cy.findByRole('button', { name: /cancel/i }).click();
-      cy.findByRole('button', { name: /Update all base images/i }).should(
+      cy.findByRole('button', { name: 'Update all base images' }).should(
         'be.visible'
       );
     });
 
     it('should be able to update base images and disable update base images button after navigating between specs', () => {
-      cy.findByRole('button', { name: /Update all base images/i }).click();
+      cy.findByRole('button', { name: 'Update all base images' }).click();
       cy.findByText(/Are you sure/i);
-      cy.findByRole('button', { name: /update/i }).click();
+      cy.findByRole('button', { name: 'Update' }).click();
       cy.wait('@base-images');
       cy.findByRole('button', { name: /all images updated/i }).should(
         'be.disabled'
@@ -145,9 +145,9 @@ describe('App', () => {
         statusCode: 403,
         body: baseImageUpdateRejection
       }).as('base-images');
-      cy.findByRole('button', { name: /Update all base images/i }).click();
+      cy.findByRole('button', { name: 'Update all base images' }).click();
       cy.findByText(/Are you sure/i);
-      cy.findByRole('button', { name: /update/i }).click();
+      cy.findByRole('button', { name: 'Update' }).click();
       cy.wait('@base-images');
       cy.findByRole('button', { name: /all images updated/i }).should(
         'not.exist'
