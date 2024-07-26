@@ -1,5 +1,4 @@
 import * as fs from 'fs';
-import * as path from 'path';
 import { PNG } from 'pngjs';
 import { getDiffPixels } from './images';
 import { createImageFileName } from './files';
