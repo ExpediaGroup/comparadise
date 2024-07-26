@@ -45,7 +45,8 @@ export const run = async () => {
   const latestVisualRegressionStatus =
     await getLatestVisualRegressionStatus(commitHash);
   const screenshotsPath = path.join(process.cwd(), screenshotsDirectory);
-  const filesInScreenshotDirectory = sync(`${screenshotsPath}/**`) || [];
+  const filesInScreenshotDirectory =
+    sync(`${screenshotsPath}/**`, { absolute: false }) || [];
   const diffFilePaths = filesInScreenshotDirectory.filter(file =>
     file.endsWith('diff.png')
   );
