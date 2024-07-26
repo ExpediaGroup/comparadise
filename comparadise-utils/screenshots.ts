@@ -10,6 +10,7 @@ import { createImageFileName } from './files';
  */
 export function baseExists(path: string) {
   const fileName = createImageFileName(path, 'base');
+  console.log('Checking if base image exists at:', fileName);
   const exists = fs.existsSync(fileName);
 
   if (!exists) {
