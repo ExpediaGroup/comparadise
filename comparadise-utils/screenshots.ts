@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import * as path from 'path';
 import { PNG } from 'pngjs';
 import { getDiffPixels } from './images';
 import { createImageFileName } from './files';
@@ -10,6 +11,7 @@ import { createImageFileName } from './files';
  */
 export function baseExists(path: string) {
   const fileName = createImageFileName(path, 'base');
+  console.log('Checking if base image exists at:', fileName);
   const exists = fs.existsSync(fileName);
 
   if (!exists) {
