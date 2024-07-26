@@ -5,6 +5,7 @@ import { octokit } from '../src/octokit';
 import { sync } from 'glob';
 import {
   BASE_IMAGES_DIRECTORY,
+  NEW_IMAGES_DIRECTORY,
   VISUAL_REGRESSION_CONTEXT,
   VISUAL_TESTS_FAILED_TO_EXECUTE
 } from 'shared';
@@ -211,13 +212,13 @@ describe('main', () => {
       `aws s3 cp s3://some-bucket/${BASE_IMAGES_DIRECTORY} path/to/screenshots --recursive`
     );
     expect(exec).toHaveBeenCalledWith(
-      'aws s3 cp path/to/screenshots/path/1 s3://some-bucket/sha/path/1 --recursive'
+      `aws s3 cp path/to/screenshots/path/1 s3://some-bucket/${NEW_IMAGES_DIRECTORY}/sha/path/1 --recursive`
     );
     expect(exec).toHaveBeenCalledWith(
-      'aws s3 cp path/to/screenshots/path/2 s3://some-bucket/sha/path/2 --recursive'
+      `aws s3 cp path/to/screenshots/path/2 s3://some-bucket/${NEW_IMAGES_DIRECTORY}/sha/path/2 --recursive`
     );
     expect(exec).not.toHaveBeenCalledWith(
-      'aws s3 cp path/to/screenshots s3://some-bucket/sha --recursive'
+      `aws s3 cp path/to/screenshots s3://some-bucket/${NEW_IMAGES_DIRECTORY}/sha --recursive`
     );
   });
 

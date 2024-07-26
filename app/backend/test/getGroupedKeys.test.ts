@@ -1,17 +1,20 @@
+import { NEW_IMAGES_DIRECTORY } from 'shared';
 import { getGroupedKeys } from '../src/getGroupedKeys';
 import { getKeysFromS3 } from '../src/getKeysFromS3';
 import { expect } from '@jest/globals';
 
 jest.mock('../src/getKeysFromS3');
 
+const pathPrefix = `${NEW_IMAGES_DIRECTORY}/hash`;
+
 describe('getGroupedKeys', () => {
   it('returns only the keys where there is a base, new, and diff', async () => {
     (getKeysFromS3 as jest.Mock).mockResolvedValue([
-      'hash/EXTRA_LARGE/srpPage/base.png',
-      'hash/SMALL/srpPage/base.png',
-      'hash/EXTRA_LARGE/pdpPage/base.png',
-      'hash/EXTRA_LARGE/pdpPage/diff.png',
-      'hash/EXTRA_LARGE/pdpPage/new.png',
+      `${pathPrefix}/EXTRA_LARGE/srpPage/base.png`,
+      `${pathPrefix}/SMALL/srpPage/base.png`,
+      `${pathPrefix}/EXTRA_LARGE/pdpPage/base.png`,
+      `${pathPrefix}/EXTRA_LARGE/pdpPage/diff.png`,
+      `${pathPrefix}/EXTRA_LARGE/pdpPage/new.png`,
       'ome/actions-runner/something'
     ]);
     const paths = await getGroupedKeys('hash', 'bucket');
@@ -19,9 +22,9 @@ describe('getGroupedKeys', () => {
       {
         title: 'EXTRA_LARGE/pdpPage',
         keys: [
-          'hash/EXTRA_LARGE/pdpPage/base.png',
-          'hash/EXTRA_LARGE/pdpPage/diff.png',
-          'hash/EXTRA_LARGE/pdpPage/new.png'
+          `${pathPrefix}/EXTRA_LARGE/pdpPage/base.png`,
+          `${pathPrefix}/EXTRA_LARGE/pdpPage/diff.png`,
+          `${pathPrefix}/EXTRA_LARGE/pdpPage/new.png`
         ]
       }
     ]);
@@ -29,45 +32,45 @@ describe('getGroupedKeys', () => {
 
   it('returns keys where there is a new image but no base image', async () => {
     (getKeysFromS3 as jest.Mock).mockResolvedValue([
-      'hash/EXTRA_LARGE/srpPage/base.png',
-      'hash/SMALL/pdpPage/new.png',
-      'hash/EXTRA_LARGE/pdpPage/base.png'
+      `${pathPrefix}/EXTRA_LARGE/srpPage/base.png`,
+      `${pathPrefix}/SMALL/pdpPage/new.png`,
+      `${pathPrefix}/EXTRA_LARGE/pdpPage/base.png`
     ]);
     const paths = await getGroupedKeys('hash', 'bucket');
     expect(paths).toEqual([
       {
         title: 'SMALL/pdpPage',
-        keys: ['hash/SMALL/pdpPage/new.png']
+        keys: [`${pathPrefix}/SMALL/pdpPage/new.png`]
       }
     ]);
   });
 
   it('returns multiple pages', async () => {
     (getKeysFromS3 as jest.Mock).mockResolvedValue([
-      'hash/EXTRA_LARGE/srpPage/base.png',
-      'hash/SMALL/srpPage/base.png',
-      'hash/SMALL/srpPage/diff.png',
-      'hash/SMALL/srpPage/new.png',
-      'hash/EXTRA_LARGE/pdpPage/base.png',
-      'hash/EXTRA_LARGE/pdpPage/diff.png',
-      'hash/EXTRA_LARGE/pdpPage/new.png'
+      `${pathPrefix}/EXTRA_LARGE/srpPage/base.png`,
+      `${pathPrefix}/SMALL/srpPage/base.png`,
+      `${pathPrefix}/SMALL/srpPage/diff.png`,
+      `${pathPrefix}/SMALL/srpPage/new.png`,
+      `${pathPrefix}/EXTRA_LARGE/pdpPage/base.png`,
+      `${pathPrefix}/EXTRA_LARGE/pdpPage/diff.png`,
+      `${pathPrefix}/EXTRA_LARGE/pdpPage/new.png`
     ]);
     const paths = await getGroupedKeys('hash', 'bucket');
     expect(paths).toEqual([
       {
         title: 'SMALL/srpPage',
         keys: [
-          'hash/SMALL/srpPage/base.png',
-          'hash/SMALL/srpPage/diff.png',
-          'hash/SMALL/srpPage/new.png'
+          `${pathPrefix}/SMALL/srpPage/base.png`,
+          `${pathPrefix}/SMALL/srpPage/diff.png`,
+          `${pathPrefix}/SMALL/srpPage/new.png`
         ]
       },
       {
         title: 'EXTRA_LARGE/pdpPage',
         keys: [
-          'hash/EXTRA_LARGE/pdpPage/base.png',
-          'hash/EXTRA_LARGE/pdpPage/diff.png',
-          'hash/EXTRA_LARGE/pdpPage/new.png'
+          `${pathPrefix}/EXTRA_LARGE/pdpPage/base.png`,
+          `${pathPrefix}/EXTRA_LARGE/pdpPage/diff.png`,
+          `${pathPrefix}/EXTRA_LARGE/pdpPage/new.png`
         ]
       }
     ]);
@@ -82,9 +85,9 @@ describe('getGroupedKeys', () => {
 
   it('tells us if there are no new or diff images associated with the commit hash', async () => {
     (getKeysFromS3 as jest.Mock).mockResolvedValue([
-      'hash/EXTRA_LARGE/srpPage/base.png',
-      'hash/SMALL/srpPage/base.png',
-      'hash/EXTRA_LARGE/pdpPage/base.png'
+      `${pathPrefix}/EXTRA_LARGE/srpPage/base.png`,
+      `${pathPrefix}/SMALL/srpPage/base.png`,
+      `${pathPrefix}/EXTRA_LARGE/pdpPage/base.png`
     ]);
     await expect(() => getGroupedKeys('hash', 'bucket')).rejects.toThrow(
       'There was no new or diff images associated with the commit hash.\nThis might be because the tests failed before a picture could be taken and it could be compared to the base.'
