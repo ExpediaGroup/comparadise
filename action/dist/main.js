@@ -29611,6 +29611,7 @@ var import_core = __toESM(require_core());
 // ../shared/index.ts
 var VISUAL_REGRESSION_CONTEXT = "Visual Regression";
 var BASE_IMAGES_DIRECTORY = "base-images";
+var NEW_IMAGES_DIRECTORY = "new-images";
 var BASE_IMAGE_NAME = "base";
 var NEW_IMAGE_NAME = "new";
 var VISUAL_TESTS_FAILED_TO_EXECUTE = "Visual tests failed to execute successfully.";
@@ -29644,12 +29645,12 @@ var uploadAllImages = async () => {
     return (0, import_bluebird.map)(
       packagePaths,
       (packagePath) => (0, import_exec.exec)(
-        `aws s3 cp ${screenshotsDirectory}/${packagePath} s3://${bucketName}/${commitHash}/${packagePath} --recursive`
+        `aws s3 cp ${screenshotsDirectory}/${packagePath} s3://${bucketName}/${NEW_IMAGES_DIRECTORY}/${commitHash}/${packagePath} --recursive`
       )
     );
   }
   return (0, import_exec.exec)(
-    `aws s3 cp ${screenshotsDirectory} s3://${bucketName}/${commitHash} --recursive`
+    `aws s3 cp ${screenshotsDirectory} s3://${bucketName}/${NEW_IMAGES_DIRECTORY}/${commitHash} --recursive`
   );
 };
 var uploadBaseImages = async (newFilePaths) => {

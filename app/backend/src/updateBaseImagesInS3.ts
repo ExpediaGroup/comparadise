@@ -1,5 +1,10 @@
 import { S3Client } from './s3Client';
-import { BASE_IMAGE_NAME, BASE_IMAGES_DIRECTORY, NEW_IMAGE_NAME } from 'shared';
+import {
+  BASE_IMAGE_NAME,
+  BASE_IMAGES_DIRECTORY,
+  NEW_IMAGE_NAME,
+  NEW_IMAGES_DIRECTORY
+} from 'shared';
 import { findReasonToPreventBaseImageUpdate } from './findReasonToPreventBaseImageUpdate';
 import { TRPCError } from '@trpc/server';
 import { UpdateBaseImagesInput } from './schema';
@@ -36,8 +41,9 @@ export const filterNewImages = (s3Paths: string[]) => {
 
 export const getBaseImagePaths = (newImagePaths: string[]) => {
   return newImagePaths.map(path => {
-    const commitHash = path.split('/')[0] ?? '';
-    return path
+    const trimmedPath = path.replace(`${NEW_IMAGES_DIRECTORY}/`, '');
+    const commitHash = trimmedPath.split('/')[0] ?? '';
+    return trimmedPath
       .replace(commitHash, BASE_IMAGES_DIRECTORY)
       .replace(NEW_IMAGE_NAME, BASE_IMAGE_NAME);
   });

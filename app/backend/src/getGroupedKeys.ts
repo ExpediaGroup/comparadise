@@ -1,7 +1,7 @@
 import { TRPCError } from '@trpc/server';
 import { join, parse } from 'path';
 import { groupBy } from 'lodash';
-import { NEW_IMAGE_NAME } from 'shared';
+import { NEW_IMAGE_NAME, NEW_IMAGES_DIRECTORY } from 'shared';
 import { getKeysFromS3 } from './getKeysFromS3';
 
 export const getGroupedKeys = async (hash: string, bucket: string) => {
@@ -42,5 +42,7 @@ export const getGroupedKeys = async (hash: string, bucket: string) => {
 };
 
 const getPathFromKey = (path: string) => {
-  return path.slice(path.indexOf('/') + 1);
+  const trimmedPath = path.replace(`${NEW_IMAGES_DIRECTORY}/`, '');
+
+  return trimmedPath.slice(trimmedPath.indexOf('/') + 1);
 };

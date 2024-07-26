@@ -1,6 +1,11 @@
 import { exec } from '@actions/exec';
 import { getInput } from '@actions/core';
-import { BASE_IMAGE_NAME, BASE_IMAGES_DIRECTORY, NEW_IMAGE_NAME } from 'shared';
+import {
+  BASE_IMAGE_NAME,
+  BASE_IMAGES_DIRECTORY,
+  NEW_IMAGES_DIRECTORY,
+  NEW_IMAGE_NAME
+} from 'shared';
 import { map } from 'bluebird';
 import * as path from 'path';
 
@@ -31,13 +36,13 @@ export const uploadAllImages = async () => {
   if (packagePaths) {
     return map(packagePaths, packagePath =>
       exec(
-        `aws s3 cp ${screenshotsDirectory}/${packagePath} s3://${bucketName}/${commitHash}/${packagePath} --recursive`
+        `aws s3 cp ${screenshotsDirectory}/${packagePath} s3://${bucketName}/${NEW_IMAGES_DIRECTORY}/${commitHash}/${packagePath} --recursive`
       )
     );
   }
 
   return exec(
-    `aws s3 cp ${screenshotsDirectory} s3://${bucketName}/${commitHash} --recursive`
+    `aws s3 cp ${screenshotsDirectory} s3://${bucketName}/${NEW_IMAGES_DIRECTORY}/${commitHash} --recursive`
   );
 };
 
