@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable @typescript-eslint/no-require-imports */
 const typescriptEslint = require('typescript-eslint');
 const eslintPluginReact = require('eslint-plugin-react');
 
@@ -21,6 +21,6 @@ module.exports = [
     }
   },
   {
-    ignores: ['**/dist', 'docs', '**/public']
+    ignores: ['**/dist', 'docs', '**/public', 'comparadise-utils/commands.js']
   }
 ];

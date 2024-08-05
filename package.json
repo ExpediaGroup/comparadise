@@ -15,10 +15,10 @@
     "prettier": "3.3.3",
     "ts-node": "10.9.2",
     "typescript": "5.5.4",
-    "typescript-eslint": "7.17.0"
+    "typescript-eslint": "8.0.0"
   },
   "scripts": {
-    "docker": "docker build . --tag comparadise && docker-compose up -d",
+    "docker": "docker build . --tag comparadise && docker compose up -d",
     "format": "prettier --write .",
     "format-check": "prettier --check .",
     "lint": "eslint .",
