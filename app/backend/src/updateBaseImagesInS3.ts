@@ -41,11 +41,10 @@ export const filterNewImages = (s3Paths: string[]) => {
 
 export const getBaseImagePaths = (newImagePaths: string[]) => {
   return newImagePaths.map(path => {
-    const trimmedPath = path.replace(`${NEW_IMAGES_DIRECTORY}/`, '');
-    const commitHash = trimmedPath.split('/')[0] ?? '';
-    return trimmedPath
-      .replace(commitHash, BASE_IMAGES_DIRECTORY)
-      .replace(NEW_IMAGE_NAME, BASE_IMAGE_NAME);
+    const commitHash = path.split('/')[1] ?? '';
+    return path
+      .replace(`${NEW_IMAGES_DIRECTORY}/${commitHash}`, BASE_IMAGES_DIRECTORY)
+      .replace(`${NEW_IMAGE_NAME}.png`, `${BASE_IMAGE_NAME}.png`);
   });
 };
 
