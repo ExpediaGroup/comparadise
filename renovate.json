@@ -9,6 +9,10 @@
       "matchUpdateTypes": ["patch", "minor"],
       "groupName": "dependencies",
       "automerge": true
+    },
+    {
+      "matchPackagePatterns": ["docker"],
+      "groupName": "dependencies"
     }
   ]
 }
