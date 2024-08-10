@@ -2,12 +2,12 @@
   "name": "app",
   "private": true,
   "dependencies": {
-    "@aws-sdk/client-s3": "3.623.0",
-    "@aws-sdk/s3-request-presigner": "3.623.0",
+    "@aws-sdk/client-s3": "3.627.0",
+    "@aws-sdk/s3-request-presigner": "3.627.0",
     "@elysiajs/static": "1.1.0",
     "@headlessui/react": "2.1.2",
     "@octokit/rest": "20.1.1",
-    "@tanstack/react-query": "5.51.21",
+    "@tanstack/react-query": "5.51.23",
     "@trpc/client": "next",
     "@trpc/react-query": "next",
     "@trpc/server": "next",
@@ -19,14 +19,14 @@
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-router-dom": "6.26.0",
-    "tailwindcss": "3.4.7",
+    "tailwindcss": "3.4.9",
     "zod": "3.23.8"
   },
   "devDependencies": {
     "@testing-library/cypress": "10.0.2",
     "@types/testing-library__cypress": "5.0.13",
-    "prettier-plugin-tailwindcss": "0.6.5",
-    "vite": "5.3.5"
+    "prettier-plugin-tailwindcss": "0.6.6",
+    "vite": "5.4.0"
   },
   "scripts": {
     "dev": "NODE_ENV=development bun --hot ./server.tsx",
