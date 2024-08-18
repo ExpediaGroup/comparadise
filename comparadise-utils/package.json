@@ -22,7 +22,7 @@
   "devDependencies": {
     "@types/pixelmatch": "5.2.6",
     "@types/pngjs": "6.0.5",
-    "cypress": "13.13.2",
+    "cypress": "13.13.3",
     "tsup": "8.2.4"
   },
   "peerDependencies": {
