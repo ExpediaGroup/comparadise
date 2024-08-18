@@ -6,10 +6,10 @@
     "start": "docusaurus start"
   },
   "devDependencies": {
-    "@docusaurus/core": "3.5.1",
-    "@docusaurus/plugin-content-docs": "3.5.1",
-    "@docusaurus/preset-classic": "3.5.1",
-    "@docusaurus/types": "3.5.1",
+    "@docusaurus/core": "3.5.2",
+    "@docusaurus/plugin-content-docs": "3.5.2",
+    "@docusaurus/preset-classic": "3.5.2",
+    "@docusaurus/types": "3.5.2",
     "@mdx-js/react": "3.0.1",
     "@types/react": "18.3.3",
     "ajv": "8.17.1",
