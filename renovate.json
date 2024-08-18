@@ -11,7 +11,7 @@
       "automerge": true
     },
     {
-      "matchPackagePatterns": ["docker"],
+      "matchPackagePatterns": ["oven/bun"],
       "groupName": "dependencies"
     }
   ]
