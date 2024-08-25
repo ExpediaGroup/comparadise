@@ -1,4 +1,4 @@
-FROM oven/bun:1.1.24
+FROM oven/bun:1.1.26
 WORKDIR /app
 
 RUN useradd -ms /bin/sh admin
