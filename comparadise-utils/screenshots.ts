@@ -35,7 +35,7 @@ export function compareScreenshots(screenshotFolder: string) {
     // Create diff.png next to base and new for review
     fs.writeFile(
       createImageFileName(screenshotFolder, 'diff'),
-      PNG.sync.write(diff),
+      PNG.sync.write(diff).toString(),
       err => {
         if (err) {
           console.error('❌ Diff exists but unable to create diff.png', err);
