@@ -22,8 +22,8 @@
   "devDependencies": {
     "@types/pixelmatch": "5.2.6",
     "@types/pngjs": "6.0.5",
-    "cypress": "13.15.0",
-    "tsup": "8.3.0"
+    "cypress": "13.15.1",
+    "tsup": "8.3.5"
   },
   "peerDependencies": {
     "cypress": ">=12"
