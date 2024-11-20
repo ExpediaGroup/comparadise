@@ -9,10 +9,10 @@ import {
   VISUAL_REGRESSION_CONTEXT,
   VISUAL_TESTS_FAILED_TO_EXECUTE
 } from 'shared';
-import { disableAutoMerge } from '../src/disableAutoMerge';
+import { disableAutoMerge } from '../src/disable-auto-merge';
 import { expect } from '@jest/globals';
 
-jest.mock('../src/disableAutoMerge');
+jest.mock('../src/disable-auto-merge');
 jest.mock('glob');
 jest.mock('@actions/core');
 jest.mock('@actions/exec');
