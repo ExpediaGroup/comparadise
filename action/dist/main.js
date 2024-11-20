@@ -1916,7 +1916,6 @@ var require_decodeText = __commonJS({
             return decoders.utf8;
           case "latin1":
           case "ascii":
-          // TODO: Make these a separate, strict decoder?
           case "us-ascii":
           case "iso-8859-1":
           case "iso8859-1":
@@ -2616,7 +2615,6 @@ var require_basename = __commonJS({
       for (var i = path4.length - 1; i >= 0; --i) {
         switch (path4.charCodeAt(i)) {
           case 47:
-          // '/'
           case 92:
             path4 = path4.slice(i + 1);
             return path4 === ".." || path4 === "." ? "" : path4;
@@ -3851,21 +3849,7 @@ var require_util2 = __commonJS({
           return referrerOrigin;
         }
         case "strict-origin":
-        // eslint-disable-line
-        /**
-           * 1. If referrerURL is a potentially trustworthy URL and
-           * request’s current URL is not a potentially trustworthy URL,
-           * then return no referrer.
-           * 2. Return referrerOrigin
-          */
         case "no-referrer-when-downgrade":
-        // eslint-disable-line
-        /**
-         * 1. If referrerURL is a potentially trustworthy URL and
-         * request’s current URL is not a potentially trustworthy URL,
-         * then return no referrer.
-         * 2. Return referrerOrigin
-        */
         default:
           return isNonPotentiallyTrustWorthy ? "no-referrer" : referrerOrigin;
       }
@@ -19734,10 +19718,10 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
       (0, command_1.issueCommand)("error", (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
     }
     exports2.error = error;
-    function warning3(message, properties = {}) {
+    function warning5(message, properties = {}) {
       (0, command_1.issueCommand)("warning", (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
     }
-    exports2.warning = warning3;
+    exports2.warning = warning5;
     function notice(message, properties = {}) {
       (0, command_1.issueCommand)("notice", (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
     }
@@ -21232,8 +21216,8 @@ var require_debuggability = __commonJS({
         promiseChained: function(name, promise, child) {
           return { promise, child };
         },
-        warning: function(name, warning3) {
-          return { warning: warning3 };
+        warning: function(name, warning5) {
+          return { warning: warning5 };
         },
         unhandledRejection: function(name, reason, promise) {
           return { reason, promise };
@@ -21484,18 +21468,18 @@ var require_debuggability = __commonJS({
       }
       function warn(message, shouldUseOwnTrace, promise) {
         if (!config.warnings) return;
-        var warning3 = new Warning(message);
+        var warning5 = new Warning(message);
         var ctx;
         if (shouldUseOwnTrace) {
-          promise._attachExtraTrace(warning3);
+          promise._attachExtraTrace(warning5);
         } else if (config.longStackTraces && (ctx = Promise2._peekContext())) {
-          ctx.attachExtraTrace(warning3);
+          ctx.attachExtraTrace(warning5);
         } else {
-          var parsed = parseStackAndMessage(warning3);
-          warning3.stack = parsed.message + "\n" + parsed.stack.join("\n");
+          var parsed = parseStackAndMessage(warning5);
+          warning5.stack = parsed.message + "\n" + parsed.stack.join("\n");
         }
-        if (!activeFireEvent("warning", warning3)) {
-          formatAndLogError(warning3, "", true);
+        if (!activeFireEvent("warning", warning5)) {
+          formatAndLogError(warning5, "", true);
         }
       }
       function reconstructStack(message, stacks) {
@@ -25093,6 +25077,215 @@ var require_bluebird = __commonJS({
   }
 });
 
+// ../node_modules/balanced-match/index.js
+var require_balanced_match = __commonJS({
+  "../node_modules/balanced-match/index.js"(exports2, module2) {
+    "use strict";
+    module2.exports = balanced;
+    function balanced(a, b, str) {
+      if (a instanceof RegExp) a = maybeMatch(a, str);
+      if (b instanceof RegExp) b = maybeMatch(b, str);
+      var r = range(a, b, str);
+      return r && {
+        start: r[0],
+        end: r[1],
+        pre: str.slice(0, r[0]),
+        body: str.slice(r[0] + a.length, r[1]),
+        post: str.slice(r[1] + b.length)
+      };
+    }
+    function maybeMatch(reg, str) {
+      var m = str.match(reg);
+      return m ? m[0] : null;
+    }
+    balanced.range = range;
+    function range(a, b, str) {
+      var begs, beg, left, right, result;
+      var ai = str.indexOf(a);
+      var bi = str.indexOf(b, ai + 1);
+      var i = ai;
+      if (ai >= 0 && bi > 0) {
+        if (a === b) {
+          return [ai, bi];
+        }
+        begs = [];
+        left = str.length;
+        while (i >= 0 && !result) {
+          if (i == ai) {
+            begs.push(i);
+            ai = str.indexOf(a, i + 1);
+          } else if (begs.length == 1) {
+            result = [begs.pop(), bi];
+          } else {
+            beg = begs.pop();
+            if (beg < left) {
+              left = beg;
+              right = bi;
+            }
+            bi = str.indexOf(b, i + 1);
+          }
+          i = ai < bi && ai >= 0 ? ai : bi;
+        }
+        if (begs.length) {
+          result = [left, right];
+        }
+      }
+      return result;
+    }
+  }
+});
+
+// ../node_modules/glob/node_modules/minimatch/node_modules/brace-expansion/index.js
+var require_brace_expansion = __commonJS({
+  "../node_modules/glob/node_modules/minimatch/node_modules/brace-expansion/index.js"(exports2, module2) {
+    "use strict";
+    var balanced = require_balanced_match();
+    module2.exports = expandTop;
+    var escSlash = "\0SLASH" + Math.random() + "\0";
+    var escOpen = "\0OPEN" + Math.random() + "\0";
+    var escClose = "\0CLOSE" + Math.random() + "\0";
+    var escComma = "\0COMMA" + Math.random() + "\0";
+    var escPeriod = "\0PERIOD" + Math.random() + "\0";
+    function numeric(str) {
+      return parseInt(str, 10) == str ? parseInt(str, 10) : str.charCodeAt(0);
+    }
+    function escapeBraces(str) {
+      return str.split("\\\\").join(escSlash).split("\\{").join(escOpen).split("\\}").join(escClose).split("\\,").join(escComma).split("\\.").join(escPeriod);
+    }
+    function unescapeBraces(str) {
+      return str.split(escSlash).join("\\").split(escOpen).join("{").split(escClose).join("}").split(escComma).join(",").split(escPeriod).join(".");
+    }
+    function parseCommaParts(str) {
+      if (!str)
+        return [""];
+      var parts = [];
+      var m = balanced("{", "}", str);
+      if (!m)
+        return str.split(",");
+      var pre = m.pre;
+      var body = m.body;
+      var post = m.post;
+      var p = pre.split(",");
+      p[p.length - 1] += "{" + body + "}";
+      var postParts = parseCommaParts(post);
+      if (post.length) {
+        p[p.length - 1] += postParts.shift();
+        p.push.apply(p, postParts);
+      }
+      parts.push.apply(parts, p);
+      return parts;
+    }
+    function expandTop(str) {
+      if (!str)
+        return [];
+      if (str.substr(0, 2) === "{}") {
+        str = "\\{\\}" + str.substr(2);
+      }
+      return expand3(escapeBraces(str), true).map(unescapeBraces);
+    }
+    function embrace(str) {
+      return "{" + str + "}";
+    }
+    function isPadded(el) {
+      return /^-?0\d/.test(el);
+    }
+    function lte(i, y) {
+      return i <= y;
+    }
+    function gte(i, y) {
+      return i >= y;
+    }
+    function expand3(str, isTop) {
+      var expansions = [];
+      var m = balanced("{", "}", str);
+      if (!m) return [str];
+      var pre = m.pre;
+      var post = m.post.length ? expand3(m.post, false) : [""];
+      if (/\$$/.test(m.pre)) {
+        for (var k = 0; k < post.length; k++) {
+          var expansion = pre + "{" + m.body + "}" + post[k];
+          expansions.push(expansion);
+        }
+      } else {
+        var isNumericSequence = /^-?\d+\.\.-?\d+(?:\.\.-?\d+)?$/.test(m.body);
+        var isAlphaSequence = /^[a-zA-Z]\.\.[a-zA-Z](?:\.\.-?\d+)?$/.test(m.body);
+        var isSequence = isNumericSequence || isAlphaSequence;
+        var isOptions = m.body.indexOf(",") >= 0;
+        if (!isSequence && !isOptions) {
+          if (m.post.match(/,.*\}/)) {
+            str = m.pre + "{" + m.body + escClose + m.post;
+            return expand3(str);
+          }
+          return [str];
+        }
+        var n;
+        if (isSequence) {
+          n = m.body.split(/\.\./);
+        } else {
+          n = parseCommaParts(m.body);
+          if (n.length === 1) {
+            n = expand3(n[0], false).map(embrace);
+            if (n.length === 1) {
+              return post.map(function(p) {
+                return m.pre + n[0] + p;
+              });
+            }
+          }
+        }
+        var N;
+        if (isSequence) {
+          var x = numeric(n[0]);
+          var y = numeric(n[1]);
+          var width = Math.max(n[0].length, n[1].length);
+          var incr = n.length == 3 ? Math.abs(numeric(n[2])) : 1;
+          var test = lte;
+          var reverse = y < x;
+          if (reverse) {
+            incr *= -1;
+            test = gte;
+          }
+          var pad = n.some(isPadded);
+          N = [];
+          for (var i = x; test(i, y); i += incr) {
+            var c;
+            if (isAlphaSequence) {
+              c = String.fromCharCode(i);
+              if (c === "\\")
+                c = "";
+            } else {
+              c = String(i);
+              if (pad) {
+                var need = width - c.length;
+                if (need > 0) {
+                  var z = new Array(need + 1).join("0");
+                  if (i < 0)
+                    c = "-" + z + c.slice(1);
+                  else
+                    c = z + c;
+                }
+              }
+            }
+            N.push(c);
+          }
+        } else {
+          N = [];
+          for (var j = 0; j < n.length; j++) {
+            N.push.apply(N, expand3(n[j], false));
+          }
+        }
+        for (var j = 0; j < N.length; j++) {
+          for (var k = 0; k < post.length; k++) {
+            var expansion = pre + N[j] + post[k];
+            if (!isTop || isSequence || expansion)
+              expansions.push(expansion);
+          }
+        }
+      }
+      return expansions;
+    }
+  }
+});
+
 // ../node_modules/@actions/github/lib/context.js
 var require_context2 = __commonJS({
   "../node_modules/@actions/github/lib/context.js"(exports2) {
@@ -25688,10 +25881,10 @@ function getValues(context6, operator, key, modifier) {
 }
 function parseUrl(template) {
   return {
-    expand: expand.bind(null, template)
+    expand: expand2.bind(null, template)
   };
 }
-function expand(template, context6) {
+function expand2(template, context6) {
   var operators = ["+", "#", ".", "/", ";", "?", "&"];
   template = template.replace(
     /\{([^\{\}]+)\}|([^\{\}]+)/g,
@@ -29196,217 +29389,8 @@ var require_github = __commonJS({
   }
 });
 
-// ../node_modules/balanced-match/index.js
-var require_balanced_match = __commonJS({
-  "../node_modules/balanced-match/index.js"(exports2, module2) {
-    "use strict";
-    module2.exports = balanced;
-    function balanced(a, b, str) {
-      if (a instanceof RegExp) a = maybeMatch(a, str);
-      if (b instanceof RegExp) b = maybeMatch(b, str);
-      var r = range(a, b, str);
-      return r && {
-        start: r[0],
-        end: r[1],
-        pre: str.slice(0, r[0]),
-        body: str.slice(r[0] + a.length, r[1]),
-        post: str.slice(r[1] + b.length)
-      };
-    }
-    function maybeMatch(reg, str) {
-      var m = str.match(reg);
-      return m ? m[0] : null;
-    }
-    balanced.range = range;
-    function range(a, b, str) {
-      var begs, beg, left, right, result;
-      var ai = str.indexOf(a);
-      var bi = str.indexOf(b, ai + 1);
-      var i = ai;
-      if (ai >= 0 && bi > 0) {
-        if (a === b) {
-          return [ai, bi];
-        }
-        begs = [];
-        left = str.length;
-        while (i >= 0 && !result) {
-          if (i == ai) {
-            begs.push(i);
-            ai = str.indexOf(a, i + 1);
-          } else if (begs.length == 1) {
-            result = [begs.pop(), bi];
-          } else {
-            beg = begs.pop();
-            if (beg < left) {
-              left = beg;
-              right = bi;
-            }
-            bi = str.indexOf(b, i + 1);
-          }
-          i = ai < bi && ai >= 0 ? ai : bi;
-        }
-        if (begs.length) {
-          result = [left, right];
-        }
-      }
-      return result;
-    }
-  }
-});
-
-// ../node_modules/glob/node_modules/minimatch/node_modules/brace-expansion/index.js
-var require_brace_expansion = __commonJS({
-  "../node_modules/glob/node_modules/minimatch/node_modules/brace-expansion/index.js"(exports2, module2) {
-    "use strict";
-    var balanced = require_balanced_match();
-    module2.exports = expandTop;
-    var escSlash = "\0SLASH" + Math.random() + "\0";
-    var escOpen = "\0OPEN" + Math.random() + "\0";
-    var escClose = "\0CLOSE" + Math.random() + "\0";
-    var escComma = "\0COMMA" + Math.random() + "\0";
-    var escPeriod = "\0PERIOD" + Math.random() + "\0";
-    function numeric(str) {
-      return parseInt(str, 10) == str ? parseInt(str, 10) : str.charCodeAt(0);
-    }
-    function escapeBraces(str) {
-      return str.split("\\\\").join(escSlash).split("\\{").join(escOpen).split("\\}").join(escClose).split("\\,").join(escComma).split("\\.").join(escPeriod);
-    }
-    function unescapeBraces(str) {
-      return str.split(escSlash).join("\\").split(escOpen).join("{").split(escClose).join("}").split(escComma).join(",").split(escPeriod).join(".");
-    }
-    function parseCommaParts(str) {
-      if (!str)
-        return [""];
-      var parts = [];
-      var m = balanced("{", "}", str);
-      if (!m)
-        return str.split(",");
-      var pre = m.pre;
-      var body = m.body;
-      var post = m.post;
-      var p = pre.split(",");
-      p[p.length - 1] += "{" + body + "}";
-      var postParts = parseCommaParts(post);
-      if (post.length) {
-        p[p.length - 1] += postParts.shift();
-        p.push.apply(p, postParts);
-      }
-      parts.push.apply(parts, p);
-      return parts;
-    }
-    function expandTop(str) {
-      if (!str)
-        return [];
-      if (str.substr(0, 2) === "{}") {
-        str = "\\{\\}" + str.substr(2);
-      }
-      return expand3(escapeBraces(str), true).map(unescapeBraces);
-    }
-    function embrace(str) {
-      return "{" + str + "}";
-    }
-    function isPadded(el) {
-      return /^-?0\d/.test(el);
-    }
-    function lte(i, y) {
-      return i <= y;
-    }
-    function gte(i, y) {
-      return i >= y;
-    }
-    function expand3(str, isTop) {
-      var expansions = [];
-      var m = balanced("{", "}", str);
-      if (!m) return [str];
-      var pre = m.pre;
-      var post = m.post.length ? expand3(m.post, false) : [""];
-      if (/\$$/.test(m.pre)) {
-        for (var k = 0; k < post.length; k++) {
-          var expansion = pre + "{" + m.body + "}" + post[k];
-          expansions.push(expansion);
-        }
-      } else {
-        var isNumericSequence = /^-?\d+\.\.-?\d+(?:\.\.-?\d+)?$/.test(m.body);
-        var isAlphaSequence = /^[a-zA-Z]\.\.[a-zA-Z](?:\.\.-?\d+)?$/.test(m.body);
-        var isSequence = isNumericSequence || isAlphaSequence;
-        var isOptions = m.body.indexOf(",") >= 0;
-        if (!isSequence && !isOptions) {
-          if (m.post.match(/,.*\}/)) {
-            str = m.pre + "{" + m.body + escClose + m.post;
-            return expand3(str);
-          }
-          return [str];
-        }
-        var n;
-        if (isSequence) {
-          n = m.body.split(/\.\./);
-        } else {
-          n = parseCommaParts(m.body);
-          if (n.length === 1) {
-            n = expand3(n[0], false).map(embrace);
-            if (n.length === 1) {
-              return post.map(function(p) {
-                return m.pre + n[0] + p;
-              });
-            }
-          }
-        }
-        var N;
-        if (isSequence) {
-          var x = numeric(n[0]);
-          var y = numeric(n[1]);
-          var width = Math.max(n[0].length, n[1].length);
-          var incr = n.length == 3 ? Math.abs(numeric(n[2])) : 1;
-          var test = lte;
-          var reverse = y < x;
-          if (reverse) {
-            incr *= -1;
-            test = gte;
-          }
-          var pad = n.some(isPadded);
-          N = [];
-          for (var i = x; test(i, y); i += incr) {
-            var c;
-            if (isAlphaSequence) {
-              c = String.fromCharCode(i);
-              if (c === "\\")
-                c = "";
-            } else {
-              c = String(i);
-              if (pad) {
-                var need = width - c.length;
-                if (need > 0) {
-                  var z = new Array(need + 1).join("0");
-                  if (i < 0)
-                    c = "-" + z + c.slice(1);
-                  else
-                    c = z + c;
-                }
-              }
-            }
-            N.push(c);
-          }
-        } else {
-          N = [];
-          for (var j = 0; j < n.length; j++) {
-            N.push.apply(N, expand3(n[j], false));
-          }
-        }
-        for (var j = 0; j < N.length; j++) {
-          for (var k = 0; k < post.length; k++) {
-            var expansion = pre + N[j] + post[k];
-            if (!isTop || isSequence || expansion)
-              expansions.push(expansion);
-          }
-        }
-      }
-      return expansions;
-    }
-  }
-});
-
 // src/run.ts
-var import_core6 = __toESM(require_core());
+var import_core8 = __toESM(require_core());
 
 // src/s3-operations.ts
 var import_exec = __toESM(require_exec());
@@ -29476,14 +29460,6 @@ function buildBaseImagePath(newFilePath) {
 
 // src/run.ts
 var import_exec2 = __toESM(require_exec());
-
-// src/octokit.ts
-var import_github = __toESM(require_github());
-var import_core2 = __toESM(require_core());
-var octokit = (0, import_github.getOctokit)((0, import_core2.getInput)("github-token"));
-
-// src/run.ts
-var import_github6 = __toESM(require_github());
 var path3 = __toESM(require("path"));
 
 // ../node_modules/glob/node_modules/minimatch/dist/esm/index.js
@@ -35859,6 +35835,11 @@ var glob = Object.assign(glob_, {
 });
 glob.glob = glob;
 
+// src/octokit.ts
+var import_github = __toESM(require_github());
+var import_core2 = __toESM(require_core());
+var octokit = (0, import_github.getOctokit)((0, import_core2.getInput)("github-token"));
+
 // src/comment.ts
 var import_github3 = __toESM(require_github());
 var import_core4 = __toESM(require_core());
@@ -35909,16 +35890,23 @@ ${comparadiseCommentDetails}` : comparadiseBaseComment;
 
 // src/get-latest-visual-regression-status.ts
 var import_github4 = __toESM(require_github());
+var import_core5 = __toESM(require_core());
 var getLatestVisualRegressionStatus = async (commitHash) => {
-  const { data } = await octokit.rest.repos.listCommitStatusesForRef({
-    ref: commitHash,
-    ...import_github4.context.repo
-  });
-  return data.find((status) => status.context === VISUAL_REGRESSION_CONTEXT);
+  try {
+    const { data } = await octokit.rest.repos.listCommitStatusesForRef({
+      ref: commitHash,
+      ...import_github4.context.repo
+    });
+    return data.find((status) => status.context === VISUAL_REGRESSION_CONTEXT);
+  } catch (error) {
+    (0, import_core5.warning)("Failed to get latest visual regression status.");
+    (0, import_core5.warning)(error);
+    return null;
+  }
 };
 
-// src/disableAutoMerge.ts
-var import_core5 = __toESM(require_core());
+// src/disable-auto-merge.ts
+var import_core6 = __toESM(require_core());
 var import_github5 = __toESM(require_github());
 var disableAutoMerge = async (commitHash) => {
   try {
@@ -35928,7 +35916,7 @@ var disableAutoMerge = async (commitHash) => {
     });
     const pullRequest = data.find(Boolean);
     if (!pullRequest) {
-      (0, import_core5.warning)(
+      (0, import_core6.warning)(
         "Auto merge could not be disabled - could not find pull request from commit hash."
       );
       return;
@@ -35941,10 +35929,29 @@ var disableAutoMerge = async (commitHash) => {
     }
   `);
   } catch (error) {
-    (0, import_core5.warning)(
+    (0, import_core6.warning)(
       "Auto merge could not be disabled, probably because it is disabled for this repo."
     );
-    (0, import_core5.warning)(error);
+    (0, import_core6.warning)(error);
+  }
+};
+
+// src/create-commit-status.ts
+var import_github6 = __toESM(require_github());
+var import_core7 = __toESM(require_core());
+var createCommitStatus = async (commitHash, state, description, targetUrl) => {
+  try {
+    return octokit.rest.repos.createCommitStatus({
+      sha: commitHash,
+      context: VISUAL_REGRESSION_CONTEXT,
+      state,
+      description,
+      ...targetUrl && { target_url: targetUrl },
+      ...import_github6.context.repo
+    });
+  } catch (err) {
+    (0, import_core7.warning)("Failed to update commit status.");
+    throw err;
   }
 };
 
@@ -35952,11 +35959,11 @@ var disableAutoMerge = async (commitHash) => {
 var run = async () => {
   const runAttempt = Number(process.env.GITHUB_RUN_ATTEMPT);
   const isRetry = runAttempt > 1;
-  const visualTestCommands = (0, import_core6.getMultilineInput)("visual-test-command", {
+  const visualTestCommands = (0, import_core8.getMultilineInput)("visual-test-command", {
     required: true
   });
-  const commitHash = (0, import_core6.getInput)("commit-hash", { required: true });
-  const screenshotsDirectory = (0, import_core6.getInput)("screenshots-directory");
+  const commitHash = (0, import_core8.getInput)("commit-hash", { required: true });
+  const screenshotsDirectory = (0, import_core8.getInput)("screenshots-directory");
   await downloadBaseImages();
   const visualTestExitCode = await Promise.all(
     visualTestCommands.map((cmd) => (0, import_exec2.exec)(cmd, [], { ignoreReturnCode: true }))
@@ -35964,7 +35971,6 @@ var run = async () => {
   const numVisualTestFailures = visualTestExitCode.filter(
     (code) => code !== 0
   ).length;
-  const latestVisualRegressionStatus = await getLatestVisualRegressionStatus(commitHash);
   const screenshotsPath = path3.join(process.cwd(), screenshotsDirectory);
   const filesInScreenshotDirectory = sync(`${screenshotsPath}/**`, { absolute: false }) || [];
   const diffFilePaths = filesInScreenshotDirectory.filter(
@@ -35984,69 +35990,62 @@ var run = async () => {
   }, 0);
   const newFileCount = newFilePaths.length;
   if (numVisualTestFailures > diffFileCount) {
-    (0, import_core6.setFailed)(
+    (0, import_core8.setFailed)(
       "Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?"
     );
-    return octokit.rest.repos.createCommitStatus({
-      sha: commitHash,
-      context: VISUAL_REGRESSION_CONTEXT,
-      state: "failure",
-      description: VISUAL_TESTS_FAILED_TO_EXECUTE,
-      ...import_github6.context.repo
-    });
+    return createCommitStatus(
+      commitHash,
+      "failure",
+      VISUAL_TESTS_FAILED_TO_EXECUTE
+    );
   }
+  const latestVisualRegressionStatus = await getLatestVisualRegressionStatus(commitHash);
   if (diffFileCount === 0 && newFileCount === 0) {
-    (0, import_core6.info)("All visual tests passed, and no diffs found!");
+    (0, import_core8.info)("All visual tests passed, and no diffs found!");
     if (isRetry) {
-      (0, import_core6.warning)(
+      (0, import_core8.warning)(
         "Disabling auto merge because this is a retry attempt. This is to avoid auto merging prematurely."
       );
       await disableAutoMerge(commitHash);
     } else if (latestVisualRegressionStatus?.state === "failure") {
-      (0, import_core6.info)(
+      (0, import_core8.info)(
         "Skipping status update since Visual Regression status has already been set to failed."
       );
       return;
     }
-    return octokit.rest.repos.createCommitStatus({
-      sha: commitHash,
-      context: VISUAL_REGRESSION_CONTEXT,
-      state: "success",
-      description: `Visual tests passed${isRetry ? " on retry" : ""}!`,
-      ...import_github6.context.repo
-    });
+    return createCommitStatus(
+      commitHash,
+      "success",
+      `Visual tests passed${isRetry ? " on retry" : ""}!`
+    );
   }
   if (latestVisualRegressionStatus?.state === "failure" && latestVisualRegressionStatus?.description === VISUAL_TESTS_FAILED_TO_EXECUTE && !isRetry) {
-    (0, import_core6.warning)(
+    (0, import_core8.warning)(
       "Some other Visual Regression tests failed to execute successfully, so skipping status update and comment."
     );
     return;
   }
-  (0, import_core6.info)(
+  (0, import_core8.info)(
     `${diffFileCount} visual differences found, and ${newFileCount} new images found.`
   );
   if (diffFileCount === 0 && newFileCount > 0) {
-    (0, import_core6.info)(
+    (0, import_core8.info)(
       `New visual tests found! ${newFileCount} images will be uploaded as new base images.`
     );
     await uploadBaseImages(newFilePaths);
-    return octokit.rest.repos.createCommitStatus({
-      sha: commitHash,
-      context: VISUAL_REGRESSION_CONTEXT,
-      state: "success",
-      description: "New base images were created!",
-      ...import_github6.context.repo
-    });
+    return createCommitStatus(
+      commitHash,
+      "success",
+      "New base images were created!"
+    );
   }
   await uploadAllImages();
-  await octokit.rest.repos.createCommitStatus({
-    sha: commitHash,
-    context: VISUAL_REGRESSION_CONTEXT,
-    state: "failure",
-    description: "A visual regression was detected. Check Comparadise!",
-    target_url: buildComparadiseUrl(),
-    ...import_github6.context.repo
-  });
+  await createCommitStatus(
+    commitHash,
+    "failure",
+    "A visual regression was detected. Check Comparadise!",
+    buildComparadiseUrl()
+  );
   await createGithubComment();
 };
 
