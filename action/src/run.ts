@@ -65,14 +65,14 @@ export const run = async () => {
       'Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?'
     );
     return createCommitStatus(
-        commitHash,
-        'failure',
-        VISUAL_TESTS_FAILED_TO_EXECUTE
+      commitHash,
+      'failure',
+      VISUAL_TESTS_FAILED_TO_EXECUTE
     );
   }
 
   const latestVisualRegressionStatus =
-      await getLatestVisualRegressionStatus(commitHash);
+    await getLatestVisualRegressionStatus(commitHash);
 
   if (diffFileCount === 0 && newFileCount === 0) {
     info('All visual tests passed, and no diffs found!');
@@ -90,9 +90,9 @@ export const run = async () => {
     }
 
     return createCommitStatus(
-        commitHash,
-        'success',
-        `Visual tests passed${isRetry ? ' on retry' : ''}!`
+      commitHash,
+      'success',
+      `Visual tests passed${isRetry ? ' on retry' : ''}!`
     );
   }
 
@@ -118,18 +118,18 @@ export const run = async () => {
     );
     await uploadBaseImages(newFilePaths);
     return createCommitStatus(
-        commitHash,
-        'success',
-        'New base images were created!'
-    )
+      commitHash,
+      'success',
+      'New base images were created!'
+    );
   }
 
   await uploadAllImages();
   await createCommitStatus(
-      commitHash,
-      'failure',
-      'A visual regression was detected. Check Comparadise!',
-      buildComparadiseUrl()
+    commitHash,
+    'failure',
+    'A visual regression was detected. Check Comparadise!',
+    buildComparadiseUrl()
   );
   await createGithubComment();
 };

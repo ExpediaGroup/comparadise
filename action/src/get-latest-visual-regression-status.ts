@@ -5,16 +5,14 @@ import { VISUAL_REGRESSION_CONTEXT } from 'shared';
 
 export const getLatestVisualRegressionStatus = async (commitHash: string) => {
   try {
-    const {data} = await octokit.rest.repos.listCommitStatusesForRef({
+    const { data } = await octokit.rest.repos.listCommitStatusesForRef({
       ref: commitHash,
       ...context.repo
     });
 
     return data.find(status => status.context === VISUAL_REGRESSION_CONTEXT);
   } catch (error) {
-    warning(
-        'Failed to get latest visual regression status.'
-    );
+    warning('Failed to get latest visual regression status.');
     warning(error as Error);
     return null;
   }
