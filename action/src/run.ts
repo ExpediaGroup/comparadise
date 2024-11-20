@@ -11,18 +11,14 @@ import {
   uploadAllImages
 } from './s3-operations';
 import { exec } from '@actions/exec';
-import { octokit } from './octokit';
-import { context } from '@actions/github';
 import * as path from 'path';
 import { sync } from 'glob';
 import { createGithubComment } from './comment';
 import { getLatestVisualRegressionStatus } from './get-latest-visual-regression-status';
-import {
-  VISUAL_REGRESSION_CONTEXT,
-  VISUAL_TESTS_FAILED_TO_EXECUTE
-} from 'shared';
+import { VISUAL_TESTS_FAILED_TO_EXECUTE } from 'shared';
 import { buildComparadiseUrl } from './build-comparadise-url';
-import { disableAutoMerge } from './disableAutoMerge';
+import { disableAutoMerge } from './disable-auto-merge';
+import { createCommitStatus } from './create-commit-status';
 
 export const run = async () => {
   const runAttempt = Number(process.env.GITHUB_RUN_ATTEMPT);
@@ -42,8 +38,6 @@ export const run = async () => {
     code => code !== 0
   ).length;
 
-  const latestVisualRegressionStatus =
-    await getLatestVisualRegressionStatus(commitHash);
   const screenshotsPath = path.join(process.cwd(), screenshotsDirectory);
   const filesInScreenshotDirectory =
     sync(`${screenshotsPath}/**`, { absolute: false }) || [];
@@ -70,14 +64,15 @@ export const run = async () => {
     setFailed(
       'Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?'
     );
-    return octokit.rest.repos.createCommitStatus({
-      sha: commitHash,
-      context: VISUAL_REGRESSION_CONTEXT,
-      state: 'failure',
-      description: VISUAL_TESTS_FAILED_TO_EXECUTE,
-      ...context.repo
-    });
+    return createCommitStatus(
+        commitHash,
+        'failure',
+        VISUAL_TESTS_FAILED_TO_EXECUTE
+    );
   }
+
+  const latestVisualRegressionStatus =
+      await getLatestVisualRegressionStatus(commitHash);
 
   if (diffFileCount === 0 && newFileCount === 0) {
     info('All visual tests passed, and no diffs found!');
@@ -94,13 +89,11 @@ export const run = async () => {
       return;
     }
 
-    return octokit.rest.repos.createCommitStatus({
-      sha: commitHash,
-      context: VISUAL_REGRESSION_CONTEXT,
-      state: 'success',
-      description: `Visual tests passed${isRetry ? ' on retry' : ''}!`,
-      ...context.repo
-    });
+    return createCommitStatus(
+        commitHash,
+        'success',
+        `Visual tests passed${isRetry ? ' on retry' : ''}!`
+    );
   }
 
   if (
@@ -124,23 +117,19 @@ export const run = async () => {
       `New visual tests found! ${newFileCount} images will be uploaded as new base images.`
     );
     await uploadBaseImages(newFilePaths);
-    return octokit.rest.repos.createCommitStatus({
-      sha: commitHash,
-      context: VISUAL_REGRESSION_CONTEXT,
-      state: 'success',
-      description: 'New base images were created!',
-      ...context.repo
-    });
+    return createCommitStatus(
+        commitHash,
+        'success',
+        'New base images were created!'
+    )
   }
 
   await uploadAllImages();
-  await octokit.rest.repos.createCommitStatus({
-    sha: commitHash,
-    context: VISUAL_REGRESSION_CONTEXT,
-    state: 'failure',
-    description: 'A visual regression was detected. Check Comparadise!',
-    target_url: buildComparadiseUrl(),
-    ...context.repo
-  });
+  await createCommitStatus(
+      commitHash,
+      'failure',
+      'A visual regression was detected. Check Comparadise!',
+      buildComparadiseUrl()
+  );
   await createGithubComment();
 };
