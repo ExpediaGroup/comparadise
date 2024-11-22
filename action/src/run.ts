@@ -24,13 +24,31 @@ import {
 import { buildComparadiseUrl } from './build-comparadise-url';
 import { disableAutoMerge } from './disableAutoMerge';
 
+const VISUAL_TEST_EXECUTION_FAILURE =
+  'Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?';
+const VISUAL_TESTS_PASSED = 'All visual tests passed, and no diffs found!';
+
 export const run = async () => {
   const runAttempt = Number(process.env.GITHUB_RUN_ATTEMPT);
   const isRetry = runAttempt > 1;
   const visualTestCommands = getMultilineInput('visual-test-command', {
     required: true
   });
-  const commitHash = getInput('commit-hash', { required: true });
+  const commitHash = getInput('commit-hash');
+  const diffId = getInput('diff-id');
+
+  if (!commitHash && !diffId) {
+    setFailed('Please provide either a commit-hash or a diff-id.');
+    return;
+  }
+
+  if (commitHash && diffId) {
+    setFailed(
+      'You cannot provide both commit-hash and diff-id. Please choose one.'
+    );
+    return;
+  }
+
   const screenshotsDirectory = getInput('screenshots-directory');
 
   await downloadBaseImages();
@@ -42,8 +60,6 @@ export const run = async () => {
     code => code !== 0
   ).length;
 
-  const latestVisualRegressionStatus =
-    await getLatestVisualRegressionStatus(commitHash);
   const screenshotsPath = path.join(process.cwd(), screenshotsDirectory);
   const filesInScreenshotDirectory =
     sync(`${screenshotsPath}/**`, { absolute: false }) || [];
@@ -66,10 +82,32 @@ export const run = async () => {
   }, 0);
   const newFileCount = newFilePaths.length;
 
-  if (numVisualTestFailures > diffFileCount) {
-    setFailed(
-      'Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?'
+  if (diffId) {
+    if (numVisualTestFailures > diffFileCount) {
+      setFailed(VISUAL_TEST_EXECUTION_FAILURE);
+      return;
+    }
+    if (diffFileCount === 0) {
+      if (newFileCount === 0) {
+        info(VISUAL_TESTS_PASSED);
+        return;
+      } else if (newFileCount > 0) {
+        info(
+          `New visual tests found! ${newFileCount} images will be uploaded as new base images.`
+        );
+        await uploadBaseImages(newFilePaths);
+        return;
+      }
+    }
+    await uploadAllImages(diffId);
+    info(
+      `Visual regression detected with ${diffFileCount} visual differences. Check out the details on Comparadise: ${buildComparadiseUrl(diffId)}.`
     );
+    return;
+  }
+
+  if (numVisualTestFailures > diffFileCount) {
+    setFailed(VISUAL_TEST_EXECUTION_FAILURE);
     return octokit.rest.repos.createCommitStatus({
       sha: commitHash,
       context: VISUAL_REGRESSION_CONTEXT,
@@ -79,8 +117,11 @@ export const run = async () => {
     });
   }
 
+  const latestVisualRegressionStatus =
+    await getLatestVisualRegressionStatus(commitHash);
+
   if (diffFileCount === 0 && newFileCount === 0) {
-    info('All visual tests passed, and no diffs found!');
+    info(VISUAL_TESTS_PASSED);
 
     if (isRetry) {
       warning(
@@ -133,13 +174,13 @@ export const run = async () => {
     });
   }
 
-  await uploadAllImages();
+  await uploadAllImages(commitHash);
   await octokit.rest.repos.createCommitStatus({
     sha: commitHash,
     context: VISUAL_REGRESSION_CONTEXT,
     state: 'failure',
     description: 'A visual regression was detected. Check Comparadise!',
-    target_url: buildComparadiseUrl(),
+    target_url: buildComparadiseUrl(commitHash),
     ...context.repo
   });
   await createGithubComment();

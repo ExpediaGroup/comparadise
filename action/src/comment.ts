@@ -6,7 +6,7 @@ import { buildComparadiseUrl } from './build-comparadise-url';
 export const createGithubComment = async () => {
   const commitHash = getInput('commit-hash', { required: true });
   const comparadiseHost = getInput('comparadise-host');
-  const comparadiseUrl = buildComparadiseUrl();
+  const comparadiseUrl = buildComparadiseUrl(commitHash);
   const comparadiseLink = comparadiseHost
     ? `[Comparadise](${comparadiseUrl})`
     : 'Comparadise';

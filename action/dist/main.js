@@ -29440,21 +29440,20 @@ var downloadBaseImages = async () => {
     `aws s3 cp s3://${bucketName}/${BASE_IMAGES_DIRECTORY} ${screenshotsDirectory} --recursive`
   );
 };
-var uploadAllImages = async () => {
+var uploadAllImages = async (hash) => {
   const bucketName = (0, import_core.getInput)("bucket-name", { required: true });
   const screenshotsDirectory = (0, import_core.getInput)("screenshots-directory");
-  const commitHash = (0, import_core.getInput)("commit-hash", { required: true });
   const packagePaths = (0, import_core.getInput)("package-paths")?.split(",");
   if (packagePaths) {
     return (0, import_bluebird.map)(
       packagePaths,
       (packagePath) => (0, import_exec.exec)(
-        `aws s3 cp ${screenshotsDirectory}/${packagePath} s3://${bucketName}/${NEW_IMAGES_DIRECTORY}/${commitHash}/${packagePath} --recursive`
+        `aws s3 cp ${screenshotsDirectory}/${packagePath} s3://${bucketName}/${NEW_IMAGES_DIRECTORY}/${hash}/${packagePath} --recursive`
       )
     );
   }
   return (0, import_exec.exec)(
-    `aws s3 cp ${screenshotsDirectory} s3://${bucketName}/${NEW_IMAGES_DIRECTORY}/${commitHash} --recursive`
+    `aws s3 cp ${screenshotsDirectory} s3://${bucketName}/${NEW_IMAGES_DIRECTORY}/${hash} --recursive`
   );
 };
 var uploadBaseImages = async (newFilePaths) => {
@@ -35866,19 +35865,18 @@ var import_core4 = __toESM(require_core());
 // src/build-comparadise-url.ts
 var import_core3 = __toESM(require_core());
 var import_github2 = __toESM(require_github());
-var buildComparadiseUrl = () => {
+var buildComparadiseUrl = (hash) => {
   const bucketName = (0, import_core3.getInput)("bucket-name", { required: true });
-  const commitHash = (0, import_core3.getInput)("commit-hash", { required: true });
   const comparadiseHost = (0, import_core3.getInput)("comparadise-host");
   const { owner, repo } = import_github2.context.repo;
-  return `${comparadiseHost}/?hash=${commitHash}&owner=${owner}&repo=${repo}&bucket=${bucketName}`;
+  return `${comparadiseHost}/?hash=${hash}&owner=${owner}&repo=${repo}&bucket=${bucketName}`;
 };
 
 // src/comment.ts
 var createGithubComment = async () => {
   const commitHash = (0, import_core4.getInput)("commit-hash", { required: true });
   const comparadiseHost = (0, import_core4.getInput)("comparadise-host");
-  const comparadiseUrl = buildComparadiseUrl();
+  const comparadiseUrl = buildComparadiseUrl(commitHash);
   const comparadiseLink = comparadiseHost ? `[Comparadise](${comparadiseUrl})` : "Comparadise";
   const comparadiseBaseComment = `**Visual tests failed!**
 Check out the diffs on ${comparadiseLink}! :palm_tree:`;
@@ -35949,13 +35947,24 @@ var disableAutoMerge = async (commitHash) => {
 };
 
 // src/run.ts
+var VISUAL_TEST_EXECUTION_FAILURE = "Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?";
+var VISUAL_TESTS_PASSED = "All visual tests passed, and no diffs found!";
 var run = async () => {
   const runAttempt = Number(process.env.GITHUB_RUN_ATTEMPT);
   const isRetry = runAttempt > 1;
   const visualTestCommands = (0, import_core6.getMultilineInput)("visual-test-command", {
     required: true
   });
-  const commitHash = (0, import_core6.getInput)("commit-hash", { required: true });
+  const commitHash = (0, import_core6.getInput)("commit-hash");
+  const diffId = (0, import_core6.getInput)("diff-id");
+  if (!commitHash && !diffId) {
+    (0, import_core6.setFailed)("You must provide either commit-hash or diff-id.");
+    return;
+  }
+  if (commitHash && diffId) {
+    (0, import_core6.setFailed)("You cannot provide both commit-hash and diff-id. Choose one.");
+    return;
+  }
   const screenshotsDirectory = (0, import_core6.getInput)("screenshots-directory");
   await downloadBaseImages();
   const visualTestExitCode = await Promise.all(
@@ -35964,7 +35973,6 @@ var run = async () => {
   const numVisualTestFailures = visualTestExitCode.filter(
     (code) => code !== 0
   ).length;
-  const latestVisualRegressionStatus = await getLatestVisualRegressionStatus(commitHash);
   const screenshotsPath = path3.join(process.cwd(), screenshotsDirectory);
   const filesInScreenshotDirectory = sync(`${screenshotsPath}/**`, { absolute: false }) || [];
   const diffFilePaths = filesInScreenshotDirectory.filter(
@@ -35983,6 +35991,29 @@ var run = async () => {
     return count;
   }, 0);
   const newFileCount = newFilePaths.length;
+  if (diffId) {
+    if (numVisualTestFailures > diffFileCount) {
+      (0, import_core6.setFailed)(VISUAL_TEST_EXECUTION_FAILURE);
+      return;
+    }
+    if (diffFileCount === 0) {
+      if (newFileCount === 0) {
+        (0, import_core6.info)(VISUAL_TESTS_PASSED);
+        return;
+      } else if (newFileCount > 0) {
+        (0, import_core6.info)(
+          `New visual tests found! ${newFileCount} images will be uploaded as new base images.`
+        );
+        await uploadBaseImages(newFilePaths);
+        return;
+      }
+    }
+    (0, import_core6.info)(
+      `A visual regression was detected. ${diffFileCount} visual differences found`
+    );
+    await uploadAllImages(diffId);
+    return;
+  }
   if (numVisualTestFailures > diffFileCount) {
     (0, import_core6.setFailed)(
       "Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?"
@@ -35995,6 +36026,7 @@ var run = async () => {
       ...import_github6.context.repo
     });
   }
+  const latestVisualRegressionStatus = await getLatestVisualRegressionStatus(commitHash);
   if (diffFileCount === 0 && newFileCount === 0) {
     (0, import_core6.info)("All visual tests passed, and no diffs found!");
     if (isRetry) {
@@ -36038,13 +36070,13 @@ var run = async () => {
       ...import_github6.context.repo
     });
   }
-  await uploadAllImages();
+  await uploadAllImages(commitHash);
   await octokit.rest.repos.createCommitStatus({
     sha: commitHash,
     context: VISUAL_REGRESSION_CONTEXT,
     state: "failure",
     description: "A visual regression was detected. Check Comparadise!",
-    target_url: buildComparadiseUrl(),
+    target_url: buildComparadiseUrl(commitHash),
     ...import_github6.context.repo
   });
   await createGithubComment();
