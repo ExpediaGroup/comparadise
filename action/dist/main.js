@@ -35958,11 +35958,13 @@ var run = async () => {
   const commitHash = (0, import_core6.getInput)("commit-hash");
   const diffId = (0, import_core6.getInput)("diff-id");
   if (!commitHash && !diffId) {
-    (0, import_core6.setFailed)("You must provide either commit-hash or diff-id.");
+    (0, import_core6.setFailed)("Please provide either a commit-hash or a diff-id.");
     return;
   }
   if (commitHash && diffId) {
-    (0, import_core6.setFailed)("You cannot provide both commit-hash and diff-id. Choose one.");
+    (0, import_core6.setFailed)(
+      "You cannot provide both commit-hash and diff-id. Please choose one."
+    );
     return;
   }
   const screenshotsDirectory = (0, import_core6.getInput)("screenshots-directory");
@@ -36008,16 +36010,14 @@ var run = async () => {
         return;
       }
     }
-    (0, import_core6.info)(
-      `A visual regression was detected. ${diffFileCount} visual differences found`
-    );
     await uploadAllImages(diffId);
+    (0, import_core6.info)(
+      `Visual regression detected with ${diffFileCount} visual differences. Check out the details on Comparadise: ${buildComparadiseUrl(diffId)}.`
+    );
     return;
   }
   if (numVisualTestFailures > diffFileCount) {
-    (0, import_core6.setFailed)(
-      "Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?"
-    );
+    (0, import_core6.setFailed)(VISUAL_TEST_EXECUTION_FAILURE);
     return octokit.rest.repos.createCommitStatus({
       sha: commitHash,
       context: VISUAL_REGRESSION_CONTEXT,
@@ -36028,7 +36028,7 @@ var run = async () => {
   }
   const latestVisualRegressionStatus = await getLatestVisualRegressionStatus(commitHash);
   if (diffFileCount === 0 && newFileCount === 0) {
-    (0, import_core6.info)("All visual tests passed, and no diffs found!");
+    (0, import_core6.info)(VISUAL_TESTS_PASSED);
     if (isRetry) {
       (0, import_core6.warning)(
         "Disabling auto merge because this is a retry attempt. This is to avoid auto merging prematurely."
