@@ -35865,18 +35865,21 @@ var import_core4 = __toESM(require_core());
 // src/build-comparadise-url.ts
 var import_core3 = __toESM(require_core());
 var import_github2 = __toESM(require_github());
-var buildComparadiseUrl = (hash) => {
+var buildComparadiseUrl = () => {
   const bucketName = (0, import_core3.getInput)("bucket-name", { required: true });
   const comparadiseHost = (0, import_core3.getInput)("comparadise-host");
+  const commitHash = (0, import_core3.getInput)("commit-hash");
+  const diffId = (0, import_core3.getInput)("diff-id");
+  const hashParam = commitHash ? `commitHash=${commitHash}` : `diffId=${diffId}`;
   const { owner, repo } = import_github2.context.repo;
-  return `${comparadiseHost}/?hash=${hash}&owner=${owner}&repo=${repo}&bucket=${bucketName}`;
+  return `${comparadiseHost}/?${hashParam}&owner=${owner}&repo=${repo}&bucket=${bucketName}`;
 };
 
 // src/comment.ts
 var createGithubComment = async () => {
   const commitHash = (0, import_core4.getInput)("commit-hash", { required: true });
   const comparadiseHost = (0, import_core4.getInput)("comparadise-host");
-  const comparadiseUrl = buildComparadiseUrl(commitHash);
+  const comparadiseUrl = buildComparadiseUrl();
   const comparadiseLink = comparadiseHost ? `[Comparadise](${comparadiseUrl})` : "Comparadise";
   const comparadiseBaseComment = `**Visual tests failed!**
 Check out the diffs on ${comparadiseLink}! :palm_tree:`;
@@ -35915,7 +35918,7 @@ var getLatestVisualRegressionStatus = async (commitHash) => {
   return data.find((status) => status.context === VISUAL_REGRESSION_CONTEXT);
 };
 
-// src/disableAutoMerge.ts
+// src/disable-auto-merge.ts
 var import_core5 = __toESM(require_core());
 var import_github5 = __toESM(require_github());
 var disableAutoMerge = async (commitHash) => {
@@ -35961,12 +35964,7 @@ var run = async () => {
     (0, import_core6.setFailed)("Please provide either a commit-hash or a diff-id.");
     return;
   }
-  if (commitHash && diffId) {
-    (0, import_core6.setFailed)(
-      "You cannot provide both commit-hash and diff-id. Please choose one."
-    );
-    return;
-  }
+  const hash = commitHash || diffId;
   const screenshotsDirectory = (0, import_core6.getInput)("screenshots-directory");
   await downloadBaseImages();
   const visualTestExitCode = await Promise.all(
@@ -35993,32 +35991,10 @@ var run = async () => {
     return count;
   }, 0);
   const newFileCount = newFilePaths.length;
-  if (diffId) {
-    if (numVisualTestFailures > diffFileCount) {
-      (0, import_core6.setFailed)(VISUAL_TEST_EXECUTION_FAILURE);
-      return;
-    }
-    if (diffFileCount === 0) {
-      if (newFileCount === 0) {
-        (0, import_core6.info)(VISUAL_TESTS_PASSED);
-        return;
-      } else if (newFileCount > 0) {
-        (0, import_core6.info)(
-          `New visual tests found! ${newFileCount} images will be uploaded as new base images.`
-        );
-        await uploadBaseImages(newFilePaths);
-        return;
-      }
-    }
-    await uploadAllImages(diffId);
-    (0, import_core6.info)(
-      `Visual regression detected with ${diffFileCount} visual differences. Check out the details on Comparadise: ${buildComparadiseUrl(diffId)}.`
-    );
-    return;
-  }
   if (numVisualTestFailures > diffFileCount) {
     (0, import_core6.setFailed)(VISUAL_TEST_EXECUTION_FAILURE);
-    return octokit.rest.repos.createCommitStatus({
+    if (!commitHash) return;
+    octokit.rest.repos.createCommitStatus({
       sha: commitHash,
       context: VISUAL_REGRESSION_CONTEXT,
       state: "failure",
@@ -36026,14 +36002,15 @@ var run = async () => {
       ...import_github6.context.repo
     });
   }
-  const latestVisualRegressionStatus = await getLatestVisualRegressionStatus(commitHash);
+  const latestVisualRegressionStatus = commitHash ? await getLatestVisualRegressionStatus(commitHash) : null;
   if (diffFileCount === 0 && newFileCount === 0) {
     (0, import_core6.info)(VISUAL_TESTS_PASSED);
+    if (!commitHash) return;
     if (isRetry) {
       (0, import_core6.warning)(
         "Disabling auto merge because this is a retry attempt. This is to avoid auto merging prematurely."
       );
-      await disableAutoMerge(commitHash);
+      await disableAutoMerge(hash);
     } else if (latestVisualRegressionStatus?.state === "failure") {
       (0, import_core6.info)(
         "Skipping status update since Visual Regression status has already been set to failed."
@@ -36041,14 +36018,14 @@ var run = async () => {
       return;
     }
     return octokit.rest.repos.createCommitStatus({
-      sha: commitHash,
+      sha: hash,
       context: VISUAL_REGRESSION_CONTEXT,
       state: "success",
       description: `Visual tests passed${isRetry ? " on retry" : ""}!`,
       ...import_github6.context.repo
     });
   }
-  if (latestVisualRegressionStatus?.state === "failure" && latestVisualRegressionStatus?.description === VISUAL_TESTS_FAILED_TO_EXECUTE && !isRetry) {
+  if (commitHash && latestVisualRegressionStatus?.state === "failure" && latestVisualRegressionStatus?.description === VISUAL_TESTS_FAILED_TO_EXECUTE && !isRetry) {
     (0, import_core6.warning)(
       "Some other Visual Regression tests failed to execute successfully, so skipping status update and comment."
     );
@@ -36062,21 +36039,23 @@ var run = async () => {
       `New visual tests found! ${newFileCount} images will be uploaded as new base images.`
     );
     await uploadBaseImages(newFilePaths);
+    if (!commitHash) return;
     return octokit.rest.repos.createCommitStatus({
-      sha: commitHash,
+      sha: hash,
       context: VISUAL_REGRESSION_CONTEXT,
       state: "success",
       description: "New base images were created!",
       ...import_github6.context.repo
     });
   }
-  await uploadAllImages(commitHash);
+  await uploadAllImages(hash);
+  if (!commitHash) return;
   await octokit.rest.repos.createCommitStatus({
-    sha: commitHash,
+    sha: hash,
     context: VISUAL_REGRESSION_CONTEXT,
     state: "failure",
     description: "A visual regression was detected. Check Comparadise!",
-    target_url: buildComparadiseUrl(commitHash),
+    target_url: buildComparadiseUrl(),
     ...import_github6.context.repo
   });
   await createGithubComment();

@@ -12,25 +12,27 @@ import { getKeysFromS3 } from './getKeysFromS3';
 import { updateCommitStatus } from './updateCommitStatus';
 
 export const updateBaseImagesInS3 = async ({
-  hash,
+  commitHash,
+  diffId,
   bucket,
   owner,
   repo
 }: UpdateBaseImagesInput) => {
-  const reasonToPreventUpdate = await findReasonToPreventBaseImageUpdate(
-    owner,
-    repo,
-    hash
-  );
+  const reasonToPreventUpdate =
+    commitHash &&
+    (await findReasonToPreventBaseImageUpdate(owner, repo, commitHash));
   if (reasonToPreventUpdate) {
     throw new TRPCError({
       code: 'FORBIDDEN',
       message: reasonToPreventUpdate
     });
   }
+  const hash = commitHash ?? (diffId as string);
   const s3Paths = await getKeysFromS3(hash, bucket);
   await replaceImagesInS3(s3Paths, bucket);
-  await updateCommitStatus({ owner, repo, hash });
+  if (commitHash) {
+    await updateCommitStatus({ owner, repo, commitHash });
+  }
 };
 
 export const filterNewImages = (s3Paths: string[]) => {

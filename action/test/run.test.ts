@@ -9,10 +9,10 @@ import {
   VISUAL_REGRESSION_CONTEXT,
   VISUAL_TESTS_FAILED_TO_EXECUTE
 } from 'shared';
-import { disableAutoMerge } from '../src/disableAutoMerge';
+import { disableAutoMerge } from '../src/disable-auto-merge';
 import { expect } from '@jest/globals';
 
-jest.mock('../src/disableAutoMerge');
+jest.mock('../src/disable-auto-merge');
 jest.mock('glob');
 jest.mock('@actions/core');
 jest.mock('@actions/exec');
@@ -78,6 +78,29 @@ describe('main', () => {
     });
   });
 
+  it('should pick commit-hash when both commit-hash and diff-id are provided', async () => {
+    const extendedInputMap: Record<string, string> = {
+      ...inputMap,
+      'diff-id': '12345',
+      'commit-hash': 'sha'
+    };
+    (getInput as jest.Mock).mockImplementation(name => extendedInputMap[name]);
+    (exec as jest.Mock).mockResolvedValue(0);
+    (sync as unknown as jest.Mock).mockReturnValue([
+      'path/to/screenshots/base.png'
+    ]);
+    await run();
+    expect(setFailed).not.toHaveBeenCalled();
+    expect(octokit.rest.repos.createCommitStatus).toHaveBeenCalledWith({
+      owner: 'owner',
+      repo: 'repo',
+      sha: 'sha',
+      context: VISUAL_REGRESSION_CONTEXT,
+      state: 'success',
+      description: 'Visual tests passed!'
+    });
+  });
+
   it('should pass if visual tests pass and no diffs or new images', async () => {
     (exec as jest.Mock).mockResolvedValue(0);
     (sync as unknown as jest.Mock).mockReturnValue([
@@ -115,7 +138,7 @@ describe('main', () => {
       state: 'failure',
       description: 'A visual regression was detected. Check Comparadise!',
       target_url:
-        'https://comparadise.app/?hash=sha&owner=owner&repo=repo&bucket=some-bucket'
+        'https://comparadise.app/?commitHash=sha&owner=owner&repo=repo&bucket=some-bucket'
     });
     expect(octokit.rest.issues.createComment).toHaveBeenCalled();
   });

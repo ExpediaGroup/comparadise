@@ -37,8 +37,8 @@ export const UpdateImagesButton: React.FC<{ disabled: boolean }> = ({
   const params: Record<string, string | undefined> = Object.fromEntries(
     searchParams.entries()
   );
-  const { hash, bucket, repo, owner } = params;
-  if (!hash || !bucket || !owner || !repo) {
+  const { commitHash, diffId, bucket, repo, owner } = params;
+  if ((!commitHash && !diffId) || !bucket || !owner || !repo) {
     return null;
   }
 
@@ -50,7 +50,8 @@ export const UpdateImagesButton: React.FC<{ disabled: boolean }> = ({
     setDialogIsOpen(false);
   };
 
-  const handleUpdate = () => updateBaseImages({ hash, bucket, owner, repo });
+  const handleUpdate = () =>
+    updateBaseImages({ commitHash, diffId, bucket, owner, repo });
 
   const dialogTitleText = 'Are you sure you want to update the base images?';
   const updateText =

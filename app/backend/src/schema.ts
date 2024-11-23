@@ -6,7 +6,8 @@ export const fetchCurrentPageInputSchema = z.object({
   page: z.number()
 });
 export const updateBaseImagesInputSchema = z.object({
-  hash: z.string().min(1),
+  commitHash: z.string().min(1).optional(),
+  diffId: z.string().min(1).optional(),
   bucket: z.string().min(1),
   repo: z.string().min(1),
   owner: z.string().min(1)

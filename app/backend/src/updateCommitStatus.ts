@@ -6,14 +6,14 @@ import { VISUAL_REGRESSION_CONTEXT } from 'shared';
 export const updateCommitStatus = async ({
   owner,
   repo,
-  hash
-}: Omit<UpdateBaseImagesInput, 'bucket'>) => {
+  commitHash
+}: Omit<UpdateBaseImagesInput, 'bucket' | 'diffId'>) => {
   const octokit = getOctokit(owner, repo);
   return octokit.rest.repos
     .createCommitStatus({
       owner,
       repo,
-      sha: hash,
+      sha: commitHash as string,
       state: 'success',
       description: 'Base images updated successfully.',
       context: VISUAL_REGRESSION_CONTEXT

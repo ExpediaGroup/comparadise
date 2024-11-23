@@ -22,7 +22,7 @@ import {
   VISUAL_TESTS_FAILED_TO_EXECUTE
 } from 'shared';
 import { buildComparadiseUrl } from './build-comparadise-url';
-import { disableAutoMerge } from './disableAutoMerge';
+import { disableAutoMerge } from './disable-auto-merge';
 
 const VISUAL_TEST_EXECUTION_FAILURE =
   'Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?';
@@ -42,12 +42,7 @@ export const run = async () => {
     return;
   }
 
-  if (commitHash && diffId) {
-    setFailed(
-      'You cannot provide both commit-hash and diff-id. Please choose one.'
-    );
-    return;
-  }
+  const hash = commitHash || diffId;
 
   const screenshotsDirectory = getInput('screenshots-directory');
 
@@ -82,33 +77,10 @@ export const run = async () => {
   }, 0);
   const newFileCount = newFilePaths.length;
 
-  if (diffId) {
-    if (numVisualTestFailures > diffFileCount) {
-      setFailed(VISUAL_TEST_EXECUTION_FAILURE);
-      return;
-    }
-    if (diffFileCount === 0) {
-      if (newFileCount === 0) {
-        info(VISUAL_TESTS_PASSED);
-        return;
-      } else if (newFileCount > 0) {
-        info(
-          `New visual tests found! ${newFileCount} images will be uploaded as new base images.`
-        );
-        await uploadBaseImages(newFilePaths);
-        return;
-      }
-    }
-    await uploadAllImages(diffId);
-    info(
-      `Visual regression detected with ${diffFileCount} visual differences. Check out the details on Comparadise: ${buildComparadiseUrl(diffId)}.`
-    );
-    return;
-  }
-
   if (numVisualTestFailures > diffFileCount) {
     setFailed(VISUAL_TEST_EXECUTION_FAILURE);
-    return octokit.rest.repos.createCommitStatus({
+    if (!commitHash) return;
+    octokit.rest.repos.createCommitStatus({
       sha: commitHash,
       context: VISUAL_REGRESSION_CONTEXT,
       state: 'failure',
@@ -117,17 +89,19 @@ export const run = async () => {
     });
   }
 
-  const latestVisualRegressionStatus =
-    await getLatestVisualRegressionStatus(commitHash);
+  const latestVisualRegressionStatus = commitHash
+    ? await getLatestVisualRegressionStatus(commitHash)
+    : null;
 
   if (diffFileCount === 0 && newFileCount === 0) {
     info(VISUAL_TESTS_PASSED);
 
+    if (!commitHash) return;
     if (isRetry) {
       warning(
         'Disabling auto merge because this is a retry attempt. This is to avoid auto merging prematurely.'
       );
-      await disableAutoMerge(commitHash);
+      await disableAutoMerge(hash);
     } else if (latestVisualRegressionStatus?.state === 'failure') {
       info(
         'Skipping status update since Visual Regression status has already been set to failed.'
@@ -136,7 +110,7 @@ export const run = async () => {
     }
 
     return octokit.rest.repos.createCommitStatus({
-      sha: commitHash,
+      sha: hash,
       context: VISUAL_REGRESSION_CONTEXT,
       state: 'success',
       description: `Visual tests passed${isRetry ? ' on retry' : ''}!`,
@@ -145,6 +119,7 @@ export const run = async () => {
   }
 
   if (
+    commitHash &&
     latestVisualRegressionStatus?.state === 'failure' &&
     latestVisualRegressionStatus?.description ===
       VISUAL_TESTS_FAILED_TO_EXECUTE &&
@@ -165,8 +140,9 @@ export const run = async () => {
       `New visual tests found! ${newFileCount} images will be uploaded as new base images.`
     );
     await uploadBaseImages(newFilePaths);
+    if (!commitHash) return;
     return octokit.rest.repos.createCommitStatus({
-      sha: commitHash,
+      sha: hash,
       context: VISUAL_REGRESSION_CONTEXT,
       state: 'success',
       description: 'New base images were created!',
@@ -174,13 +150,14 @@ export const run = async () => {
     });
   }
 
-  await uploadAllImages(commitHash);
+  await uploadAllImages(hash);
+  if (!commitHash) return;
   await octokit.rest.repos.createCommitStatus({
-    sha: commitHash,
+    sha: hash,
     context: VISUAL_REGRESSION_CONTEXT,
     state: 'failure',
     description: 'A visual regression was detected. Check Comparadise!',
-    target_url: buildComparadiseUrl(commitHash),
+    target_url: buildComparadiseUrl(),
     ...context.repo
   });
   await createGithubComment();

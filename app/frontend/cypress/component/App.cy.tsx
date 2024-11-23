@@ -43,7 +43,9 @@ describe('App', () => {
       );
       cy.mount(
         <MemoryRouter
-          initialEntries={['/?hash=123&bucket=bucket&repo=repo&owner=owner']}
+          initialEntries={[
+            '/?commitHash=123&bucket=bucket&repo=repo&owner=owner'
+          ]}
         >
           <App />
         </MemoryRouter>
@@ -167,7 +169,9 @@ describe('App', () => {
       });
       cy.mount(
         <MemoryRouter
-          initialEntries={['?hash=123&bucket=bucket&repo=repo&owner=owner']}
+          initialEntries={[
+            '?commitHash=123&bucket=bucket&repo=repo&owner=owner'
+          ]}
         >
           <App />
         </MemoryRouter>
@@ -197,7 +201,9 @@ describe('App', () => {
       });
       cy.mount(
         <MemoryRouter
-          initialEntries={['?hash=123&bucket=bucket&repo=repo&owner=owner']}
+          initialEntries={[
+            '?commitHash=123&bucket=bucket&repo=repo&owner=owner'
+          ]}
         >
           <App />
         </MemoryRouter>

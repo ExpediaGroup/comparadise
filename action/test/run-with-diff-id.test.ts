@@ -6,7 +6,6 @@ import { sync } from 'glob';
 import { BASE_IMAGES_DIRECTORY, NEW_IMAGES_DIRECTORY } from 'shared';
 import { expect } from '@jest/globals';
 
-jest.mock('../src/disableAutoMerge');
 jest.mock('glob');
 jest.mock('@actions/core');
 jest.mock('@actions/exec');
@@ -61,20 +60,6 @@ describe('main with diff-id', () => {
     };
     (getMultilineInput as jest.Mock).mockImplementation(
       name => multiLineInputMap[name]
-    );
-  });
-
-  it('should fail when both diff-id and commit-hash are provided', async () => {
-    const extendedInputMap: Record<string, string> = {
-      ...inputMap,
-      'diff-id': '12345',
-      'commit-hash': 'sha'
-    };
-    (getInput as jest.Mock).mockImplementation(name => extendedInputMap[name]);
-    (exec as jest.Mock).mockResolvedValue(0);
-    await run();
-    expect(setFailed).toHaveBeenCalledWith(
-      'You cannot provide both commit-hash and diff-id. Please choose one.'
     );
   });
 
