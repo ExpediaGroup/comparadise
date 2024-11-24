@@ -80,7 +80,7 @@ export const run = async () => {
   if (numVisualTestFailures > diffFileCount) {
     setFailed(VISUAL_TEST_EXECUTION_FAILURE);
     if (!commitHash) return;
-    octokit.rest.repos.createCommitStatus({
+    return octokit.rest.repos.createCommitStatus({
       sha: commitHash,
       context: VISUAL_REGRESSION_CONTEXT,
       state: 'failure',
