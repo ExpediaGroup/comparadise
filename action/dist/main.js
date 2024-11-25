@@ -29440,21 +29440,20 @@ var downloadBaseImages = async () => {
     `aws s3 cp s3://${bucketName}/${BASE_IMAGES_DIRECTORY} ${screenshotsDirectory} --recursive`
   );
 };
-var uploadAllImages = async () => {
+var uploadAllImages = async (hash) => {
   const bucketName = (0, import_core.getInput)("bucket-name", { required: true });
   const screenshotsDirectory = (0, import_core.getInput)("screenshots-directory");
-  const commitHash = (0, import_core.getInput)("commit-hash", { required: true });
   const packagePaths = (0, import_core.getInput)("package-paths")?.split(",");
   if (packagePaths) {
     return (0, import_bluebird.map)(
       packagePaths,
       (packagePath) => (0, import_exec.exec)(
-        `aws s3 cp ${screenshotsDirectory}/${packagePath} s3://${bucketName}/${NEW_IMAGES_DIRECTORY}/${commitHash}/${packagePath} --recursive`
+        `aws s3 cp ${screenshotsDirectory}/${packagePath} s3://${bucketName}/${NEW_IMAGES_DIRECTORY}/${hash}/${packagePath} --recursive`
       )
     );
   }
   return (0, import_exec.exec)(
-    `aws s3 cp ${screenshotsDirectory} s3://${bucketName}/${NEW_IMAGES_DIRECTORY}/${commitHash} --recursive`
+    `aws s3 cp ${screenshotsDirectory} s3://${bucketName}/${NEW_IMAGES_DIRECTORY}/${hash} --recursive`
   );
 };
 var uploadBaseImages = async (newFilePaths) => {
@@ -35868,10 +35867,12 @@ var import_core3 = __toESM(require_core());
 var import_github2 = __toESM(require_github());
 var buildComparadiseUrl = () => {
   const bucketName = (0, import_core3.getInput)("bucket-name", { required: true });
-  const commitHash = (0, import_core3.getInput)("commit-hash", { required: true });
   const comparadiseHost = (0, import_core3.getInput)("comparadise-host");
+  const commitHash = (0, import_core3.getInput)("commit-hash");
+  const diffId = (0, import_core3.getInput)("diff-id");
+  const hashParam = commitHash ? `commitHash=${commitHash}` : `diffId=${diffId}`;
   const { owner, repo } = import_github2.context.repo;
-  return `${comparadiseHost}/?hash=${commitHash}&owner=${owner}&repo=${repo}&bucket=${bucketName}`;
+  return `${comparadiseHost}/?${hashParam}&owner=${owner}&repo=${repo}&bucket=${bucketName}`;
 };
 
 // src/comment.ts
@@ -35917,7 +35918,7 @@ var getLatestVisualRegressionStatus = async (commitHash) => {
   return data.find((status) => status.context === VISUAL_REGRESSION_CONTEXT);
 };
 
-// src/disableAutoMerge.ts
+// src/disable-auto-merge.ts
 var import_core5 = __toESM(require_core());
 var import_github5 = __toESM(require_github());
 var disableAutoMerge = async (commitHash) => {
@@ -35955,7 +35956,13 @@ var run = async () => {
   const visualTestCommands = (0, import_core6.getMultilineInput)("visual-test-command", {
     required: true
   });
-  const commitHash = (0, import_core6.getInput)("commit-hash", { required: true });
+  const commitHash = (0, import_core6.getInput)("commit-hash");
+  const diffId = (0, import_core6.getInput)("diff-id");
+  if (!commitHash && !diffId) {
+    (0, import_core6.setFailed)("Please provide either a commit-hash or a diff-id.");
+    return;
+  }
+  const hash = commitHash || diffId;
   const screenshotsDirectory = (0, import_core6.getInput)("screenshots-directory");
   await downloadBaseImages();
   const visualTestExitCode = await Promise.all(
@@ -35964,7 +35971,6 @@ var run = async () => {
   const numVisualTestFailures = visualTestExitCode.filter(
     (code) => code !== 0
   ).length;
-  const latestVisualRegressionStatus = await getLatestVisualRegressionStatus(commitHash);
   const screenshotsPath = path3.join(process.cwd(), screenshotsDirectory);
   const filesInScreenshotDirectory = sync(`${screenshotsPath}/**`, { absolute: false }) || [];
   const diffFilePaths = filesInScreenshotDirectory.filter(
@@ -35987,6 +35993,7 @@ var run = async () => {
     (0, import_core6.setFailed)(
       "Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?"
     );
+    if (!commitHash) return;
     return octokit.rest.repos.createCommitStatus({
       sha: commitHash,
       context: VISUAL_REGRESSION_CONTEXT,
@@ -35995,8 +36002,10 @@ var run = async () => {
       ...import_github6.context.repo
     });
   }
+  const latestVisualRegressionStatus = commitHash ? await getLatestVisualRegressionStatus(commitHash) : null;
   if (diffFileCount === 0 && newFileCount === 0) {
     (0, import_core6.info)("All visual tests passed, and no diffs found!");
+    if (!commitHash) return;
     if (isRetry) {
       (0, import_core6.warning)(
         "Disabling auto merge because this is a retry attempt. This is to avoid auto merging prematurely."
@@ -36016,7 +36025,7 @@ var run = async () => {
       ...import_github6.context.repo
     });
   }
-  if (latestVisualRegressionStatus?.state === "failure" && latestVisualRegressionStatus?.description === VISUAL_TESTS_FAILED_TO_EXECUTE && !isRetry) {
+  if (commitHash && latestVisualRegressionStatus?.state === "failure" && latestVisualRegressionStatus?.description === VISUAL_TESTS_FAILED_TO_EXECUTE && !isRetry) {
     (0, import_core6.warning)(
       "Some other Visual Regression tests failed to execute successfully, so skipping status update and comment."
     );
@@ -36030,6 +36039,7 @@ var run = async () => {
       `New visual tests found! ${newFileCount} images will be uploaded as new base images.`
     );
     await uploadBaseImages(newFilePaths);
+    if (!commitHash) return;
     return octokit.rest.repos.createCommitStatus({
       sha: commitHash,
       context: VISUAL_REGRESSION_CONTEXT,
@@ -36038,7 +36048,8 @@ var run = async () => {
       ...import_github6.context.repo
     });
   }
-  await uploadAllImages();
+  await uploadAllImages(hash);
+  if (!commitHash) return;
   await octokit.rest.repos.createCommitStatus({
     sha: commitHash,
     context: VISUAL_REGRESSION_CONTEXT,

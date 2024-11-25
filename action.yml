@@ -10,7 +10,10 @@ inputs:
     required: true
   commit-hash:
     description: 'The commit hash'
-    required: true
+    required: false
+  diff-id:
+    description: 'Alternative to commit-hash as a unique identifier for visual tests. GitHub integration will be disabled if diff-id is used.'
+    required: false
   screenshots-directory:
     description: 'The directory where your visual tests expect screenshots to be'
     required: false

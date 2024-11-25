@@ -22,7 +22,7 @@ import {
   VISUAL_TESTS_FAILED_TO_EXECUTE
 } from 'shared';
 import { buildComparadiseUrl } from './build-comparadise-url';
-import { disableAutoMerge } from './disableAutoMerge';
+import { disableAutoMerge } from './disable-auto-merge';
 
 export const run = async () => {
   const runAttempt = Number(process.env.GITHUB_RUN_ATTEMPT);
@@ -30,7 +30,16 @@ export const run = async () => {
   const visualTestCommands = getMultilineInput('visual-test-command', {
     required: true
   });
-  const commitHash = getInput('commit-hash', { required: true });
+  const commitHash = getInput('commit-hash');
+  const diffId = getInput('diff-id');
+
+  if (!commitHash && !diffId) {
+    setFailed('Please provide either a commit-hash or a diff-id.');
+    return;
+  }
+
+  const hash = commitHash || diffId;
+
   const screenshotsDirectory = getInput('screenshots-directory');
 
   await downloadBaseImages();
@@ -42,8 +51,6 @@ export const run = async () => {
     code => code !== 0
   ).length;
 
-  const latestVisualRegressionStatus =
-    await getLatestVisualRegressionStatus(commitHash);
   const screenshotsPath = path.join(process.cwd(), screenshotsDirectory);
   const filesInScreenshotDirectory =
     sync(`${screenshotsPath}/**`, { absolute: false }) || [];
@@ -70,6 +77,7 @@ export const run = async () => {
     setFailed(
       'Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?'
     );
+    if (!commitHash) return;
     return octokit.rest.repos.createCommitStatus({
       sha: commitHash,
       context: VISUAL_REGRESSION_CONTEXT,
@@ -79,9 +87,14 @@ export const run = async () => {
     });
   }
 
+  const latestVisualRegressionStatus = commitHash
+    ? await getLatestVisualRegressionStatus(commitHash)
+    : null;
+
   if (diffFileCount === 0 && newFileCount === 0) {
     info('All visual tests passed, and no diffs found!');
 
+    if (!commitHash) return;
     if (isRetry) {
       warning(
         'Disabling auto merge because this is a retry attempt. This is to avoid auto merging prematurely.'
@@ -104,6 +117,7 @@ export const run = async () => {
   }
 
   if (
+    commitHash &&
     latestVisualRegressionStatus?.state === 'failure' &&
     latestVisualRegressionStatus?.description ===
       VISUAL_TESTS_FAILED_TO_EXECUTE &&
@@ -124,6 +138,7 @@ export const run = async () => {
       `New visual tests found! ${newFileCount} images will be uploaded as new base images.`
     );
     await uploadBaseImages(newFilePaths);
+    if (!commitHash) return;
     return octokit.rest.repos.createCommitStatus({
       sha: commitHash,
       context: VISUAL_REGRESSION_CONTEXT,
@@ -133,7 +148,8 @@ export const run = async () => {
     });
   }
 
-  await uploadAllImages();
+  await uploadAllImages(hash);
+  if (!commitHash) return;
   await octokit.rest.repos.createCommitStatus({
     sha: commitHash,
     context: VISUAL_REGRESSION_CONTEXT,

@@ -86,7 +86,7 @@ describe('updateBaseImagesInS3', () => {
     const expectedBucket = 'expected-bucket-name';
     await expect(
       updateBaseImagesInS3({
-        hash: '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5',
+        commitHash: '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5',
         bucket: expectedBucket,
         repo: 'repo',
         owner: 'owner'

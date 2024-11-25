@@ -20,7 +20,11 @@ const app = new Elysia()
   .get('*', async context => {
     const stream = await renderToReadableStream(
       <StaticRouter location={context.path}>
-        <App bucket={context.query.bucket} hash={context.query.hash} />
+        <App
+          bucket={context.query.bucket}
+          commitHash={context.query.commitHash}
+          diffId={context.query.diffId}
+        />
         {process.env.NODE_ENV === 'development' && (
           <script src="https://cdn.tailwindcss.com" />
         )}

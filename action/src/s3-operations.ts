@@ -28,21 +28,20 @@ export const downloadBaseImages = async () => {
   );
 };
 
-export const uploadAllImages = async () => {
+export const uploadAllImages = async (hash: string) => {
   const bucketName = getInput('bucket-name', { required: true });
   const screenshotsDirectory = getInput('screenshots-directory');
-  const commitHash = getInput('commit-hash', { required: true });
   const packagePaths = getInput('package-paths')?.split(',');
   if (packagePaths) {
     return map(packagePaths, packagePath =>
       exec(
-        `aws s3 cp ${screenshotsDirectory}/${packagePath} s3://${bucketName}/${NEW_IMAGES_DIRECTORY}/${commitHash}/${packagePath} --recursive`
+        `aws s3 cp ${screenshotsDirectory}/${packagePath} s3://${bucketName}/${NEW_IMAGES_DIRECTORY}/${hash}/${packagePath} --recursive`
       )
     );
   }
 
   return exec(
-    `aws s3 cp ${screenshotsDirectory} s3://${bucketName}/${NEW_IMAGES_DIRECTORY}/${commitHash} --recursive`
+    `aws s3 cp ${screenshotsDirectory} s3://${bucketName}/${NEW_IMAGES_DIRECTORY}/${hash} --recursive`
   );
 };
 

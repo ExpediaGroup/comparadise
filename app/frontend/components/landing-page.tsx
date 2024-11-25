@@ -10,7 +10,7 @@ export const LandingPage = () => {
         <p className="text-xl">
           Please enter a valid url. For example:
           <br />
-          https://COMPARADISE_HOST/?hash=COMMIT_HASH&owner=GITHUB_ORG&repo=REPO_NAME&bucket=S3_BUCKET_NAME
+          https://COMPARADISE_HOST/?commitHash=COMMIT_HASH&owner=GITHUB_ORG&repo=REPO_NAME&bucket=S3_BUCKET_NAME
         </p>
       </div>
     </div>

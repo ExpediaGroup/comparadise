@@ -5,13 +5,20 @@ import { BaseImageStateProvider } from './frontend/providers/base-image-state-pr
 import { LandingPage } from './frontend/components/landing-page';
 import { useSearchParams } from 'react-router-dom';
 
-export function App(props: { bucket?: string; hash?: string }) {
+export function App(props: {
+  bucket?: string;
+  commitHash?: string;
+  diffId?: string;
+}) {
   const [searchParams] = useSearchParams();
   const params: Record<string, string | undefined> = Object.fromEntries(
     searchParams.entries()
   );
   const bucket = props.bucket ?? params.bucket;
-  const hash = props.hash ?? params.hash;
+  const commitHash = props.commitHash ?? params.commitHash;
+  const diffId = props.diffId ?? params.diffId;
+  const hash = commitHash ?? diffId;
+
   return (
     <PageWrapper>
       {bucket && hash ? (

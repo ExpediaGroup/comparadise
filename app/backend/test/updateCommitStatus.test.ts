@@ -18,7 +18,7 @@ describe('updateCommitStatus', () => {
     await updateCommitStatus({
       owner: 'github-owner',
       repo: 'github-repo',
-      hash: 'hash'
+      commitHash: 'hash'
     });
     expect(createCommitStatus).toHaveBeenCalledWith({
       owner: 'github-owner',
