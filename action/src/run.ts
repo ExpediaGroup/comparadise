@@ -24,10 +24,6 @@ import {
 import { buildComparadiseUrl } from './build-comparadise-url';
 import { disableAutoMerge } from './disable-auto-merge';
 
-const VISUAL_TEST_EXECUTION_FAILURE =
-  'Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?';
-const VISUAL_TESTS_PASSED = 'All visual tests passed, and no diffs found!';
-
 export const run = async () => {
   const runAttempt = Number(process.env.GITHUB_RUN_ATTEMPT);
   const isRetry = runAttempt > 1;
@@ -78,7 +74,9 @@ export const run = async () => {
   const newFileCount = newFilePaths.length;
 
   if (numVisualTestFailures > diffFileCount) {
-    setFailed(VISUAL_TEST_EXECUTION_FAILURE);
+    setFailed(
+      'Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?'
+    );
     if (!commitHash) return;
     return octokit.rest.repos.createCommitStatus({
       sha: commitHash,
@@ -94,7 +92,7 @@ export const run = async () => {
     : null;
 
   if (diffFileCount === 0 && newFileCount === 0) {
-    info(VISUAL_TESTS_PASSED);
+    info('All visual tests passed, and no diffs found!');
 
     if (!commitHash) return;
     if (isRetry) {
