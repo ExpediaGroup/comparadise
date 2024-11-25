@@ -35950,8 +35950,6 @@ var disableAutoMerge = async (commitHash) => {
 };
 
 // src/run.ts
-var VISUAL_TEST_EXECUTION_FAILURE = "Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?";
-var VISUAL_TESTS_PASSED = "All visual tests passed, and no diffs found!";
 var run = async () => {
   const runAttempt = Number(process.env.GITHUB_RUN_ATTEMPT);
   const isRetry = runAttempt > 1;
@@ -35992,7 +35990,9 @@ var run = async () => {
   }, 0);
   const newFileCount = newFilePaths.length;
   if (numVisualTestFailures > diffFileCount) {
-    (0, import_core6.setFailed)(VISUAL_TEST_EXECUTION_FAILURE);
+    (0, import_core6.setFailed)(
+      "Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?"
+    );
     if (!commitHash) return;
     return octokit.rest.repos.createCommitStatus({
       sha: commitHash,
@@ -36004,7 +36004,7 @@ var run = async () => {
   }
   const latestVisualRegressionStatus = commitHash ? await getLatestVisualRegressionStatus(commitHash) : null;
   if (diffFileCount === 0 && newFileCount === 0) {
-    (0, import_core6.info)(VISUAL_TESTS_PASSED);
+    (0, import_core6.info)("All visual tests passed, and no diffs found!");
     if (!commitHash) return;
     if (isRetry) {
       (0, import_core6.warning)(
