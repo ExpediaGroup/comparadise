@@ -110,7 +110,7 @@ export const run = async () => {
     }
 
     return octokit.rest.repos.createCommitStatus({
-      sha: hash,
+      sha: commitHash,
       context: VISUAL_REGRESSION_CONTEXT,
       state: 'success',
       description: `Visual tests passed${isRetry ? ' on retry' : ''}!`,
@@ -142,7 +142,7 @@ export const run = async () => {
     await uploadBaseImages(newFilePaths);
     if (!commitHash) return;
     return octokit.rest.repos.createCommitStatus({
-      sha: hash,
+      sha: commitHash,
       context: VISUAL_REGRESSION_CONTEXT,
       state: 'success',
       description: 'New base images were created!',
@@ -153,7 +153,7 @@ export const run = async () => {
   await uploadAllImages(hash);
   if (!commitHash) return;
   await octokit.rest.repos.createCommitStatus({
-    sha: hash,
+    sha: commitHash,
     context: VISUAL_REGRESSION_CONTEXT,
     state: 'failure',
     description: 'A visual regression was detected. Check Comparadise!',

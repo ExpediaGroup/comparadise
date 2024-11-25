@@ -35994,7 +35994,7 @@ var run = async () => {
   if (numVisualTestFailures > diffFileCount) {
     (0, import_core6.setFailed)(VISUAL_TEST_EXECUTION_FAILURE);
     if (!commitHash) return;
-    octokit.rest.repos.createCommitStatus({
+    return octokit.rest.repos.createCommitStatus({
       sha: commitHash,
       context: VISUAL_REGRESSION_CONTEXT,
       state: "failure",
@@ -36010,7 +36010,7 @@ var run = async () => {
       (0, import_core6.warning)(
         "Disabling auto merge because this is a retry attempt. This is to avoid auto merging prematurely."
       );
-      await disableAutoMerge(hash);
+      await disableAutoMerge(commitHash);
     } else if (latestVisualRegressionStatus?.state === "failure") {
       (0, import_core6.info)(
         "Skipping status update since Visual Regression status has already been set to failed."
@@ -36018,7 +36018,7 @@ var run = async () => {
       return;
     }
     return octokit.rest.repos.createCommitStatus({
-      sha: hash,
+      sha: commitHash,
       context: VISUAL_REGRESSION_CONTEXT,
       state: "success",
       description: `Visual tests passed${isRetry ? " on retry" : ""}!`,
@@ -36041,7 +36041,7 @@ var run = async () => {
     await uploadBaseImages(newFilePaths);
     if (!commitHash) return;
     return octokit.rest.repos.createCommitStatus({
-      sha: hash,
+      sha: commitHash,
       context: VISUAL_REGRESSION_CONTEXT,
       state: "success",
       description: "New base images were created!",
@@ -36051,7 +36051,7 @@ var run = async () => {
   await uploadAllImages(hash);
   if (!commitHash) return;
   await octokit.rest.repos.createCommitStatus({
-    sha: hash,
+    sha: commitHash,
     context: VISUAL_REGRESSION_CONTEXT,
     state: "failure",
     description: "A visual regression was detected. Check Comparadise!",

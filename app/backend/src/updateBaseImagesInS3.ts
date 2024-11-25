@@ -27,9 +27,11 @@ export const updateBaseImagesInS3 = async ({
       message: reasonToPreventUpdate
     });
   }
-  const hash = commitHash ?? (diffId as string);
-  const s3Paths = await getKeysFromS3(hash, bucket);
-  await replaceImagesInS3(s3Paths, bucket);
+  const hash = commitHash ?? diffId;
+  if (hash) {
+    const s3Paths = await getKeysFromS3(hash, bucket);
+    await replaceImagesInS3(s3Paths, bucket);
+  }
   if (commitHash) {
     await updateCommitStatus({ owner, repo, commitHash });
   }

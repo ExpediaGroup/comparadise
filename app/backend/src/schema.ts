@@ -12,6 +12,11 @@ export const updateBaseImagesInputSchema = z.object({
   repo: z.string().min(1),
   owner: z.string().min(1)
 });
+export const updateGitStatusSchema = z.object({
+  commitHash: z.string().min(1),
+  repo: z.string().min(1),
+  owner: z.string().min(1)
+});
 export const secretsJsonSchema = z.record(
   z.string(),
   z.object({
@@ -21,6 +26,7 @@ export const secretsJsonSchema = z.record(
 );
 export type FetchCurrentPageInput = z.infer<typeof fetchCurrentPageInputSchema>;
 export type UpdateBaseImagesInput = z.infer<typeof updateBaseImagesInputSchema>;
+export type UpdateGitStatus = z.infer<typeof updateGitStatusSchema>;
 export const FILE_NAMES = {
   BASE: 'base',
   DIFF: 'diff',

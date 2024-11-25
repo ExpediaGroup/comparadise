@@ -17,11 +17,11 @@ export function App(props: {
   const bucket = props.bucket ?? params.bucket;
   const commitHash = props.commitHash ?? params.commitHash;
   const diffId = props.diffId ?? params.diffId;
-  const hash = commitHash ?? (diffId as string);
+  const hash = commitHash ?? diffId;
 
   return (
     <PageWrapper>
-      {bucket && (commitHash || diffId) ? (
+      {bucket && hash ? (
         <MainPage bucket={bucket} hash={hash} />
       ) : (
         <LandingPage />
