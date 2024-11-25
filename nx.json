@@ -1,11 +1,8 @@
 {
-  "tasksRunnerOptions": {
-    "default": {
-      "runner": "nx/tasks-runners/default",
-      "options": {
-        "cacheableOperations": ["build"],
-        "parallel": 5
-      }
+  "parallel": 5,
+  "targetDefaults": {
+    "build": {
+      "cache": true
     }
   },
   "affected": {
