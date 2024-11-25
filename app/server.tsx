@@ -4,7 +4,8 @@ import { router, trpcRouter } from './backend/src/router';
 import React from 'react';
 import { App } from './app';
 import { StaticRouter } from 'react-router-dom';
-import { renderToReadableStream } from 'react-dom/server';
+// @ts-expect-error - have to import from server.browser for some reason
+import { renderToReadableStream } from 'react-dom/server.browser';
 
 await Bun.build({
   entrypoints: ['./client.tsx'],
