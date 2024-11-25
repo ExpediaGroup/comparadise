@@ -54,7 +54,7 @@ describe('App', () => {
 
     it('should default to the diff image view of the first spec in the response list', () => {
       cy.findByRole('heading', { name: 'large/example' });
-      cy.findByAltText('diff');
+      cy.findByAltText('diff').should('be.visible');
       cy.findByRole('button', { name: /back-arrow/ }).should('be.disabled');
     });
 
@@ -64,30 +64,30 @@ describe('App', () => {
     });
 
     it('should switch to different image views', () => {
-      cy.findByAltText('diff');
+      cy.findByAltText('diff').should('be.visible');
       cy.findByRole('button', { name: 'new' }).click();
-      cy.findByAltText('new');
+      cy.findByAltText('new').should('be.visible');
       cy.findByRole('button', { name: 'base' }).click();
-      cy.findByAltText('base');
+      cy.findByAltText('base').should('be.visible');
     });
 
     it('should switch between specs and default to diff image for each one', () => {
       cy.findByRole('button', { name: /forward-arrow/ }).click();
       cy.findByRole('heading', { name: 'small/example' });
-      cy.findByAltText('diff');
+      cy.findByAltText('diff').should('be.visible');
       cy.findByRole('button', { name: /back-arrow/ }).click();
       cy.findByRole('heading', { name: 'large/example' });
-      cy.findByAltText('diff');
+      cy.findByAltText('diff').should('be.visible');
     });
 
     it('should switch to side-by-side view and back', () => {
       cy.findByRole('button', { name: /forward-arrow/ }).click();
       cy.findByRole('button', { name: /side-by-side/i }).should('be.enabled');
-      cy.findByAltText('base');
-      cy.findByAltText('diff');
-      cy.findByAltText('new');
+      cy.findByAltText('base').should('be.visible');
+      cy.findByAltText('diff').should('be.visible');
+      cy.findByAltText('new').should('be.visible');
       cy.findByRole('button', { name: /single/i }).click();
-      cy.findByAltText('diff');
+      cy.findByAltText('diff').should('be.visible');
       cy.findByAltText('base').should('not.exist');
       cy.findByAltText('new').should('not.exist');
       cy.findByRole('button', { name: /side-by-side/i }).should('be.enabled');
@@ -181,13 +181,13 @@ describe('App', () => {
     it('should display the new image with side-by-side view disabled', () => {
       cy.findByRole('heading', { name: 'large/new-example' });
       cy.findByRole('button', { name: /new/ });
-      cy.findByAltText('new');
+      cy.findByAltText('new').should('be.visible');
       cy.findByRole('button', { name: /side-by-side/i }).should('be.disabled');
     });
 
     it('should show new image with side-by-side view disabled when switching to another spec', () => {
       cy.findByRole('button', { name: /forward-arrow/ }).click();
-      cy.findByAltText('new');
+      cy.findByAltText('new').should('be.visible');
       cy.findByRole('button', { name: /side-by-side/i }).should('be.disabled');
     });
   });
@@ -213,9 +213,31 @@ describe('App', () => {
     it('should default to diff when no new image was found and the currently selected image is new', () => {
       cy.findByRole('heading', { name: 'large/example' });
       cy.findByRole('button', { name: /new/ }).click();
-      cy.findByAltText('new');
+      cy.findByAltText('new').should('be.visible');
       cy.findByRole('button', { name: /forward-arrow/ }).click();
-      cy.findByAltText('diff');
+      cy.findByAltText('diff').should('be.visible');
+    });
+  });
+
+  describe('diffId param case', () => {
+    beforeEach(() => {
+      cy.intercept('/trpc/fetchCurrentPage*', req => {
+        const page = getPageFromRequest(req);
+        const body = page === 2 ? noNewImagesPage : firstPage;
+        req.reply(body);
+      });
+      cy.mount(
+        <MemoryRouter
+          initialEntries={['?diffId=123&bucket=bucket&repo=repo&owner=owner']}
+        >
+          <App />
+        </MemoryRouter>
+      );
+    });
+
+    it('should use diffId param when commitId not provided', () => {
+      cy.findByRole('heading', { name: 'large/example' });
+      cy.findByAltText('diff').should('be.visible');
     });
   });
 });

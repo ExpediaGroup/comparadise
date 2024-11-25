@@ -28,10 +28,15 @@ export const updateBaseImagesInS3 = async ({
     });
   }
   const hash = commitHash ?? diffId;
-  if (hash) {
-    const s3Paths = await getKeysFromS3(hash, bucket);
-    await replaceImagesInS3(s3Paths, bucket);
+  if (!hash) {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: 'Please provide either a commitHash or a diffId.'
+    });
   }
+
+  const s3Paths = await getKeysFromS3(hash, bucket);
+  await replaceImagesInS3(s3Paths, bucket);
   if (commitHash) {
     await updateCommitStatus({ owner, repo, commitHash });
   }
