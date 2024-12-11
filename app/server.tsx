@@ -1,7 +1,7 @@
 import { staticPlugin } from '@elysiajs/static';
 import Elysia from 'elysia';
 import { router, trpcRouter } from './backend/src/router';
-import { StaticRouter } from 'react-router-dom/server';
+import { StaticRouter } from 'react-router-dom';
 import React from 'react';
 import { App } from './app';
 // @ts-expect-error - have to import from server.browser for some reason
