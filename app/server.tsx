@@ -3,7 +3,7 @@ import Elysia from 'elysia';
 import { router, trpcRouter } from './backend/src/router';
 import { StaticRouter } from 'react-router-dom';
 import React from 'react';
-import { App } from './app';
+import { App, OuterHtml } from './app';
 // @ts-expect-error - have to import from server.browser for some reason
 import { renderToReadableStream } from 'react-dom/server.browser';
 
@@ -21,14 +21,16 @@ const app = new Elysia()
   .get('*', async context => {
     const stream = await renderToReadableStream(
       <StaticRouter location={context.path}>
-        <App
-          bucket={context.query.bucket}
-          commitHash={context.query.commitHash}
-          diffId={context.query.diffId}
-        />
-        {process.env.NODE_ENV === 'development' && (
-          <script src="https://cdn.tailwindcss.com" />
-        )}
+        <OuterHtml>
+          <App
+            bucket={context.query.bucket}
+            commitHash={context.query.commitHash}
+            diffId={context.query.diffId}
+          />
+          {process.env.NODE_ENV === 'development' && (
+            <script src="https://cdn.tailwindcss.com" />
+          )}
+        </OuterHtml>
       </StaticRouter>,
       {
         bootstrapScripts: ['./public/client.js']
