@@ -25,13 +25,8 @@ const preloadNextPage = async (images?: Images) => {
   }
 
   const newViewType = await getViewType(images);
-  switch (newViewType) {
-    case ImageViews.SIDE_BY_SIDE:
-      await preloadAllImages(images.map(image => image.url));
-      break;
-    case ImageViews.SINGLE:
-    default:
-      break;
+  if (newViewType === ImageViews.SIDE_BY_SIDE) {
+    await preloadAllImages(images.map(image => image.url));
   }
 
   return newViewType;
@@ -73,19 +68,17 @@ export const MainPage = ({
   }
 
   React.useEffect(() => {
-    if (!isNextPageReady && data?.images) {
-      preloadNextPage(data.images).then(newViewType => {
-        if (newViewType) {
-          setIsNextPageReady(true);
-          setViewType(newViewType);
-          if (newViewType === ImageViews.SIDE_BY_SIDE) {
-            setAvailableView('BOTH');
-          } else {
-            setAvailableView('SINGLE');
-          }
+    preloadNextPage(data?.images).then(newViewType => {
+      if (newViewType) {
+        setIsNextPageReady(true);
+        setViewType(newViewType);
+        if (newViewType === ImageViews.SIDE_BY_SIDE) {
+          setAvailableView('BOTH');
+        } else {
+          setAvailableView('SINGLE');
         }
-      });
-    }
+      }
+    });
   }, [isNextPageReady, data?.images]);
 
   if (error) {
