@@ -10,7 +10,8 @@ import { renderToReadableStream } from 'react-dom/server.browser';
 await Bun.build({
   entrypoints: ['./client.tsx'],
   outdir: './public',
-  minify: true
+  minify: true,
+  target: 'bun'
 });
 
 const app = new Elysia()
