@@ -20,17 +20,19 @@ export function App(props: {
   const hash = commitHash ?? diffId;
 
   return (
-    <PageWrapper>
-      {bucket && hash ? (
-        <MainPage bucket={bucket} hash={hash} />
-      ) : (
-        <LandingPage />
-      )}
-    </PageWrapper>
+    <ClientProvider>
+      <BaseImageStateProvider>
+        {bucket && hash ? (
+          <MainPage bucket={bucket} hash={hash} />
+        ) : (
+          <LandingPage />
+        )}
+      </BaseImageStateProvider>
+    </ClientProvider>
   );
 }
 
-function PageWrapper(props: PropsWithChildren) {
+export function OuterHtml(props: PropsWithChildren) {
   return (
     <html lang="en">
       <head>
@@ -44,11 +46,7 @@ function PageWrapper(props: PropsWithChildren) {
         <link rel="stylesheet" href="/public/globals.css" />
         <title>Comparadise</title>
       </head>
-      <body>
-        <ClientProvider>
-          <BaseImageStateProvider>{props.children}</BaseImageStateProvider>
-        </ClientProvider>
-      </body>
+      <body>{props.children}</body>
     </html>
   );
 }
