@@ -55,6 +55,7 @@
         "react-dom": "19.0.0",
         "react-router-dom": "7.1.0",
         "tailwindcss": "3.4.17",
+        "trpc-bun-adapter": "1.2.2",
         "zod": "3.24.1",
       },
       "devDependencies": {
@@ -3279,6 +3280,8 @@
     "trim-lines": ["trim-lines@3.0.1", "", {}, "sha512-kRj8B+YHZCc9kQYdWfJB2/oUl9rA99qbowYYBtr4ui4mZyAQ2JpvVBd/6U2YloATfqBhBTSMhTpgBHtU0Mf3Rg=="],
 
     "trough": ["trough@2.2.0", "", {}, "sha512-tmMpK00BjZiUyVyvrBK7knerNgmgvcV/KLVyuma/SC+TQN167GrMRciANTz09+k3zW8L8t60jWO1GpfkZdjTaw=="],
+
+    "trpc-bun-adapter": ["trpc-bun-adapter@1.2.2", "", { "peerDependencies": { "@trpc/server": "^11.0.0-rc.566" } }, "sha512-TVhZEDXZvhIM2lfNTVCx9u5fu7/86b7RuhQSM0CUs4vlIan64Sfko5m0stbjqSHNgvLBsvXKtUD8FeQOQGLfpg=="],
 
     "ts-api-utils": ["ts-api-utils@1.4.3", "", { "peerDependencies": { "typescript": ">=4.2.0" } }, "sha512-i3eMG77UTMD0hZhgRS562pv83RC6ukSAC2GMNWc+9dieh/+jDM5u5YG+NHX6VNDRHQcHwmsTHctP9LhbC3WxVw=="],
 
