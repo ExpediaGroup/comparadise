@@ -1,10 +1,10 @@
-import { S3Client } from './s3Client';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { GetObjectCommand } from '@aws-sdk/client-s3';
+import { s3 } from 'bun';
 
-export const getTemporaryObjectUrl = async (key: string, bucket: string) => {
-  const command = new GetObjectCommand({ Bucket: bucket, Key: key });
-  return getSignedUrl(S3Client, command, { expiresIn: oneHour });
+export const getTemporaryObjectUrl = async (
+  filePath: string,
+  bucket: string
+) => {
+  return s3.file(filePath, { bucket }).presign({ expiresIn: oneHour });
 };
 
 const oneHour = 3600;
