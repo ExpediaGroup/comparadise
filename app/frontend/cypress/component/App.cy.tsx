@@ -7,7 +7,6 @@ import {
   onlyNewImagesSecondPage,
   secondPage
 } from '../mocks/pages';
-import { CyHttpMessages } from 'cypress/types/net-stubbing';
 import {
   baseImageUpdateRejection,
   MOCK_ERROR_MESSAGE
@@ -15,9 +14,11 @@ import {
 import { mutationResponse } from '../mocks/mutation';
 import { MemoryRouter } from 'react-router-dom';
 
-const getPageFromRequest = (req: CyHttpMessages.IncomingHttpRequest) =>
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getPageFromRequest(req: any) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (JSON.parse(req.query.input as string) as any)['0'].page;
+  return (JSON.parse(req.query.input as string) as any)['0'].page;
+}
 
 describe('App', () => {
   describe('homepage', () => {
