@@ -5,7 +5,8 @@ describe('Homepage', () => {
   });
 
   it('should return 200 response for health check', () => {
-    cy.visit('/health');
-    cy.findByText(/healthy/).should('be.visible');
+    cy.request('/health').should(response => {
+      expect(response.status).to.eq(200);
+    });
   });
 });
