@@ -1,15 +1,14 @@
-/// <reference lib="dom" />
-/// <reference lib="dom.iterable" />
 import React from 'react';
-import { hydrateRoot } from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
-import { App, OuterHtml } from './app';
+import { App } from './app';
 
-hydrateRoot(
-  document,
-  <BrowserRouter>
-    <OuterHtml>
+import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+
+document.addEventListener('DOMContentLoaded', () => {
+  const root = createRoot(document.getElementById('root')!);
+  root.render(
+    <BrowserRouter>
       <App />
-    </OuterHtml>
-  </BrowserRouter>
-);
+    </BrowserRouter>
+  );
+});

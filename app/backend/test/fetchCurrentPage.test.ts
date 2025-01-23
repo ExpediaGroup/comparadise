@@ -1,10 +1,11 @@
 import { fetchCurrentPage } from '../src/fetchCurrentPage';
-import { getTemporaryObjectUrl } from '../src/getTemporaryObjectUrl';
 import { getGroupedKeys } from '../src/getGroupedKeys';
 import { expect } from '@jest/globals';
 
 jest.mock('../src/getGroupedKeys');
-jest.mock('../src/getTemporaryObjectUrl');
+jest.mock('../src/getTemporaryObjectUrl', () => ({
+  getTemporaryObjectUrl: jest.fn(() => 'url')
+}));
 
 (getGroupedKeys as jest.Mock).mockResolvedValue([
   {
@@ -20,7 +21,6 @@ jest.mock('../src/getTemporaryObjectUrl');
     keys: ['hash/EXTRA_LARGE/pdpPage/new.png']
   }
 ]);
-(getTemporaryObjectUrl as jest.Mock).mockResolvedValue('url');
 
 describe('fetchCurrentPage', () => {
   it('should get first page of images', async () => {
