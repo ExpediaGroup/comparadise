@@ -38,6 +38,7 @@
       "name": "app",
       "dependencies": {
         "@aws-sdk/client-s3": "3.717.0",
+        "@aws-sdk/s3-request-presigner": "3.717.0",
         "@headlessui/react": "2.2.0",
         "@octokit/rest": "20.1.1",
         "@tanstack/react-query": "5.62.11",
@@ -214,6 +215,8 @@
 
     "@aws-sdk/region-config-resolver": ["@aws-sdk/region-config-resolver@3.714.0", "", { "dependencies": { "@aws-sdk/types": "3.714.0", "@smithy/node-config-provider": "^3.1.12", "@smithy/types": "^3.7.2", "@smithy/util-config-provider": "^3.0.0", "@smithy/util-middleware": "^3.0.11", "tslib": "^2.6.2" } }, "sha512-HJzsQxgMOAzZrbf/YIqEx30or4tZK1oNAk6Wm6xecUQx+23JXIaePRu1YFUOLBBERQ4QBPpISFurZWBMZ5ibAw=="],
 
+    "@aws-sdk/s3-request-presigner": ["@aws-sdk/s3-request-presigner@3.717.0", "", { "dependencies": { "@aws-sdk/signature-v4-multi-region": "3.716.0", "@aws-sdk/types": "3.714.0", "@aws-sdk/util-format-url": "3.714.0", "@smithy/middleware-endpoint": "^3.2.6", "@smithy/protocol-http": "^4.1.8", "@smithy/smithy-client": "^3.5.1", "@smithy/types": "^3.7.2", "tslib": "^2.6.2" } }, "sha512-gpT310jVQiqVxE6Nh4yEABbYNVOfUC/DuMtp5/JAb+cz1nNLfA45KgaJ73UCPbimVszUH0Cb7RouC/zv1uB84w=="],
+
     "@aws-sdk/signature-v4-multi-region": ["@aws-sdk/signature-v4-multi-region@3.716.0", "", { "dependencies": { "@aws-sdk/middleware-sdk-s3": "3.716.0", "@aws-sdk/types": "3.714.0", "@smithy/protocol-http": "^4.1.8", "@smithy/signature-v4": "^4.2.4", "@smithy/types": "^3.7.2", "tslib": "^2.6.2" } }, "sha512-k0goWotZKKz+kV6Ln0qeAMSeSVi4NipuIIz5R8A0uCF2zBK4CXWdZR7KeaIoLBhJwQnHj1UU7E+2MK74KIUBzA=="],
 
     "@aws-sdk/token-providers": ["@aws-sdk/token-providers@3.714.0", "", { "dependencies": { "@aws-sdk/types": "3.714.0", "@smithy/property-provider": "^3.1.11", "@smithy/shared-ini-file-loader": "^3.1.12", "@smithy/types": "^3.7.2", "tslib": "^2.6.2" }, "peerDependencies": { "@aws-sdk/client-sso-oidc": "^3.714.0" } }, "sha512-vKN064aLE3kl+Zl16Ony3jltHnMddMBT7JRkP1L+lLywhA0PcAKxpdvComul/sTBWnbnwLnaS5NsDUhcWySH8A=="],
@@ -223,6 +226,8 @@
     "@aws-sdk/util-arn-parser": ["@aws-sdk/util-arn-parser@3.693.0", "", { "dependencies": { "tslib": "^2.6.2" } }, "sha512-WC8x6ca+NRrtpAH64rWu+ryDZI3HuLwlEr8EU6/dbC/pt+r/zC0PBoC15VEygUaBA+isppCikQpGyEDu0Yj7gQ=="],
 
     "@aws-sdk/util-endpoints": ["@aws-sdk/util-endpoints@3.714.0", "", { "dependencies": { "@aws-sdk/types": "3.714.0", "@smithy/types": "^3.7.2", "@smithy/util-endpoints": "^2.1.7", "tslib": "^2.6.2" } }, "sha512-Xv+Z2lhe7w7ZZRsgBwBMZgGTVmS+dkkj2S13uNHAx9lhB5ovM8PhK5G/j28xYf6vIibeuHkRAbb7/ozdZIGR+A=="],
+
+    "@aws-sdk/util-format-url": ["@aws-sdk/util-format-url@3.714.0", "", { "dependencies": { "@aws-sdk/types": "3.714.0", "@smithy/querystring-builder": "^3.0.11", "@smithy/types": "^3.7.2", "tslib": "^2.6.2" } }, "sha512-PA/ES6BeKmYzFOsZ3az/8MqSLf6uzXAS7GsYONZMF6YASn4ewd/AspuvQMp6+x9VreAPCq7PecF+XL9KXejtPg=="],
 
     "@aws-sdk/util-locate-window": ["@aws-sdk/util-locate-window@3.723.0", "", { "dependencies": { "tslib": "^2.6.2" } }, "sha512-Yf2CS10BqK688DRsrKI/EO6B8ff5J86NXe4C+VCysK7UOgN0l1zOTeTukZ3H8Q9tYYX3oaF1961o8vRkFm7Nmw=="],
 
