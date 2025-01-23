@@ -1,6 +1,6 @@
 import './commands';
 
-import { mount } from 'cypress/react18';
+import { mount } from 'cypress/react';
 import { MOCK_ERROR_MESSAGE } from '../mocks/base-image-update-rejection';
 
 declare global {
