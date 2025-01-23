@@ -27,9 +27,8 @@
     "vite": "6.0.5"
   },
   "scripts": {
-    "dev": "NODE_ENV=development bun --hot ./server.tsx",
-    "prestart": "tailwindcss -o ./public/style.css",
-    "start": "bun ./server.tsx",
+    "dev": "NODE_ENV=development bun --hot ./server.ts",
+    "start": "bun ./server.ts",
     "test": "nx docker comparadise && nx test:e2e frontend"
   }
 }

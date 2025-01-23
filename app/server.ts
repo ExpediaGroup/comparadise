@@ -15,7 +15,7 @@ const server = serve({
       new Response('Not found', { status: 404 })
     );
   },
-  development: process.env.NODE_ENV === 'development'
+  development: true
 });
 
 console.log(`Server running at ${server.url}`);
