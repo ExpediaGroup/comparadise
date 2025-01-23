@@ -5,7 +5,8 @@ import index from './public/index.html';
 
 const server = serve({
   static: {
-    '/': index
+    '/': index,
+    '/health': new Response('healthy', { status: 200 })
   },
   port: process.env.PORT ?? 8080,
   async fetch(request, response) {
