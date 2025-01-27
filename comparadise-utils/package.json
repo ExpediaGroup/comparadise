@@ -23,7 +23,7 @@
     "@types/pixelmatch": "5.2.6",
     "@types/pngjs": "6.0.5",
     "cypress": "14.0.0",
-    "tsup": "8.3.5"
+    "tsup": "8.3.6"
   },
   "peerDependencies": {
     "cypress": ">=12"
