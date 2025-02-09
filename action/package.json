@@ -7,12 +7,12 @@
     "@actions/exec": "1.1.1",
     "@actions/github": "6.0.0",
     "bluebird": "3.7.2",
-    "glob": "11.0.0"
+    "glob": "11.0.1"
   },
   "devDependencies": {
     "@types/bluebird": "3.5.42",
     "@types/glob": "8.1.0",
-    "tsup": "8.3.5"
+    "tsup": "8.3.6"
   },
   "scripts": {
     "build": "tsup",
