@@ -1,6 +1,6 @@
 {
   "name": "comparadise",
-  "packageManager": "bun@1.2.0",
+  "packageManager": "bun@1.2.2",
   "devDependencies": {
     "@swc/jest": "0.2.37",
     "@total-typescript/ts-reset": "0.6.1",
