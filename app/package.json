@@ -13,6 +13,7 @@
     "@types/lodash": "4.17.14",
     "@types/react": "19.0.8",
     "@types/react-dom": "19.0.3",
+    "bun-plugin-tailwind": "0.0.14",
     "lodash": "4.17.21",
     "react": "19.0.0",
     "react-dom": "19.0.0",
@@ -28,7 +29,7 @@
     "vite": "6.0.11"
   },
   "scripts": {
-    "dev": "NODE_ENV=development bun --hot ./server.ts",
+    "dev": "bun --hot ./server.ts",
     "start": "bun ./server.ts",
     "test": "nx docker comparadise && nx test:e2e frontend"
   }
