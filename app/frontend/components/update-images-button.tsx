@@ -58,7 +58,7 @@ export const UpdateImagesButton: React.FC<{ disabled: boolean }> = ({
     'WARNING: This will update the base images in S3 and will set the visual regression status to passed. You can only do this if you are about to merge your PR and all other checks have passed.';
   const dialogContent = (
     <>
-      <Dialog.Title as="h3" className="mt-2 text-xl font-semibold leading-6">
+      <Dialog.Title as="h3" className="mt-2 text-xl leading-6 font-semibold">
         {dialogTitleText}
       </Dialog.Title>
       <Dialog.Description className="mt-5 text-lg font-semibold text-slate-500">
@@ -91,7 +91,7 @@ export const UpdateImagesButton: React.FC<{ disabled: boolean }> = ({
       </svg>
       <Dialog.Title
         as="h3"
-        className="text-lg font-medium leading-6 text-gray-900"
+        className="text-lg leading-6 font-medium text-gray-900"
       >
         Updating base images...
       </Dialog.Title>
@@ -132,7 +132,7 @@ export const UpdateImagesButton: React.FC<{ disabled: boolean }> = ({
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="fixed inset-0 bg-black bg-opacity-25" />
+            <div className="bg-opacity-25 fixed inset-0 bg-black" />
           </Transition.Child>
 
           <div className="fixed inset-0 overflow-y-auto">

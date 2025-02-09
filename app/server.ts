@@ -15,8 +15,7 @@ const server = serve({
       trpcHandler(request, response) ??
       new Response('Not found', { status: 404 })
     );
-  },
-  development: true
+  }
 });
 
 console.log(`Server running at ${server.url}`);

@@ -46,7 +46,7 @@ export const SingleImageView: React.FC<SingleImageViewProps> = ({
   }
 
   return (
-    <div className="mb-12 mt-5 flex justify-center">
+    <div className="mt-5 mb-12 flex justify-center">
       <div className="relative">
         <LazyImage
           src={selectedImage.url}
