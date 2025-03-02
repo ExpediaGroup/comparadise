@@ -1,15 +1,11 @@
-import { baseExists } from '../screenshots';
-import { existsSync } from 'fs';
 import { expect } from '@jest/globals';
 
-jest.mock('fs');
+import { createImageFileName } from '../files';
 
-describe('screenshots', () => {
-  it('should take a screenshot', () => {
-    (existsSync as jest.Mock).mockReturnValue(true);
+describe('createImageFileName', () => {
+  it('should build image file name correctly', () => {
     const path = 'path/to/file';
-    const result = baseExists(path);
-    expect(result).toBe(true);
-    expect(existsSync).toHaveBeenCalledWith(`${path}/base.png`);
+    const result = createImageFileName(path, 'base');
+    expect(result).toEqual(`${path}/base.png`);
   });
 });
