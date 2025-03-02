@@ -1,11 +1,11 @@
 {
   "name": "comparadise",
-  "packageManager": "bun@1.2.2",
+  "packageManager": "bun@1.2.4",
   "devDependencies": {
     "@swc/jest": "0.2.37",
     "@total-typescript/ts-reset": "0.6.1",
     "@types/jest": "29.5.14",
-    "bun-types": "1.2.2",
+    "bun-types": "1.2.4",
     "cypress": "14.0.3",
     "eslint": "9.20.1",
     "eslint-plugin-react": "7.37.4",
