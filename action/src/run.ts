@@ -159,4 +159,5 @@ export const run = async () => {
     ...context.repo
   });
   await createGithubComment();
+  setFailed('Visual regression detected. Check the comment for more details.');
 };
