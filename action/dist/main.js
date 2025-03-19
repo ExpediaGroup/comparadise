@@ -29445,6 +29445,7 @@ var import_bluebird = __toESM(require_bluebird());
 var path = __toESM(require("path"));
 var downloadBaseImages = async () => {
   const bucketName = (0, import_core.getInput)("bucket-name", { required: true });
+  const screenshotsDirectory = (0, import_core.getInput)("screenshots-directory");
   const baseImageExitCode = await (0, import_exec.exec)(
     `aws s3 ls s3://${bucketName}/${BASE_IMAGES_DIRECTORY}/`,
     [],
@@ -29454,9 +29455,9 @@ var downloadBaseImages = async () => {
     (0, import_core.info)(
       `Base images directory does not exist in bucket ${bucketName}. Skipping download.`
     );
+    await (0, import_exec.exec)(`mkdir -p ${screenshotsDirectory}`);
     return;
   }
-  const screenshotsDirectory = (0, import_core.getInput)("screenshots-directory");
   const packagePaths = (0, import_core.getInput)("package-paths")?.split(",");
   if (packagePaths) {
     return Promise.all(
