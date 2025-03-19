@@ -341,7 +341,7 @@ describe('main', () => {
   });
 
   it('should use subdirectories if provided', async () => {
-    (exec as jest.Mock).mockResolvedValue(1);
+    (exec as jest.Mock).mockResolvedValue(0);
     const extendedInputMap: Record<string, string> = {
       ...inputMap,
       'package-paths': 'path/1,path/2'
@@ -374,7 +374,7 @@ describe('main', () => {
   });
 
   it('should use subdirectories if provided with diff-id input', async () => {
-    (exec as jest.Mock).mockResolvedValue(1);
+    (exec as jest.Mock).mockResolvedValue(0);
     const extendedInputMap: Record<string, string> = {
       ...diffIdInputMap,
       'package-paths': 'path/1,path/2'
@@ -405,6 +405,33 @@ describe('main', () => {
       `aws s3 cp path/to/screenshots s3://some-bucket/${NEW_IMAGES_DIRECTORY}/sha --recursive`
     );
     assertNoOctokitCalls();
+  });
+
+  it('should not download base images if aws ls call fails', async () => {
+    (exec as jest.Mock).mockResolvedValue(1); // mock ls call failing
+    const extendedInputMap: Record<string, string> = {
+      ...inputMap,
+      'package-paths': 'path/1,path/2'
+    };
+    (getInput as jest.Mock).mockImplementation(name => extendedInputMap[name]);
+    (sync as unknown as jest.Mock).mockReturnValue([
+      'path/to/screenshots/base.png',
+      'path/to/screenshots/diff.png',
+      'path/to/screenshots/new.png'
+    ]);
+    await run();
+    expect(exec).not.toHaveBeenCalledWith(
+      `aws s3 cp s3://some-bucket/${BASE_IMAGES_DIRECTORY}/path/1 path/to/screenshots/path/1 --recursive`
+    );
+    expect(exec).not.toHaveBeenCalledWith(
+      `aws s3 cp s3://some-bucket/${BASE_IMAGES_DIRECTORY}/path/2 path/to/screenshots/path/2 --recursive`
+    );
+    expect(exec).toHaveBeenCalledWith(
+      `aws s3 cp path/to/screenshots/path/1 s3://some-bucket/${NEW_IMAGES_DIRECTORY}/sha/path/1 --recursive`
+    );
+    expect(exec).toHaveBeenCalledWith(
+      `aws s3 cp path/to/screenshots/path/2 s3://some-bucket/${NEW_IMAGES_DIRECTORY}/sha/path/2 --recursive`
+    );
   });
 
   it('should not set successful commit status or create comment if the latest Visual Regression status is failure', async () => {
