@@ -8,9 +8,11 @@ import {
 } from 'shared';
 import { map } from 'bluebird';
 import * as path from 'path';
+import { mkdirSync } from 'fs';
 
 export const downloadBaseImages = async () => {
   const bucketName = getInput('bucket-name', { required: true });
+  const screenshotsDirectory = getInput('screenshots-directory');
   const baseImageExitCode = await exec(
     `aws s3 ls s3://${bucketName}/${BASE_IMAGES_DIRECTORY}/`,
     [],
@@ -20,10 +22,10 @@ export const downloadBaseImages = async () => {
     info(
       `Base images directory does not exist in bucket ${bucketName}. Skipping download.`
     );
+    mkdirSync(path.join(process.cwd(), screenshotsDirectory));
     return;
   }
 
-  const screenshotsDirectory = getInput('screenshots-directory');
   const packagePaths = getInput('package-paths')?.split(',');
   if (packagePaths) {
     return Promise.all(
