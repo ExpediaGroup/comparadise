@@ -1,5 +1,5 @@
 import { exec } from '@actions/exec';
-import { getInput } from '@actions/core';
+import { getInput, info } from '@actions/core';
 import {
   BASE_IMAGE_NAME,
   BASE_IMAGES_DIRECTORY,
@@ -11,6 +11,18 @@ import * as path from 'path';
 
 export const downloadBaseImages = async () => {
   const bucketName = getInput('bucket-name', { required: true });
+  const baseImageExitCode = await exec(
+    `aws s3 ls s3://${bucketName}/${BASE_IMAGES_DIRECTORY}/`,
+    [],
+    { ignoreReturnCode: true }
+  );
+  if (baseImageExitCode !== 0) {
+    info(
+      `Base images directory does not exist in bucket ${bucketName}. Skipping download.`
+    );
+    return;
+  }
+
   const screenshotsDirectory = getInput('screenshots-directory');
   const packagePaths = getInput('package-paths')?.split(',');
   if (packagePaths) {
