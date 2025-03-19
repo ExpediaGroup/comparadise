@@ -12,18 +12,6 @@ import { mkdirSync } from 'fs';
 
 export const downloadBaseImages = async () => {
   const bucketName = getInput('bucket-name', { required: true });
-  const baseImageExitCode = await exec(
-    `aws s3 ls s3://${bucketName}/${BASE_IMAGES_DIRECTORY}/`,
-    [],
-    { ignoreReturnCode: true }
-  );
-  if (baseImageExitCode !== 0) {
-    info(
-      `Base images directory does not exist in bucket ${bucketName}. Skipping download.`
-    );
-    return;
-  }
-
   const screenshotsDirectory = getInput('screenshots-directory');
   const baseImageExitCode = await exec(
     `aws s3 ls s3://${bucketName}/${BASE_IMAGES_DIRECTORY}/`,
