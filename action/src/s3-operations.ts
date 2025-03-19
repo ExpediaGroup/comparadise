@@ -8,7 +8,6 @@ import {
 } from 'shared';
 import { map } from 'bluebird';
 import * as path from 'path';
-import { mkdirSync } from 'fs';
 
 export const downloadBaseImages = async () => {
   const bucketName = getInput('bucket-name', { required: true });
@@ -22,7 +21,7 @@ export const downloadBaseImages = async () => {
     info(
       `Base images directory does not exist in bucket ${bucketName}. Skipping download.`
     );
-    mkdirSync(path.join(process.cwd(), screenshotsDirectory));
+    await exec(`mkdir -p ${screenshotsDirectory}`);
     return;
   }
 
