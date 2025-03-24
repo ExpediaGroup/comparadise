@@ -17600,12 +17600,12 @@ var require_lib = __commonJS({
             throw new Error("Client has already been disposed.");
           }
           const parsedUrl = new URL(requestUrl);
-          let info2 = this._prepareRequest(verb, parsedUrl, headers);
+          let info3 = this._prepareRequest(verb, parsedUrl, headers);
           const maxTries = this._allowRetries && RetryableHttpVerbs.includes(verb) ? this._maxRetries + 1 : 1;
           let numTries = 0;
           let response;
           do {
-            response = yield this.requestRaw(info2, data);
+            response = yield this.requestRaw(info3, data);
             if (response && response.message && response.message.statusCode === HttpCodes.Unauthorized) {
               let authenticationHandler;
               for (const handler2 of this.handlers) {
@@ -17615,7 +17615,7 @@ var require_lib = __commonJS({
                 }
               }
               if (authenticationHandler) {
-                return authenticationHandler.handleAuthentication(this, info2, data);
+                return authenticationHandler.handleAuthentication(this, info3, data);
               } else {
                 return response;
               }
@@ -17638,8 +17638,8 @@ var require_lib = __commonJS({
                   }
                 }
               }
-              info2 = this._prepareRequest(verb, parsedRedirectUrl, headers);
-              response = yield this.requestRaw(info2, data);
+              info3 = this._prepareRequest(verb, parsedRedirectUrl, headers);
+              response = yield this.requestRaw(info3, data);
               redirectsRemaining--;
             }
             if (!response.message.statusCode || !HttpResponseRetryCodes.includes(response.message.statusCode)) {
@@ -17668,7 +17668,7 @@ var require_lib = __commonJS({
        * @param info
        * @param data
        */
-      requestRaw(info2, data) {
+      requestRaw(info3, data) {
         return __awaiter(this, void 0, void 0, function* () {
           return new Promise((resolve, reject) => {
             function callbackForResult(err, res) {
@@ -17680,7 +17680,7 @@ var require_lib = __commonJS({
                 resolve(res);
               }
             }
-            this.requestRawWithCallback(info2, data, callbackForResult);
+            this.requestRawWithCallback(info3, data, callbackForResult);
           });
         });
       }
@@ -17690,12 +17690,12 @@ var require_lib = __commonJS({
        * @param data
        * @param onResult
        */
-      requestRawWithCallback(info2, data, onResult) {
+      requestRawWithCallback(info3, data, onResult) {
         if (typeof data === "string") {
-          if (!info2.options.headers) {
-            info2.options.headers = {};
+          if (!info3.options.headers) {
+            info3.options.headers = {};
           }
-          info2.options.headers["Content-Length"] = Buffer.byteLength(data, "utf8");
+          info3.options.headers["Content-Length"] = Buffer.byteLength(data, "utf8");
         }
         let callbackCalled = false;
         function handleResult(err, res) {
@@ -17704,7 +17704,7 @@ var require_lib = __commonJS({
             onResult(err, res);
           }
         }
-        const req = info2.httpModule.request(info2.options, (msg) => {
+        const req = info3.httpModule.request(info3.options, (msg) => {
           const res = new HttpClientResponse(msg);
           handleResult(void 0, res);
         });
@@ -17716,7 +17716,7 @@ var require_lib = __commonJS({
           if (socket) {
             socket.end();
           }
-          handleResult(new Error(`Request timeout: ${info2.options.path}`));
+          handleResult(new Error(`Request timeout: ${info3.options.path}`));
         });
         req.on("error", function(err) {
           handleResult(err);
@@ -17752,27 +17752,27 @@ var require_lib = __commonJS({
         return this._getProxyAgentDispatcher(parsedUrl, proxyUrl);
       }
       _prepareRequest(method, requestUrl, headers) {
-        const info2 = {};
-        info2.parsedUrl = requestUrl;
-        const usingSsl = info2.parsedUrl.protocol === "https:";
-        info2.httpModule = usingSsl ? https : http;
+        const info3 = {};
+        info3.parsedUrl = requestUrl;
+        const usingSsl = info3.parsedUrl.protocol === "https:";
+        info3.httpModule = usingSsl ? https : http;
         const defaultPort = usingSsl ? 443 : 80;
-        info2.options = {};
-        info2.options.host = info2.parsedUrl.hostname;
-        info2.options.port = info2.parsedUrl.port ? parseInt(info2.parsedUrl.port) : defaultPort;
-        info2.options.path = (info2.parsedUrl.pathname || "") + (info2.parsedUrl.search || "");
-        info2.options.method = method;
-        info2.options.headers = this._mergeHeaders(headers);
+        info3.options = {};
+        info3.options.host = info3.parsedUrl.hostname;
+        info3.options.port = info3.parsedUrl.port ? parseInt(info3.parsedUrl.port) : defaultPort;
+        info3.options.path = (info3.parsedUrl.pathname || "") + (info3.parsedUrl.search || "");
+        info3.options.method = method;
+        info3.options.headers = this._mergeHeaders(headers);
         if (this.userAgent != null) {
-          info2.options.headers["user-agent"] = this.userAgent;
+          info3.options.headers["user-agent"] = this.userAgent;
         }
-        info2.options.agent = this._getAgent(info2.parsedUrl);
+        info3.options.agent = this._getAgent(info3.parsedUrl);
         if (this.handlers) {
           for (const handler2 of this.handlers) {
-            handler2.prepareRequest(info2.options);
+            handler2.prepareRequest(info3.options);
           }
         }
-        return info2;
+        return info3;
       }
       _mergeHeaders(headers) {
         if (this.requestOptions && this.requestOptions.headers) {
@@ -19762,10 +19762,10 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
       (0, command_1.issueCommand)("notice", (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
     }
     exports2.notice = notice;
-    function info2(message) {
+    function info3(message) {
       process.stdout.write(message + os.EOL);
     }
-    exports2.info = info2;
+    exports2.info = info3;
     function startGroup(name) {
       (0, command_1.issue)("group", name);
     }
@@ -21708,9 +21708,9 @@ var require_debuggability = __commonJS({
         }
         shouldIgnore = function(line) {
           if (bluebirdFramePattern.test(line)) return true;
-          var info2 = parseLineInfo(line);
-          if (info2) {
-            if (info2.fileName === firstFileName && (firstIndex <= info2.line && info2.line <= lastIndex)) {
+          var info3 = parseLineInfo(line);
+          if (info3) {
+            if (info3.fileName === firstFileName && (firstIndex <= info3.line && info3.line <= lastIndex)) {
               return true;
             }
           }
@@ -29446,6 +29446,18 @@ var path = __toESM(require("path"));
 var downloadBaseImages = async () => {
   const bucketName = (0, import_core.getInput)("bucket-name", { required: true });
   const screenshotsDirectory = (0, import_core.getInput)("screenshots-directory");
+  const baseImageExitCode = await (0, import_exec.exec)(
+    `aws s3 ls s3://${bucketName}/${BASE_IMAGES_DIRECTORY}/`,
+    [],
+    { ignoreReturnCode: true }
+  );
+  if (baseImageExitCode !== 0) {
+    (0, import_core.info)(
+      `Base images directory does not exist in bucket ${bucketName}. Skipping download.`
+    );
+    await (0, import_exec.exec)(`mkdir -p ${screenshotsDirectory}`);
+    return;
+  }
   const packagePaths = (0, import_core.getInput)("package-paths")?.split(",");
   if (packagePaths) {
     return Promise.all(
