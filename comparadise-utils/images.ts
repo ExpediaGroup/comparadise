@@ -3,7 +3,9 @@ import { PNG } from 'pngjs';
 import pixelmatch from 'pixelmatch';
 
 const PIXELMATCH_OPTIONS = {
-  threshold: 0.3
+  alpha: 0.3, // defaults to 0.1
+  threshold: 0.5, // defaults to 0.1
+  includeAA: false // defaults to true
 };
 
 /**
