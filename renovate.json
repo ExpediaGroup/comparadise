@@ -11,8 +11,8 @@
       "automerge": true
     },
     {
-      "matchPackagePatterns": ["oven/bun"],
-      "groupName": "dependencies"
+      "groupName": "dependencies",
+      "matchPackageNames": ["/oven/bun/"]
     }
   ]
 }
