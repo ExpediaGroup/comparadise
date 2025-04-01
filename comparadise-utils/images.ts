@@ -8,6 +8,16 @@ const PIXELMATCH_OPTIONS = {
   includeAA: false // defaults to true
 };
 
+export type PixelMatchOptions = {
+  threshold?: number | undefined,
+  includeAA?: boolean | undefined,
+  alpha?: number | undefined,
+  aaColor?: [number, number, number] | undefined,
+  diffColor?: [number, number, number] | undefined,
+  diffColorAlt?: [number, number, number] | undefined,
+  diffMask?: boolean | undefined
+}
+
 /**
  * Helper function to create reusable image resizer
  */
@@ -68,8 +78,9 @@ function alignImagesToSameSize(firstImage: PNG, secondImage: PNG) {
  * and diff PNG for writing the diff image to.
  * @param {string} basePath - Full file path to base image
  * @param {string} actualPath - Full file path to new image
+ * @param pixelMatchOptions - options to calculate pixel differences between two images
  */
-export function getDiffPixels(basePath: string, actualPath: string) {
+export function getDiffPixels(basePath: string, actualPath: string, pixelMatchOptions: PixelMatchOptions = PIXELMATCH_OPTIONS) {
   const rawBase = PNG.sync.read(fs.readFileSync(basePath));
   const rawActual = PNG.sync.read(fs.readFileSync(actualPath));
 
@@ -91,7 +102,7 @@ export function getDiffPixels(basePath: string, actualPath: string) {
     diff.data,
     diff.width,
     diff.height,
-    PIXELMATCH_OPTIONS
+    pixelMatchOptions
   );
 
   return { diffPixels, diff };
