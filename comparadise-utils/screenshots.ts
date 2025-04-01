@@ -23,8 +23,8 @@ export function baseExists(path: string) {
 
 export type CompareScreenshotArgs = {
   screenshotFolder: string;
-  pixelMatchSettings?: PixelMatchOptions
-}
+  pixelMatchSettings?: PixelMatchOptions;
+};
 
 /**
  * Runs a visual regression test.
@@ -37,7 +37,11 @@ export function compareScreenshots(args: CompareScreenshotArgs) {
 
   const basePath = createImageFileName(screenshotFolder, 'base');
   const actualPath = createImageFileName(screenshotFolder, 'new');
-  const { diffPixels, diff } = getDiffPixels(basePath, actualPath, pixelMatchSettings);
+  const { diffPixels, diff } = getDiffPixels(
+    basePath,
+    actualPath,
+    pixelMatchSettings
+  );
 
   if (diffPixels) {
     // Create diff.png next to base and new for review
