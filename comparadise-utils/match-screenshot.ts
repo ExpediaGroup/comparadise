@@ -84,15 +84,14 @@ export function matchScreenshot(
   subject: Cypress.JQueryWithSelector | Window | Document | void,
   args?: MatchScreenshotArgs
 ) {
-  const { rawName, options = {} } = args || {};
+  const { rawName, options = {}, pixelMatchSettings } = args || {};
   // Set up screen
   forceFont();
 
   // Making sure each image is visible before taking screenshots
   verifyImages();
 
-  const { name, screenshotsFolder, pixelMatchSettings } =
-    getTestFolderPathFromScripts(rawName);
+  const { name, screenshotsFolder } = getTestFolderPathFromScripts(rawName);
 
   cy.task('baseExists', screenshotsFolder).then(hasBase => {
     const target = subject ? cy.wrap(subject) : cy;
