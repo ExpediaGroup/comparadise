@@ -78,7 +78,7 @@ function alignImagesToSameSize(firstImage: PNG, secondImage: PNG) {
  * and diff PNG for writing the diff image to.
  * @param {string} basePath - Full file path to base image
  * @param {string} actualPath - Full file path to new image
- * @param pixelMatchOptions - options to calculate pixel differences between two images
+ * @param pixelMatchOptions - (Optional) options to calculate pixel differences between two images
  */
 export function getDiffPixels(basePath: string, actualPath: string, pixelMatchOptions: PixelMatchOptions = PIXELMATCH_OPTIONS) {
   const rawBase = PNG.sync.read(fs.readFileSync(basePath));
