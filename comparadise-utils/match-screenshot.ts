@@ -1,3 +1,5 @@
+import { PixelMatchOptions } from "./images";
+
 const PREFIX_DIFFERENTIATOR = '___';
 const SUFFIX_TEST_IDENTIFIER = '.spec.ts';
 const SCREENSHOTS_FOLDER_NAME = 'screenshots';
@@ -75,6 +77,7 @@ function verifyImages() {
 export type MatchScreenshotArgs = {
   rawName?: string;
   options?: Partial<Cypress.ScreenshotOptions>;
+  pixelMatchSettings?: PixelMatchOptions
 };
 
 export function matchScreenshot(
