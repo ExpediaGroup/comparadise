@@ -1,4 +1,4 @@
-import { PixelMatchOptions } from "./images";
+import { PixelMatchOptions } from './images';
 
 const PREFIX_DIFFERENTIATOR = '___';
 const SUFFIX_TEST_IDENTIFIER = '.spec.ts';
@@ -77,7 +77,7 @@ function verifyImages() {
 export type MatchScreenshotArgs = {
   rawName?: string;
   options?: Partial<Cypress.ScreenshotOptions>;
-  pixelMatchSettings?: PixelMatchOptions
+  pixelMatchSettings?: PixelMatchOptions;
 };
 
 export function matchScreenshot(
@@ -91,7 +91,8 @@ export function matchScreenshot(
   // Making sure each image is visible before taking screenshots
   verifyImages();
 
-  const { name, screenshotsFolder, pixelMatchSettings } = getTestFolderPathFromScripts(rawName);
+  const { name, screenshotsFolder, pixelMatchSettings } =
+    getTestFolderPathFromScripts(rawName);
 
   cy.task('baseExists', screenshotsFolder).then(hasBase => {
     const target = subject ? cy.wrap(subject) : cy;
@@ -109,8 +110,8 @@ export function matchScreenshot(
 
       return null;
     }
-    
-    const compareScreenshotsArg = { screenshotsFolder, pixelMatchSettings }
+
+    const compareScreenshotsArg = { screenshotsFolder, pixelMatchSettings };
 
     cy.task('compareScreenshots', compareScreenshotsArg).then(diffPixels => {
       if (diffPixels === 0) {
