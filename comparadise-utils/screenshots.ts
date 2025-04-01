@@ -28,7 +28,7 @@ export type CompareScreenshotArgs = {
 
 /**
  * Runs a visual regression test.
- * @param args - 
+ * @param args -
  * Contains Full screenshots folder where the base/new/diff images will be compared and written to
  * Optionally contains specified Pixelmatch config settings.
  */
