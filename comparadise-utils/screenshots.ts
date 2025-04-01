@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import { PNG } from 'pngjs';
-import { getDiffPixels } from './images';
+import { getDiffPixels, PixelMatchOptions } from './images';
 import { createImageFileName } from './files';
 
 /**
@@ -21,15 +21,23 @@ export function baseExists(path: string) {
   return exists;
 }
 
+export type CompareScreenshotArgs = {
+  screenshotFolder: string;
+  pixelMatchSettings?: PixelMatchOptions
+}
+
 /**
  * Runs a visual regression test.
- * @param screenshotFolder - Full screenshots folder where the base/new/diff
- *                           images will be compared and written to.
+ * @param args - 
+ * Contains Full screenshots folder where the base/new/diff images will be compared and written to
+ * Optionally contains specified Pixelmatch config settings.
  */
-export function compareScreenshots(screenshotFolder: string) {
+export function compareScreenshots(args: CompareScreenshotArgs) {
+  const { screenshotFolder, pixelMatchSettings } = args || {};
+
   const basePath = createImageFileName(screenshotFolder, 'base');
   const actualPath = createImageFileName(screenshotFolder, 'new');
-  const { diffPixels, diff } = getDiffPixels(basePath, actualPath);
+  const { diffPixels, diff } = getDiffPixels(basePath, actualPath, pixelMatchSettings);
 
   if (diffPixels) {
     // Create diff.png next to base and new for review
