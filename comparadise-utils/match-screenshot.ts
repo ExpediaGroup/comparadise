@@ -91,7 +91,7 @@ export function matchScreenshot(
   // Making sure each image is visible before taking screenshots
   verifyImages();
 
-  const { name, screenshotsFolder } = getTestFolderPathFromScripts(rawName);
+  const { name, screenshotsFolder, pixelMatchSettings } = getTestFolderPathFromScripts(rawName);
 
   cy.task('baseExists', screenshotsFolder).then(hasBase => {
     const target = subject ? cy.wrap(subject) : cy;
@@ -109,8 +109,10 @@ export function matchScreenshot(
 
       return null;
     }
+    
+    const compareScreenshotsArg = { screenshotsFolder, pixelMatchSettings }
 
-    cy.task('compareScreenshots', screenshotsFolder).then(diffPixels => {
+    cy.task('compareScreenshots', compareScreenshotsArg).then(diffPixels => {
       if (diffPixels === 0) {
         cy.log(`✅ Actual image of ${name} was the same as base`);
       } else {
