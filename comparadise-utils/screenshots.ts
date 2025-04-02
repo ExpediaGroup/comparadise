@@ -23,7 +23,7 @@ export function baseExists(path: string) {
 
 export type CompareScreenshotArgs = {
   screenshotFolder: string;
-  pixelMatchSettings?: PixelMatchOptions;
+  pixelMatchOptions?: PixelMatchOptions;
 };
 
 /**
@@ -33,14 +33,14 @@ export type CompareScreenshotArgs = {
  * Optionally contains specified Pixelmatch config settings.
  */
 export function compareScreenshots(args: CompareScreenshotArgs) {
-  const { screenshotFolder, pixelMatchSettings } = args || {};
+  const { screenshotFolder, pixelMatchOptions } = args || {};
 
   const basePath = createImageFileName(screenshotFolder, 'base');
   const actualPath = createImageFileName(screenshotFolder, 'new');
   const { diffPixels, diff } = getDiffPixels(
     basePath,
     actualPath,
-    pixelMatchSettings
+    pixelMatchOptions
   );
 
   if (diffPixels) {
