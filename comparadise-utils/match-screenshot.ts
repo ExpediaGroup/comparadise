@@ -1,151 +1,113 @@
-import { PixelMatchOptions } from './images';
+import * as fs from 'fs';
+import { PNG } from 'pngjs';
+import pixelmatch from 'pixelmatch';
 
-const PREFIX_DIFFERENTIATOR = '___';
-const SUFFIX_TEST_IDENTIFIER = '.spec.ts';
-const SCREENSHOTS_FOLDER_NAME = 'screenshots';
-
-function forceFont() {
-  const iframe = window.parent.document.querySelector('iframe');
-  const contentDocument = iframe && iframe.contentDocument;
-
-  if (contentDocument) {
-    const style = contentDocument.createElement('style');
-    style.type = 'text/css';
-    style.appendChild(
-      contentDocument.createTextNode('* { font-family: Arial !important; }')
-    );
-    contentDocument.head.appendChild(style);
-    return style;
-  }
-
-  return false;
-}
-
-function getTestFolderPathFromScripts(rawName?: string) {
-  const relativeTestPath = Cypress.spec.relative;
-
-  if (!relativeTestPath) {
-    throw new Error(
-      '❌ Could not find matching script in the Cypress DOM to infer the test folder path'
-    );
-  }
-
-  const currentTestNumber = Cypress.mocha.getRunner().currentRunnable?.order;
-  if (
-    !rawName &&
-    typeof currentTestNumber === 'number' &&
-    currentTestNumber > 1
-  ) {
-    throw new Error(
-      '❌ The rawName argument was not provided to matchScreenshot and is required for test files containing multiple tests!'
-    );
-  }
-
-  const testName = relativeTestPath.substring(
-    relativeTestPath.lastIndexOf('/') + 1,
-    relativeTestPath.lastIndexOf(SUFFIX_TEST_IDENTIFIER)
-  );
-  const name = rawName || testName;
-
-  const screenshotsFolder = `${SCREENSHOTS_FOLDER_NAME}/${relativeTestPath.substring(
-    0,
-    relativeTestPath.lastIndexOf(testName)
-  )}${name}`;
-
-  return {
-    name,
-    screenshotsFolder
-  };
-}
-
-function verifyImages() {
-  if (Cypress.$('img:visible').length > 0) {
-    cy.document()
-      .its('body')
-      .find('img')
-      .filter(':visible')
-      .then(images => {
-        if (images) {
-          cy.wrap(images).each($img => {
-            cy.wrap($img).should('exist').and('have.prop', 'naturalWidth');
-          });
-        }
-      });
-  }
-}
-
-export type MatchScreenshotArgs = {
-  rawName?: string;
-  options?: Partial<Cypress.ScreenshotOptions>;
-  pixelMatchSettings?: PixelMatchOptions;
+const PIXELMATCH_OPTIONS = {
+  alpha: 0.3, // defaults to 0.1
+  threshold: 0.5, // defaults to 0.1
+  includeAA: false // defaults to true
 };
 
-export function matchScreenshot(
-  subject: Cypress.JQueryWithSelector | Window | Document | void,
-  args?: MatchScreenshotArgs
-) {
-  const { rawName, options = {}, pixelMatchSettings } = args || {};
-  // Set up screen
-  forceFont();
+export interface PixelMatchOptions {
+  threshold?: number | undefined;
+  includeAA?: boolean | undefined;
+  alpha?: number | undefined;
+  aaColor?: [number, number, number] | undefined;
+  diffColor?: [number, number, number] | undefined;
+  diffColorAlt?: [number, number, number] | undefined;
+  diffMask?: boolean | undefined;
+}
 
-  // Making sure each image is visible before taking screenshots
-  verifyImages();
+/**
+ * Helper function to create reusable image resizer
+ */
+const createImageResizer = (width: number, height: number) => (source: PNG) => {
+  const resized = new PNG({ width, height, fill: true });
+  PNG.bitblt(source, resized, 0, 0, source.width, source.height, 0, 0);
+  return resized;
+};
 
-  const { name, screenshotsFolder } = getTestFolderPathFromScripts(rawName);
-
-  cy.task('baseExists', screenshotsFolder).then(hasBase => {
-    const target = subject ? cy.wrap(subject) : cy;
-    // For easy slicing of path ignoring the root screenshot folder
-    target.screenshot(
-      `${PREFIX_DIFFERENTIATOR}${screenshotsFolder}/new`,
-      options
-    );
-
-    if (!hasBase) {
-      cy.task(
-        'log',
-        `✅ A new base image was created for ${name}. Create this as a new base image via Comparadise!`
-      );
-
-      return null;
-    }
-
-    const compareScreenshotsArg = { screenshotsFolder, pixelMatchSettings };
-
-    cy.task('compareScreenshots', compareScreenshotsArg).then(diffPixels => {
-      if (diffPixels === 0) {
-        cy.log(`✅ Actual image of ${name} was the same as base`);
-      } else {
-        throw new Error(
-          `❌ Actual image of ${name} differed by ${diffPixels} pixels.`
-        );
+/**
+ * Fills new area added after resize with transparent black color.
+ * I like idea of checker board pattern, but it seems to be too complicated
+ * to implement considering how low-level pngjs API is.
+ */
+const fillSizeDifference = (width: number, height: number) => (image: PNG) => {
+  const inArea = (x: number, y: number) => y > height || x > width;
+  for (let y = 0; y < image.height; y++) {
+    for (let x = 0; x < image.width; x++) {
+      if (inArea(x, y)) {
+        const idx = (image.width * y + x) << 2;
+        image.data[idx] = 0;
+        image.data[idx + 1] = 0;
+        image.data[idx + 2] = 0;
+        image.data[idx + 3] = 64;
       }
-
-      return null;
-    });
-
-    return null;
-  });
-}
-
-Cypress.Commands.add(
-  'matchScreenshot',
-  { prevSubject: ['optional', 'element', 'window', 'document'] },
-  matchScreenshot
-);
-
-interface ExtendedCurrentRunnable extends Mocha.Runnable {
-  currentRunnable?: {
-    order?: unknown;
-  };
-}
-
-declare global {
-  namespace Cypress {
-    interface Cypress {
-      mocha: {
-        getRunner: () => ExtendedCurrentRunnable;
-      };
     }
   }
+  return image;
+};
+
+/**
+ * Aligns images sizes to biggest common value
+ * and fills new pixels with transparent pixels
+ */
+function alignImagesToSameSize(firstImage: PNG, secondImage: PNG) {
+  // Keep original sizes to fill extended area later
+  const firstImageWidth = firstImage.width;
+  const firstImageHeight = firstImage.height;
+  const secondImageWidth = secondImage.width;
+  const secondImageHeight = secondImage.height;
+  // Calculate biggest common values
+  const resizeToSameSize = createImageResizer(
+    Math.max(firstImageWidth, secondImageWidth),
+    Math.max(firstImageHeight, secondImageHeight)
+  );
+  // Resize both images
+  const resizedFirst = resizeToSameSize(firstImage);
+  const resizedSecond = resizeToSameSize(secondImage);
+  // Fill resized area with black transparent pixels
+  return [
+    fillSizeDifference(firstImageWidth, firstImageHeight)(resizedFirst),
+    fillSizeDifference(secondImageWidth, secondImageHeight)(resizedSecond)
+  ];
+}
+
+/**
+ * Compares a base and new image and returns the pixel difference
+ * and diff PNG for writing the diff image to.
+ * @param {string} basePath - Full file path to base image
+ * @param {string} actualPath - Full file path to new image
+ * @param pixelMatchOptions - (Optional) options to calculate pixel differences between two images
+ */
+export function getDiffPixels(
+  basePath: string,
+  actualPath: string,
+  pixelMatchOptions: PixelMatchOptions = PIXELMATCH_OPTIONS
+) {
+  const rawBase = PNG.sync.read(fs.readFileSync(basePath));
+  const rawActual = PNG.sync.read(fs.readFileSync(actualPath));
+
+  const hasSizeMismatch =
+    rawBase.height !== rawActual.height || rawBase.width !== rawActual.width;
+
+  const [base, actual] = hasSizeMismatch
+    ? alignImagesToSameSize(rawBase, rawActual)
+    : [rawBase, rawActual];
+
+  if (!base || !actual) {
+    throw new Error();
+  }
+  const diff = new PNG({ width: base.width, height: base.height });
+
+  const diffPixels = pixelmatch(
+    actual.data,
+    base.data,
+    diff.data,
+    diff.width,
+    diff.height,
+    pixelMatchOptions
+  );
+
+  return { diffPixels, diff };
 }
