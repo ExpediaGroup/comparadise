@@ -78,11 +78,9 @@ interface SensitivityOptions {
   pixelMatchOptions?: PixelMatchOptions;
 }
 
-export type Options = Partial<Cypress.ScreenshotOptions> & SensitivityOptions;
-
 export type MatchScreenshotArgs = {
   rawName?: string;
-  options?: Options;
+  options?: Partial<Cypress.ScreenshotOptions> & SensitivityOptions;
 };
 
 export function matchScreenshot(
