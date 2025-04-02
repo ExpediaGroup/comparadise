@@ -8,7 +8,7 @@ const PIXELMATCH_OPTIONS = {
   includeAA: false // defaults to true
 };
 
-export type PixelMatchOptions = {
+export interface PixelMatchOptions {
   threshold?: number | undefined;
   includeAA?: boolean | undefined;
   alpha?: number | undefined;
@@ -16,7 +16,7 @@ export type PixelMatchOptions = {
   diffColor?: [number, number, number] | undefined;
   diffColorAlt?: [number, number, number] | undefined;
   diffMask?: boolean | undefined;
-};
+}
 
 /**
  * Helper function to create reusable image resizer
