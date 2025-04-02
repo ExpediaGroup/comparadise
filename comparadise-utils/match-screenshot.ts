@@ -113,7 +113,7 @@ export function matchScreenshot(
       return null;
     }
 
-    const pixelMatchOptions = options.pixelMatchOptions;
+    const pixelMatchOptions = options?.pixelMatchOptions;
     const compareScreenshotsArg = { screenshotsFolder, pixelMatchOptions };
 
     cy.task('compareScreenshots', compareScreenshotsArg).then(diffPixels => {
