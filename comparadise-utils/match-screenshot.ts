@@ -1,3 +1,5 @@
+import { PixelMatchOptions } from './images';
+
 const PREFIX_DIFFERENTIATOR = '___';
 const SUFFIX_TEST_IDENTIFIER = '.spec.ts';
 const SCREENSHOTS_FOLDER_NAME = 'screenshots';
@@ -74,14 +76,16 @@ function verifyImages() {
 
 export type MatchScreenshotArgs = {
   rawName?: string;
-  options?: Partial<Cypress.ScreenshotOptions>;
+  options?: Partial<Cypress.ScreenshotOptions> & {
+    pixelMatchOptions?: PixelMatchOptions;
+  };
 };
 
 export function matchScreenshot(
   subject: Cypress.JQueryWithSelector | Window | Document | void,
   args?: MatchScreenshotArgs
 ) {
-  const { rawName, options = {} } = args || {};
+  const { rawName, options } = args || {};
   // Set up screen
   forceFont();
 
@@ -107,7 +111,10 @@ export function matchScreenshot(
       return null;
     }
 
-    cy.task('compareScreenshots', screenshotsFolder).then(diffPixels => {
+    const pixelMatchOptions = options?.pixelMatchOptions;
+    const compareScreenshotsArg = { screenshotsFolder, pixelMatchOptions };
+
+    cy.task('compareScreenshots', compareScreenshotsArg).then(diffPixels => {
       if (diffPixels === 0) {
         cy.log(`✅ Actual image of ${name} was the same as base`);
       } else {

@@ -2,11 +2,13 @@ import * as fs from 'fs';
 import { PNG } from 'pngjs';
 import pixelmatch from 'pixelmatch';
 
-const PIXELMATCH_OPTIONS = {
+const PIXELMATCH_OPTIONS: PixelMatchOptions = {
   alpha: 0.3, // defaults to 0.1
   threshold: 0.5, // defaults to 0.1
   includeAA: false // defaults to true
 };
+
+export type PixelMatchOptions = Parameters<typeof pixelmatch>[5];
 
 /**
  * Helper function to create reusable image resizer
@@ -68,8 +70,13 @@ function alignImagesToSameSize(firstImage: PNG, secondImage: PNG) {
  * and diff PNG for writing the diff image to.
  * @param {string} basePath - Full file path to base image
  * @param {string} actualPath - Full file path to new image
+ * @param pixelMatchOptions - (Optional) options to calculate pixel differences between two images
  */
-export function getDiffPixels(basePath: string, actualPath: string) {
+export function getDiffPixels(
+  basePath: string,
+  actualPath: string,
+  pixelMatchOptions: PixelMatchOptions = PIXELMATCH_OPTIONS
+) {
   const rawBase = PNG.sync.read(fs.readFileSync(basePath));
   const rawActual = PNG.sync.read(fs.readFileSync(actualPath));
 
@@ -91,7 +98,7 @@ export function getDiffPixels(basePath: string, actualPath: string) {
     diff.data,
     diff.width,
     diff.height,
-    PIXELMATCH_OPTIONS
+    pixelMatchOptions
   );
 
   return { diffPixels, diff };
