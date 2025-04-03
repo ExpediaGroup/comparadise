@@ -1,4 +1,5 @@
 import { PixelMatchOptions } from './images';
+import { CompareScreenshotArgs } from './screenshots';
 
 const PREFIX_DIFFERENTIATOR = '___';
 const SUFFIX_TEST_IDENTIFIER = '.spec.ts';
@@ -112,7 +113,10 @@ export function matchScreenshot(
     }
 
     const pixelMatchOptions = options?.pixelMatchOptions;
-    const compareScreenshotsArg = { screenshotsFolder, pixelMatchOptions };
+    const compareScreenshotsArg: CompareScreenshotArgs = {
+      screenshotsFolder,
+      pixelMatchOptions
+    };
 
     cy.task('compareScreenshots', compareScreenshotsArg).then(diffPixels => {
       if (diffPixels === 0) {
