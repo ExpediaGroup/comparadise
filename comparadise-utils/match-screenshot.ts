@@ -74,20 +74,18 @@ function verifyImages() {
   }
 }
 
-interface SensitivityOptions {
-  pixelMatchOptions?: PixelMatchOptions;
-}
-
 export type MatchScreenshotArgs = {
   rawName?: string;
-  options?: Partial<Cypress.ScreenshotOptions> & SensitivityOptions;
+  options?: Partial<Cypress.ScreenshotOptions> & {
+    pixelMatchOptions?: PixelMatchOptions;
+  };
 };
 
 export function matchScreenshot(
   subject: Cypress.JQueryWithSelector | Window | Document | void,
   args?: MatchScreenshotArgs
 ) {
-  const { rawName, options = undefined } = args || {};
+  const { rawName, options } = args || {};
   // Set up screen
   forceFont();
 
