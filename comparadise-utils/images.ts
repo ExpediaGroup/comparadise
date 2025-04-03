@@ -2,21 +2,13 @@ import * as fs from 'fs';
 import { PNG } from 'pngjs';
 import pixelmatch from 'pixelmatch';
 
-const PIXELMATCH_OPTIONS = {
+const PIXELMATCH_OPTIONS: PixelMatchOptions = {
   alpha: 0.3, // defaults to 0.1
   threshold: 0.5, // defaults to 0.1
   includeAA: false // defaults to true
 };
 
-export interface PixelMatchOptions {
-  threshold?: number | undefined;
-  includeAA?: boolean | undefined;
-  alpha?: number | undefined;
-  aaColor?: [number, number, number] | undefined;
-  diffColor?: [number, number, number] | undefined;
-  diffColorAlt?: [number, number, number] | undefined;
-  diffMask?: boolean | undefined;
-}
+export type PixelMatchOptions = Parameters<typeof pixelmatch>[5];
 
 /**
  * Helper function to create reusable image resizer
