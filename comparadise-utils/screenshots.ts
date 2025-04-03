@@ -33,7 +33,7 @@ export type CompareScreenshotArgs = {
  * Optionally contains specified Pixelmatch config settings.
  */
 export function compareScreenshots(args: CompareScreenshotArgs) {
-  const { screenshotFolder, pixelMatchOptions } = args || {};
+  const { screenshotFolder, pixelMatchOptions } = args;
 
   const basePath = createImageFileName(screenshotFolder, 'base');
   const actualPath = createImageFileName(screenshotFolder, 'new');
