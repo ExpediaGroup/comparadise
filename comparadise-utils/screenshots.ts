@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import { PNG } from 'pngjs';
-import { getDiffPixels } from './images';
+import { getDiffPixels, PixelMatchOptions } from './images';
 import { createImageFileName } from './files';
 
 /**
@@ -21,20 +21,32 @@ export function baseExists(path: string) {
   return exists;
 }
 
+export type CompareScreenshotArgs = {
+  screenshotsFolder: string;
+  pixelMatchOptions?: PixelMatchOptions;
+};
+
 /**
  * Runs a visual regression test.
- * @param screenshotFolder - Full screenshots folder where the base/new/diff
- *                           images will be compared and written to.
+ * @param args -
+ * Contains Full screenshots folder where the base/new/diff images will be compared and written to
+ * Optionally contains specified Pixelmatch config settings.
  */
-export function compareScreenshots(screenshotFolder: string) {
-  const basePath = createImageFileName(screenshotFolder, 'base');
-  const actualPath = createImageFileName(screenshotFolder, 'new');
-  const { diffPixels, diff } = getDiffPixels(basePath, actualPath);
+export function compareScreenshots(args: CompareScreenshotArgs) {
+  const { screenshotsFolder, pixelMatchOptions } = args;
+
+  const basePath = createImageFileName(screenshotsFolder, 'base');
+  const actualPath = createImageFileName(screenshotsFolder, 'new');
+  const { diffPixels, diff } = getDiffPixels(
+    basePath,
+    actualPath,
+    pixelMatchOptions
+  );
 
   if (diffPixels) {
     // Create diff.png next to base and new for review
     fs.writeFile(
-      createImageFileName(screenshotFolder, 'diff'),
+      createImageFileName(screenshotsFolder, 'diff'),
       new Uint8Array(PNG.sync.write(diff)),
       err => {
         if (err) {
