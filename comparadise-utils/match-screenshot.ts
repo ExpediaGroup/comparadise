@@ -96,7 +96,10 @@ export function takeBaseScreenshot(
   const target = subject ? cy.wrap(subject) : cy;
 
   // Create a new updated base image to compare against
-  cy.screenshot(`${PREFIX_DIFFERENTIATOR}${screenshotsFolder}/base`, options);
+  target.screenshot(
+    `${PREFIX_DIFFERENTIATOR}${screenshotsFolder}/base`,
+    options
+  );
 
   cy.task('log', `✅ A new base image was created for ${name}.`);
 }
