@@ -6,7 +6,7 @@ import {
   verifyImages
 } from './match-screenshot';
 
-export function takeBaseScreenshot(
+export function takeScreenshot(
   subject: Cypress.JQueryWithSelector | Window | Document | void,
   args?: MatchScreenshotArgs
 ) {
@@ -26,11 +26,26 @@ export function takeBaseScreenshot(
   );
 
   cy.task('log', `✅ A new base image was created for ${name}.`);
-  return null;
 }
 
 Cypress.Commands.add(
-  'takeBaseScreenshot',
+  'takeScreenshot',
   { prevSubject: ['optional', 'element', 'window', 'document'] },
-  takeBaseScreenshot
+  takeScreenshot
 );
+
+interface ExtendedCurrentRunnable extends Mocha.Runnable {
+  currentRunnable?: {
+    order?: unknown;
+  };
+}
+
+declare global {
+  namespace Cypress {
+    interface Cypress {
+      mocha: {
+        getRunner: () => ExtendedCurrentRunnable;
+      };
+    }
+  }
+}
