@@ -1,4 +1,5 @@
 import {
+  getBooleanInput,
   getInput,
   getMultilineInput,
   info,
@@ -32,6 +33,7 @@ export const run = async () => {
   });
   const commitHash = getInput('commit-hash');
   const diffId = getInput('diff-id');
+  const downloadImages = getBooleanInput('download-base-images');
 
   if (!commitHash && !diffId) {
     setFailed('Please provide either a commit-hash or a diff-id.');
@@ -42,7 +44,9 @@ export const run = async () => {
 
   const screenshotsDirectory = getInput('screenshots-directory');
 
-  await downloadBaseImages();
+  if (downloadImages) {
+    await downloadBaseImages();
+  }
 
   const visualTestExitCode = await Promise.all(
     visualTestCommands.map(cmd => exec(cmd, [], { ignoreReturnCode: true }))
