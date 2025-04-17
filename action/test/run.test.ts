@@ -57,6 +57,11 @@ const diffIdInputMap: Record<string, string | undefined> = {
   'commit-hash': undefined
 };
 
+const doNotDownloadBaseImagesInputMap: Record<string, string | undefined> = {
+  ...inputMap,
+  'download-base-images': 'false'
+};
+
 // Helper to assert no calls to `octokit.rest` methods
 const assertNoOctokitCalls = () => {
   const allMethods = [
@@ -405,6 +410,27 @@ describe('main', () => {
       `aws s3 cp path/to/screenshots s3://some-bucket/${NEW_IMAGES_DIRECTORY}/sha --recursive`
     );
     assertNoOctokitCalls();
+  });
+
+  it('should not download base images if download-base-images specified as false', async () => {
+    (exec as jest.Mock).mockResolvedValue(0);
+    const extendedInputMap: Record<string, string> = {
+      ...doNotDownloadBaseImagesInputMap,
+      'package-paths': 'path/1,path/2'
+    };
+    (getInput as jest.Mock).mockImplementation(name => extendedInputMap[name]);
+    (sync as unknown as jest.Mock).mockReturnValue([
+      'path/to/screenshots/base.png',
+      'path/to/screenshots/diff.png',
+      'path/to/screenshots/new.png'
+    ]);
+    await run();
+    expect(exec).not.toHaveBeenCalledWith(
+      `aws s3 cp s3://some-bucket/${BASE_IMAGES_DIRECTORY}/path/1 path/to/screenshots/path/1 --recursive`
+    );
+    expect(exec).not.toHaveBeenCalledWith(
+      `aws s3 cp s3://some-bucket/${BASE_IMAGES_DIRECTORY}/path/2 path/to/screenshots/path/2 --recursive`
+    );
   });
 
   it('should not download base images if aws ls call fails', async () => {

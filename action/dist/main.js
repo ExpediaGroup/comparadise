@@ -36003,7 +36003,7 @@ var run = async () => {
   });
   const commitHash = (0, import_core6.getInput)("commit-hash");
   const diffId = (0, import_core6.getInput)("diff-id");
-  const downloadImages = (0, import_core6.getBooleanInput)("download-base-images") ? (0, import_core6.getBooleanInput)("download-base-images") : true;
+  const downloadImages = (0, import_core6.getInput)("download-base-images") != "false";
   if (!commitHash && !diffId) {
     (0, import_core6.setFailed)("Please provide either a commit-hash or a diff-id.");
     return;
