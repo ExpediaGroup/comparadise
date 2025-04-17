@@ -19712,7 +19712,7 @@ var require_core = __commonJS({
       return inputs.map((input) => input.trim());
     }
     exports2.getMultilineInput = getMultilineInput2;
-    function getBooleanInput(name, options) {
+    function getBooleanInput2(name, options) {
       const trueValue = ["true", "True", "TRUE"];
       const falseValue = ["false", "False", "FALSE"];
       const val = getInput6(name, options);
@@ -19723,7 +19723,7 @@ var require_core = __commonJS({
       throw new TypeError(`Input does not meet YAML 1.2 "Core Schema" specification: ${name}
 Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
     }
-    exports2.getBooleanInput = getBooleanInput;
+    exports2.getBooleanInput = getBooleanInput2;
     function setOutput(name, value) {
       const filePath = process.env["GITHUB_OUTPUT"] || "";
       if (filePath) {
@@ -35996,7 +35996,10 @@ var run = async () => {
   }
   const hash = commitHash || diffId;
   const screenshotsDirectory = (0, import_core6.getInput)("screenshots-directory");
-  await downloadBaseImages();
+  const downloadImages = (0, import_core6.getBooleanInput)("download-base-images") ?? true;
+  if (downloadImages) {
+    await downloadBaseImages();
+  }
   const visualTestExitCode = await Promise.all(
     visualTestCommands.map((cmd) => (0, import_exec2.exec)(cmd, [], { ignoreReturnCode: true }))
   );
