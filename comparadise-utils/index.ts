@@ -26,7 +26,7 @@ declare global {
   namespace Cypress {
     interface Chainable {
       matchScreenshot(args?: MatchScreenshotArgs): Chainable;
-      takeScreenshot(args?: MatchScreenshotArgs): Chainable;
+      createBaseImage(args?: MatchScreenshotArgs): Chainable;
     }
   }
 }

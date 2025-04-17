@@ -6,7 +6,7 @@ import {
   verifyImages
 } from './match-screenshot';
 
-export function takeScreenshot(
+export function createBaseImage(
   subject: Cypress.JQueryWithSelector | Window | Document | void,
   args?: MatchScreenshotArgs
 ) {
@@ -29,9 +29,9 @@ export function takeScreenshot(
 }
 
 Cypress.Commands.add(
-  'takeScreenshot',
+  'createBaseImage',
   { prevSubject: ['optional', 'element', 'window', 'document'] },
-  takeScreenshot
+  createBaseImage
 );
 
 interface ExtendedCurrentRunnable extends Mocha.Runnable {
