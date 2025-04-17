@@ -1,5 +1,6 @@
 import {
   getInput,
+  getBooleanInput,
   getMultilineInput,
   info,
   setFailed,
@@ -32,7 +33,6 @@ export const run = async () => {
   });
   const commitHash = getInput('commit-hash');
   const diffId = getInput('diff-id');
-  const downloadImages = getInput('download-base-images') != 'false';
 
   if (!commitHash && !diffId) {
     setFailed('Please provide either a commit-hash or a diff-id.');
@@ -43,6 +43,7 @@ export const run = async () => {
 
   const screenshotsDirectory = getInput('screenshots-directory');
 
+  const downloadImages = getBooleanInput('download-base-images') ?? true;
   if (downloadImages) {
     await downloadBaseImages();
   }

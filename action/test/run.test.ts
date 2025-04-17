@@ -1,6 +1,11 @@
 import { run } from '../src/run';
 import { exec } from '@actions/exec';
-import { getInput, getMultilineInput, setFailed } from '@actions/core';
+import {
+  getInput,
+  getBooleanInput,
+  getMultilineInput,
+  setFailed
+} from '@actions/core';
 import { octokit } from '../src/octokit';
 import { sync } from 'glob';
 import {
@@ -55,11 +60,6 @@ const diffIdInputMap: Record<string, string | undefined> = {
   ...inputMap,
   'diff-id': 'uniqueId',
   'commit-hash': undefined
-};
-
-const doNotDownloadBaseImagesInputMap: Record<string, string | undefined> = {
-  ...inputMap,
-  'download-base-images': 'false'
 };
 
 // Helper to assert no calls to `octokit.rest` methods
@@ -412,13 +412,27 @@ describe('main', () => {
     assertNoOctokitCalls();
   });
 
-  it('should not download base images if download-base-images specified as false', async () => {
+  it('should download base images if download-base-images specified as true', async () => {
+    const downloadBaseImages = true;
     (exec as jest.Mock).mockResolvedValue(0);
-    const extendedInputMap: Record<string, string> = {
-      ...doNotDownloadBaseImagesInputMap,
-      'package-paths': 'path/1,path/2'
-    };
-    (getInput as jest.Mock).mockImplementation(name => extendedInputMap[name]);
+    (getInput as jest.Mock).mockImplementation(name => inputMap[name]);
+    (getBooleanInput as jest.Mock).mockImplementation(() => downloadBaseImages);
+    (sync as unknown as jest.Mock).mockReturnValue([
+      'path/to/screenshots/base.png',
+      'path/to/screenshots/diff.png',
+      'path/to/screenshots/new.png'
+    ]);
+    await run();
+    expect(exec).toHaveBeenCalledWith(
+      `aws s3 cp s3://some-bucket/${BASE_IMAGES_DIRECTORY} path/to/screenshots --recursive`
+    );
+  });
+
+  it('should not download base images if download-base-images specified as false', async () => {
+    const downloadBaseImages = false;
+    (exec as jest.Mock).mockResolvedValue(0);
+    (getInput as jest.Mock).mockImplementation(name => inputMap[name]);
+    (getBooleanInput as jest.Mock).mockImplementation(() => downloadBaseImages);
     (sync as unknown as jest.Mock).mockReturnValue([
       'path/to/screenshots/base.png',
       'path/to/screenshots/diff.png',
@@ -426,10 +440,7 @@ describe('main', () => {
     ]);
     await run();
     expect(exec).not.toHaveBeenCalledWith(
-      `aws s3 cp s3://some-bucket/${BASE_IMAGES_DIRECTORY}/path/1 path/to/screenshots/path/1 --recursive`
-    );
-    expect(exec).not.toHaveBeenCalledWith(
-      `aws s3 cp s3://some-bucket/${BASE_IMAGES_DIRECTORY}/path/2 path/to/screenshots/path/2 --recursive`
+      `aws s3 cp s3://some-bucket/${BASE_IMAGES_DIRECTORY} path/to/screenshots --recursive`
     );
   });
 
