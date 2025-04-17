@@ -33,7 +33,9 @@ export const run = async () => {
   });
   const commitHash = getInput('commit-hash');
   const diffId = getInput('diff-id');
-  const downloadImages = getBooleanInput('download-base-images');
+  const downloadImages = getBooleanInput('download-base-images')
+    ? getBooleanInput('download-base-images')
+    : true;
 
   if (!commitHash && !diffId) {
     setFailed('Please provide either a commit-hash or a diff-id.');

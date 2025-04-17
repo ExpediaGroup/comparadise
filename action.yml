@@ -17,7 +17,7 @@ inputs:
   download-base-images:
     description: 'optionally enable downloading of base images from S3 to be skipped'
     required: false
-    default: true
+    default: 'true'
   screenshots-directory:
     description: 'The directory where your visual tests expect screenshots to be'
     required: false
