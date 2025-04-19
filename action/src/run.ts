@@ -1,5 +1,6 @@
 import {
   getInput,
+  getBooleanInput,
   getMultilineInput,
   info,
   setFailed,
@@ -42,7 +43,10 @@ export const run = async () => {
 
   const screenshotsDirectory = getInput('screenshots-directory');
 
-  await downloadBaseImages();
+  const downloadImages = getBooleanInput('download-base-images') ?? true;
+  if (downloadImages) {
+    await downloadBaseImages();
+  }
 
   const visualTestExitCode = await Promise.all(
     visualTestCommands.map(cmd => exec(cmd, [], { ignoreReturnCode: true }))

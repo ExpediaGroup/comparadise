@@ -1,11 +1,11 @@
 import { PixelMatchOptions } from './images';
 import { CompareScreenshotArgs } from './screenshots';
 
-const PREFIX_DIFFERENTIATOR = '___';
+export const PREFIX_DIFFERENTIATOR = '___';
 const SUFFIX_TEST_IDENTIFIER = '.spec.ts';
 const SCREENSHOTS_FOLDER_NAME = 'screenshots';
 
-function forceFont() {
+export function forceFont() {
   const iframe = window.parent.document.querySelector('iframe');
   const contentDocument = iframe && iframe.contentDocument;
 
@@ -22,7 +22,7 @@ function forceFont() {
   return false;
 }
 
-function getTestFolderPathFromScripts(rawName?: string) {
+export function getTestFolderPathFromScripts(rawName?: string) {
   const relativeTestPath = Cypress.spec.relative;
 
   if (!relativeTestPath) {
@@ -59,7 +59,7 @@ function getTestFolderPathFromScripts(rawName?: string) {
   };
 }
 
-function verifyImages() {
+export function verifyImages() {
   if (Cypress.$('img:visible').length > 0) {
     cy.document()
       .its('body')
