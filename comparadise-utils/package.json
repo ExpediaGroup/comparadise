@@ -30,7 +30,7 @@
   },
   "scripts": {
     "build": "tsup",
-    "postbuild": "echo \"require('./dist/match-screenshot');\" > commands.js",
+    "postbuild": "echo \"require('./dist/match-screenshot');\nrequire('./dist/create-base-image');\" > commands.js",
     "prepack": "bun run build",
     "test": "jest"
   }
