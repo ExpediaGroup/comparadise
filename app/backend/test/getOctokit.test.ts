@@ -4,7 +4,9 @@ import { Octokit } from '@octokit/rest';
 import { expect } from '@jest/globals';
 
 jest.mock('fs');
-jest.mock('@octokit/rest');
+jest.mock('@octokit/rest', () => ({
+  Octokit: jest.fn()
+}));
 
 (existsSync as jest.Mock).mockReturnValue(true);
 
