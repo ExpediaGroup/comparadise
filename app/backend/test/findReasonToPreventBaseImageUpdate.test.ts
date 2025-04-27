@@ -6,7 +6,9 @@ import {
 } from 'shared';
 import { expect } from '@jest/globals';
 
-jest.mock('../src/getOctokit');
+jest.mock('../src/getOctokit', () => ({
+  getOctokit: jest.fn()
+}));
 
 describe('findReasonToPreventBaseImageUpdate', () => {
   it('should return undefined when all non-visual pr checks pass', async () => {

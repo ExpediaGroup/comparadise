@@ -13,6 +13,9 @@ import { expect } from '@jest/globals';
 jest.mock('../src/findReasonToPreventBaseImageUpdate');
 jest.mock('../src/s3Client');
 jest.mock('../src/updateCommitStatus');
+jest.mock('@octokit/rest', () => ({
+  Octokit: jest.fn()
+}));
 
 const pathPrefix = `${NEW_IMAGES_DIRECTORY}/030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5`;
 describe('filterNewImages', () => {

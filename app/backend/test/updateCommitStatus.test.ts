@@ -4,6 +4,9 @@ import { VISUAL_REGRESSION_CONTEXT } from 'shared';
 import { expect } from '@jest/globals';
 
 jest.mock('../src/getOctokit');
+jest.mock('@octokit/rest', () => ({
+  Octokit: jest.fn()
+}));
 const createCommitStatus = jest.fn(() => ({ catch: jest.fn() }));
 (getOctokit as jest.Mock).mockImplementation(() => ({
   rest: {
