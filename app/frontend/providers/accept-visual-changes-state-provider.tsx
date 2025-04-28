@@ -2,8 +2,8 @@ import * as React from 'react';
 import { createContext, useState } from 'react';
 
 export const AcceptVisualChangesTexts = {
-  NOT_UPDATED: 'Accept visual changes',
-  UPDATING: 'Updating...',
+  NOT_ACCEPTED: 'Accept visual changes',
+  ACCEPTING: 'Accepting...',
   ACCEPTED: 'Visual changes accepted!',
   ERROR: 'Visual changes could not be accepted'
 } as const;
@@ -22,7 +22,7 @@ export const AcceptVisualChangesStateProvider = ({
   children
 }: React.PropsWithChildren) => {
   const [acceptVisualChangesState, setAcceptVisualChangesState] =
-    useState<AcceptVisualChangesText>(AcceptVisualChangesTexts.NOT_UPDATED);
+    useState<AcceptVisualChangesText>(AcceptVisualChangesTexts.NOT_ACCEPTED);
 
   return (
     <AcceptVisualChangesStateContext.Provider

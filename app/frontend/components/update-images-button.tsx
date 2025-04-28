@@ -22,7 +22,7 @@ export const UpdateImagesButton: React.FC<{ disabled: boolean }> = ({
   const { error: acceptVisualChangesError, mutate: acceptVisualChanges } =
     trpc.acceptVisualChanges.useMutation({
       onMutate: () => {
-        setAcceptVisualChangesState?.(AcceptVisualChangesTexts.UPDATING);
+        setAcceptVisualChangesState?.(AcceptVisualChangesTexts.ACCEPTING);
       },
       onSuccess: () => {
         setDialogIsOpen(false);
@@ -109,7 +109,7 @@ export const UpdateImagesButton: React.FC<{ disabled: boolean }> = ({
   );
   const getDialogContent = (state?: AcceptVisualChangesText) => {
     switch (state) {
-      case AcceptVisualChangesTexts.NOT_UPDATED:
+      case AcceptVisualChangesTexts.NOT_ACCEPTED:
         return dialogContent;
       case AcceptVisualChangesTexts.ERROR:
         return dialogErrorContent;
@@ -119,7 +119,7 @@ export const UpdateImagesButton: React.FC<{ disabled: boolean }> = ({
   };
 
   const shouldDisableAcceptVisualChangesButton =
-    acceptVisualChangesState !== AcceptVisualChangesTexts.NOT_UPDATED;
+    acceptVisualChangesState !== AcceptVisualChangesTexts.NOT_ACCEPTED;
 
   return (
     <>
