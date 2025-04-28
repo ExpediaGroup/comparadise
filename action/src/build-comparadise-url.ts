@@ -9,8 +9,8 @@ export const buildComparadiseUrl = () => {
   const hashParam = commitHash
     ? `commitHash=${commitHash}`
     : `diffId=${diffId}`;
-  const downloadImages = getBooleanInput('download-base-images') ?? true;
+  const useBaseImages = getBooleanInput('use-base-images') ?? true;
   const { owner, repo } = context.repo;
 
-  return `${comparadiseHost}/?${hashParam}&owner=${owner}&repo=${repo}&bucket=${bucketName}&download-base-images=${downloadImages}`;
+  return `${comparadiseHost}/?${hashParam}&owner=${owner}&repo=${repo}&bucket=${bucketName}&use-base-images=${useBaseImages}`;
 };

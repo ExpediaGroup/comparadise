@@ -205,7 +205,7 @@ describe('main', () => {
       state: 'failure',
       description: 'A visual regression was detected. Check Comparadise!',
       target_url:
-        'https://comparadise.app/?commitHash=sha&owner=owner&repo=repo&bucket=some-bucket&download-base-images=true'
+        'https://comparadise.app/?commitHash=sha&owner=owner&repo=repo&bucket=some-bucket&use-base-images=true'
     });
     expect(octokit.rest.issues.createComment).toHaveBeenCalled();
   });
@@ -412,7 +412,7 @@ describe('main', () => {
     assertNoOctokitCalls();
   });
 
-  it('should download base images if download-base-images specified as true', async () => {
+  it('should download base images if use-base-images specified as true', async () => {
     const downloadBaseImages = true;
     (exec as jest.Mock).mockResolvedValue(0);
     (getInput as jest.Mock).mockImplementation(name => inputMap[name]);
@@ -428,7 +428,7 @@ describe('main', () => {
     );
   });
 
-  it('should not download base images if download-base-images specified as false and set URL param', async () => {
+  it('should not download base images if use-base-images specified as false and set URL param', async () => {
     const downloadBaseImages = false;
     (exec as jest.Mock).mockResolvedValue(0);
     (getInput as jest.Mock).mockImplementation(name => inputMap[name]);
@@ -450,7 +450,7 @@ describe('main', () => {
       state: 'failure',
       description: 'A visual regression was detected. Check Comparadise!',
       target_url:
-        'https://comparadise.app/?commitHash=sha&owner=owner&repo=repo&bucket=some-bucket&download-base-images=false'
+        'https://comparadise.app/?commitHash=sha&owner=owner&repo=repo&bucket=some-bucket&use-base-images=false'
     });
   });
 
