@@ -6,11 +6,11 @@ import {
   acceptVisualChanges
 } from '../src/acceptVisualChanges';
 import { BASE_IMAGES_DIRECTORY, NEW_IMAGES_DIRECTORY } from 'shared';
-import { findReasonToPreventBaseImageUpdate } from '../src/findReasonToPreventBaseImageUpdate';
+import { findReasonToPreventVisualChangeAcceptance } from '../src/findReasonToPreventVisualChangeAcceptance';
 import { updateCommitStatus } from '../src/updateCommitStatus';
 import { expect } from '@jest/globals';
 
-jest.mock('../src/findReasonToPreventBaseImageUpdate');
+jest.mock('../src/findReasonToPreventVisualChangeAcceptance');
 jest.mock('../src/s3Client');
 jest.mock('../src/updateCommitStatus');
 jest.mock('@octokit/rest', () => ({
@@ -82,7 +82,7 @@ describe('acceptVisualChanges', () => {
   });
 
   it('should throw error if other required checks have not yet passed', async () => {
-    (findReasonToPreventBaseImageUpdate as jest.Mock).mockResolvedValue(
+    (findReasonToPreventVisualChangeAcceptance as jest.Mock).mockResolvedValue(
       'Some reason to prevent update'
     );
 
