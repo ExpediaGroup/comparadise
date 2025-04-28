@@ -19712,7 +19712,7 @@ var require_core = __commonJS({
       return inputs.map((input) => input.trim());
     }
     exports2.getMultilineInput = getMultilineInput2;
-    function getBooleanInput2(name, options) {
+    function getBooleanInput3(name, options) {
       const trueValue = ["true", "True", "TRUE"];
       const falseValue = ["false", "False", "FALSE"];
       const val = getInput6(name, options);
@@ -19723,7 +19723,7 @@ var require_core = __commonJS({
       throw new TypeError(`Input does not meet YAML 1.2 "Core Schema" specification: ${name}
 Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
     }
-    exports2.getBooleanInput = getBooleanInput2;
+    exports2.getBooleanInput = getBooleanInput3;
     function setOutput(name, value) {
       const filePath = process.env["GITHUB_OUTPUT"] || "";
       if (filePath) {
@@ -35903,8 +35903,9 @@ var buildComparadiseUrl = () => {
   const commitHash = (0, import_core3.getInput)("commit-hash");
   const diffId = (0, import_core3.getInput)("diff-id");
   const hashParam = commitHash ? `commitHash=${commitHash}` : `diffId=${diffId}`;
+  const useBaseImages = (0, import_core3.getBooleanInput)("use-base-images") ?? true;
   const { owner, repo } = import_github2.context.repo;
-  return `${comparadiseHost}/?${hashParam}&owner=${owner}&repo=${repo}&bucket=${bucketName}`;
+  return `${comparadiseHost}/?${hashParam}&owner=${owner}&repo=${repo}&bucket=${bucketName}&useBaseImages=${useBaseImages}`;
 };
 
 // src/comment.ts
@@ -35996,8 +35997,8 @@ var run = async () => {
   }
   const hash = commitHash || diffId;
   const screenshotsDirectory = (0, import_core6.getInput)("screenshots-directory");
-  const downloadImages = (0, import_core6.getBooleanInput)("download-base-images") ?? true;
-  if (downloadImages) {
+  const useBaseImages = (0, import_core6.getBooleanInput)("use-base-images") ?? true;
+  if (useBaseImages) {
     await downloadBaseImages();
   }
   const visualTestExitCode = await Promise.all(

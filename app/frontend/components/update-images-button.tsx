@@ -50,10 +50,14 @@ export const UpdateImagesButton: React.FC<{ disabled: boolean }> = ({
     setDialogIsOpen(false);
   };
 
+  const useBaseImages = params.useBaseImages
+    ? params.useBaseImages === 'true'
+    : undefined;
   const handleUpdate = () =>
     acceptVisualChanges({
       commitHash,
       diffId,
+      useBaseImages,
       bucket,
       owner,
       repo

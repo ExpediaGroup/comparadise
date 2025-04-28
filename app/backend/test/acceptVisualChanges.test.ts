@@ -91,6 +91,7 @@ describe('acceptVisualChanges', () => {
       acceptVisualChanges({
         commitHash: '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5',
         bucket: expectedBucket,
+        useBaseImages: true,
         repo: 'repo',
         owner: 'owner'
       })
@@ -99,5 +100,23 @@ describe('acceptVisualChanges', () => {
     expect(S3Client.listObjectsV2).not.toHaveBeenCalled();
     expect(S3Client.copyObject).not.toHaveBeenCalled();
     expect(updateCommitStatus).not.toHaveBeenCalled();
+  });
+
+  it('should update commit status but not base images if useBaseImages is false', async () => {
+    (findReasonToPreventVisualChangeAcceptance as jest.Mock).mockResolvedValue(
+      undefined
+    );
+    const expectedBucket = 'expected-bucket-name';
+    await acceptVisualChanges({
+      commitHash: '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5',
+      bucket: expectedBucket,
+      useBaseImages: false,
+      repo: 'repo',
+      owner: 'owner'
+    });
+
+    expect(S3Client.listObjectsV2).not.toHaveBeenCalled();
+    expect(S3Client.copyObject).not.toHaveBeenCalled();
+    expect(updateCommitStatus).toHaveBeenCalled();
   });
 });

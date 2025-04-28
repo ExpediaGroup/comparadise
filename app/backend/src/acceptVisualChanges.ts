@@ -14,6 +14,7 @@ import { updateCommitStatus } from './updateCommitStatus';
 export const acceptVisualChanges = async ({
   commitHash,
   diffId,
+  useBaseImages,
   bucket,
   owner,
   repo
@@ -35,8 +36,10 @@ export const acceptVisualChanges = async ({
     });
   }
 
-  const s3Paths = await getKeysFromS3(hash, bucket);
-  await updateBaseImages(s3Paths, bucket);
+  if (useBaseImages) {
+    const s3Paths = await getKeysFromS3(hash, bucket);
+    await updateBaseImages(s3Paths, bucket);
+  }
   if (commitHash) {
     await updateCommitStatus({ owner, repo, commitHash });
   }

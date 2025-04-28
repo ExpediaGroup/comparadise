@@ -241,4 +241,33 @@ describe('App', () => {
       cy.findByAltText('diff').should('be.visible');
     });
   });
+
+  describe('use-base-images param case', () => {
+    beforeEach(() => {
+      cy.intercept('/trpc/fetchCurrentPage*', req => {
+        const page = getPageFromRequest(req);
+        const body = page === 2 ? noNewImagesPage : firstPage;
+        req.reply(body);
+      });
+      cy.intercept('/trpc/acceptVisualChanges*', { body: mutationResponse }).as(
+        'accept-visual-changes'
+      );
+      cy.mount(
+        <MemoryRouter
+          initialEntries={[
+            '?diffId=123&bucket=bucket&repo=repo&owner=owner&useBaseImages=false'
+          ]}
+        >
+          <App />
+        </MemoryRouter>
+      );
+    });
+
+    it('should accept visual changes with use-base-images set to false', () => {
+      cy.findByRole('button', { name: 'Accept visual changes' }).click();
+      cy.findByText(/Are you sure/i);
+      cy.findByRole('button', { name: 'Accept' }).click();
+      cy.findByRole('button', { name: /Visual changes accepted/i });
+    });
+  });
 });

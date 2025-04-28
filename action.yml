@@ -14,8 +14,8 @@ inputs:
   diff-id:
     description: 'Alternative to commit-hash as a unique identifier for visual tests. GitHub integration will be disabled if diff-id is used.'
     required: false
-  download-base-images:
-    description: 'optionally enable downloading of base images from S3 to be skipped'
+  use-base-images:
+    description: 'Optionally disables base images from being used'
     required: false
     default: 'true'
   screenshots-directory:

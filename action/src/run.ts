@@ -43,8 +43,8 @@ export const run = async () => {
 
   const screenshotsDirectory = getInput('screenshots-directory');
 
-  const downloadImages = getBooleanInput('download-base-images') ?? true;
-  if (downloadImages) {
+  const useBaseImages = getBooleanInput('use-base-images') ?? true;
+  if (useBaseImages) {
     await downloadBaseImages();
   }
 
