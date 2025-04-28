@@ -5,7 +5,7 @@ import {
   VISUAL_TESTS_FAILED_TO_EXECUTE
 } from 'shared';
 
-export const findReasonToPreventBaseImageUpdate = async (
+export const findReasonToPreventVisualChangeAcceptance = async (
   owner: string,
   repo: string,
   sha: string

@@ -8,9 +8,9 @@ import {
   secondPage
 } from '../mocks/pages';
 import {
-  baseImageUpdateRejection,
+  acceptVisualChangesRejection,
   MOCK_ERROR_MESSAGE
-} from '../mocks/base-image-update-rejection';
+} from '../mocks/accept-visual-changes-rejection';
 import { mutationResponse } from '../mocks/mutation';
 import { MemoryRouter } from 'react-router-dom';
 
@@ -39,8 +39,8 @@ describe('App', () => {
         const body = page === 2 ? secondPage : firstPage;
         req.reply(body);
       });
-      cy.intercept('/trpc/updateBaseImages*', { body: mutationResponse }).as(
-        'base-images'
+      cy.intercept('/trpc/acceptVisualChanges*', { body: mutationResponse }).as(
+        'accept-visual-changes'
       );
       cy.mount(
         <MemoryRouter
@@ -95,64 +95,64 @@ describe('App', () => {
     });
 
     it('should display loader while updating base images', () => {
-      cy.intercept('/trpc/updateBaseImages*', {
+      cy.intercept('/trpc/acceptVisualChanges*', {
         body: mutationResponse,
         delay: 5000
-      }).as('base-images');
-      cy.findByRole('button', { name: 'Update all base images' }).click();
+      }).as('accept-visual-changes');
+      cy.findByRole('button', { name: 'Accept visual changes' }).click();
       cy.findByText(/Are you sure/i);
-      cy.findByRole('button', { name: 'Update' }).click();
-      cy.findByText('Updating base images...').should('be.visible');
+      cy.findByRole('button', { name: 'Accept' }).click();
+      cy.findByText('Accepting visual changes...').should('be.visible');
       cy.findByLabelText('loader').should('be.visible');
     });
 
-    it('should update base images', () => {
-      cy.findByRole('button', { name: 'Update all base images' }).click();
+    it('should accept visual changes', () => {
+      cy.findByRole('button', { name: 'Accept visual changes' }).click();
       cy.findByText(/Are you sure/i);
-      cy.findByRole('button', { name: 'Update' }).click();
-      cy.wait('@base-images');
-      cy.findByRole('button', { name: /all images updated/i });
+      cy.findByRole('button', { name: 'Accept' }).click();
+      cy.wait('@accept-visual-changes');
+      cy.findByRole('button', { name: /Visual changes accepted/i });
     });
 
     it('should do nothing if user cancels', () => {
-      cy.findByRole('button', { name: 'Update all base images' }).click();
+      cy.findByRole('button', { name: 'Accept visual changes' }).click();
       cy.findByText(/Are you sure/i);
       cy.findByRole('button', { name: /cancel/i }).click();
-      cy.findByRole('button', { name: 'Update all base images' }).should(
+      cy.findByRole('button', { name: 'Accept visual changes' }).should(
         'be.visible'
       );
     });
 
-    it('should be able to update base images and disable update base images button after navigating between specs', () => {
-      cy.findByRole('button', { name: 'Update all base images' }).click();
+    it('should be able to accept visual changes and disable accept visual changes button after navigating between specs', () => {
+      cy.findByRole('button', { name: 'Accept visual changes' }).click();
       cy.findByText(/Are you sure/i);
-      cy.findByRole('button', { name: 'Update' }).click();
-      cy.wait('@base-images');
-      cy.findByRole('button', { name: /all images updated/i }).should(
+      cy.findByRole('button', { name: 'Accept' }).click();
+      cy.wait('@accept-visual-changes');
+      cy.findByRole('button', { name: /Visual changes accepted/i }).should(
         'be.disabled'
       );
       cy.findByRole('button', { name: /forward-arrow/ }).click();
       cy.findByRole('heading', { name: 'small/example' });
-      cy.findByRole('button', { name: /all images updated/i }).should(
+      cy.findByRole('button', { name: /Visual changes accepted/i }).should(
         'be.disabled'
       );
       cy.findByRole('button', { name: /back-arrow/ }).click();
       cy.findByRole('heading', { name: 'large/example' });
-      cy.findByRole('button', { name: /all images updated/i }).should(
+      cy.findByRole('button', { name: /Visual changes accepted/i }).should(
         'be.disabled'
       );
     });
 
     it('should display failure message and not update commit status when base images fail to update', () => {
-      cy.intercept('/trpc/updateBaseImages*', {
+      cy.intercept('/trpc/acceptVisualChanges*', {
         statusCode: 403,
-        body: baseImageUpdateRejection
-      }).as('base-images');
-      cy.findByRole('button', { name: 'Update all base images' }).click();
+        body: acceptVisualChangesRejection
+      }).as('accept-visual-changes');
+      cy.findByRole('button', { name: 'Accept visual changes' }).click();
       cy.findByText(/Are you sure/i);
-      cy.findByRole('button', { name: 'Update' }).click();
-      cy.wait('@base-images');
-      cy.findByRole('button', { name: /all images updated/i }).should(
+      cy.findByRole('button', { name: 'Accept' }).click();
+      cy.wait('@accept-visual-changes');
+      cy.findByRole('button', { name: /Visual changes accepted/i }).should(
         'not.exist'
       );
       cy.findByRole('heading', { name: /Error/ }).should('be.visible');

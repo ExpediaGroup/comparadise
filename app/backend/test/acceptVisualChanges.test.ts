@@ -1,16 +1,16 @@
 import { S3Client } from '../src/s3Client';
 import {
   filterNewImages,
-  replaceImagesInS3,
+  updateBaseImages,
   getBaseImagePaths,
-  updateBaseImagesInS3
-} from '../src/updateBaseImagesInS3';
+  acceptVisualChanges
+} from '../src/acceptVisualChanges';
 import { BASE_IMAGES_DIRECTORY, NEW_IMAGES_DIRECTORY } from 'shared';
-import { findReasonToPreventBaseImageUpdate } from '../src/findReasonToPreventBaseImageUpdate';
+import { findReasonToPreventVisualChangeAcceptance } from '../src/findReasonToPreventVisualChangeAcceptance';
 import { updateCommitStatus } from '../src/updateCommitStatus';
 import { expect } from '@jest/globals';
 
-jest.mock('../src/findReasonToPreventBaseImageUpdate');
+jest.mock('../src/findReasonToPreventVisualChangeAcceptance');
 jest.mock('../src/s3Client');
 jest.mock('../src/updateCommitStatus');
 jest.mock('@octokit/rest', () => ({
@@ -55,10 +55,10 @@ describe('getBaseImagesPaths', () => {
   });
 });
 
-describe('updateBaseImagesInS3', () => {
+describe('acceptVisualChanges', () => {
   it('should fetch the images from S3', async () => {
     const expectedBucket = 'expected-bucket-name';
-    await replaceImagesInS3(
+    await updateBaseImages(
       [
         `${pathPrefix}/SMALL/pdpPage/new.png`,
         `${pathPrefix}/SMALL/srpPage/new.png`,
@@ -82,13 +82,13 @@ describe('updateBaseImagesInS3', () => {
   });
 
   it('should throw error if other required checks have not yet passed', async () => {
-    (findReasonToPreventBaseImageUpdate as jest.Mock).mockResolvedValue(
+    (findReasonToPreventVisualChangeAcceptance as jest.Mock).mockResolvedValue(
       'Some reason to prevent update'
     );
 
     const expectedBucket = 'expected-bucket-name';
     await expect(
-      updateBaseImagesInS3({
+      acceptVisualChanges({
         commitHash: '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5',
         bucket: expectedBucket,
         repo: 'repo',

@@ -5,22 +5,22 @@ import {
   NEW_IMAGE_NAME,
   NEW_IMAGES_DIRECTORY
 } from 'shared';
-import { findReasonToPreventBaseImageUpdate } from './findReasonToPreventBaseImageUpdate';
+import { findReasonToPreventVisualChangeAcceptance } from './findReasonToPreventVisualChangeAcceptance';
 import { TRPCError } from '@trpc/server';
-import { UpdateBaseImagesInput } from './schema';
+import { AcceptVisualChangesInput } from './schema';
 import { getKeysFromS3 } from './getKeysFromS3';
 import { updateCommitStatus } from './updateCommitStatus';
 
-export const updateBaseImagesInS3 = async ({
+export const acceptVisualChanges = async ({
   commitHash,
   diffId,
   bucket,
   owner,
   repo
-}: UpdateBaseImagesInput) => {
+}: AcceptVisualChangesInput) => {
   const reasonToPreventUpdate =
     commitHash &&
-    (await findReasonToPreventBaseImageUpdate(owner, repo, commitHash));
+    (await findReasonToPreventVisualChangeAcceptance(owner, repo, commitHash));
   if (reasonToPreventUpdate) {
     throw new TRPCError({
       code: 'FORBIDDEN',
@@ -36,7 +36,7 @@ export const updateBaseImagesInS3 = async ({
   }
 
   const s3Paths = await getKeysFromS3(hash, bucket);
-  await replaceImagesInS3(s3Paths, bucket);
+  await updateBaseImages(s3Paths, bucket);
   if (commitHash) {
     await updateCommitStatus({ owner, repo, commitHash });
   }
@@ -57,7 +57,7 @@ export const getBaseImagePaths = (newImagePaths: string[]) => {
   });
 };
 
-export const replaceImagesInS3 = async (s3Paths: string[], bucket: string) => {
+export const updateBaseImages = async (s3Paths: string[], bucket: string) => {
   const newImagePaths = filterNewImages(s3Paths);
   const baseImagePaths = getBaseImagePaths(newImagePaths);
   return await Promise.all(

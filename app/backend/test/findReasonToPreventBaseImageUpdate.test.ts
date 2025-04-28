@@ -1,4 +1,4 @@
-import { findReasonToPreventBaseImageUpdate } from '../src/findReasonToPreventBaseImageUpdate';
+import { findReasonToPreventVisualChangeAcceptance } from '../src/findReasonToPreventVisualChangeAcceptance';
 import { getOctokit } from '../src/getOctokit';
 import {
   VISUAL_REGRESSION_CONTEXT,
@@ -10,7 +10,7 @@ jest.mock('../src/getOctokit', () => ({
   getOctokit: jest.fn()
 }));
 
-describe('findReasonToPreventBaseImageUpdate', () => {
+describe('findReasonToPreventVisualChangeAcceptance', () => {
   it('should return undefined when all non-visual pr checks pass', async () => {
     (getOctokit as jest.Mock).mockImplementation(() => ({
       rest: {
@@ -37,7 +37,7 @@ describe('findReasonToPreventBaseImageUpdate', () => {
         }
       }
     }));
-    const result = await findReasonToPreventBaseImageUpdate(
+    const result = await findReasonToPreventVisualChangeAcceptance(
       'github-owner',
       'github-repo',
       'sha'
@@ -76,7 +76,7 @@ describe('findReasonToPreventBaseImageUpdate', () => {
         }
       }
     }));
-    const result = await findReasonToPreventBaseImageUpdate(
+    const result = await findReasonToPreventVisualChangeAcceptance(
       'github-owner',
       'github-repo',
       'sha'
@@ -112,7 +112,7 @@ describe('findReasonToPreventBaseImageUpdate', () => {
         }
       }
     }));
-    const result = await findReasonToPreventBaseImageUpdate(
+    const result = await findReasonToPreventVisualChangeAcceptance(
       'github-owner',
       'github-repo',
       'sha'
@@ -148,7 +148,7 @@ describe('findReasonToPreventBaseImageUpdate', () => {
         }
       }
     }));
-    const result = await findReasonToPreventBaseImageUpdate(
+    const result = await findReasonToPreventVisualChangeAcceptance(
       'github-owner',
       'github-repo',
       'sha'
@@ -182,7 +182,7 @@ describe('findReasonToPreventBaseImageUpdate', () => {
         }
       }
     }));
-    const result = await findReasonToPreventBaseImageUpdate(
+    const result = await findReasonToPreventVisualChangeAcceptance(
       'github-owner',
       'github-repo',
       'sha'
@@ -214,7 +214,7 @@ describe('findReasonToPreventBaseImageUpdate', () => {
         }
       }
     }));
-    const result = await findReasonToPreventBaseImageUpdate(
+    const result = await findReasonToPreventVisualChangeAcceptance(
       'github-owner',
       'github-repo',
       'sha'
