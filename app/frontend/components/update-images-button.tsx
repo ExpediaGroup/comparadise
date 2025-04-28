@@ -52,7 +52,7 @@ export const UpdateImagesButton: React.FC<{ disabled: boolean }> = ({
 
   const useBaseImages = params.useBaseImages
     ? params.useBaseImages === 'true'
-    : false;
+    : undefined;
   const handleUpdate = () =>
     acceptVisualChanges({
       commitHash,
