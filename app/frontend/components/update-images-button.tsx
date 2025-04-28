@@ -118,13 +118,13 @@ export const UpdateImagesButton: React.FC<{ disabled: boolean }> = ({
     }
   };
 
-  const shouldDisableBaseImageButton =
+  const shouldDisableAcceptVisualChangesButton =
     acceptVisualChangesState !== AcceptVisualChangesTexts.NOT_UPDATED;
 
   return (
     <>
       <PrimaryButton
-        disabled={disabled || shouldDisableBaseImageButton}
+        disabled={disabled || shouldDisableAcceptVisualChangesButton}
         onClick={handleDialogOpen}
       >
         {acceptVisualChangesState}

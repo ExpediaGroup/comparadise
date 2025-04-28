@@ -5,7 +5,7 @@ import {
   NEW_IMAGE_NAME,
   NEW_IMAGES_DIRECTORY
 } from 'shared';
-import { findReasonToPreventBaseImageUpdate } from './findReasonToPreventBaseImageUpdate';
+import { findReasonToPreventVisualChangeAcceptance } from './findReasonToPreventVisualChangeAcceptance';
 import { TRPCError } from '@trpc/server';
 import { AcceptVisualChangesInput } from './schema';
 import { getKeysFromS3 } from './getKeysFromS3';
@@ -20,7 +20,7 @@ export const acceptVisualChanges = async ({
 }: AcceptVisualChangesInput) => {
   const reasonToPreventUpdate =
     commitHash &&
-    (await findReasonToPreventBaseImageUpdate(owner, repo, commitHash));
+    (await findReasonToPreventVisualChangeAcceptance(owner, repo, commitHash));
   if (reasonToPreventUpdate) {
     throw new TRPCError({
       code: 'FORBIDDEN',
