@@ -205,7 +205,7 @@ describe('main', () => {
       state: 'failure',
       description: 'A visual regression was detected. Check Comparadise!',
       target_url:
-        'https://comparadise.app/?commitHash=sha&owner=owner&repo=repo&bucket=some-bucket'
+        'https://comparadise.app/?commitHash=sha&owner=owner&repo=repo&bucket=some-bucket&download-base-images=true'
     });
     expect(octokit.rest.issues.createComment).toHaveBeenCalled();
   });
@@ -428,7 +428,7 @@ describe('main', () => {
     );
   });
 
-  it('should not download base images if download-base-images specified as false', async () => {
+  it('should not download base images if download-base-images specified as false and set URL param', async () => {
     const downloadBaseImages = false;
     (exec as jest.Mock).mockResolvedValue(0);
     (getInput as jest.Mock).mockImplementation(name => inputMap[name]);
@@ -442,6 +442,16 @@ describe('main', () => {
     expect(exec).not.toHaveBeenCalledWith(
       `aws s3 cp s3://some-bucket/${BASE_IMAGES_DIRECTORY} path/to/screenshots --recursive`
     );
+    expect(octokit.rest.repos.createCommitStatus).toHaveBeenCalledWith({
+      owner: 'owner',
+      repo: 'repo',
+      sha: 'sha',
+      context: VISUAL_REGRESSION_CONTEXT,
+      state: 'failure',
+      description: 'A visual regression was detected. Check Comparadise!',
+      target_url:
+        'https://comparadise.app/?commitHash=sha&owner=owner&repo=repo&bucket=some-bucket&download-base-images=false'
+    });
   });
 
   it('should not download base images if aws ls call fails', async () => {

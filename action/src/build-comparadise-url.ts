@@ -1,4 +1,4 @@
-import { getInput } from '@actions/core';
+import { getBooleanInput, getInput } from '@actions/core';
 import { context } from '@actions/github';
 
 export const buildComparadiseUrl = () => {
@@ -9,7 +9,8 @@ export const buildComparadiseUrl = () => {
   const hashParam = commitHash
     ? `commitHash=${commitHash}`
     : `diffId=${diffId}`;
+  const downloadImages = getBooleanInput('download-base-images') ?? true;
   const { owner, repo } = context.repo;
 
-  return `${comparadiseHost}/?${hashParam}&owner=${owner}&repo=${repo}&bucket=${bucketName}`;
+  return `${comparadiseHost}/?${hashParam}&owner=${owner}&repo=${repo}&bucket=${bucketName}&download-base-images=${downloadImages}`;
 };
