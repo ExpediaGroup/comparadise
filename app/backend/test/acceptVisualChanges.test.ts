@@ -103,7 +103,7 @@ describe('acceptVisualChanges', () => {
   });
 
   it('should update commit status but not base images if useBaseImages is false', async () => {
-    (findReasonToPreventBaseImageUpdate as jest.Mock).mockResolvedValue(
+    (findReasonToPreventVisualChangeAcceptance as jest.Mock).mockResolvedValue(
       undefined
     );
     const expectedBucket = 'expected-bucket-name';
