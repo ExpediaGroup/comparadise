@@ -8,7 +8,7 @@ export const fetchCurrentPageInputSchema = z.object({
 export const acceptVisualChangesInputSchema = z.object({
   commitHash: z.string().min(1).optional(),
   diffId: z.string().min(1).optional(),
-  useBaseImages: z.boolean().optional().default(true),
+  useBaseImages: z.boolean().optional(),
   bucket: z.string().min(1),
   repo: z.string().min(1),
   owner: z.string().min(1)
