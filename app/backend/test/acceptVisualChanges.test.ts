@@ -1,10 +1,10 @@
 import { S3Client } from '../src/s3Client';
 import {
   filterNewImages,
-  replaceImagesInS3,
+  updateBaseImages,
   getBaseImagePaths,
-  updateBaseImagesInS3
-} from '../src/updateBaseImagesInS3';
+  acceptVisualChanges
+} from '../src/acceptVisualChanges';
 import { BASE_IMAGES_DIRECTORY, NEW_IMAGES_DIRECTORY } from 'shared';
 import { findReasonToPreventBaseImageUpdate } from '../src/findReasonToPreventBaseImageUpdate';
 import { updateCommitStatus } from '../src/updateCommitStatus';
@@ -55,10 +55,10 @@ describe('getBaseImagesPaths', () => {
   });
 });
 
-describe('updateBaseImagesInS3', () => {
+describe('acceptVisualChanges', () => {
   it('should fetch the images from S3', async () => {
     const expectedBucket = 'expected-bucket-name';
-    await replaceImagesInS3(
+    await updateBaseImages(
       [
         `${pathPrefix}/SMALL/pdpPage/new.png`,
         `${pathPrefix}/SMALL/srpPage/new.png`,
@@ -88,9 +88,10 @@ describe('updateBaseImagesInS3', () => {
 
     const expectedBucket = 'expected-bucket-name';
     await expect(
-      updateBaseImagesInS3({
+      acceptVisualChanges({
         commitHash: '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5',
         bucket: expectedBucket,
+        useBaseImages: true,
         repo: 'repo',
         owner: 'owner'
       })
@@ -99,5 +100,23 @@ describe('updateBaseImagesInS3', () => {
     expect(S3Client.listObjectsV2).not.toHaveBeenCalled();
     expect(S3Client.copyObject).not.toHaveBeenCalled();
     expect(updateCommitStatus).not.toHaveBeenCalled();
+  });
+
+  it('should update commit status but not base images if useBaseImages is false', async () => {
+    (findReasonToPreventBaseImageUpdate as jest.Mock).mockResolvedValue(
+      undefined
+    );
+    const expectedBucket = 'expected-bucket-name';
+    await acceptVisualChanges({
+      commitHash: '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5',
+      bucket: expectedBucket,
+      useBaseImages: false,
+      repo: 'repo',
+      owner: 'owner'
+    });
+
+    expect(S3Client.listObjectsV2).not.toHaveBeenCalled();
+    expect(S3Client.copyObject).not.toHaveBeenCalled();
+    expect(updateCommitStatus).toHaveBeenCalled();
   });
 });

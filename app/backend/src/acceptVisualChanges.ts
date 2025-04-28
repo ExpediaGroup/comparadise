@@ -11,9 +11,10 @@ import { AcceptVisualChangesInput } from './schema';
 import { getKeysFromS3 } from './getKeysFromS3';
 import { updateCommitStatus } from './updateCommitStatus';
 
-export const updateBaseImagesInS3 = async ({
+export const acceptVisualChanges = async ({
   commitHash,
   diffId,
+  useBaseImages,
   bucket,
   owner,
   repo
@@ -35,8 +36,10 @@ export const updateBaseImagesInS3 = async ({
     });
   }
 
-  const s3Paths = await getKeysFromS3(hash, bucket);
-  await replaceImagesInS3(s3Paths, bucket);
+  if (useBaseImages) {
+    const s3Paths = await getKeysFromS3(hash, bucket);
+    await updateBaseImages(s3Paths, bucket);
+  }
   if (commitHash) {
     await updateCommitStatus({ owner, repo, commitHash });
   }
@@ -57,7 +60,7 @@ export const getBaseImagePaths = (newImagePaths: string[]) => {
   });
 };
 
-export const replaceImagesInS3 = async (s3Paths: string[], bucket: string) => {
+export const updateBaseImages = async (s3Paths: string[], bucket: string) => {
   const newImagePaths = filterNewImages(s3Paths);
   const baseImagePaths = getBaseImagePaths(newImagePaths);
   return await Promise.all(

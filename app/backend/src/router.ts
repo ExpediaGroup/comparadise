@@ -4,7 +4,7 @@ import {
   acceptVisualChangesInputSchema
 } from './schema';
 import { fetchCurrentPage } from './fetchCurrentPage';
-import { updateBaseImagesInS3 } from './updateBaseImagesInS3';
+import { acceptVisualChanges } from './acceptVisualChanges';
 
 const t = initTRPC.create();
 
@@ -14,7 +14,7 @@ export const router = t.router({
     .query(({ input }) => fetchCurrentPage(input)),
   acceptVisualChanges: t.procedure
     .input(acceptVisualChangesInputSchema)
-    .mutation(({ input }) => updateBaseImagesInS3(input))
+    .mutation(({ input }) => acceptVisualChanges(input))
 });
 
 export type AppRouter = typeof router;
