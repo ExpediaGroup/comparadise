@@ -12,5 +12,5 @@ export const buildComparadiseUrl = () => {
   const useBaseImages = getBooleanInput('use-base-images') ?? true;
   const { owner, repo } = context.repo;
 
-  return `${comparadiseHost}/?${hashParam}&owner=${owner}&repo=${repo}&bucket=${bucketName}&use-base-images=${useBaseImages}`;
+  return `${comparadiseHost}/?${hashParam}&owner=${owner}&repo=${repo}&bucket=${bucketName}&useBaseImages=${useBaseImages}`;
 };

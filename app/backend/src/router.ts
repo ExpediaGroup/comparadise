@@ -1,7 +1,7 @@
 import { initTRPC } from '@trpc/server';
 import {
   fetchCurrentPageInputSchema,
-  updateBaseImagesInputSchema
+  acceptVisualChangesInputSchema
 } from './schema';
 import { fetchCurrentPage } from './fetchCurrentPage';
 import { updateBaseImagesInS3 } from './updateBaseImagesInS3';
@@ -12,8 +12,8 @@ export const router = t.router({
   fetchCurrentPage: t.procedure
     .input(fetchCurrentPageInputSchema)
     .query(({ input }) => fetchCurrentPage(input)),
-  updateBaseImages: t.procedure
-    .input(updateBaseImagesInputSchema)
+  acceptVisualChanges: t.procedure
+    .input(acceptVisualChangesInputSchema)
     .mutation(({ input }) => updateBaseImagesInS3(input))
 });
 

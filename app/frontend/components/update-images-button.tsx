@@ -2,10 +2,10 @@ import * as React from 'react';
 import { useContext, useState } from 'react';
 import { Error } from './error';
 import {
-  BaseImageStateContext,
-  UpdateBaseImagesTexts,
-  UpdateBaseImagesText
-} from '../providers/base-image-state-provider';
+  AcceptVisualChangesStateContext,
+  AcceptVisualChangesTexts,
+  AcceptVisualChangesText
+} from '../providers/accept-visual-changes-state-provider';
 import { trpc } from '../utils/trpc';
 import { Dialog, Transition } from '@headlessui/react';
 import { PrimaryButton, TertiaryButton } from './buttons';
@@ -15,21 +15,21 @@ export const UpdateImagesButton: React.FC<{ disabled: boolean }> = ({
   disabled
 }) => {
   const [dialogIsOpen, setDialogIsOpen] = useState(false);
-  const { baseImageState, setBaseImageState } = useContext(
-    BaseImageStateContext
+  const { acceptVisualChangesState, setAcceptVisualChangesState } = useContext(
+    AcceptVisualChangesStateContext
   );
 
-  const { error: updateBaseImagesError, mutate: updateBaseImages } =
-    trpc.updateBaseImages.useMutation({
+  const { error: acceptVisualChangesError, mutate: acceptVisualChanges } =
+    trpc.acceptVisualChanges.useMutation({
       onMutate: () => {
-        setBaseImageState?.(UpdateBaseImagesTexts.UPDATING);
+        setAcceptVisualChangesState?.(AcceptVisualChangesTexts.UPDATING);
       },
       onSuccess: () => {
         setDialogIsOpen(false);
-        setBaseImageState?.(UpdateBaseImagesTexts.UPDATED);
+        setAcceptVisualChangesState?.(AcceptVisualChangesTexts.ACCEPTED);
       },
       onError: () => {
-        setBaseImageState?.(UpdateBaseImagesTexts.ERROR);
+        setAcceptVisualChangesState?.(AcceptVisualChangesTexts.ERROR);
       }
     });
 
@@ -50,13 +50,23 @@ export const UpdateImagesButton: React.FC<{ disabled: boolean }> = ({
     setDialogIsOpen(false);
   };
 
+  const useBaseImages = params.useBaseImages
+    ? params.useBaseImages === 'true'
+    : false;
   const handleUpdate = () =>
-    updateBaseImages({ commitHash, diffId, bucket, owner, repo });
+    acceptVisualChanges({
+      commitHash,
+      diffId,
+      useBaseImages,
+      bucket,
+      owner,
+      repo
+    });
 
   const dialogTitleText =
     'Are you sure you want to accept incoming visual changes?';
   const updateText =
-    'WARNING: This will update the base images in S3 and will set the visual regression status to passed. You can only do this if you are about to merge your PR and all other checks have passed.';
+    'This will set the visual regression status to passed. You can only do this if you are about to merge your PR and all other checks have passed.';
   const dialogContent = (
     <>
       <Dialog.Title as="h3" className="mt-2 text-xl leading-6 font-semibold">
@@ -94,18 +104,18 @@ export const UpdateImagesButton: React.FC<{ disabled: boolean }> = ({
         as="h3"
         className="text-lg leading-6 font-medium text-gray-900"
       >
-        Updating base images...
+        Accepting visual changes...
       </Dialog.Title>
     </div>
   );
-  const dialogErrorContent = updateBaseImagesError && (
-    <Error error={updateBaseImagesError} />
+  const dialogErrorContent = acceptVisualChangesError && (
+    <Error error={acceptVisualChangesError} />
   );
-  const getDialogContent = (state?: UpdateBaseImagesText) => {
+  const getDialogContent = (state?: AcceptVisualChangesText) => {
     switch (state) {
-      case UpdateBaseImagesTexts.NOT_UPDATED:
+      case AcceptVisualChangesTexts.NOT_UPDATED:
         return dialogContent;
-      case UpdateBaseImagesTexts.ERROR:
+      case AcceptVisualChangesTexts.ERROR:
         return dialogErrorContent;
       default:
         return dialogLoadingContent;
@@ -113,7 +123,7 @@ export const UpdateImagesButton: React.FC<{ disabled: boolean }> = ({
   };
 
   const shouldDisableBaseImageButton =
-    baseImageState !== UpdateBaseImagesTexts.NOT_UPDATED;
+    acceptVisualChangesState !== AcceptVisualChangesTexts.NOT_UPDATED;
 
   return (
     <>
@@ -121,7 +131,7 @@ export const UpdateImagesButton: React.FC<{ disabled: boolean }> = ({
         disabled={disabled || shouldDisableBaseImageButton}
         onClick={handleDialogOpen}
       >
-        {baseImageState}
+        {acceptVisualChangesState}
       </PrimaryButton>
       <Transition appear show={dialogIsOpen}>
         <Dialog as="div" className="relative z-10" onClose={handleDialogClose}>
@@ -147,7 +157,7 @@ export const UpdateImagesButton: React.FC<{ disabled: boolean }> = ({
                 leaveTo="opacity-0 scale-95"
               >
                 <Dialog.Panel className="w-full max-w-lg transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-                  {getDialogContent(baseImageState)}
+                  {getDialogContent(acceptVisualChangesState)}
                 </Dialog.Panel>
               </Transition.Child>
             </div>

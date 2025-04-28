@@ -5,9 +5,10 @@ export const fetchCurrentPageInputSchema = z.object({
   hash: z.string().min(1),
   page: z.number()
 });
-export const updateBaseImagesInputSchema = z.object({
+export const acceptVisualChangesInputSchema = z.object({
   commitHash: z.string().min(1).optional(),
   diffId: z.string().min(1).optional(),
+  useBaseImages: z.boolean().optional().default(true),
   bucket: z.string().min(1),
   repo: z.string().min(1),
   owner: z.string().min(1)
@@ -25,7 +26,9 @@ export const secretsJsonSchema = z.record(
   })
 );
 export type FetchCurrentPageInput = z.infer<typeof fetchCurrentPageInputSchema>;
-export type UpdateBaseImagesInput = z.infer<typeof updateBaseImagesInputSchema>;
+export type AcceptVisualChangesInput = z.infer<
+  typeof acceptVisualChangesInputSchema
+>;
 export type UpdateGitStatus = z.infer<typeof updateGitStatusSchema>;
 export const FILE_NAMES = {
   BASE: 'base',

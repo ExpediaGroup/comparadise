@@ -7,7 +7,7 @@ import {
 } from 'shared';
 import { findReasonToPreventBaseImageUpdate } from './findReasonToPreventBaseImageUpdate';
 import { TRPCError } from '@trpc/server';
-import { UpdateBaseImagesInput } from './schema';
+import { AcceptVisualChangesInput } from './schema';
 import { getKeysFromS3 } from './getKeysFromS3';
 import { updateCommitStatus } from './updateCommitStatus';
 
@@ -17,7 +17,7 @@ export const updateBaseImagesInS3 = async ({
   bucket,
   owner,
   repo
-}: UpdateBaseImagesInput) => {
+}: AcceptVisualChangesInput) => {
   const reasonToPreventUpdate =
     commitHash &&
     (await findReasonToPreventBaseImageUpdate(owner, repo, commitHash));
