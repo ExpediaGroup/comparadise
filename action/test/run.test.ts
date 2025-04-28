@@ -205,7 +205,7 @@ describe('main', () => {
       state: 'failure',
       description: 'A visual regression was detected. Check Comparadise!',
       target_url:
-        'https://comparadise.app/?commitHash=sha&owner=owner&repo=repo&bucket=some-bucket&use-base-images=true'
+        'https://comparadise.app/?commitHash=sha&owner=owner&repo=repo&bucket=some-bucket&useBaseImages=true'
     });
     expect(octokit.rest.issues.createComment).toHaveBeenCalled();
   });
@@ -450,7 +450,7 @@ describe('main', () => {
       state: 'failure',
       description: 'A visual regression was detected. Check Comparadise!',
       target_url:
-        'https://comparadise.app/?commitHash=sha&owner=owner&repo=repo&bucket=some-bucket&use-base-images=false'
+        'https://comparadise.app/?commitHash=sha&owner=owner&repo=repo&bucket=some-bucket&useBaseImages=false'
     });
   });
 
