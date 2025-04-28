@@ -5,7 +5,7 @@ export const AcceptVisualChangesTexts = {
   NOT_UPDATED: 'Accept visual changes',
   UPDATING: 'Updating...',
   ACCEPTED: 'Visual changes accepted!',
-  ERROR: 'Base image update failed'
+  ERROR: 'Visual changes could not be accepted'
 } as const;
 export type AcceptVisualChangesText =
   (typeof AcceptVisualChangesTexts)[keyof typeof AcceptVisualChangesTexts];
@@ -21,15 +21,14 @@ export const AcceptVisualChangesStateContext =
 export const AcceptVisualChangesStateProvider = ({
   children
 }: React.PropsWithChildren) => {
-  const [baseImageState, setBaseImageState] = useState<AcceptVisualChangesText>(
-    AcceptVisualChangesTexts.NOT_UPDATED
-  );
+  const [acceptVisualChangesState, setAcceptVisualChangesState] =
+    useState<AcceptVisualChangesText>(AcceptVisualChangesTexts.NOT_UPDATED);
 
   return (
     <AcceptVisualChangesStateContext.Provider
       value={{
-        acceptVisualChangesState: baseImageState,
-        setAcceptVisualChangesState: setBaseImageState
+        acceptVisualChangesState: acceptVisualChangesState,
+        setAcceptVisualChangesState: setAcceptVisualChangesState
       }}
     >
       {children}
