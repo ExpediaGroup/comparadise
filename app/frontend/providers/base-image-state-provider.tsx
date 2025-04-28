@@ -2,7 +2,7 @@ import * as React from 'react';
 import { createContext, useState } from 'react';
 
 export const UpdateBaseImagesTexts = {
-  NOT_UPDATED: 'Update all base images',
+  NOT_UPDATED: 'Accept visual changes',
   UPDATING: 'Updating...',
   UPDATED: 'All images updated!',
   ERROR: 'Base image update failed'

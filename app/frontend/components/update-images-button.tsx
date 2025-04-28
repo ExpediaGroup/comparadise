@@ -53,7 +53,8 @@ export const UpdateImagesButton: React.FC<{ disabled: boolean }> = ({
   const handleUpdate = () =>
     updateBaseImages({ commitHash, diffId, bucket, owner, repo });
 
-  const dialogTitleText = 'Are you sure you want to update the base images?';
+  const dialogTitleText =
+    'Are you sure you want to accept incoming visual changes?';
   const updateText =
     'WARNING: This will update the base images in S3 and will set the visual regression status to passed. You can only do this if you are about to merge your PR and all other checks have passed.';
   const dialogContent = (
@@ -67,7 +68,7 @@ export const UpdateImagesButton: React.FC<{ disabled: boolean }> = ({
 
       <div className="mt-5 flex justify-end">
         <PrimaryButton autoFocus onClick={handleUpdate}>
-          Update
+          Accept
         </PrimaryButton>
         <TertiaryButton className="ml-3" onClick={handleDialogClose}>
           Cancel
