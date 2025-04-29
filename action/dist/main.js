@@ -36089,7 +36089,7 @@ var run = async () => {
   await octokit.rest.repos.createCommitStatus({
     sha: commitHash,
     context: VISUAL_REGRESSION_CONTEXT,
-    state: "failure",
+    state: "pending",
     description: "A visual regression was detected. Check Comparadise!",
     target_url: buildComparadiseUrl(),
     ...import_github6.context.repo
