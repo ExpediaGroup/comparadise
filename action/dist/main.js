@@ -36095,9 +36095,7 @@ var run = async () => {
     ...import_github6.context.repo
   });
   await createGithubComment();
-  if (numVisualTestFailures > 0) {
-    (0, import_core6.setFailed)("Visual regression differences found while taking a screenshot!");
-  }
+  (0, import_core6.setFailed)("Visual regression differences found while taking a screenshot!");
 };
 
 // src/main.ts
