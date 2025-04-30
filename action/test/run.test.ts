@@ -513,7 +513,7 @@ describe('main', () => {
     expect(octokit.rest.issues.createComment).not.toHaveBeenCalled();
   });
 
-  it('should set successful commit status if the latest Visual Regression status is not failure', async () => {
+  it('should not set successful commit status if the latest Visual Regression status has been set', async () => {
     (exec as jest.Mock).mockResolvedValue(0);
     (sync as unknown as jest.Mock).mockReturnValue([
       'path/to/screenshots/base.png'
@@ -540,7 +540,7 @@ describe('main', () => {
       ]
     });
     await run();
-    expect(octokit.rest.repos.createCommitStatus).toHaveBeenCalled();
+    expect(octokit.rest.repos.createCommitStatus).not.toHaveBeenCalled();
   });
 
   it('should not set commit status or create comment if the latest Visual Regression status is failure because tests failed to execute successfully', async () => {

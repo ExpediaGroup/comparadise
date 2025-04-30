@@ -36047,9 +36047,9 @@ var run = async () => {
         "Disabling auto merge because this is a retry attempt. This is to avoid auto merging prematurely."
       );
       await disableAutoMerge(commitHash);
-    } else if (latestVisualRegressionStatus?.state === "failure") {
+    } else if (latestVisualRegressionStatus?.state) {
       (0, import_core6.info)(
-        "Skipping status update since Visual Regression status has already been set to failed."
+        "Skipping status update since Visual Regression status has already been set."
       );
       return;
     }
