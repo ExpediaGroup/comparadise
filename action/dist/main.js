@@ -26585,19 +26585,19 @@ var init_dist_web4 = __esm({
   }
 });
 
-// ../node_modules/@octokit/plugin-rest-endpoint-methods/dist-src/version.js
+// ../node_modules/@actions/github/node_modules/@octokit/plugin-rest-endpoint-methods/dist-src/version.js
 var VERSION5;
 var init_version3 = __esm({
-  "../node_modules/@octokit/plugin-rest-endpoint-methods/dist-src/version.js"() {
+  "../node_modules/@actions/github/node_modules/@octokit/plugin-rest-endpoint-methods/dist-src/version.js"() {
     "use strict";
     VERSION5 = "10.4.1";
   }
 });
 
-// ../node_modules/@octokit/plugin-rest-endpoint-methods/dist-src/generated/endpoints.js
+// ../node_modules/@actions/github/node_modules/@octokit/plugin-rest-endpoint-methods/dist-src/generated/endpoints.js
 var Endpoints, endpoints_default;
 var init_endpoints = __esm({
-  "../node_modules/@octokit/plugin-rest-endpoint-methods/dist-src/generated/endpoints.js"() {
+  "../node_modules/@actions/github/node_modules/@octokit/plugin-rest-endpoint-methods/dist-src/generated/endpoints.js"() {
     "use strict";
     Endpoints = {
       actions: {
@@ -28591,7 +28591,7 @@ var init_endpoints = __esm({
   }
 });
 
-// ../node_modules/@octokit/plugin-rest-endpoint-methods/dist-src/endpoints-to-methods.js
+// ../node_modules/@actions/github/node_modules/@octokit/plugin-rest-endpoint-methods/dist-src/endpoints-to-methods.js
 function endpointsToMethods(octokit2) {
   const newMethods = {};
   for (const scope of endpointMethodsMap.keys()) {
@@ -28642,7 +28642,7 @@ function decorate(octokit2, scope, methodName, defaults2, decorations) {
 }
 var endpointMethodsMap, handler;
 var init_endpoints_to_methods = __esm({
-  "../node_modules/@octokit/plugin-rest-endpoint-methods/dist-src/endpoints-to-methods.js"() {
+  "../node_modules/@actions/github/node_modules/@octokit/plugin-rest-endpoint-methods/dist-src/endpoints-to-methods.js"() {
     "use strict";
     init_endpoints();
     endpointMethodsMap = /* @__PURE__ */ new Map();
@@ -28721,7 +28721,7 @@ var init_endpoints_to_methods = __esm({
   }
 });
 
-// ../node_modules/@octokit/plugin-rest-endpoint-methods/dist-src/index.js
+// ../node_modules/@actions/github/node_modules/@octokit/plugin-rest-endpoint-methods/dist-src/index.js
 var dist_src_exports = {};
 __export(dist_src_exports, {
   legacyRestEndpointMethods: () => legacyRestEndpointMethods,
@@ -28741,7 +28741,7 @@ function legacyRestEndpointMethods(octokit2) {
   };
 }
 var init_dist_src5 = __esm({
-  "../node_modules/@octokit/plugin-rest-endpoint-methods/dist-src/index.js"() {
+  "../node_modules/@actions/github/node_modules/@octokit/plugin-rest-endpoint-methods/dist-src/index.js"() {
     "use strict";
     init_version3();
     init_endpoints_to_methods();
@@ -28750,7 +28750,7 @@ var init_dist_src5 = __esm({
   }
 });
 
-// ../node_modules/@octokit/plugin-paginate-rest/dist-web/index.js
+// ../node_modules/@actions/github/node_modules/@octokit/plugin-paginate-rest/dist-web/index.js
 var dist_web_exports2 = {};
 __export(dist_web_exports2, {
   composePaginateRest: () => composePaginateRest,
@@ -28801,7 +28801,7 @@ function iterator(octokit2, route, parameters) {
           const response = await requestMethod({ method, url, headers });
           const normalizedResponse = normalizePaginatedListResponse(response);
           url = ((normalizedResponse.headers.link || "").match(
-            /<([^>]+)>;\s*rel="next"/
+            /<([^<>]+)>;\s*rel="next"/
           ) || [])[1];
           return { value: normalizedResponse };
         } catch (error) {
@@ -28866,9 +28866,9 @@ function paginateRest(octokit2) {
 }
 var VERSION6, composePaginateRest, paginatingEndpoints;
 var init_dist_web5 = __esm({
-  "../node_modules/@octokit/plugin-paginate-rest/dist-web/index.js"() {
+  "../node_modules/@actions/github/node_modules/@octokit/plugin-paginate-rest/dist-web/index.js"() {
     "use strict";
-    VERSION6 = "9.2.1";
+    VERSION6 = "9.2.2";
     composePaginateRest = Object.assign(paginate, {
       iterator
     });
@@ -29216,6 +29216,25 @@ var require_github = __commonJS({
   }
 });
 
+// ../node_modules/concat-map/index.js
+var require_concat_map = __commonJS({
+  "../node_modules/concat-map/index.js"(exports2, module2) {
+    "use strict";
+    module2.exports = function(xs, fn) {
+      var res = [];
+      for (var i = 0; i < xs.length; i++) {
+        var x = fn(xs[i], i);
+        if (isArray(x)) res.push.apply(res, x);
+        else res.push(x);
+      }
+      return res;
+    };
+    var isArray = Array.isArray || function(xs) {
+      return Object.prototype.toString.call(xs) === "[object Array]";
+    };
+  }
+});
+
 // ../node_modules/balanced-match/index.js
 var require_balanced_match = __commonJS({
   "../node_modules/balanced-match/index.js"(exports2, module2) {
@@ -29274,10 +29293,11 @@ var require_balanced_match = __commonJS({
   }
 });
 
-// ../node_modules/glob/node_modules/minimatch/node_modules/brace-expansion/index.js
+// ../node_modules/brace-expansion/index.js
 var require_brace_expansion = __commonJS({
-  "../node_modules/glob/node_modules/minimatch/node_modules/brace-expansion/index.js"(exports2, module2) {
+  "../node_modules/brace-expansion/index.js"(exports2, module2) {
     "use strict";
+    var concatMap = require_concat_map();
     var balanced = require_balanced_match();
     module2.exports = expandTop;
     var escSlash = "\0SLASH" + Math.random() + "\0";
@@ -29337,87 +29357,80 @@ var require_brace_expansion = __commonJS({
     function expand3(str, isTop) {
       var expansions = [];
       var m = balanced("{", "}", str);
-      if (!m) return [str];
+      if (!m || /\$$/.test(m.pre)) return [str];
+      var isNumericSequence = /^-?\d+\.\.-?\d+(?:\.\.-?\d+)?$/.test(m.body);
+      var isAlphaSequence = /^[a-zA-Z]\.\.[a-zA-Z](?:\.\.-?\d+)?$/.test(m.body);
+      var isSequence = isNumericSequence || isAlphaSequence;
+      var isOptions = m.body.indexOf(",") >= 0;
+      if (!isSequence && !isOptions) {
+        if (m.post.match(/,.*\}/)) {
+          str = m.pre + "{" + m.body + escClose + m.post;
+          return expand3(str);
+        }
+        return [str];
+      }
+      var n;
+      if (isSequence) {
+        n = m.body.split(/\.\./);
+      } else {
+        n = parseCommaParts(m.body);
+        if (n.length === 1) {
+          n = expand3(n[0], false).map(embrace);
+          if (n.length === 1) {
+            var post = m.post.length ? expand3(m.post, false) : [""];
+            return post.map(function(p) {
+              return m.pre + n[0] + p;
+            });
+          }
+        }
+      }
       var pre = m.pre;
       var post = m.post.length ? expand3(m.post, false) : [""];
-      if (/\$$/.test(m.pre)) {
-        for (var k = 0; k < post.length; k++) {
-          var expansion = pre + "{" + m.body + "}" + post[k];
-          expansions.push(expansion);
+      var N;
+      if (isSequence) {
+        var x = numeric(n[0]);
+        var y = numeric(n[1]);
+        var width = Math.max(n[0].length, n[1].length);
+        var incr = n.length == 3 ? Math.abs(numeric(n[2])) : 1;
+        var test = lte;
+        var reverse = y < x;
+        if (reverse) {
+          incr *= -1;
+          test = gte;
         }
-      } else {
-        var isNumericSequence = /^-?\d+\.\.-?\d+(?:\.\.-?\d+)?$/.test(m.body);
-        var isAlphaSequence = /^[a-zA-Z]\.\.[a-zA-Z](?:\.\.-?\d+)?$/.test(m.body);
-        var isSequence = isNumericSequence || isAlphaSequence;
-        var isOptions = m.body.indexOf(",") >= 0;
-        if (!isSequence && !isOptions) {
-          if (m.post.match(/,.*\}/)) {
-            str = m.pre + "{" + m.body + escClose + m.post;
-            return expand3(str);
-          }
-          return [str];
-        }
-        var n;
-        if (isSequence) {
-          n = m.body.split(/\.\./);
-        } else {
-          n = parseCommaParts(m.body);
-          if (n.length === 1) {
-            n = expand3(n[0], false).map(embrace);
-            if (n.length === 1) {
-              return post.map(function(p) {
-                return m.pre + n[0] + p;
-              });
-            }
-          }
-        }
-        var N;
-        if (isSequence) {
-          var x = numeric(n[0]);
-          var y = numeric(n[1]);
-          var width = Math.max(n[0].length, n[1].length);
-          var incr = n.length == 3 ? Math.abs(numeric(n[2])) : 1;
-          var test = lte;
-          var reverse = y < x;
-          if (reverse) {
-            incr *= -1;
-            test = gte;
-          }
-          var pad = n.some(isPadded);
-          N = [];
-          for (var i = x; test(i, y); i += incr) {
-            var c;
-            if (isAlphaSequence) {
-              c = String.fromCharCode(i);
-              if (c === "\\")
-                c = "";
-            } else {
-              c = String(i);
-              if (pad) {
-                var need = width - c.length;
-                if (need > 0) {
-                  var z = new Array(need + 1).join("0");
-                  if (i < 0)
-                    c = "-" + z + c.slice(1);
-                  else
-                    c = z + c;
-                }
+        var pad = n.some(isPadded);
+        N = [];
+        for (var i = x; test(i, y); i += incr) {
+          var c;
+          if (isAlphaSequence) {
+            c = String.fromCharCode(i);
+            if (c === "\\")
+              c = "";
+          } else {
+            c = String(i);
+            if (pad) {
+              var need = width - c.length;
+              if (need > 0) {
+                var z = new Array(need + 1).join("0");
+                if (i < 0)
+                  c = "-" + z + c.slice(1);
+                else
+                  c = z + c;
               }
             }
-            N.push(c);
           }
-        } else {
-          N = [];
-          for (var j = 0; j < n.length; j++) {
-            N.push.apply(N, expand3(n[j], false));
-          }
+          N.push(c);
         }
-        for (var j = 0; j < N.length; j++) {
-          for (var k = 0; k < post.length; k++) {
-            var expansion = pre + N[j] + post[k];
-            if (!isTop || isSequence || expansion)
-              expansions.push(expansion);
-          }
+      } else {
+        N = concatMap(n, function(el) {
+          return expand3(el, false);
+        });
+      }
+      for (var j = 0; j < N.length; j++) {
+        for (var k = 0; k < post.length; k++) {
+          var expansion = pre + N[j] + post[k];
+          if (!isTop || isSequence || expansion)
+            expansions.push(expansion);
         }
       }
       return expansions;
@@ -29517,10 +29530,10 @@ var octokit = (0, import_github.getOctokit)((0, import_core2.getInput)("github-t
 var import_github6 = __toESM(require_github());
 var path3 = __toESM(require("path"));
 
-// ../node_modules/glob/node_modules/minimatch/dist/esm/index.js
+// node_modules/minimatch/dist/esm/index.js
 var import_brace_expansion = __toESM(require_brace_expansion(), 1);
 
-// ../node_modules/glob/node_modules/minimatch/dist/esm/assert-valid-pattern.js
+// node_modules/minimatch/dist/esm/assert-valid-pattern.js
 var MAX_PATTERN_LENGTH = 1024 * 64;
 var assertValidPattern = (pattern) => {
   if (typeof pattern !== "string") {
@@ -29531,7 +29544,7 @@ var assertValidPattern = (pattern) => {
   }
 };
 
-// ../node_modules/glob/node_modules/minimatch/dist/esm/brace-expressions.js
+// node_modules/minimatch/dist/esm/brace-expressions.js
 var posixClasses = {
   "[:alnum:]": ["\\p{L}\\p{Nl}\\p{Nd}", true],
   "[:alpha:]": ["\\p{L}\\p{Nl}", true],
@@ -29640,12 +29653,12 @@ var parseClass = (glob2, position) => {
   return [comb, uflag, endPos - pos, true];
 };
 
-// ../node_modules/glob/node_modules/minimatch/dist/esm/unescape.js
+// node_modules/minimatch/dist/esm/unescape.js
 var unescape = (s, { windowsPathsNoEscape = false } = {}) => {
   return windowsPathsNoEscape ? s.replace(/\[([^\/\\])\]/g, "$1") : s.replace(/((?!\\).|^)\[([^\/\\])\]/g, "$1$2").replace(/\\([^\/])/g, "$1");
 };
 
-// ../node_modules/glob/node_modules/minimatch/dist/esm/ast.js
+// node_modules/minimatch/dist/esm/ast.js
 var types = /* @__PURE__ */ new Set(["!", "?", "+", "*", "@"]);
 var isExtglobType = (c) => types.has(c);
 var startNoTraversal = "(?!(?:^|/)\\.\\.?(?:$|/))";
@@ -30124,12 +30137,12 @@ var AST = class _AST {
   }
 };
 
-// ../node_modules/glob/node_modules/minimatch/dist/esm/escape.js
+// node_modules/minimatch/dist/esm/escape.js
 var escape = (s, { windowsPathsNoEscape = false } = {}) => {
   return windowsPathsNoEscape ? s.replace(/[?*()[\]]/g, "[$&]") : s.replace(/[?*()[\]\\]/g, "\\$&");
 };
 
-// ../node_modules/glob/node_modules/minimatch/dist/esm/index.js
+// node_modules/minimatch/dist/esm/index.js
 var minimatch = (p, pattern, options = {}) => {
   assertValidPattern(pattern);
   if (!options.nocomment && pattern.charAt(0) === "#") {
@@ -30847,10 +30860,10 @@ minimatch.Minimatch = Minimatch;
 minimatch.escape = escape;
 minimatch.unescape = unescape;
 
-// ../node_modules/glob/dist/esm/glob.js
+// node_modules/glob/dist/esm/glob.js
 var import_node_url2 = require("url");
 
-// ../node_modules/lru-cache/dist/esm/index.js
+// ../node_modules/path-scurry/node_modules/lru-cache/dist/esm/index.js
 var perf = typeof performance === "object" && performance && typeof performance.now === "function" ? performance : Date;
 var warned = /* @__PURE__ */ new Set();
 var PROCESS = typeof process === "object" && !!process ? process : {};
@@ -34830,7 +34843,7 @@ var PathScurryDarwin = class extends PathScurryPosix {
 var Path = process.platform === "win32" ? PathWin32 : PathPosix;
 var PathScurry = process.platform === "win32" ? PathScurryWin32 : process.platform === "darwin" ? PathScurryDarwin : PathScurryPosix;
 
-// ../node_modules/glob/dist/esm/pattern.js
+// node_modules/glob/dist/esm/pattern.js
 var isPatternList = (pl) => pl.length >= 1;
 var isGlobList = (gl) => gl.length >= 1;
 var Pattern = class _Pattern {
@@ -34995,7 +35008,7 @@ var Pattern = class _Pattern {
   }
 };
 
-// ../node_modules/glob/dist/esm/ignore.js
+// node_modules/glob/dist/esm/ignore.js
 var defaultPlatform2 = typeof process === "object" && process && typeof process.platform === "string" ? process.platform : "linux";
 var Ignore = class {
   relative;
@@ -35082,7 +35095,7 @@ var Ignore = class {
   }
 };
 
-// ../node_modules/glob/dist/esm/processor.js
+// node_modules/glob/dist/esm/processor.js
 var HasWalkedCache = class _HasWalkedCache {
   store;
   constructor(store = /* @__PURE__ */ new Map()) {
@@ -35303,7 +35316,7 @@ var Processor = class _Processor {
   }
 };
 
-// ../node_modules/glob/dist/esm/walker.js
+// node_modules/glob/dist/esm/walker.js
 var makeIgnore = (ignore, opts) => typeof ignore === "string" ? new Ignore([ignore], opts) : Array.isArray(ignore) ? new Ignore(ignore, opts) : ignore;
 var GlobUtil = class {
   path;
@@ -35630,7 +35643,7 @@ var GlobStream = class extends GlobUtil {
   }
 };
 
-// ../node_modules/glob/dist/esm/glob.js
+// node_modules/glob/dist/esm/glob.js
 var defaultPlatform3 = typeof process === "object" && process && typeof process.platform === "string" ? process.platform : "linux";
 var Glob = class {
   absolute;
@@ -35830,7 +35843,7 @@ var Glob = class {
   }
 };
 
-// ../node_modules/glob/dist/esm/has-magic.js
+// node_modules/glob/dist/esm/has-magic.js
 var hasMagic = (pattern, options = {}) => {
   if (!Array.isArray(pattern)) {
     pattern = [pattern];
@@ -35842,7 +35855,7 @@ var hasMagic = (pattern, options = {}) => {
   return false;
 };
 
-// ../node_modules/glob/dist/esm/index.js
+// node_modules/glob/dist/esm/index.js
 function globStreamSync(pattern, options = {}) {
   return new Glob(pattern, options).streamSync();
 }
@@ -36095,6 +36108,9 @@ var run = async () => {
     ...import_github6.context.repo
   });
   await createGithubComment();
+  if (numVisualTestFailures > 0) {
+    (0, import_core6.setFailed)("Visual regression differences found while taking a screenshot!");
+  }
 };
 
 // src/main.ts
