@@ -163,4 +163,9 @@ export const run = async () => {
     ...context.repo
   });
   await createGithubComment();
+
+  if (numVisualTestFailures > 0) {
+    setFailed('Visual regression differences found while taking a screenshot!');
+    // insert logic to send slack notifcation to PR authors
+  }
 };
