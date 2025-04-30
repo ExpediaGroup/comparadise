@@ -164,8 +164,6 @@ export const run = async () => {
   });
   await createGithubComment();
 
-  if (numVisualTestFailures > 0) {
-    setFailed('Visual regression differences found while taking a screenshot!');
-    // insert logic to send slack notifcation to PR authors
-  }
+  setFailed('Visual regression differences found while taking a screenshot!');
+  // insert logic to send slack notifcation to PR authors
 };
