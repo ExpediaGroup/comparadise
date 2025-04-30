@@ -194,7 +194,7 @@ describe('main', () => {
       'path/to/another-screenshot/diff.png'
     ]);
     await run();
-    expect(setFailed).not.toHaveBeenCalled();
+    expect(setFailed).toHaveBeenCalled();
     expect(exec).not.toHaveBeenCalledWith('rm path/to/screenshots/diff.png');
     expect(exec).toHaveBeenCalledWith('rm path/to/another-screenshot/diff.png');
     expect(octokit.rest.repos.createCommitStatus).toHaveBeenCalledWith({
