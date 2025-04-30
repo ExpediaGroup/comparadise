@@ -164,5 +164,5 @@ export const run = async () => {
   });
   await createGithubComment();
 
-  setFailed('Visual regression differences found while taking a screenshot!');
+  setFailed('A visual regression was detected. Check Comparadise!');
 };
