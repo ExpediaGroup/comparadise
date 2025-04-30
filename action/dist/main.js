@@ -36095,6 +36095,7 @@ var run = async () => {
     ...import_github6.context.repo
   });
   await createGithubComment();
+  (0, import_core6.setFailed)("A visual regression was detected. Check Comparadise!");
 };
 
 // src/main.ts

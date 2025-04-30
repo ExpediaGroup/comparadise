@@ -163,4 +163,6 @@ export const run = async () => {
     ...context.repo
   });
   await createGithubComment();
+
+  setFailed('A visual regression was detected. Check Comparadise!');
 };
