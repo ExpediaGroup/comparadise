@@ -5,14 +5,14 @@
   "dependencies": {
     "@actions/core": "1.11.1",
     "@actions/exec": "1.1.1",
-    "@actions/github": "6.0.0",
+    "@actions/github": "6.0.1",
     "bluebird": "3.7.2",
     "glob": "11.0.2"
   },
   "devDependencies": {
     "@types/bluebird": "3.5.42",
     "@types/glob": "8.1.0",
-    "tsup": "8.4.0"
+    "tsup": "8.5.0"
   },
   "scripts": {
     "build": "tsup",
