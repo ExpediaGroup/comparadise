@@ -15,7 +15,7 @@
     "skipLibCheck": true,
     "strict": true,
     "target": "esnext",
-    "types": ["bun-types", "jest"]
+    "types": ["bun-types", "jest", "cypress", "@testing-library/cypress"]
   },
   "exclude": ["**/dist"]
 }
