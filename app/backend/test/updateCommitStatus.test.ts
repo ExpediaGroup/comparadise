@@ -7,7 +7,9 @@ jest.mock('../src/getOctokit');
 jest.mock('@octokit/rest', () => ({
   Octokit: jest.fn()
 }));
-const createCommitStatus = jest.fn();
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const createCommitStatus = jest.fn((_: unknown) => ({ catch: jest.fn() }));
 (getOctokit as jest.Mock).mockImplementation(() => ({
   rest: {
     repos: {
