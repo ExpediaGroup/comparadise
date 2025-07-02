@@ -7,7 +7,7 @@ jest.mock('../src/getOctokit');
 jest.mock('@octokit/rest', () => ({
   Octokit: jest.fn()
 }));
-const createCommitStatus = jest.fn(() => ({ catch: jest.fn() }));
+const createCommitStatus = jest.fn();
 (getOctokit as jest.Mock).mockImplementation(() => ({
   rest: {
     repos: {

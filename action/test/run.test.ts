@@ -181,7 +181,7 @@ describe('main', () => {
     ]);
     await run();
     expect(setFailed).not.toHaveBeenCalled();
-    expect(exec).not.toHaveBeenCalledWith();
+    expect(exec).not.toHaveBeenCalled();
     assertNoOctokitCalls();
   });
 
