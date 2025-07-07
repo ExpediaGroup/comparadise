@@ -11,7 +11,7 @@
   },
   "devDependencies": {
     "@types/bluebird": "3.5.42",
-    "@types/glob": "8.1.0",
+    "@types/glob": "9.0.0",
     "tsup": "8.5.0"
   },
   "scripts": {
