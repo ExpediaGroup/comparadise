@@ -1,6 +1,6 @@
 import { octokit } from './octokit';
 import { context } from '@actions/github';
-import { getInput } from '@actions/core';
+import { getInput, info } from '@actions/core';
 import { buildComparadiseUrl } from './build-comparadise-url';
 
 export const createGithubComment = async () => {
@@ -22,6 +22,10 @@ export const createGithubComment = async () => {
       ...context.repo
     });
   const prNumber = data.find(Boolean)?.number ?? context.issue.number;
+  if (!prNumber) {
+    info('No PR number found, skipping comment creation.');
+    return;
+  }
 
   const { data: comments } = await octokit.rest.issues.listComments({
     issue_number: prNumber,
