@@ -11,10 +11,10 @@
     "eslint-plugin-react": "7.37.5",
     "jest": "30.0.5",
     "husky": "9.1.7",
-    "nx": "21.3.7",
+    "nx": "21.3.11",
     "prettier": "3.6.2",
     "ts-node": "10.9.2",
-    "typescript": "5.8.3",
+    "typescript": "5.9.2",
     "typescript-eslint": "8.38.0"
   },
   "scripts": {
