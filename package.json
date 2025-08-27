@@ -6,7 +6,7 @@
     "@total-typescript/ts-reset": "0.6.1",
     "@types/jest": "30.0.0",
     "bun-types": "1.2.19",
-    "cypress": "14.5.3",
+    "cypress": "15.0.0",
     "eslint": "9.32.0",
     "eslint-plugin-react": "7.37.5",
     "jest": "30.0.5",
