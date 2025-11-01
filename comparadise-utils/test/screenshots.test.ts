@@ -1,4 +1,4 @@
-import { expect } from '@jest/globals';
+import { describe, expect, it } from 'bun:test';
 
 import { createImageFileName } from '../files';
 

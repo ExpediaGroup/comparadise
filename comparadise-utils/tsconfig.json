@@ -1,7 +1,0 @@
-{
-  "extends": "../tsconfig.json",
-  "compilerOptions": {
-    "types": ["cypress", "jest"]
-  },
-  "include": ["./**/*", "../reset.d.ts"]
-}
