@@ -23,7 +23,6 @@
     "zod": "4.1.12"
   },
   "devDependencies": {
-    "@testing-library/cypress": "10.1.0",
     "vite": "7.1.12"
   },
   "scripts": {
