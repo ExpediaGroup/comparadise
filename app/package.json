@@ -24,7 +24,6 @@
   },
   "devDependencies": {
     "@testing-library/cypress": "10.1.0",
-    "prettier-plugin-tailwindcss": "0.7.1",
     "vite": "7.1.12"
   },
   "scripts": {
