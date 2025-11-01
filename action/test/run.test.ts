@@ -1,48 +1,62 @@
-import { run } from '../src/run';
-import { exec } from '@actions/exec';
-import {
-  getInput,
-  getBooleanInput,
-  getMultilineInput,
-  setFailed
-} from '@actions/core';
-import { octokit } from '../src/octokit';
-import { sync } from 'glob';
 import {
   BASE_IMAGES_DIRECTORY,
   NEW_IMAGES_DIRECTORY,
   VISUAL_REGRESSION_CONTEXT,
   VISUAL_TESTS_FAILED_TO_EXECUTE
 } from 'shared';
-import { disableAutoMerge } from '../src/disable-auto-merge';
-import { expect } from '@jest/globals';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
-jest.mock('../src/disable-auto-merge');
-jest.mock('glob');
-jest.mock('@actions/core');
-jest.mock('@actions/exec');
-jest.mock('@actions/github', () => ({
+const disableAutoMergeMock = mock();
+mock.module('../src/disable-auto-merge', () => ({
+  disableAutoMerge: disableAutoMergeMock
+}));
+const globSyncMock = mock();
+mock.module('glob', () => ({
+  sync: globSyncMock
+}));
+const getInputMock = mock();
+const getBooleanInputMock = mock();
+const getMultilineInputMock = mock();
+const setFailedMock = mock();
+mock.module('@actions/core', () => ({
+  info: mock(),
+  getInput: getInputMock,
+  getBooleanInput: getBooleanInputMock,
+  getMultilineInput: getMultilineInputMock,
+  setFailed: setFailedMock,
+  warning: mock()
+}));
+const execMock = mock();
+mock.module('@actions/exec', () => ({
+  exec: execMock
+}));
+const createCommitStatusMock = mock();
+const listPullRequestsAssociatedWithCommitMock = mock(() => ({
+  data: [{ number: 123 }]
+}));
+const listCommitStatusesForRefMock = mock(() => ({
+  data: [
+    {
+      context: 'some context',
+      state: 'success'
+    }
+  ]
+}));
+const createCommentMock = mock();
+const listCommentsMock = mock(() => ({ data: [{ id: 1 }] }));
+mock.module('@actions/github', () => ({
   context: { repo: { repo: 'repo', owner: 'owner' } },
-  getOctokit: jest.fn(() => ({
+  getOctokit: mock(() => ({
     rest: {
       repos: {
-        createCommitStatus: jest.fn(),
-        listPullRequestsAssociatedWithCommit: jest.fn(() => ({
-          data: [{ number: 123 }]
-        })),
-        listCommitStatusesForRef: jest.fn(() => ({
-          data: [
-            {
-              context: 'some context',
-              created_at: '2023-05-21T16:51:29Z',
-              state: 'success'
-            }
-          ]
-        }))
+        createCommitStatus: createCommitStatusMock,
+        listPullRequestsAssociatedWithCommit:
+          listPullRequestsAssociatedWithCommitMock,
+        listCommitStatusesForRef: listCommitStatusesForRefMock
       },
       issues: {
-        createComment: jest.fn(),
-        listComments: jest.fn(() => ({ data: [{ id: 1 }] }))
+        createComment: createCommentMock,
+        listComments: listCommentsMock
       }
     }
   }))
@@ -65,29 +79,34 @@ const diffIdInputMap: Record<string, string | undefined> = {
 // Helper to assert no calls to `octokit.rest` methods
 const assertNoOctokitCalls = () => {
   const allMethods = [
-    octokit.rest.repos.createCommitStatus,
-    octokit.rest.repos.listPullRequestsAssociatedWithCommit,
-    octokit.rest.repos.listCommitStatusesForRef,
-    octokit.rest.issues.createComment,
-    octokit.rest.issues.listComments
+    createCommitStatusMock,
+    listPullRequestsAssociatedWithCommitMock,
+    listCommitStatusesForRefMock,
+    createCommentMock,
+    listCommentsMock
   ];
   allMethods.forEach(method => {
     expect(method).not.toHaveBeenCalled();
   });
 };
 
+async function runAction() {
+  const { run } = await import('../src/run');
+  await run();
+}
+
 describe('main', () => {
   beforeEach(() => {
+    mock.clearAllMocks();
+
     process.env.GITHUB_RUN_ATTEMPT = '1';
 
-    (getInput as jest.Mock).mockImplementation(name => inputMap[name]);
+    getInputMock.mockImplementation(name => inputMap[name]);
 
     const multiLineInputMap: Record<string, string[]> = {
       'visual-test-command': ['run my visual tests']
     };
-    (getMultilineInput as jest.Mock).mockImplementation(
-      name => multiLineInputMap[name]
-    );
+    getMultilineInputMock.mockImplementation(name => multiLineInputMap[name]);
   });
 
   it('should fail when neither diff-id nor commit-hash is provided', async () => {
@@ -96,19 +115,19 @@ describe('main', () => {
       'diff-id': undefined,
       'commit-hash': undefined
     };
-    (getInput as jest.Mock).mockImplementation(name => extendedInputMap[name]);
-    (exec as jest.Mock).mockResolvedValue(0);
-    await run();
-    expect(setFailed).toHaveBeenCalledWith(
+    getInputMock.mockImplementation(name => extendedInputMap[name]);
+    execMock.mockResolvedValue(0);
+    await runAction();
+    expect(setFailedMock).toHaveBeenCalledWith(
       'Please provide either a commit-hash or a diff-id.'
     );
   });
 
   it('should fail if visual tests fail', async () => {
-    (exec as jest.Mock).mockResolvedValue(1);
-    await run();
-    expect(setFailed).toHaveBeenCalled();
-    expect(octokit.rest.repos.createCommitStatus).toHaveBeenCalledWith({
+    execMock.mockResolvedValue(1);
+    await runAction();
+    expect(setFailedMock).toHaveBeenCalled();
+    expect(createCommitStatusMock).toHaveBeenCalledWith({
       owner: 'owner',
       repo: 'repo',
       sha: 'sha',
@@ -119,10 +138,10 @@ describe('main', () => {
   });
 
   it('should fail if visual tests fail with diff-id input', async () => {
-    (getInput as jest.Mock).mockImplementation(name => diffIdInputMap[name]);
-    (exec as jest.Mock).mockResolvedValue(1);
-    await run();
-    expect(setFailed).toHaveBeenCalled();
+    getInputMock.mockImplementation(name => diffIdInputMap[name]);
+    execMock.mockResolvedValue(1);
+    await runAction();
+    expect(setFailedMock).toHaveBeenCalled();
     assertNoOctokitCalls();
   });
 
@@ -132,14 +151,12 @@ describe('main', () => {
       'diff-id': '12345',
       'commit-hash': 'sha'
     };
-    (getInput as jest.Mock).mockImplementation(name => extendedInputMap[name]);
-    (exec as jest.Mock).mockResolvedValue(0);
-    (sync as unknown as jest.Mock).mockReturnValue([
-      'path/to/screenshots/base.png'
-    ]);
-    await run();
-    expect(setFailed).not.toHaveBeenCalled();
-    expect(octokit.rest.repos.createCommitStatus).toHaveBeenCalledWith({
+    getInputMock.mockImplementation(name => extendedInputMap[name]);
+    execMock.mockResolvedValue(0);
+    globSyncMock.mockReturnValue(['path/to/screenshots/base.png']);
+    await runAction();
+    expect(setFailedMock).not.toHaveBeenCalled();
+    expect(createCommitStatusMock).toHaveBeenCalledWith({
       owner: 'owner',
       repo: 'repo',
       sha: 'sha',
@@ -150,20 +167,18 @@ describe('main', () => {
   });
 
   it('should pass when only diff-id is provided', async () => {
-    (getInput as jest.Mock).mockImplementation(name => diffIdInputMap[name]);
-    (exec as jest.Mock).mockResolvedValue(0);
-    await run();
-    expect(setFailed).not.toHaveBeenCalled();
+    getInputMock.mockImplementation(name => diffIdInputMap[name]);
+    execMock.mockResolvedValue(0);
+    await runAction();
+    expect(setFailedMock).not.toHaveBeenCalled();
   });
 
   it('should pass if visual tests pass and no diffs or new images', async () => {
-    (exec as jest.Mock).mockResolvedValue(0);
-    (sync as unknown as jest.Mock).mockReturnValue([
-      'path/to/screenshots/base.png'
-    ]);
-    await run();
-    expect(setFailed).not.toHaveBeenCalled();
-    expect(octokit.rest.repos.createCommitStatus).toHaveBeenCalledWith({
+    execMock.mockResolvedValue(0);
+    globSyncMock.mockReturnValue(['path/to/screenshots/base.png']);
+    await runAction();
+    expect(setFailedMock).not.toHaveBeenCalled();
+    expect(createCommitStatusMock).toHaveBeenCalledWith({
       owner: 'owner',
       repo: 'repo',
       sha: 'sha',
@@ -174,29 +189,31 @@ describe('main', () => {
   });
 
   it('should pass if visual tests pass and no diffs or new images with diff-id input', async () => {
-    (getInput as jest.Mock).mockImplementation(name => diffIdInputMap[name]);
-    (exec as jest.Mock).mockResolvedValue(0);
-    (sync as unknown as jest.Mock).mockReturnValue([
-      'path/to/screenshots/base.png'
-    ]);
-    await run();
-    expect(setFailed).not.toHaveBeenCalled();
+    getInputMock.mockImplementation(name => diffIdInputMap[name]);
+    execMock.mockResolvedValue(0);
+    globSyncMock.mockReturnValue(['path/to/screenshots/base.png']);
+    await runAction();
+    expect(setFailedMock).not.toHaveBeenCalled();
     assertNoOctokitCalls();
   });
 
   it('should fail if visual tests pass and some diff images were created', async () => {
-    (exec as jest.Mock).mockResolvedValue(1);
-    (sync as unknown as jest.Mock).mockReturnValue([
+    execMock.mockResolvedValue(1);
+    globSyncMock.mockReturnValue([
       'path/to/screenshots/base.png',
       'path/to/screenshots/diff.png',
       'path/to/screenshots/new.png',
       'path/to/another-screenshot/diff.png'
     ]);
-    await run();
-    expect(setFailed).toHaveBeenCalled();
-    expect(exec).not.toHaveBeenCalledWith('rm path/to/screenshots/diff.png');
-    expect(exec).toHaveBeenCalledWith('rm path/to/another-screenshot/diff.png');
-    expect(octokit.rest.repos.createCommitStatus).toHaveBeenCalledWith({
+    await runAction();
+    expect(setFailedMock).toHaveBeenCalled();
+    expect(execMock).not.toHaveBeenCalledWith(
+      'rm path/to/screenshots/diff.png'
+    );
+    expect(execMock).toHaveBeenCalledWith(
+      'rm path/to/another-screenshot/diff.png'
+    );
+    expect(createCommitStatusMock).toHaveBeenCalledWith({
       owner: 'owner',
       repo: 'repo',
       sha: 'sha',
@@ -206,22 +223,26 @@ describe('main', () => {
       target_url:
         'https://comparadise.app/?commitHash=sha&owner=owner&repo=repo&bucket=some-bucket&useBaseImages=true'
     });
-    expect(octokit.rest.issues.createComment).toHaveBeenCalled();
+    expect(createCommentMock).toHaveBeenCalled();
   });
 
   it('should fail if visual tests pass and some diff images were created', async () => {
-    (getInput as jest.Mock).mockImplementation(name => diffIdInputMap[name]);
-    (exec as jest.Mock).mockResolvedValue(1);
-    (sync as unknown as jest.Mock).mockReturnValue([
+    getInputMock.mockImplementation(name => diffIdInputMap[name]);
+    execMock.mockResolvedValue(1);
+    globSyncMock.mockReturnValue([
       'path/to/screenshots/base.png',
       'path/to/screenshots/diff.png',
       'path/to/screenshots/new.png',
       'path/to/another-screenshot/diff.png'
     ]);
-    await run();
-    expect(setFailed).not.toHaveBeenCalled();
-    expect(exec).not.toHaveBeenCalledWith('rm path/to/screenshots/diff.png');
-    expect(exec).toHaveBeenCalledWith('rm path/to/another-screenshot/diff.png');
+    await runAction();
+    expect(setFailedMock).not.toHaveBeenCalled();
+    expect(execMock).not.toHaveBeenCalledWith(
+      'rm path/to/screenshots/diff.png'
+    );
+    expect(execMock).toHaveBeenCalledWith(
+      'rm path/to/another-screenshot/diff.png'
+    );
     assertNoOctokitCalls();
   });
 
@@ -229,18 +250,18 @@ describe('main', () => {
     const multiLineInputMapMultipleCommands: Record<string, string[]> = {
       'visual-test-command': ['run my visual tests', 'ok thank you']
     };
-    (getMultilineInput as jest.Mock).mockImplementation(
+    getMultilineInputMock.mockImplementation(
       name => multiLineInputMapMultipleCommands[name]
     );
-    (exec as jest.Mock).mockResolvedValue(1);
-    (sync as unknown as jest.Mock).mockReturnValue([
+    execMock.mockResolvedValue(1);
+    globSyncMock.mockReturnValue([
       'path/to/screenshots/base.png',
       'path/to/screenshots/diff.png',
       'path/to/screenshots/new.png'
     ]);
-    await run();
-    expect(setFailed).toHaveBeenCalled();
-    expect(octokit.rest.repos.createCommitStatus).toHaveBeenCalledWith({
+    await runAction();
+    expect(setFailedMock).toHaveBeenCalled();
+    expect(createCommitStatusMock).toHaveBeenCalledWith({
       owner: 'owner',
       repo: 'repo',
       sha: 'sha',
@@ -251,33 +272,31 @@ describe('main', () => {
   });
 
   it('should fail if some visual tests fail and some diff images were created with diff-id input', async () => {
-    (getInput as jest.Mock).mockImplementation(name => diffIdInputMap[name]);
+    getInputMock.mockImplementation(name => diffIdInputMap[name]);
     const multiLineInputMapMultipleCommands: Record<string, string[]> = {
       'visual-test-command': ['run my visual tests', 'ok thank you']
     };
-    (getMultilineInput as jest.Mock).mockImplementation(
+    getMultilineInputMock.mockImplementation(
       name => multiLineInputMapMultipleCommands[name]
     );
-    (exec as jest.Mock).mockResolvedValue(1);
-    (sync as unknown as jest.Mock).mockReturnValue([
+    execMock.mockResolvedValue(1);
+    globSyncMock.mockReturnValue([
       'path/to/screenshots/base.png',
       'path/to/screenshots/diff.png',
       'path/to/screenshots/new.png'
     ]);
-    await run();
-    expect(setFailed).toHaveBeenCalled();
+    await runAction();
+    expect(setFailedMock).toHaveBeenCalled();
     assertNoOctokitCalls();
   });
 
   it('should pass if visual tests initially fail but pass on retry', async () => {
-    (exec as jest.Mock).mockResolvedValue(0);
-    (sync as unknown as jest.Mock).mockReturnValue([
-      'path/to/screenshots/diff.png'
-    ]);
-    await run();
-    expect(setFailed).not.toHaveBeenCalled();
-    expect(exec).toHaveBeenCalledWith('rm path/to/screenshots/diff.png');
-    expect(octokit.rest.repos.createCommitStatus).toHaveBeenCalledWith({
+    execMock.mockResolvedValue(0);
+    globSyncMock.mockReturnValue(['path/to/screenshots/diff.png']);
+    await runAction();
+    expect(setFailedMock).not.toHaveBeenCalled();
+    expect(execMock).toHaveBeenCalledWith('rm path/to/screenshots/diff.png');
+    expect(createCommitStatusMock).toHaveBeenCalledWith({
       owner: 'owner',
       repo: 'repo',
       sha: 'sha',
@@ -288,33 +307,31 @@ describe('main', () => {
   });
 
   it('should pass if visual tests initially fail but pass on retry with diff-id input', async () => {
-    (getInput as jest.Mock).mockImplementation(name => diffIdInputMap[name]);
-    (exec as jest.Mock).mockResolvedValue(0);
-    (sync as unknown as jest.Mock).mockReturnValue([
-      'path/to/screenshots/diff.png'
-    ]);
-    await run();
-    expect(setFailed).not.toHaveBeenCalled();
-    expect(exec).toHaveBeenCalledWith('rm path/to/screenshots/diff.png');
+    getInputMock.mockImplementation(name => diffIdInputMap[name]);
+    execMock.mockResolvedValue(0);
+    globSyncMock.mockReturnValue(['path/to/screenshots/diff.png']);
+    await runAction();
+    expect(setFailedMock).not.toHaveBeenCalled();
+    expect(execMock).toHaveBeenCalledWith('rm path/to/screenshots/diff.png');
     assertNoOctokitCalls();
   });
 
   it('should pass and upload base images if visual tests pass and only new images were created', async () => {
-    (exec as jest.Mock).mockResolvedValue(0);
-    (sync as unknown as jest.Mock).mockReturnValue([
+    execMock.mockResolvedValue(0);
+    globSyncMock.mockReturnValue([
       'path/to/screenshots/existingTest/base.png',
       'path/to/screenshots/newTest1/new.png',
       'path/to/screenshots/newTest2/new.png'
     ]);
-    await run();
-    expect(setFailed).not.toHaveBeenCalled();
-    expect(exec).toHaveBeenCalledWith(
+    await runAction();
+    expect(setFailedMock).not.toHaveBeenCalled();
+    expect(execMock).toHaveBeenCalledWith(
       `aws s3 cp path/to/screenshots/newTest1/new.png s3://some-bucket/${BASE_IMAGES_DIRECTORY}/newTest1/base.png`
     );
-    expect(exec).toHaveBeenCalledWith(
+    expect(execMock).toHaveBeenCalledWith(
       `aws s3 cp path/to/screenshots/newTest2/new.png s3://some-bucket/${BASE_IMAGES_DIRECTORY}/newTest2/base.png`
     );
-    expect(octokit.rest.repos.createCommitStatus).toHaveBeenCalledWith({
+    expect(createCommitStatusMock).toHaveBeenCalledWith({
       owner: 'owner',
       repo: 'repo',
       sha: 'sha',
@@ -322,90 +339,90 @@ describe('main', () => {
       state: 'success',
       description: 'New base images were created!'
     });
-    expect(octokit.rest.issues.createComment).not.toHaveBeenCalled();
+    expect(createCommentMock).not.toHaveBeenCalled();
   });
 
   it('should pass and upload base images if visual tests pass and only new images were created  with diff-id input', async () => {
-    (getInput as jest.Mock).mockImplementation(name => diffIdInputMap[name]);
-    (exec as jest.Mock).mockResolvedValue(0);
-    (sync as unknown as jest.Mock).mockReturnValue([
+    getInputMock.mockImplementation(name => diffIdInputMap[name]);
+    execMock.mockResolvedValue(0);
+    globSyncMock.mockReturnValue([
       'path/to/screenshots/existingTest/base.png',
       'path/to/screenshots/newTest1/new.png',
       'path/to/screenshots/newTest2/new.png'
     ]);
-    await run();
-    expect(setFailed).not.toHaveBeenCalled();
-    expect(exec).toHaveBeenCalledWith(
+    await runAction();
+    expect(setFailedMock).not.toHaveBeenCalled();
+    expect(execMock).toHaveBeenCalledWith(
       `aws s3 cp path/to/screenshots/newTest1/new.png s3://some-bucket/${BASE_IMAGES_DIRECTORY}/newTest1/base.png`
     );
-    expect(exec).toHaveBeenCalledWith(
+    expect(execMock).toHaveBeenCalledWith(
       `aws s3 cp path/to/screenshots/newTest2/new.png s3://some-bucket/${BASE_IMAGES_DIRECTORY}/newTest2/base.png`
     );
     assertNoOctokitCalls();
   });
 
   it('should use subdirectories if provided', async () => {
-    (exec as jest.Mock).mockResolvedValue(0);
+    execMock.mockResolvedValue(0);
     const extendedInputMap: Record<string, string> = {
       ...inputMap,
       'package-paths': 'path/1,path/2'
     };
-    (getInput as jest.Mock).mockImplementation(name => extendedInputMap[name]);
-    (sync as unknown as jest.Mock).mockReturnValue([
+    getInputMock.mockImplementation(name => extendedInputMap[name]);
+    globSyncMock.mockReturnValue([
       'path/to/screenshots/base.png',
       'path/to/screenshots/diff.png',
       'path/to/screenshots/new.png'
     ]);
-    await run();
-    expect(exec).toHaveBeenCalledWith(
+    await runAction();
+    expect(execMock).toHaveBeenCalledWith(
       `aws s3 cp s3://some-bucket/${BASE_IMAGES_DIRECTORY}/path/1 path/to/screenshots/path/1 --recursive`
     );
-    expect(exec).toHaveBeenCalledWith(
+    expect(execMock).toHaveBeenCalledWith(
       `aws s3 cp s3://some-bucket/${BASE_IMAGES_DIRECTORY}/path/2 path/to/screenshots/path/2 --recursive`
     );
-    expect(exec).not.toHaveBeenCalledWith(
+    expect(execMock).not.toHaveBeenCalledWith(
       `aws s3 cp s3://some-bucket/${BASE_IMAGES_DIRECTORY} path/to/screenshots --recursive`
     );
-    expect(exec).toHaveBeenCalledWith(
+    expect(execMock).toHaveBeenCalledWith(
       `aws s3 cp path/to/screenshots/path/1 s3://some-bucket/${NEW_IMAGES_DIRECTORY}/sha/path/1 --recursive`
     );
-    expect(exec).toHaveBeenCalledWith(
+    expect(execMock).toHaveBeenCalledWith(
       `aws s3 cp path/to/screenshots/path/2 s3://some-bucket/${NEW_IMAGES_DIRECTORY}/sha/path/2 --recursive`
     );
-    expect(exec).not.toHaveBeenCalledWith(
+    expect(execMock).not.toHaveBeenCalledWith(
       `aws s3 cp path/to/screenshots s3://some-bucket/${NEW_IMAGES_DIRECTORY}/sha --recursive`
     );
   });
 
   it('should use subdirectories if provided with diff-id input', async () => {
-    (exec as jest.Mock).mockResolvedValue(0);
+    execMock.mockResolvedValue(0);
     const extendedInputMap: Record<string, string> = {
       ...diffIdInputMap,
       'package-paths': 'path/1,path/2'
     };
-    (getInput as jest.Mock).mockImplementation(name => extendedInputMap[name]);
-    (sync as unknown as jest.Mock).mockReturnValue([
+    getInputMock.mockImplementation(name => extendedInputMap[name]);
+    globSyncMock.mockReturnValue([
       'path/to/screenshots/base.png',
       'path/to/screenshots/diff.png',
       'path/to/screenshots/new.png'
     ]);
-    await run();
-    expect(exec).toHaveBeenCalledWith(
+    await runAction();
+    expect(execMock).toHaveBeenCalledWith(
       `aws s3 cp s3://some-bucket/${BASE_IMAGES_DIRECTORY}/path/1 path/to/screenshots/path/1 --recursive`
     );
-    expect(exec).toHaveBeenCalledWith(
+    expect(execMock).toHaveBeenCalledWith(
       `aws s3 cp s3://some-bucket/${BASE_IMAGES_DIRECTORY}/path/2 path/to/screenshots/path/2 --recursive`
     );
-    expect(exec).not.toHaveBeenCalledWith(
+    expect(execMock).not.toHaveBeenCalledWith(
       `aws s3 cp s3://some-bucket/${BASE_IMAGES_DIRECTORY} path/to/screenshots --recursive`
     );
-    expect(exec).toHaveBeenCalledWith(
+    expect(execMock).toHaveBeenCalledWith(
       `aws s3 cp path/to/screenshots/path/1 s3://some-bucket/${NEW_IMAGES_DIRECTORY}/uniqueId/path/1 --recursive`
     );
-    expect(exec).toHaveBeenCalledWith(
+    expect(execMock).toHaveBeenCalledWith(
       `aws s3 cp path/to/screenshots/path/2 s3://some-bucket/${NEW_IMAGES_DIRECTORY}/uniqueId/path/2 --recursive`
     );
-    expect(exec).not.toHaveBeenCalledWith(
+    expect(execMock).not.toHaveBeenCalledWith(
       `aws s3 cp path/to/screenshots s3://some-bucket/${NEW_IMAGES_DIRECTORY}/sha --recursive`
     );
     assertNoOctokitCalls();
@@ -413,35 +430,35 @@ describe('main', () => {
 
   it('should download base images if use-base-images specified as true', async () => {
     const downloadBaseImages = true;
-    (exec as jest.Mock).mockResolvedValue(0);
-    (getInput as jest.Mock).mockImplementation(name => inputMap[name]);
-    (getBooleanInput as jest.Mock).mockImplementation(() => downloadBaseImages);
-    (sync as unknown as jest.Mock).mockReturnValue([
+    execMock.mockResolvedValue(0);
+    getInputMock.mockImplementation(name => inputMap[name]);
+    getBooleanInputMock.mockImplementation(() => downloadBaseImages);
+    globSyncMock.mockReturnValue([
       'path/to/screenshots/base.png',
       'path/to/screenshots/diff.png',
       'path/to/screenshots/new.png'
     ]);
-    await run();
-    expect(exec).toHaveBeenCalledWith(
+    await runAction();
+    expect(execMock).toHaveBeenCalledWith(
       `aws s3 cp s3://some-bucket/${BASE_IMAGES_DIRECTORY} path/to/screenshots --recursive`
     );
   });
 
   it('should not download base images if use-base-images specified as false and set URL param', async () => {
     const downloadBaseImages = false;
-    (exec as jest.Mock).mockResolvedValue(0);
-    (getInput as jest.Mock).mockImplementation(name => inputMap[name]);
-    (getBooleanInput as jest.Mock).mockImplementation(() => downloadBaseImages);
-    (sync as unknown as jest.Mock).mockReturnValue([
+    execMock.mockResolvedValue(0);
+    getInputMock.mockImplementation(name => inputMap[name]);
+    getBooleanInputMock.mockImplementation(() => downloadBaseImages);
+    globSyncMock.mockReturnValue([
       'path/to/screenshots/base.png',
       'path/to/screenshots/diff.png',
       'path/to/screenshots/new.png'
     ]);
-    await run();
-    expect(exec).not.toHaveBeenCalledWith(
+    await runAction();
+    expect(execMock).not.toHaveBeenCalledWith(
       `aws s3 cp s3://some-bucket/${BASE_IMAGES_DIRECTORY} path/to/screenshots --recursive`
     );
-    expect(octokit.rest.repos.createCommitStatus).toHaveBeenCalledWith({
+    expect(createCommitStatusMock).toHaveBeenCalledWith({
       owner: 'owner',
       repo: 'repo',
       sha: 'sha',
@@ -454,40 +471,36 @@ describe('main', () => {
   });
 
   it('should not download base images if aws ls call fails', async () => {
-    (exec as jest.Mock).mockResolvedValue(1); // mock ls call failing
+    execMock.mockResolvedValue(1); // mock ls call failing
     const extendedInputMap: Record<string, string> = {
       ...inputMap,
       'package-paths': 'path/1,path/2'
     };
-    (getInput as jest.Mock).mockImplementation(name => extendedInputMap[name]);
-    (sync as unknown as jest.Mock).mockReturnValue([
+    getInputMock.mockImplementation(name => extendedInputMap[name]);
+    globSyncMock.mockReturnValue([
       'path/to/screenshots/base.png',
       'path/to/screenshots/diff.png',
       'path/to/screenshots/new.png'
     ]);
-    await run();
-    expect(exec).not.toHaveBeenCalledWith(
+    await runAction();
+    expect(execMock).not.toHaveBeenCalledWith(
       `aws s3 cp s3://some-bucket/${BASE_IMAGES_DIRECTORY}/path/1 path/to/screenshots/path/1 --recursive`
     );
-    expect(exec).not.toHaveBeenCalledWith(
+    expect(execMock).not.toHaveBeenCalledWith(
       `aws s3 cp s3://some-bucket/${BASE_IMAGES_DIRECTORY}/path/2 path/to/screenshots/path/2 --recursive`
     );
-    expect(exec).toHaveBeenCalledWith(
+    expect(execMock).toHaveBeenCalledWith(
       `aws s3 cp path/to/screenshots/path/1 s3://some-bucket/${NEW_IMAGES_DIRECTORY}/sha/path/1 --recursive`
     );
-    expect(exec).toHaveBeenCalledWith(
+    expect(execMock).toHaveBeenCalledWith(
       `aws s3 cp path/to/screenshots/path/2 s3://some-bucket/${NEW_IMAGES_DIRECTORY}/sha/path/2 --recursive`
     );
   });
 
   it('should not set successful commit status or create comment if the latest Visual Regression status is failure', async () => {
-    (exec as jest.Mock).mockResolvedValue(0);
-    (sync as unknown as jest.Mock).mockReturnValue([
-      'path/to/screenshots/base.png'
-    ]);
-    (
-      octokit.rest.repos.listCommitStatusesForRef as unknown as jest.Mock
-    ).mockResolvedValue({
+    execMock.mockResolvedValue(0);
+    globSyncMock.mockReturnValue(['path/to/screenshots/base.png']);
+    listCommitStatusesForRefMock.mockImplementationOnce(() => ({
       data: [
         {
           context: 'some context',
@@ -506,20 +519,16 @@ describe('main', () => {
           state: 'success'
         }
       ]
-    });
-    await run();
-    expect(octokit.rest.repos.createCommitStatus).not.toHaveBeenCalled();
-    expect(octokit.rest.issues.createComment).not.toHaveBeenCalled();
+    }));
+    await runAction();
+    expect(createCommitStatusMock).not.toHaveBeenCalled();
+    expect(createCommentMock).not.toHaveBeenCalled();
   });
 
   it('should not set successful commit status if the latest Visual Regression status has been set', async () => {
-    (exec as jest.Mock).mockResolvedValue(0);
-    (sync as unknown as jest.Mock).mockReturnValue([
-      'path/to/screenshots/base.png'
-    ]);
-    (
-      octokit.rest.repos.listCommitStatusesForRef as unknown as jest.Mock
-    ).mockResolvedValue({
+    execMock.mockResolvedValue(0);
+    globSyncMock.mockReturnValue(['path/to/screenshots/base.png']);
+    listCommitStatusesForRefMock.mockImplementationOnce(() => ({
       data: [
         {
           context: 'some context',
@@ -537,21 +546,19 @@ describe('main', () => {
           state: 'success'
         }
       ]
-    });
-    await run();
-    expect(octokit.rest.repos.createCommitStatus).not.toHaveBeenCalled();
+    }));
+    await runAction();
+    expect(createCommitStatusMock).not.toHaveBeenCalled();
   });
 
   it('should not set commit status or create comment if the latest Visual Regression status is failure because tests failed to execute successfully', async () => {
-    (exec as jest.Mock).mockResolvedValue(1);
-    (sync as unknown as jest.Mock).mockReturnValue([
+    execMock.mockResolvedValue(1);
+    globSyncMock.mockReturnValue([
       'path/to/screenshots/base.png',
       'path/to/screenshots/diff.png',
       'path/to/screenshots/new.png'
     ]);
-    (
-      octokit.rest.repos.listCommitStatusesForRef as unknown as jest.Mock
-    ).mockResolvedValue({
+    listCommitStatusesForRefMock.mockImplementationOnce(() => ({
       data: [
         {
           context: 'some context',
@@ -570,22 +577,18 @@ describe('main', () => {
           state: 'success'
         }
       ]
-    });
-    await run();
-    expect(setFailed).not.toHaveBeenCalled();
-    expect(octokit.rest.repos.createCommitStatus).not.toHaveBeenCalled();
-    expect(octokit.rest.issues.createComment).not.toHaveBeenCalled();
+    }));
+    await runAction();
+    expect(setFailedMock).not.toHaveBeenCalled();
+    expect(createCommitStatusMock).not.toHaveBeenCalled();
+    expect(createCommentMock).not.toHaveBeenCalled();
   });
 
   it('should set successful commit status (and disable auto merge) if a visual test failed to execute but this is a re-run', async () => {
     process.env.GITHUB_RUN_ATTEMPT = '2';
-    (exec as jest.Mock).mockResolvedValue(0);
-    (sync as unknown as jest.Mock).mockReturnValue([
-      'path/to/screenshots/base.png'
-    ]);
-    (
-      octokit.rest.repos.listCommitStatusesForRef as unknown as jest.Mock
-    ).mockResolvedValue({
+    execMock.mockResolvedValue(0);
+    globSyncMock.mockReturnValue(['path/to/screenshots/base.png']);
+    listCommitStatusesForRefMock.mockImplementationOnce(() => ({
       data: [
         {
           context: 'some context',
@@ -604,23 +607,21 @@ describe('main', () => {
           state: 'success'
         }
       ]
-    });
-    await run();
-    expect(disableAutoMerge).toHaveBeenCalled();
-    expect(octokit.rest.repos.createCommitStatus).toHaveBeenCalled();
+    }));
+    await runAction();
+    expect(disableAutoMergeMock).toHaveBeenCalled();
+    expect(createCommitStatusMock).toHaveBeenCalled();
   });
 
   it('should set failure commit status (and not disable auto merge) if a visual test failed to execute but this is a re-run', async () => {
     process.env.GITHUB_RUN_ATTEMPT = '2';
-    (exec as jest.Mock).mockResolvedValue(1);
-    (sync as unknown as jest.Mock).mockReturnValue([
+    execMock.mockResolvedValue(1);
+    globSyncMock.mockReturnValue([
       'path/to/screenshots/base.png',
       'path/to/screenshots/diff.png',
       'path/to/screenshots/new.png'
     ]);
-    (
-      octokit.rest.repos.listCommitStatusesForRef as unknown as jest.Mock
-    ).mockResolvedValue({
+    listCommitStatusesForRefMock.mockImplementationOnce(() => ({
       data: [
         {
           context: 'some context',
@@ -639,9 +640,9 @@ describe('main', () => {
           state: 'success'
         }
       ]
-    });
-    await run();
-    expect(disableAutoMerge).not.toHaveBeenCalled();
-    expect(octokit.rest.repos.createCommitStatus).toHaveBeenCalled();
+    }));
+    await runAction();
+    expect(disableAutoMergeMock).not.toHaveBeenCalled();
+    expect(createCommitStatusMock).toHaveBeenCalled();
   });
 });
