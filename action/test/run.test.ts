@@ -4,7 +4,7 @@ import {
   VISUAL_REGRESSION_CONTEXT,
   VISUAL_TESTS_FAILED_TO_EXECUTE
 } from 'shared';
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
 
 const disableAutoMergeMock = mock();
 mock.module('../src/disable-auto-merge', () => ({
@@ -97,8 +97,6 @@ async function runAction() {
 
 describe('main', () => {
   beforeEach(() => {
-    mock.clearAllMocks();
-
     process.env.GITHUB_RUN_ATTEMPT = '1';
 
     getInputMock.mockImplementation(name => inputMap[name]);
@@ -107,6 +105,10 @@ describe('main', () => {
       'visual-test-command': ['run my visual tests']
     };
     getMultilineInputMock.mockImplementation(name => multiLineInputMap[name]);
+  });
+
+  afterEach(() => {
+    mock.clearAllMocks();
   });
 
   it('should fail when neither diff-id nor commit-hash is provided', async () => {

@@ -22,6 +22,7 @@ export const acceptVisualChanges = async ({
   const reasonToPreventUpdate =
     commitHash &&
     (await findReasonToPreventVisualChangeAcceptance(owner, repo, commitHash));
+  console.log('reasonToPreventUpdate', reasonToPreventUpdate);
   if (reasonToPreventUpdate) {
     throw new TRPCError({
       code: 'FORBIDDEN',
