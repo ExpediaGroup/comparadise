@@ -4,7 +4,7 @@ import { serve } from 'bun';
 import index from './public/index.html';
 
 const server = serve({
-  static: {
+  routes: {
     '/': index,
     '/health': new Response('healthy', { status: 200 })
   },
