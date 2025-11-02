@@ -11,7 +11,7 @@ const pathPrefix = `${NEW_IMAGES_DIRECTORY}/hash`;
 
 describe('getGroupedKeys', () => {
   it('returns only the keys where there is a base, new, and diff', async () => {
-    getKeysFromS3Mock.mockResolvedValue([
+    getKeysFromS3Mock.mockImplementationOnce(() => [
       `${pathPrefix}/EXTRA_LARGE/srpPage/base.png`,
       `${pathPrefix}/SMALL/srpPage/base.png`,
       `${pathPrefix}/EXTRA_LARGE/pdpPage/base.png`,
@@ -33,7 +33,7 @@ describe('getGroupedKeys', () => {
   });
 
   it('returns keys where there is a new image but no base image', async () => {
-    getKeysFromS3Mock.mockResolvedValue([
+    getKeysFromS3Mock.mockImplementationOnce(() => [
       `${pathPrefix}/EXTRA_LARGE/srpPage/base.png`,
       `${pathPrefix}/SMALL/pdpPage/new.png`,
       `${pathPrefix}/EXTRA_LARGE/pdpPage/base.png`
@@ -48,7 +48,7 @@ describe('getGroupedKeys', () => {
   });
 
   it('returns multiple pages', async () => {
-    getKeysFromS3Mock.mockResolvedValue([
+    getKeysFromS3Mock.mockImplementationOnce(() => [
       `${pathPrefix}/EXTRA_LARGE/srpPage/base.png`,
       `${pathPrefix}/SMALL/srpPage/base.png`,
       `${pathPrefix}/SMALL/srpPage/diff.png`,
@@ -79,14 +79,14 @@ describe('getGroupedKeys', () => {
   });
 
   it('tells us if the commit hash was not associated with a visual regression test failure', async () => {
-    getKeysFromS3Mock.mockResolvedValue([]);
+    getKeysFromS3Mock.mockImplementationOnce(() => []);
     expect(getGroupedKeys('hash', 'bucket')).rejects.toThrow(
       'The commit hash was not associated with any visual regression test failures'
     );
   });
 
   it('tells us if there are no new or diff images associated with the commit hash', async () => {
-    getKeysFromS3Mock.mockResolvedValue([
+    getKeysFromS3Mock.mockImplementationOnce(() => [
       `${pathPrefix}/EXTRA_LARGE/srpPage/base.png`,
       `${pathPrefix}/SMALL/srpPage/base.png`,
       `${pathPrefix}/EXTRA_LARGE/pdpPage/base.png`
