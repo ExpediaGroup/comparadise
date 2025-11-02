@@ -1,21 +1,17 @@
 import { updateCommitStatus } from '../src/updateCommitStatus';
-import { getOctokit } from '../src/getOctokit';
 import { VISUAL_REGRESSION_CONTEXT } from 'shared';
-import { expect } from '@jest/globals';
+import { describe, expect, it, mock } from 'bun:test';
 
-jest.mock('../src/getOctokit');
-jest.mock('@octokit/rest', () => ({
-  Octokit: jest.fn()
-}));
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const createCommitStatus = jest.fn((_: unknown) => ({ catch: jest.fn() }));
-(getOctokit as jest.Mock).mockImplementation(() => ({
+const createCommitStatusMock = mock(() => ({ catch: mock() }));
+const getOctokitMock = mock(() => ({
   rest: {
     repos: {
-      createCommitStatus
+      createCommitStatus: createCommitStatusMock
     }
   }
+}));
+mock.module('../src/getOctokit', () => ({
+  getOctokit: getOctokitMock
 }));
 
 describe('updateCommitStatus', () => {
@@ -25,7 +21,7 @@ describe('updateCommitStatus', () => {
       repo: 'github-repo',
       commitHash: 'hash'
     });
-    expect(createCommitStatus).toHaveBeenCalledWith({
+    expect(createCommitStatusMock).toHaveBeenCalledWith({
       owner: 'github-owner',
       repo: 'github-repo',
       sha: 'hash',

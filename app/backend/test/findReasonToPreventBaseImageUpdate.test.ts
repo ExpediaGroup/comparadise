@@ -1,21 +1,21 @@
 import { findReasonToPreventVisualChangeAcceptance } from '../src/findReasonToPreventVisualChangeAcceptance';
-import { getOctokit } from '../src/getOctokit';
 import {
   VISUAL_REGRESSION_CONTEXT,
   VISUAL_TESTS_FAILED_TO_EXECUTE
 } from 'shared';
-import { expect } from '@jest/globals';
+import { describe, expect, it, mock } from 'bun:test';
 
-jest.mock('../src/getOctokit', () => ({
-  getOctokit: jest.fn()
+const getOctokitMock = mock();
+mock.module('../src/getOctokit', () => ({
+  getOctokit: getOctokitMock
 }));
 
 describe('findReasonToPreventVisualChangeAcceptance', () => {
   it('should return undefined when all non-visual pr checks pass', async () => {
-    (getOctokit as jest.Mock).mockImplementation(() => ({
+    getOctokitMock.mockImplementation(() => ({
       rest: {
         repos: {
-          listCommitStatusesForRef: jest.fn().mockReturnValue({
+          listCommitStatusesForRef: mock().mockReturnValue({
             data: [
               {
                 context: 'unit tests',
@@ -46,10 +46,10 @@ describe('findReasonToPreventVisualChangeAcceptance', () => {
   });
 
   it('should return a reason to prevent update when at least one non-visual check failed', async () => {
-    (getOctokit as jest.Mock).mockImplementation(() => ({
+    getOctokitMock.mockImplementation(() => ({
       rest: {
         repos: {
-          listCommitStatusesForRef: jest.fn().mockReturnValue({
+          listCommitStatusesForRef: mock().mockReturnValue({
             data: [
               {
                 context: 'unit tests',
@@ -87,10 +87,10 @@ describe('findReasonToPreventVisualChangeAcceptance', () => {
   });
 
   it('should return a reason to prevent update when all non-visual pr checks pass but some are pending', async () => {
-    (getOctokit as jest.Mock).mockImplementation(() => ({
+    getOctokitMock.mockImplementation(() => ({
       rest: {
         repos: {
-          listCommitStatusesForRef: jest.fn().mockReturnValue({
+          listCommitStatusesForRef: mock().mockReturnValue({
             data: [
               {
                 context: 'unit tests',
@@ -123,10 +123,10 @@ describe('findReasonToPreventVisualChangeAcceptance', () => {
   });
 
   it('should return undefined when a non-visual check failed on an early run but passed on the latest run', async () => {
-    (getOctokit as jest.Mock).mockImplementation(() => ({
+    getOctokitMock.mockImplementation(() => ({
       rest: {
         repos: {
-          listCommitStatusesForRef: jest.fn().mockReturnValue({
+          listCommitStatusesForRef: mock().mockReturnValue({
             data: [
               {
                 context: 'unit tests',
@@ -157,10 +157,10 @@ describe('findReasonToPreventVisualChangeAcceptance', () => {
   });
 
   it('should return a reason to prevent update when a non-visual check fails on multiple runs and never passed', async () => {
-    (getOctokit as jest.Mock).mockImplementation(() => ({
+    getOctokitMock.mockImplementation(() => ({
       rest: {
         repos: {
-          listCommitStatusesForRef: jest.fn().mockReturnValue({
+          listCommitStatusesForRef: mock().mockReturnValue({
             data: [
               {
                 context: 'unit tests',
@@ -193,10 +193,10 @@ describe('findReasonToPreventVisualChangeAcceptance', () => {
   });
 
   it('should return false when visual tests failed to execute successfully', async () => {
-    (getOctokit as jest.Mock).mockImplementation(() => ({
+    getOctokitMock.mockImplementation(() => ({
       rest: {
         repos: {
-          listCommitStatusesForRef: jest.fn().mockReturnValue({
+          listCommitStatusesForRef: mock().mockReturnValue({
             data: [
               {
                 context: 'unit tests',
