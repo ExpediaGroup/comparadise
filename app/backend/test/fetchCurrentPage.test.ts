@@ -1,13 +1,11 @@
 import { fetchCurrentPage } from '../src/fetchCurrentPage';
-import { getGroupedKeys } from '../src/getGroupedKeys';
-import { expect } from '@jest/globals';
+import { describe, expect, it, mock } from 'bun:test';
 
-jest.mock('../src/getGroupedKeys');
-jest.mock('../src/getTemporaryObjectUrl', () => ({
-  getTemporaryObjectUrl: jest.fn(() => 'url')
+mock.module('../src/getTemporaryObjectUrl', () => ({
+  getTemporaryObjectUrl: mock(() => 'url')
 }));
 
-(getGroupedKeys as jest.Mock).mockResolvedValue([
+const getGroupedKeysMock = mock(() => [
   {
     title: 'SMALL/srpPage',
     keys: [
@@ -21,6 +19,9 @@ jest.mock('../src/getTemporaryObjectUrl', () => ({
     keys: ['hash/EXTRA_LARGE/pdpPage/new.png']
   }
 ]);
+mock.module('../src/getGroupedKeys', () => ({
+  getGroupedKeys: getGroupedKeysMock
+}));
 
 describe('fetchCurrentPage', () => {
   it('should get first page of images', async () => {
@@ -68,7 +69,7 @@ describe('fetchCurrentPage', () => {
   });
 
   it('should throw when page is not found', async () => {
-    await expect(() =>
+    expect(
       fetchCurrentPage({
         hash: 'hash',
         bucket: 'bucket',
