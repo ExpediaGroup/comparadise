@@ -1,26 +1,19 @@
 import { fetchCurrentPage } from '../src/fetchCurrentPage';
 import { describe, expect, it, mock } from 'bun:test';
+import { NEW_IMAGES_DIRECTORY } from 'shared';
 
 mock.module('../src/getTemporaryObjectUrl', () => ({
   getTemporaryObjectUrl: mock(() => 'url')
 }));
-
-const getGroupedKeysMock = mock(() => [
-  {
-    title: 'SMALL/srpPage',
-    keys: [
-      'hash/SMALL/srpPage/base.png',
-      'hash/SMALL/srpPage/diff.png',
-      'hash/SMALL/srpPage/new.png'
-    ]
-  },
-  {
-    title: 'EXTRA_LARGE/pdpPage',
-    keys: ['hash/EXTRA_LARGE/pdpPage/new.png']
-  }
+const pathPrefix = `${NEW_IMAGES_DIRECTORY}/hash`;
+const getKeysFromS3Mock = mock(() => [
+  `${pathPrefix}/SMALL/srpPage/base.png`,
+  `${pathPrefix}/SMALL/srpPage/diff.png`,
+  `${pathPrefix}/SMALL/srpPage/new.png`,
+  `${pathPrefix}/EXTRA_LARGE/pdpPage/new.png`
 ]);
-mock.module('../src/getGroupedKeys', () => ({
-  getGroupedKeys: getGroupedKeysMock
+mock.module('../src/getKeysFromS3', () => ({
+  getKeysFromS3: getKeysFromS3Mock
 }));
 
 describe('fetchCurrentPage', () => {
