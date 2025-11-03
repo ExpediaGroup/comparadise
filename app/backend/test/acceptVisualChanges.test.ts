@@ -15,10 +15,23 @@ mock.module('../src/s3Client', () => ({
     listObjectsV2: listObjectsV2Mock
   }
 }));
-const findReasonToPreventVisualChangeAcceptanceMock = mock();
-mock.module('../src/findReasonToPreventVisualChangeAcceptance', () => ({
-  findReasonToPreventVisualChangeAcceptance:
-    findReasonToPreventVisualChangeAcceptanceMock
+const listCommitStatusesForRefMock = mock(() => ({
+  data: [
+    {
+      context: 'unit tests',
+      state: 'success',
+      created_at: '2023-05-02T19:11:02Z'
+    }
+  ]
+}));
+mock.module('../src/getOctokit', () => ({
+  getOctokit: mock(() => ({
+    rest: {
+      repos: {
+        listCommitStatusesForRef: listCommitStatusesForRefMock
+      }
+    }
+  }))
 }));
 const updateCommitStatusMock = mock();
 mock.module('../src/updateCommitStatus', () => ({
@@ -98,9 +111,20 @@ describe('acceptVisualChanges', () => {
     });
 
     it('should throw error if other required checks have not yet passed', async () => {
-      findReasonToPreventVisualChangeAcceptanceMock.mockResolvedValue(
-        'Some reason to prevent update'
-      );
+      listCommitStatusesForRefMock.mockImplementationOnce(() => ({
+        data: [
+          {
+            context: 'unit tests',
+            state: 'success',
+            created_at: '2023-05-02T19:11:02Z'
+          },
+          {
+            context: 'other tests',
+            state: 'failure',
+            created_at: '2023-05-02T19:11:02Z'
+          }
+        ]
+      }));
 
       const expectedBucket = 'expected-bucket-name';
       expect(
@@ -119,9 +143,6 @@ describe('acceptVisualChanges', () => {
     });
 
     it('should update commit status but not base images if useBaseImages is false', async () => {
-      findReasonToPreventVisualChangeAcceptanceMock.mockResolvedValue(
-        undefined
-      );
       const expectedBucket = 'expected-bucket-name';
       await acceptVisualChanges({
         commitHash: '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5',
