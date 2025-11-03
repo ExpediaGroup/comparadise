@@ -1,26 +1,24 @@
 import { fetchCurrentPage } from '../src/fetchCurrentPage';
-import { getGroupedKeys } from '../src/getGroupedKeys';
-import { expect } from '@jest/globals';
+import { describe, expect, it, mock } from 'bun:test';
+import { NEW_IMAGES_DIRECTORY } from 'shared';
 
-jest.mock('../src/getGroupedKeys');
-jest.mock('../src/getTemporaryObjectUrl', () => ({
-  getTemporaryObjectUrl: jest.fn(() => 'url')
+mock.module('../src/getTemporaryObjectUrl', () => ({
+  getTemporaryObjectUrl: mock(() => 'url')
 }));
-
-(getGroupedKeys as jest.Mock).mockResolvedValue([
-  {
-    title: 'SMALL/srpPage',
-    keys: [
-      'hash/SMALL/srpPage/base.png',
-      'hash/SMALL/srpPage/diff.png',
-      'hash/SMALL/srpPage/new.png'
-    ]
-  },
-  {
-    title: 'EXTRA_LARGE/pdpPage',
-    keys: ['hash/EXTRA_LARGE/pdpPage/new.png']
+const pathPrefix = `${NEW_IMAGES_DIRECTORY}/hash`;
+const listObjectsV2Mock = mock(() => ({
+  Contents: [
+    { Key: `${pathPrefix}/SMALL/srpPage/base.png` },
+    { Key: `${pathPrefix}/SMALL/srpPage/diff.png` },
+    { Key: `${pathPrefix}/SMALL/srpPage/new.png` },
+    { Key: `${pathPrefix}/EXTRA_LARGE/pdpPage/new.png }` }
+  ]
+}));
+mock.module('../src/s3Client', () => ({
+  S3Client: {
+    listObjectsV2: listObjectsV2Mock
   }
-]);
+}));
 
 describe('fetchCurrentPage', () => {
   it('should get first page of images', async () => {
@@ -68,7 +66,7 @@ describe('fetchCurrentPage', () => {
   });
 
   it('should throw when page is not found', async () => {
-    await expect(() =>
+    expect(
       fetchCurrentPage({
         hash: 'hash',
         bucket: 'bucket',

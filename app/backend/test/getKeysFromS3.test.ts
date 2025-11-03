@@ -1,9 +1,7 @@
 import { getKeysFromS3 } from '../src/getKeysFromS3';
-import { S3Client } from '../src/s3Client';
-import { expect } from '@jest/globals';
+import { describe, expect, it, mock } from 'bun:test';
 
-jest.mock('../src/s3Client');
-(S3Client.listObjectsV2 as jest.Mock).mockResolvedValue({
+const listObjectsV2Mock = mock(() => ({
   Contents: [
     {
       Key: 'ome/actions-runner/something'
@@ -12,7 +10,12 @@ jest.mock('../src/s3Client');
       Key: 'a/normal/key'
     }
   ]
-});
+}));
+mock.module('../src/s3Client', () => ({
+  S3Client: {
+    listObjectsV2: listObjectsV2Mock
+  }
+}));
 
 describe('listAllS3PathsForHash', () => {
   it('returns the response we want', async () => {
