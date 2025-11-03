@@ -6,14 +6,18 @@ mock.module('../src/getTemporaryObjectUrl', () => ({
   getTemporaryObjectUrl: mock(() => 'url')
 }));
 const pathPrefix = `${NEW_IMAGES_DIRECTORY}/hash`;
-const getKeysFromS3Mock = mock(() => [
-  `${pathPrefix}/SMALL/srpPage/base.png`,
-  `${pathPrefix}/SMALL/srpPage/diff.png`,
-  `${pathPrefix}/SMALL/srpPage/new.png`,
-  `${pathPrefix}/EXTRA_LARGE/pdpPage/new.png`
-]);
-mock.module('../src/getKeysFromS3', () => ({
-  getKeysFromS3: getKeysFromS3Mock
+const listObjectsV2Mock = mock(() => ({
+  Contents: [
+    { Key: `${pathPrefix}/SMALL/srpPage/base.png` },
+    { Key: `${pathPrefix}/SMALL/srpPage/diff.png` },
+    { Key: `${pathPrefix}/SMALL/srpPage/new.png` },
+    { Key: `${pathPrefix}/EXTRA_LARGE/pdpPage/new.png }` }
+  ]
+}));
+mock.module('../src/s3Client', () => ({
+  S3Client: {
+    listObjectsV2: listObjectsV2Mock
+  }
 }));
 
 describe('fetchCurrentPage', () => {
