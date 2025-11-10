@@ -1,4 +1,6 @@
 {
   "extends": "../tsconfig.json",
-  "exclude": ["test"]
+  "compilerOptions": {
+    "types": ["bun", "cypress"]
+  }
 }
