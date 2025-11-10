@@ -1,19 +1,22 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
-const typescriptEslint = require('typescript-eslint');
-const eslintPluginReact = require('eslint-plugin-react');
+import {
+  configs,
+  parser,
+  plugin as typescriptEslintPlugin
+} from 'typescript-eslint';
+import eslintPluginReact from 'eslint-plugin-react';
 
-module.exports = [
-  ...typescriptEslint.configs.recommended,
+export default [
+  ...configs.recommended,
   {
     files: ['**/*.ts', '**/*.tsx'],
     languageOptions: {
-      parser: typescriptEslint.parser,
+      parser,
       parserOptions: {
         project: true
       }
     },
     plugins: {
-      '@typescript-eslint': typescriptEslint.plugin,
+      '@typescript-eslint': typescriptEslintPlugin,
       'eslint-plugin-react': eslintPluginReact
     },
     rules: {
@@ -21,6 +24,12 @@ module.exports = [
     }
   },
   {
-    ignores: ['**/dist', 'docs', '**/public', 'comparadise-utils/commands.js']
+    ignores: [
+      '**/.tsup',
+      '**/dist',
+      'docs',
+      '**/public',
+      'comparadise-utils/**/*.js'
+    ]
   }
 ];
