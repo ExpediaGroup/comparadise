@@ -7,7 +7,7 @@
     "@actions/exec": "1.1.1",
     "@actions/github": "6.0.1",
     "bluebird": "3.7.2",
-    "glob": "11.0.3"
+    "glob": "13.0.0"
   },
   "devDependencies": {
     "@types/bluebird": "3.5.42",
