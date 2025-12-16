@@ -59,6 +59,11 @@ jobs:
         with:
           version: latest
 
+      - name: Setup node for npm publish
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
       - name: Set Version Environment Variable
         run: |
           VERSION_TAG=$(echo "${GITHUB_REF}" | cut -d "/" -f3)
