@@ -20,7 +20,6 @@
     "pngjs": "7.0.0"
   },
   "devDependencies": {
-    "@types/pixelmatch": "5.2.6",
     "@types/pngjs": "6.0.5",
     "cypress": "15.7.1",
     "tsup": "8.5.1"
