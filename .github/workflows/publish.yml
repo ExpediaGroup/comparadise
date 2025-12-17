@@ -4,10 +4,6 @@ on:
   release:
     types: [created]
 
-permissions:
-  id-token: write
-  contents: read
-
 jobs:
   publish-docker:
     runs-on: ubuntu-latest
@@ -42,6 +38,9 @@ jobs:
 
   publish-comparadise-utils:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -62,7 +61,7 @@ jobs:
       - name: Setup node for npm publish
         uses: actions/setup-node@v6
         with:
-          node-version: 24
+          node-version: latest
 
       - name: Set Version Environment Variable
         run: |
