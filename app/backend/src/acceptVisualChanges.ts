@@ -1,4 +1,3 @@
-import { S3Client } from './s3Client';
 import {
   BASE_IMAGE_NAME,
   BASE_IMAGES_DIRECTORY,
@@ -10,6 +9,7 @@ import { TRPCError } from '@trpc/server';
 import { AcceptVisualChangesInput } from './schema';
 import { getKeysFromS3 } from './getKeysFromS3';
 import { updateCommitStatus } from './updateCommitStatus';
+import { copyS3File } from './copyS3File';
 
 export const acceptVisualChanges = async ({
   commitHash,
@@ -64,13 +64,12 @@ export const updateBaseImages = async (s3Paths: string[], bucket: string) => {
   const newImagePaths = filterNewImages(s3Paths);
   const baseImagePaths = getBaseImagePaths(newImagePaths);
   return await Promise.all(
-    baseImagePaths.map((path, index) =>
-      S3Client.copyObject({
-        Bucket: bucket,
-        CopySource: `${bucket}/${newImagePaths[index]}`,
-        Key: path,
-        ACL: 'bucket-owner-full-control'
-      })
-    )
+    baseImagePaths.map(async (path, index) => {
+      const sourcePath = newImagePaths[index];
+      if (!sourcePath) {
+        throw new Error(`Source path not found for index ${index}`);
+      }
+      await copyS3File(sourcePath, path, bucket);
+    })
   );
 };
