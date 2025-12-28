@@ -1,21 +1,19 @@
 import { getKeysFromS3 } from '../src/getKeysFromS3';
-import { describe, expect, it, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
-const listObjectsV2Mock = mock(() => ({
-  Contents: [
-    {
-      Key: 'ome/actions-runner/something'
-    },
-    {
-      Key: 'a/normal/key'
-    }
-  ]
+const listMock = mock(async () => ({
+  contents: [{ key: 'ome/actions-runner/something' }, { key: 'a/normal/key' }]
 }));
+
 mock.module('../src/s3Client', () => ({
-  S3Client: {
-    listObjectsV2: listObjectsV2Mock
+  s3Client: {
+    list: listMock
   }
 }));
+
+beforeEach(() => {
+  mock.clearAllMocks();
+});
 
 describe('listAllS3PathsForHash', () => {
   it('returns the response we want', async () => {
