@@ -26,8 +26,6 @@ import { buildComparadiseUrl } from './build-comparadise-url';
 import { disableAutoMerge } from './disable-auto-merge';
 
 export const run = async () => {
-  const runAttempt = Number(process.env.GITHUB_RUN_ATTEMPT);
-  const isRetry = runAttempt > 1;
   const visualTestCommands = getMultilineInput('visual-test-command', {
     required: true
   });
@@ -94,6 +92,8 @@ export const run = async () => {
   const latestVisualRegressionStatus = commitHash
     ? await getLatestVisualRegressionStatus(commitHash)
     : null;
+
+  const isRetry = context.runAttempt > 1;
 
   if (diffFileCount === 0 && newFileCount === 0) {
     info('All visual tests passed, and no diffs found!');

@@ -37606,8 +37606,6 @@ var disableAutoMerge = async (commitHash) => {
 
 // src/run.ts
 var run = async () => {
-  const runAttempt = Number(process.env.GITHUB_RUN_ATTEMPT);
-  const isRetry = runAttempt > 1;
   const visualTestCommands = (0, import_core6.getMultilineInput)("visual-test-command", {
     required: true
   });
@@ -37661,6 +37659,7 @@ var run = async () => {
     });
   }
   const latestVisualRegressionStatus = commitHash ? await getLatestVisualRegressionStatus(commitHash) : null;
+  const isRetry = import_github6.context.runAttempt > 1;
   if (diffFileCount === 0 && newFileCount === 0) {
     (0, import_core6.info)("All visual tests passed, and no diffs found!");
     if (!commitHash) return;
