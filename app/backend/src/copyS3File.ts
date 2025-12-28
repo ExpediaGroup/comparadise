@@ -4,7 +4,7 @@ export const copyS3File = async (
   sourceKey: string,
   destinationKey: string,
   bucket: string
-): Promise<void> => {
+) => {
   const sourceFile = s3Client.file(sourceKey, { bucket });
   if (!(await sourceFile.exists())) {
     throw new Error(`Source object not found: ${bucket}/${sourceKey}`);
