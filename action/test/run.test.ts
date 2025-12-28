@@ -44,8 +44,12 @@ const listCommitStatusesForRefMock = mock(() => ({
 }));
 const createCommentMock = mock();
 const listCommentsMock = mock(() => ({ data: [{ id: 1 }] }));
+const githubContext = {
+  repo: { repo: 'repo', owner: 'owner' },
+  runAttempt: 1
+};
 mock.module('@actions/github', () => ({
-  context: { repo: { repo: 'repo', owner: 'owner' } },
+  context: githubContext,
   getOctokit: mock(() => ({
     rest: {
       repos: {
@@ -97,7 +101,7 @@ async function runAction() {
 
 describe('main', () => {
   beforeEach(() => {
-    process.env.GITHUB_RUN_ATTEMPT = '1';
+    githubContext.runAttempt = 1;
 
     getInputMock.mockImplementation(name => inputMap[name]);
 
@@ -587,7 +591,7 @@ describe('main', () => {
   });
 
   it('should set successful commit status (and disable auto merge) if a visual test failed to execute but this is a re-run', async () => {
-    process.env.GITHUB_RUN_ATTEMPT = '2';
+    githubContext.runAttempt = 2;
     execMock.mockResolvedValue(0);
     globSyncMock.mockReturnValue(['path/to/screenshots/base.png']);
     listCommitStatusesForRefMock.mockImplementationOnce(() => ({
@@ -616,7 +620,7 @@ describe('main', () => {
   });
 
   it('should set failure commit status (and not disable auto merge) if a visual test failed to execute but this is a re-run', async () => {
-    process.env.GITHUB_RUN_ATTEMPT = '2';
+    githubContext.runAttempt = 2;
     execMock.mockResolvedValue(1);
     globSyncMock.mockReturnValue([
       'path/to/screenshots/base.png',
