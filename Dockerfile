@@ -8,5 +8,5 @@ USER admin
 
 RUN bun install --production
 
-ENV PORT 8080
+ENV PORT=8080
 CMD [ "bun", "--filter", "app", "start" ]
