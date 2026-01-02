@@ -6,7 +6,7 @@ RUN chown -R admin .
 COPY --chown=admin . .
 USER admin
 
-RUN bun install --production --ignore-scripts
+RUN bun install --production --filter app
 
 ENV PORT=8080
-CMD [ "bun", "run", "--cwd", "app", "start" ]
+CMD [ "bun", "--filter", "app", "start" ]
