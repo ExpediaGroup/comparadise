@@ -9,4 +9,4 @@ USER admin
 RUN bun install --production --ignore-scripts
 
 ENV PORT=8080
-CMD [ "bun", "run", "--filter", "app", "start" ]
+CMD [ "bun", "run", "--cwd", "app", "start" ]
