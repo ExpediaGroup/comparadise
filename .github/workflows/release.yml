@@ -24,4 +24,5 @@ jobs:
       - name: Semantic Release
         uses: cycjimmy/semantic-release-action@v5
         env:
+          # need PAT to trigger publish
           GITHUB_TOKEN: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
