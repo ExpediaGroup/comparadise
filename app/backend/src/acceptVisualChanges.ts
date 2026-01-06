@@ -64,13 +64,17 @@ export const updateBaseImages = async (s3Paths: string[], bucket: string) => {
   const newImagePaths = filterNewImages(s3Paths);
   const baseImagePaths = getBaseImagePaths(newImagePaths);
   return await Promise.all(
-    baseImagePaths.map((path, index) =>
-      S3Client.copyObject({
+    baseImagePaths.map(async (path, index) => {
+      const copySource = newImagePaths[index];
+      if (!copySource) {
+        throw new Error(`Source path not found for index ${index}`);
+      }
+      await S3Client.copyObject({
         Bucket: bucket,
-        CopySource: `${bucket}/${newImagePaths[index]}`,
+        CopySource: `${bucket}/${copySource}`,
         Key: path,
         ACL: 'bucket-owner-full-control'
-      })
-    )
+      });
+    })
   );
 };
