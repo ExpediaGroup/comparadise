@@ -1,35 +1,26 @@
 import { NEW_IMAGES_DIRECTORY } from 'shared';
 import { getGroupedKeys } from '../src/getGroupedKeys';
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { describe, expect, it, mock } from 'bun:test';
 
-const listMock = mock(
-  async (): Promise<{ contents: Array<{ key: string }> }> => ({
-    contents: []
-  })
-);
-
+const listObjectsV2Mock = mock();
 mock.module('../src/s3Client', () => ({
-  s3Client: {
-    list: listMock
+  S3Client: {
+    listObjectsV2: listObjectsV2Mock
   }
 }));
 
 const pathPrefix = `${NEW_IMAGES_DIRECTORY}/hash`;
 
-beforeEach(() => {
-  mock.clearAllMocks();
-});
-
 describe('getGroupedKeys', () => {
   it('returns only the keys where there is a base, new, and diff', async () => {
-    listMock.mockImplementationOnce(async () => ({
-      contents: [
-        { key: `${pathPrefix}/EXTRA_LARGE/srpPage/base.png` },
-        { key: `${pathPrefix}/SMALL/srpPage/base.png` },
-        { key: `${pathPrefix}/EXTRA_LARGE/pdpPage/base.png` },
-        { key: `${pathPrefix}/EXTRA_LARGE/pdpPage/diff.png` },
-        { key: `${pathPrefix}/EXTRA_LARGE/pdpPage/new.png` },
-        { key: 'ome/actions-runner/something' }
+    listObjectsV2Mock.mockImplementationOnce(() => ({
+      Contents: [
+        { Key: `${pathPrefix}/EXTRA_LARGE/srpPage/base.png` },
+        { Key: `${pathPrefix}/SMALL/srpPage/base.png` },
+        { Key: `${pathPrefix}/EXTRA_LARGE/pdpPage/base.png` },
+        { Key: `${pathPrefix}/EXTRA_LARGE/pdpPage/diff.png` },
+        { Key: `${pathPrefix}/EXTRA_LARGE/pdpPage/new.png` },
+        { Key: 'ome/actions-runner/something' }
       ]
     }));
     const paths = await getGroupedKeys('hash', 'bucket');
@@ -46,11 +37,11 @@ describe('getGroupedKeys', () => {
   });
 
   it('returns keys where there is a new image but no base image', async () => {
-    listMock.mockImplementationOnce(async () => ({
-      contents: [
-        { key: `${pathPrefix}/EXTRA_LARGE/srpPage/base.png` },
-        { key: `${pathPrefix}/SMALL/pdpPage/new.png` },
-        { key: `${pathPrefix}/EXTRA_LARGE/pdpPage/base.png` }
+    listObjectsV2Mock.mockImplementationOnce(() => ({
+      Contents: [
+        { Key: `${pathPrefix}/EXTRA_LARGE/srpPage/base.png` },
+        { Key: `${pathPrefix}/SMALL/pdpPage/new.png` },
+        { Key: `${pathPrefix}/EXTRA_LARGE/pdpPage/base.png` }
       ]
     }));
     const paths = await getGroupedKeys('hash', 'bucket');
@@ -63,15 +54,15 @@ describe('getGroupedKeys', () => {
   });
 
   it('returns multiple pages', async () => {
-    listMock.mockImplementationOnce(async () => ({
-      contents: [
-        { key: `${pathPrefix}/EXTRA_LARGE/srpPage/base.png` },
-        { key: `${pathPrefix}/SMALL/srpPage/base.png` },
-        { key: `${pathPrefix}/SMALL/srpPage/diff.png` },
-        { key: `${pathPrefix}/SMALL/srpPage/new.png` },
-        { key: `${pathPrefix}/EXTRA_LARGE/pdpPage/base.png` },
-        { key: `${pathPrefix}/EXTRA_LARGE/pdpPage/diff.png` },
-        { key: `${pathPrefix}/EXTRA_LARGE/pdpPage/new.png` }
+    listObjectsV2Mock.mockImplementationOnce(() => ({
+      Contents: [
+        { Key: `${pathPrefix}/EXTRA_LARGE/srpPage/base.png` },
+        { Key: `${pathPrefix}/SMALL/srpPage/base.png` },
+        { Key: `${pathPrefix}/SMALL/srpPage/diff.png` },
+        { Key: `${pathPrefix}/SMALL/srpPage/new.png` },
+        { Key: `${pathPrefix}/EXTRA_LARGE/pdpPage/base.png` },
+        { Key: `${pathPrefix}/EXTRA_LARGE/pdpPage/diff.png` },
+        { Key: `${pathPrefix}/EXTRA_LARGE/pdpPage/new.png` }
       ]
     }));
     const paths = await getGroupedKeys('hash', 'bucket');
@@ -96,18 +87,18 @@ describe('getGroupedKeys', () => {
   });
 
   it('tells us if the commit hash was not associated with a visual regression test failure', async () => {
-    listMock.mockImplementationOnce(async () => ({ contents: [] }));
+    listObjectsV2Mock.mockImplementationOnce(() => ({ Contents: [] }));
     expect(getGroupedKeys('hash', 'bucket')).rejects.toThrow(
       'The commit hash was not associated with any visual regression test failures'
     );
   });
 
   it('tells us if there are no new or diff images associated with the commit hash', async () => {
-    listMock.mockImplementationOnce(async () => ({
-      contents: [
-        { key: `${pathPrefix}/EXTRA_LARGE/srpPage/base.png` },
-        { key: `${pathPrefix}/SMALL/srpPage/base.png` },
-        { key: `${pathPrefix}/EXTRA_LARGE/pdpPage/base.png` }
+    listObjectsV2Mock.mockImplementationOnce(() => ({
+      Contents: [
+        { Key: `${pathPrefix}/EXTRA_LARGE/srpPage/base.png` },
+        { Key: `${pathPrefix}/SMALL/srpPage/base.png` },
+        { Key: `${pathPrefix}/EXTRA_LARGE/pdpPage/base.png` }
       ]
     }));
     expect(getGroupedKeys('hash', 'bucket')).rejects.toThrow(

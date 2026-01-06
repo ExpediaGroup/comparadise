@@ -1,38 +1,24 @@
 import { fetchCurrentPage } from '../src/fetchCurrentPage';
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { describe, expect, it, mock } from 'bun:test';
 import { NEW_IMAGES_DIRECTORY } from 'shared';
 
 mock.module('../src/getTemporaryObjectUrl', () => ({
-  getTemporaryObjectUrl: mock(() => Promise.resolve('url'))
+  getTemporaryObjectUrl: mock(() => 'url')
 }));
-
 const pathPrefix = `${NEW_IMAGES_DIRECTORY}/hash`;
-const listMock = mock(async () => ({
-  contents: [
-    { key: `${pathPrefix}/SMALL/srpPage/base.png` },
-    { key: `${pathPrefix}/SMALL/srpPage/diff.png` },
-    { key: `${pathPrefix}/SMALL/srpPage/new.png` },
-    { key: `${pathPrefix}/EXTRA_LARGE/pdpPage/new.png` }
+const listObjectsV2Mock = mock(() => ({
+  Contents: [
+    { Key: `${pathPrefix}/SMALL/srpPage/base.png` },
+    { Key: `${pathPrefix}/SMALL/srpPage/diff.png` },
+    { Key: `${pathPrefix}/SMALL/srpPage/new.png` },
+    { Key: `${pathPrefix}/EXTRA_LARGE/pdpPage/new.png }` }
   ]
 }));
-
 mock.module('../src/s3Client', () => ({
-  s3Client: {
-    list: listMock
+  S3Client: {
+    listObjectsV2: listObjectsV2Mock
   }
 }));
-
-beforeEach(() => {
-  mock.clearAllMocks();
-  listMock.mockImplementation(async () => ({
-    contents: [
-      { key: `${pathPrefix}/SMALL/srpPage/base.png` },
-      { key: `${pathPrefix}/SMALL/srpPage/diff.png` },
-      { key: `${pathPrefix}/SMALL/srpPage/new.png` },
-      { key: `${pathPrefix}/EXTRA_LARGE/pdpPage/new.png` }
-    ]
-  }));
-});
 
 describe('fetchCurrentPage', () => {
   it('should get first page of images', async () => {

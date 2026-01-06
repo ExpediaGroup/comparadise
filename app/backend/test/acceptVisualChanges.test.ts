@@ -5,10 +5,16 @@ import {
   acceptVisualChanges
 } from '../src/acceptVisualChanges';
 import { BASE_IMAGES_DIRECTORY, NEW_IMAGES_DIRECTORY } from 'shared';
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { afterEach, describe, expect, it, mock } from 'bun:test';
 
-const copyS3FileMock = mock(() => Promise.resolve());
-const s3ListMock = mock(() => Promise.resolve({ contents: [] }));
+const copyObjectMock = mock();
+const listObjectsV2Mock = mock();
+mock.module('../src/s3Client', () => ({
+  S3Client: {
+    copyObject: copyObjectMock,
+    listObjectsV2: listObjectsV2Mock
+  }
+}));
 const listCommitStatusesForRefMock = mock(() => ({
   data: [
     {
@@ -18,18 +24,6 @@ const listCommitStatusesForRefMock = mock(() => ({
     }
   ]
 }));
-const updateCommitStatusMock = mock();
-
-mock.module('../src/copyS3File', () => ({
-  copyS3File: copyS3FileMock
-}));
-
-mock.module('../src/s3Client', () => ({
-  s3Client: {
-    list: s3ListMock
-  }
-}));
-
 mock.module('../src/getOctokit', () => ({
   getOctokit: mock(() => ({
     rest: {
@@ -39,21 +33,20 @@ mock.module('../src/getOctokit', () => ({
     }
   }))
 }));
-
+const updateCommitStatusMock = mock();
 mock.module('../src/updateCommitStatus', () => ({
   updateCommitStatus: updateCommitStatusMock
 }));
-
 mock.module('@octokit/rest', () => ({
   Octokit: mock()
 }));
 
-beforeEach(() => {
-  mock.clearAllMocks();
-});
-
 const pathPrefix = `${NEW_IMAGES_DIRECTORY}/030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5`;
 describe('acceptVisualChanges', () => {
+  afterEach(() => {
+    mock.clearAllMocks();
+  });
+
   describe('filterNewImages', () => {
     it('should filter only the new images from the given paths', () => {
       const newImage = `${pathPrefix}/SMALL/pdpPage/new.png`;
@@ -103,16 +96,18 @@ describe('acceptVisualChanges', () => {
         ],
         expectedBucket
       );
-      expect(copyS3FileMock).toHaveBeenCalledWith(
-        `${pathPrefix}/SMALL/pdpPage/new.png`,
-        `${BASE_IMAGES_DIRECTORY}/SMALL/pdpPage/base.png`,
-        expectedBucket
-      );
-      expect(copyS3FileMock).toHaveBeenCalledWith(
-        `${pathPrefix}/SMALL/srpPage/new.png`,
-        `${BASE_IMAGES_DIRECTORY}/SMALL/srpPage/base.png`,
-        expectedBucket
-      );
+      expect(copyObjectMock).toHaveBeenCalledWith({
+        Bucket: expectedBucket,
+        CopySource: `${expectedBucket}/${pathPrefix}/SMALL/pdpPage/new.png`,
+        Key: `${BASE_IMAGES_DIRECTORY}/SMALL/pdpPage/base.png`,
+        ACL: 'bucket-owner-full-control'
+      });
+      expect(copyObjectMock).toHaveBeenCalledWith({
+        Bucket: expectedBucket,
+        CopySource: `${expectedBucket}/${pathPrefix}/SMALL/srpPage/new.png`,
+        Key: `${BASE_IMAGES_DIRECTORY}/SMALL/srpPage/base.png`,
+        ACL: 'bucket-owner-full-control'
+      });
     });
 
     it('should throw error if other required checks have not yet passed', async () => {
@@ -142,7 +137,8 @@ describe('acceptVisualChanges', () => {
         })
       ).rejects.toThrow();
 
-      expect(copyS3FileMock).not.toHaveBeenCalled();
+      expect(listObjectsV2Mock).not.toHaveBeenCalled();
+      expect(copyObjectMock).not.toHaveBeenCalled();
       expect(updateCommitStatusMock).not.toHaveBeenCalled();
     });
 
@@ -156,7 +152,8 @@ describe('acceptVisualChanges', () => {
         owner: 'owner'
       });
 
-      expect(copyS3FileMock).not.toHaveBeenCalled();
+      expect(listObjectsV2Mock).not.toHaveBeenCalled();
+      expect(copyObjectMock).not.toHaveBeenCalled();
       expect(updateCommitStatusMock).toHaveBeenCalled();
     });
   });
