@@ -6,5 +6,3 @@ services:
       - '8080:8080'
     volumes:
       - ~/.aws/:/root/.aws:ro
-    environment:
-      - CI=${CI:-false}
