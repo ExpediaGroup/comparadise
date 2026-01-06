@@ -8,6 +8,6 @@ export const getKeysFromS3 = async (hash: string, bucket: string) => {
     Prefix: `${NEW_IMAGES_DIRECTORY}/${hash}/`
   });
 
-  const keys = response?.Contents?.map(content => content.Key) ?? [];
+  const keys = response?.Contents?.map(content => content.Key ?? '') ?? [];
   return keys.filter(path => path && !path.includes('actions-runner'));
 };
