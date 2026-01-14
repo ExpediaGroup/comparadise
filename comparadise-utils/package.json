@@ -21,7 +21,7 @@
   },
   "devDependencies": {
     "@types/pngjs": "6.0.5",
-    "cypress": "15.8.1",
+    "cypress": "15.9.0",
     "tsup": "8.5.1"
   },
   "peerDependencies": {
