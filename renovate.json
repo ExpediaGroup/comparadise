@@ -6,7 +6,7 @@
   "semanticCommits": "disabled",
   "packageRules": [
     {
-      "matchDepTypes": ["dependencies", "devDependencies"],
+      "matchManagers": ["bun", "dockerfile", "npm"],
       "matchUpdateTypes": ["patch", "minor"],
       "groupName": "dependencies"
     },
