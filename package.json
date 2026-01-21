@@ -11,12 +11,12 @@
     "eslint-plugin-react": "7.37.5",
     "husky": "9.1.7",
     "nx": "22.3.3",
-    "prettier": "3.7.4",
+    "prettier": "3.8.0",
     "prettier-plugin-tailwindcss": "0.7.2",
     "shared": "workspace:*",
     "ts-node": "10.9.2",
     "typescript": "5.9.3",
-    "typescript-eslint": "8.53.0"
+    "typescript-eslint": "8.53.1"
   },
   "scripts": {
     "docker": "docker build . --tag comparadise && docker compose up -d",
