@@ -237,14 +237,14 @@ describe('App', () => {
       );
     });
 
-    it('should display side by side view when there is no diff image', () => {
+    it('should default to side by side view when there is no diff image', () => {
       cy.findByRole('heading', { name: 'small/example' });
       cy.findByAltText('base').should('be.visible');
       cy.findByAltText('new').should('be.visible');
       cy.findByRole('button', { name: /side-by-side/i }).should('be.enabled');
     });
 
-    it('should switch between base and new images', () => {
+    it('should allow switch between base and new images in single view', () => {
       cy.findByRole('button', { name: /single/i }).click();
       cy.findByAltText('base').should('be.visible');
       cy.findByAltText('new').should('not.exist');
