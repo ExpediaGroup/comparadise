@@ -2,6 +2,7 @@ import * as React from 'react';
 import { App } from '../../../app';
 import {
   firstPage,
+  noDiffImagePage,
   noNewImagesPage,
   onlyNewImagesFirstPage,
   onlyNewImagesSecondPage,
@@ -217,6 +218,39 @@ describe('App', () => {
       cy.findByAltText('new').should('be.visible');
       cy.findByRole('button', { name: /forward-arrow/ }).click();
       cy.findByAltText('diff').should('be.visible');
+    });
+  });
+
+  describe('no diff image case', () => {
+    beforeEach(() => {
+      cy.intercept('/trpc/fetchCurrentPage*', req => {
+        req.reply(noDiffImagePage);
+      });
+      cy.mount(
+        <MemoryRouter
+          initialEntries={[
+            '?commitHash=123&bucket=bucket&repo=repo&owner=owner'
+          ]}
+        >
+          <App />
+        </MemoryRouter>
+      );
+    });
+
+    it('should display side by side view when there is no diff image', () => {
+      cy.findByRole('heading', { name: 'small/example' });
+      cy.findByAltText('base').should('be.visible');
+      cy.findByAltText('new').should('be.visible');
+      cy.findByRole('button', { name: /side-by-side/i }).should('be.enabled');
+    });
+
+    it('should switch between base and new images', () => {
+      cy.findByRole('button', { name: /single/i }).click();
+      cy.findByAltText('base').should('be.visible');
+      cy.findByAltText('new').should('not.exist');
+      cy.findByRole('button', { name: 'new' }).click();
+      cy.findByAltText('new').should('be.visible');
+      cy.findByAltText('base').should('not.exist');
     });
   });
 
