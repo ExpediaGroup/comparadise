@@ -16,7 +16,7 @@ import {
 } from 'react-router-dom';
 import { ArrowBackIcon, ArrowForwardIcon } from './arrows';
 import { ImagesContainer } from './images-container';
-import { getViewType, preloadAllImages } from './utils/image';
+import { getViewType, preloadAllImages, preloadImage } from './utils/image';
 import { Images } from './types';
 
 const preloadNextPage = async (images?: Images) => {
@@ -27,6 +27,8 @@ const preloadNextPage = async (images?: Images) => {
   const newViewType = await getViewType(images);
   if (newViewType === ImageViews.SIDE_BY_SIDE) {
     await preloadAllImages(images.map(image => image.url));
+  } else if (images[0]?.url) {
+    await preloadImage(images[0].url);
   }
 
   return newViewType;
