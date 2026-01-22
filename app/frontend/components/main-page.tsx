@@ -27,7 +27,7 @@ const preloadNextPage = async (images?: Images) => {
   const newViewType = await getViewType(images);
   if (newViewType === ImageViews.SIDE_BY_SIDE) {
     await preloadAllImages(images.map(image => image.url));
-  } else if (images[0]?.url) {
+  } else if (newViewType === ImageViews.SINGLE && images[0]?.url) {
     await preloadImage(images[0].url);
   }
 
