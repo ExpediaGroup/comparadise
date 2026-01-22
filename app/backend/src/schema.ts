@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { BASE_IMAGE_NAME, DIFF_IMAGE_NAME, NEW_IMAGE_NAME } from 'shared';
 
 export const fetchCurrentPageInputSchema = z.object({
   bucket: z.string().min(1),
@@ -30,13 +31,8 @@ export type AcceptVisualChangesInput = z.infer<
   typeof acceptVisualChangesInputSchema
 >;
 export type UpdateGitStatus = z.infer<typeof updateGitStatusSchema>;
-export const FILE_NAMES = {
-  BASE: 'base',
-  DIFF: 'diff',
-  NEW: 'new'
-} as const;
 export const fileNameSchema = z.enum([
-  FILE_NAMES.BASE,
-  FILE_NAMES.DIFF,
-  FILE_NAMES.NEW
+  BASE_IMAGE_NAME,
+  DIFF_IMAGE_NAME,
+  NEW_IMAGE_NAME
 ]);

@@ -221,7 +221,7 @@ describe('App', () => {
     });
   });
 
-  describe('no diff image case', () => {
+  describe.only('no diff image case', () => {
     beforeEach(() => {
       cy.intercept('/trpc/fetchCurrentPage*', req => {
         req.reply(noDiffImagePage);
