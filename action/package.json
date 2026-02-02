@@ -3,7 +3,7 @@
   "main": "src/main.ts",
   "private": true,
   "dependencies": {
-    "@actions/core": "2.0.2",
+    "@actions/core": "3.0.0",
     "@actions/github": "7.0.0",
     "bluebird": "3.7.2",
     "glob": "13.0.0"
