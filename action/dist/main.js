@@ -65581,11 +65581,7 @@ var run = async () => {
     )) {
       return count + 1;
     }
-    try {
-      (0, import_fs7.unlinkSync)(diffPath);
-    } catch (error2) {
-      warning(`Failed to delete diff file ${diffPath}: ${error2}`);
-    }
+    (0, import_fs7.unlinkSync)(diffPath);
     return count;
   }, 0);
   const newFileCount = newFilePaths.length;
