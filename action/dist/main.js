@@ -61495,12 +61495,14 @@ async function checkS3PrefixExists(bucketName, prefix) {
   }
 }
 async function downloadS3Directory(bucketName, s3Prefix, localDir) {
+  info(`Downloading screenshots from s3://${bucketName}/${s3Prefix}`);
   const command = new ListObjectsV2Command({
     Bucket: bucketName,
     Prefix: s3Prefix
   });
   const response = await s3Client.send(command);
   const objects = response.Contents ?? [];
+  info(`Found ${objects.length} file(s) to download`);
   await (0, import_bluebird.map)(objects, async (object) => {
     if (!object.Key) return;
     const relativePath = object.Key.substring(s3Prefix.length);
@@ -61518,6 +61520,7 @@ async function downloadS3Directory(bucketName, s3Prefix, localDir) {
       });
     }
   });
+  info(`Downloaded ${objects.length} file(s) to ${localDir}`);
 }
 async function uploadLocalDirectory(localDir, bucketName, s3Prefix) {
   const files = await glob("**/*", {
@@ -61525,6 +61528,9 @@ async function uploadLocalDirectory(localDir, bucketName, s3Prefix) {
     nodir: true,
     absolute: false
   });
+  info(
+    `Uploading ${files.length} file(s) from ${localDir} to s3://${bucketName}/${s3Prefix}`
+  );
   await (0, import_bluebird.map)(files, async (file) => {
     const localFilePath = path5.join(localDir, file);
     const s3Key = path5.join(s3Prefix, file);
@@ -61536,6 +61542,7 @@ async function uploadLocalDirectory(localDir, bucketName, s3Prefix) {
     });
     await s3Client.send(command);
   });
+  info(`Uploaded ${files.length} file(s) to s3://${bucketName}/${s3Prefix}`);
 }
 async function uploadSingleFile(localFilePath, bucketName, s3Key) {
   const fileContent = await import_fs5.promises.readFile(localFilePath);
@@ -61545,6 +61552,7 @@ async function uploadSingleFile(localFilePath, bucketName, s3Key) {
     Body: fileContent
   });
   await s3Client.send(command);
+  info(`Uploaded ${localFilePath} to s3://${bucketName}/${s3Key}`);
 }
 var downloadBaseImages = async () => {
   const bucketName = getInput("bucket-name", { required: true });
@@ -61600,6 +61608,7 @@ var uploadAllImages = async (hash) => {
 };
 var uploadBaseImages = async (newFilePaths) => {
   const bucketName = getInput("bucket-name", { required: true });
+  info(`Uploading ${newFilePaths.length} base image(s)`);
   return (0, import_bluebird.map)(
     newFilePaths,
     (newFilePath) => uploadSingleFile(newFilePath, bucketName, buildBaseImagePath(newFilePath))
