@@ -16,6 +16,7 @@ import { octokit } from './octokit';
 import { context } from '@actions/github';
 import * as path from 'path';
 import { sync } from 'glob';
+import { unlinkSync } from 'fs';
 import { createGithubComment } from './comment';
 import { getLatestVisualRegressionStatus } from './get-latest-visual-regression-status';
 import {
@@ -62,6 +63,7 @@ export const run = async () => {
   const newFilePaths = filesInScreenshotDirectory.filter(file =>
     file.endsWith('new.png')
   );
+
   const diffFileCount = diffFilePaths.reduce((count, diffPath) => {
     if (
       newFilePaths.some(
@@ -70,9 +72,12 @@ export const run = async () => {
     ) {
       return count + 1;
     }
-    exec(`rm ${diffPath}`);
+    // Delete orphaned diff files (no corresponding new file)
+    unlinkSync(diffPath);
+
     return count;
   }, 0);
+
   const newFileCount = newFilePaths.length;
 
   if (numVisualTestFailures > diffFileCount) {

@@ -1,6 +1,4 @@
 import {
-  BASE_IMAGES_DIRECTORY,
-  NEW_IMAGES_DIRECTORY,
   VISUAL_REGRESSION_CONTEXT,
   VISUAL_TESTS_FAILED_TO_EXECUTE
 } from 'shared';
@@ -10,10 +8,12 @@ const disableAutoMergeMock = mock();
 mock.module('../src/disable-auto-merge', () => ({
   disableAutoMerge: disableAutoMergeMock
 }));
+
 const globSyncMock = mock();
 mock.module('glob', () => ({
   sync: globSyncMock
 }));
+
 const getInputMock = mock();
 const getBooleanInputMock = mock();
 const getMultilineInputMock = mock();
@@ -26,9 +26,50 @@ mock.module('@actions/core', () => ({
   setFailed: setFailedMock,
   warning: mock()
 }));
+
 const execMock = mock();
 mock.module('@actions/exec', () => ({
   exec: execMock
+}));
+
+const unlinkSyncMock = mock();
+mock.module('fs', () => {
+  // Import the actual fs module to pass through other methods
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const actualFs = require('fs');
+  return {
+    ...actualFs,
+    unlinkSync: unlinkSyncMock
+  };
+});
+
+const rmMock = mock();
+mock.module('fs/promises', () => ({
+  rm: rmMock
+}));
+
+const downloadBaseImagesMock = mock();
+const uploadAllImagesMock = mock();
+const uploadBaseImagesMock = mock();
+
+let s3OperationCalls: Array<{
+  operation: string;
+  args: unknown[];
+}> = [];
+
+mock.module('../src/s3-operations', () => ({
+  downloadBaseImages: (...args: unknown[]) => {
+    s3OperationCalls.push({ operation: 'downloadBaseImages', args });
+    return downloadBaseImagesMock(...args);
+  },
+  uploadAllImages: (...args: unknown[]) => {
+    s3OperationCalls.push({ operation: 'uploadAllImages', args });
+    return uploadAllImagesMock(...args);
+  },
+  uploadBaseImages: (...args: unknown[]) => {
+    s3OperationCalls.push({ operation: 'uploadBaseImages', args });
+    return uploadBaseImagesMock(...args);
+  }
 }));
 const createCommitStatusMock = mock();
 const listPullRequestsAssociatedWithCommitMock = mock(() => ({
@@ -109,10 +150,21 @@ describe('main', () => {
       'visual-test-command': ['run my visual tests']
     };
     getMultilineInputMock.mockImplementation(name => multiLineInputMap[name]);
+
+    downloadBaseImagesMock.mockResolvedValue(undefined);
+    uploadAllImagesMock.mockResolvedValue(undefined);
+    uploadBaseImagesMock.mockResolvedValue(undefined);
+
+    // Mock fs operations
+    unlinkSyncMock.mockReturnValue(undefined);
+    rmMock.mockResolvedValue(undefined);
+
+    s3OperationCalls = [];
   });
 
   afterEach(() => {
     mock.clearAllMocks();
+    s3OperationCalls = [];
   });
 
   it('should fail when neither diff-id nor commit-hash is provided', async () => {
@@ -213,11 +265,11 @@ describe('main', () => {
     ]);
     await runAction();
     expect(setFailedMock).toHaveBeenCalled();
-    expect(execMock).not.toHaveBeenCalledWith(
-      'rm path/to/screenshots/diff.png'
+    expect(unlinkSyncMock).not.toHaveBeenCalledWith(
+      'path/to/screenshots/diff.png'
     );
-    expect(execMock).toHaveBeenCalledWith(
-      'rm path/to/another-screenshot/diff.png'
+    expect(unlinkSyncMock).toHaveBeenCalledWith(
+      'path/to/another-screenshot/diff.png'
     );
     expect(createCommitStatusMock).toHaveBeenCalledWith({
       owner: 'owner',
@@ -243,11 +295,11 @@ describe('main', () => {
     ]);
     await runAction();
     expect(setFailedMock).not.toHaveBeenCalled();
-    expect(execMock).not.toHaveBeenCalledWith(
-      'rm path/to/screenshots/diff.png'
+    expect(unlinkSyncMock).not.toHaveBeenCalledWith(
+      'path/to/screenshots/diff.png'
     );
-    expect(execMock).toHaveBeenCalledWith(
-      'rm path/to/another-screenshot/diff.png'
+    expect(unlinkSyncMock).toHaveBeenCalledWith(
+      'path/to/another-screenshot/diff.png'
     );
     assertNoOctokitCalls();
   });
@@ -301,7 +353,7 @@ describe('main', () => {
     globSyncMock.mockReturnValue(['path/to/screenshots/diff.png']);
     await runAction();
     expect(setFailedMock).not.toHaveBeenCalled();
-    expect(execMock).toHaveBeenCalledWith('rm path/to/screenshots/diff.png');
+    expect(unlinkSyncMock).toHaveBeenCalledWith('path/to/screenshots/diff.png');
     expect(createCommitStatusMock).toHaveBeenCalledWith({
       owner: 'owner',
       repo: 'repo',
@@ -318,7 +370,7 @@ describe('main', () => {
     globSyncMock.mockReturnValue(['path/to/screenshots/diff.png']);
     await runAction();
     expect(setFailedMock).not.toHaveBeenCalled();
-    expect(execMock).toHaveBeenCalledWith('rm path/to/screenshots/diff.png');
+    expect(unlinkSyncMock).toHaveBeenCalledWith('path/to/screenshots/diff.png');
     assertNoOctokitCalls();
   });
 
@@ -331,12 +383,10 @@ describe('main', () => {
     ]);
     await runAction();
     expect(setFailedMock).not.toHaveBeenCalled();
-    expect(execMock).toHaveBeenCalledWith(
-      `aws s3 cp path/to/screenshots/newTest1/new.png s3://some-bucket/${BASE_IMAGES_DIRECTORY}/newTest1/base.png`
-    );
-    expect(execMock).toHaveBeenCalledWith(
-      `aws s3 cp path/to/screenshots/newTest2/new.png s3://some-bucket/${BASE_IMAGES_DIRECTORY}/newTest2/base.png`
-    );
+    expect(uploadBaseImagesMock).toHaveBeenCalledWith([
+      'path/to/screenshots/newTest1/new.png',
+      'path/to/screenshots/newTest2/new.png'
+    ]);
     expect(createCommitStatusMock).toHaveBeenCalledWith({
       owner: 'owner',
       repo: 'repo',
@@ -358,12 +408,10 @@ describe('main', () => {
     ]);
     await runAction();
     expect(setFailedMock).not.toHaveBeenCalled();
-    expect(execMock).toHaveBeenCalledWith(
-      `aws s3 cp path/to/screenshots/newTest1/new.png s3://some-bucket/${BASE_IMAGES_DIRECTORY}/newTest1/base.png`
-    );
-    expect(execMock).toHaveBeenCalledWith(
-      `aws s3 cp path/to/screenshots/newTest2/new.png s3://some-bucket/${BASE_IMAGES_DIRECTORY}/newTest2/base.png`
-    );
+    expect(uploadBaseImagesMock).toHaveBeenCalledWith([
+      'path/to/screenshots/newTest1/new.png',
+      'path/to/screenshots/newTest2/new.png'
+    ]);
     assertNoOctokitCalls();
   });
 
@@ -380,24 +428,8 @@ describe('main', () => {
       'path/to/screenshots/new.png'
     ]);
     await runAction();
-    expect(execMock).toHaveBeenCalledWith(
-      `aws s3 cp s3://some-bucket/${BASE_IMAGES_DIRECTORY}/path/1 path/to/screenshots/path/1 --recursive`
-    );
-    expect(execMock).toHaveBeenCalledWith(
-      `aws s3 cp s3://some-bucket/${BASE_IMAGES_DIRECTORY}/path/2 path/to/screenshots/path/2 --recursive`
-    );
-    expect(execMock).not.toHaveBeenCalledWith(
-      `aws s3 cp s3://some-bucket/${BASE_IMAGES_DIRECTORY} path/to/screenshots --recursive`
-    );
-    expect(execMock).toHaveBeenCalledWith(
-      `aws s3 cp path/to/screenshots/path/1 s3://some-bucket/${NEW_IMAGES_DIRECTORY}/sha/path/1 --recursive`
-    );
-    expect(execMock).toHaveBeenCalledWith(
-      `aws s3 cp path/to/screenshots/path/2 s3://some-bucket/${NEW_IMAGES_DIRECTORY}/sha/path/2 --recursive`
-    );
-    expect(execMock).not.toHaveBeenCalledWith(
-      `aws s3 cp path/to/screenshots s3://some-bucket/${NEW_IMAGES_DIRECTORY}/sha --recursive`
-    );
+    expect(downloadBaseImagesMock).toHaveBeenCalled();
+    expect(uploadAllImagesMock).toHaveBeenCalledWith('sha');
   });
 
   it('should use subdirectories if provided with diff-id input', async () => {
@@ -413,24 +445,8 @@ describe('main', () => {
       'path/to/screenshots/new.png'
     ]);
     await runAction();
-    expect(execMock).toHaveBeenCalledWith(
-      `aws s3 cp s3://some-bucket/${BASE_IMAGES_DIRECTORY}/path/1 path/to/screenshots/path/1 --recursive`
-    );
-    expect(execMock).toHaveBeenCalledWith(
-      `aws s3 cp s3://some-bucket/${BASE_IMAGES_DIRECTORY}/path/2 path/to/screenshots/path/2 --recursive`
-    );
-    expect(execMock).not.toHaveBeenCalledWith(
-      `aws s3 cp s3://some-bucket/${BASE_IMAGES_DIRECTORY} path/to/screenshots --recursive`
-    );
-    expect(execMock).toHaveBeenCalledWith(
-      `aws s3 cp path/to/screenshots/path/1 s3://some-bucket/${NEW_IMAGES_DIRECTORY}/uniqueId/path/1 --recursive`
-    );
-    expect(execMock).toHaveBeenCalledWith(
-      `aws s3 cp path/to/screenshots/path/2 s3://some-bucket/${NEW_IMAGES_DIRECTORY}/uniqueId/path/2 --recursive`
-    );
-    expect(execMock).not.toHaveBeenCalledWith(
-      `aws s3 cp path/to/screenshots s3://some-bucket/${NEW_IMAGES_DIRECTORY}/sha --recursive`
-    );
+    expect(downloadBaseImagesMock).toHaveBeenCalled();
+    expect(uploadAllImagesMock).toHaveBeenCalledWith('uniqueId');
     assertNoOctokitCalls();
   });
 
@@ -445,9 +461,7 @@ describe('main', () => {
       'path/to/screenshots/new.png'
     ]);
     await runAction();
-    expect(execMock).toHaveBeenCalledWith(
-      `aws s3 cp s3://some-bucket/${BASE_IMAGES_DIRECTORY} path/to/screenshots --recursive`
-    );
+    expect(downloadBaseImagesMock).toHaveBeenCalled();
   });
 
   it('should not download base images if use-base-images specified as false and set URL param', async () => {
@@ -461,9 +475,7 @@ describe('main', () => {
       'path/to/screenshots/new.png'
     ]);
     await runAction();
-    expect(execMock).not.toHaveBeenCalledWith(
-      `aws s3 cp s3://some-bucket/${BASE_IMAGES_DIRECTORY} path/to/screenshots --recursive`
-    );
+    expect(downloadBaseImagesMock).not.toHaveBeenCalled();
     expect(createCommitStatusMock).toHaveBeenCalledWith({
       owner: 'owner',
       repo: 'repo',
@@ -476,8 +488,9 @@ describe('main', () => {
     });
   });
 
-  it('should not download base images if aws ls call fails', async () => {
-    execMock.mockResolvedValue(1); // mock ls call failing
+  it('should not download base images if prefix does not exist', async () => {
+    execMock.mockResolvedValue(0);
+    getBooleanInputMock.mockReturnValue(true); // Ensure use-base-images is true
     const extendedInputMap: Record<string, string> = {
       ...inputMap,
       'package-paths': 'path/1,path/2'
@@ -489,18 +502,8 @@ describe('main', () => {
       'path/to/screenshots/new.png'
     ]);
     await runAction();
-    expect(execMock).not.toHaveBeenCalledWith(
-      `aws s3 cp s3://some-bucket/${BASE_IMAGES_DIRECTORY}/path/1 path/to/screenshots/path/1 --recursive`
-    );
-    expect(execMock).not.toHaveBeenCalledWith(
-      `aws s3 cp s3://some-bucket/${BASE_IMAGES_DIRECTORY}/path/2 path/to/screenshots/path/2 --recursive`
-    );
-    expect(execMock).toHaveBeenCalledWith(
-      `aws s3 cp path/to/screenshots/path/1 s3://some-bucket/${NEW_IMAGES_DIRECTORY}/sha/path/1 --recursive`
-    );
-    expect(execMock).toHaveBeenCalledWith(
-      `aws s3 cp path/to/screenshots/path/2 s3://some-bucket/${NEW_IMAGES_DIRECTORY}/sha/path/2 --recursive`
-    );
+    expect(downloadBaseImagesMock).toHaveBeenCalled();
+    expect(uploadAllImagesMock).toHaveBeenCalledWith('sha');
   });
 
   it('should not set successful commit status or create comment if the latest Visual Regression status is failure', async () => {
