@@ -61528,7 +61528,9 @@ async function uploadLocalDirectory(localDir, bucketName, s3Prefix) {
     nodir: true,
     absolute: false
   });
-  info(`Uploading ${files.length} file(s) from ${localDir} to s3://${bucketName}/${s3Prefix}`);
+  info(
+    `Uploading ${files.length} file(s) from ${localDir} to s3://${bucketName}/${s3Prefix}`
+  );
   await (0, import_bluebird.map)(files, async (file) => {
     const localFilePath = path5.join(localDir, file);
     const s3Key = path5.join(s3Prefix, file);
