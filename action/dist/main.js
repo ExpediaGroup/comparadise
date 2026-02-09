@@ -65455,6 +65455,7 @@ var octokit = getOctokit(getInput("github-token"));
 
 // src/run.ts
 var path6 = __toESM(require("path"));
+var import_fs7 = require("fs");
 
 // src/build-comparadise-url.ts
 var buildComparadiseUrl = () => {
@@ -65580,7 +65581,11 @@ var run = async () => {
     )) {
       return count + 1;
     }
-    exec(`rm ${diffPath}`);
+    try {
+      (0, import_fs7.unlinkSync)(diffPath);
+    } catch (error2) {
+      warning(`Failed to delete diff file ${diffPath}: ${error2}`);
+    }
     return count;
   }, 0);
   const newFileCount = newFilePaths.length;

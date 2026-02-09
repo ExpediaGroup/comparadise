@@ -32,6 +32,21 @@ mock.module('@actions/exec', () => ({
   exec: execMock
 }));
 
+const unlinkSyncMock = mock();
+mock.module('fs', () => {
+  // Import the actual fs module to pass through other methods
+  const actualFs = require('fs');
+  return {
+    ...actualFs,
+    unlinkSync: unlinkSyncMock
+  };
+});
+
+const rmMock = mock();
+mock.module('fs/promises', () => ({
+  rm: rmMock
+}));
+
 const downloadBaseImagesMock = mock();
 const uploadAllImagesMock = mock();
 const uploadBaseImagesMock = mock();
@@ -139,6 +154,10 @@ describe('main', () => {
     uploadAllImagesMock.mockResolvedValue(undefined);
     uploadBaseImagesMock.mockResolvedValue(undefined);
 
+    // Mock fs operations
+    unlinkSyncMock.mockReturnValue(undefined);
+    rmMock.mockResolvedValue(undefined);
+
     s3OperationCalls = [];
   });
 
@@ -245,11 +264,11 @@ describe('main', () => {
     ]);
     await runAction();
     expect(setFailedMock).toHaveBeenCalled();
-    expect(execMock).not.toHaveBeenCalledWith(
-      'rm path/to/screenshots/diff.png'
+    expect(unlinkSyncMock).not.toHaveBeenCalledWith(
+      'path/to/screenshots/diff.png'
     );
-    expect(execMock).toHaveBeenCalledWith(
-      'rm path/to/another-screenshot/diff.png'
+    expect(unlinkSyncMock).toHaveBeenCalledWith(
+      'path/to/another-screenshot/diff.png'
     );
     expect(createCommitStatusMock).toHaveBeenCalledWith({
       owner: 'owner',
@@ -275,11 +294,11 @@ describe('main', () => {
     ]);
     await runAction();
     expect(setFailedMock).not.toHaveBeenCalled();
-    expect(execMock).not.toHaveBeenCalledWith(
-      'rm path/to/screenshots/diff.png'
+    expect(unlinkSyncMock).not.toHaveBeenCalledWith(
+      'path/to/screenshots/diff.png'
     );
-    expect(execMock).toHaveBeenCalledWith(
-      'rm path/to/another-screenshot/diff.png'
+    expect(unlinkSyncMock).toHaveBeenCalledWith(
+      'path/to/another-screenshot/diff.png'
     );
     assertNoOctokitCalls();
   });
@@ -333,7 +352,7 @@ describe('main', () => {
     globSyncMock.mockReturnValue(['path/to/screenshots/diff.png']);
     await runAction();
     expect(setFailedMock).not.toHaveBeenCalled();
-    expect(execMock).toHaveBeenCalledWith('rm path/to/screenshots/diff.png');
+    expect(unlinkSyncMock).toHaveBeenCalledWith('path/to/screenshots/diff.png');
     expect(createCommitStatusMock).toHaveBeenCalledWith({
       owner: 'owner',
       repo: 'repo',
@@ -350,7 +369,7 @@ describe('main', () => {
     globSyncMock.mockReturnValue(['path/to/screenshots/diff.png']);
     await runAction();
     expect(setFailedMock).not.toHaveBeenCalled();
-    expect(execMock).toHaveBeenCalledWith('rm path/to/screenshots/diff.png');
+    expect(unlinkSyncMock).toHaveBeenCalledWith('path/to/screenshots/diff.png');
     assertNoOctokitCalls();
   });
 
