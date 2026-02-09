@@ -38,6 +38,7 @@ inputs:
 runs:
   using: 'node20'
   main: 'action/dist/main.js'
+  post: 'action/dist/post.js'
 branding:
   icon: layout
   color: green
