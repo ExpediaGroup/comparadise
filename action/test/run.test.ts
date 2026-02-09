@@ -35,6 +35,7 @@ mock.module('@actions/exec', () => ({
 const unlinkSyncMock = mock();
 mock.module('fs', () => {
   // Import the actual fs module to pass through other methods
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const actualFs = require('fs');
   return {
     ...actualFs,
