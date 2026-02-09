@@ -42,6 +42,8 @@ async function downloadS3Directory(
   s3Prefix: string,
   localDir: string
 ): Promise<void> {
+  info(`Downloading screenshots from s3://${bucketName}/${s3Prefix}`);
+
   const command = new ListObjectsV2Command({
     Bucket: bucketName,
     Prefix: s3Prefix
@@ -49,6 +51,8 @@ async function downloadS3Directory(
 
   const response = await s3Client.send(command);
   const objects = response.Contents ?? [];
+
+  info(`Found ${objects.length} file(s) to download`);
 
   await map(objects, async object => {
     if (!object.Key) return;
@@ -71,6 +75,8 @@ async function downloadS3Directory(
       });
     }
   });
+
+  info(`Downloaded ${objects.length} file(s) to ${localDir}`);
 }
 
 async function uploadLocalDirectory(
@@ -83,6 +89,10 @@ async function uploadLocalDirectory(
     nodir: true,
     absolute: false
   });
+
+  info(
+    `Uploading ${files.length} file(s) from ${localDir} to s3://${bucketName}/${s3Prefix}`
+  );
 
   await map(files, async file => {
     const localFilePath = path.join(localDir, file);
@@ -98,6 +108,8 @@ async function uploadLocalDirectory(
 
     await s3Client.send(command);
   });
+
+  info(`Uploaded ${files.length} file(s) to s3://${bucketName}/${s3Prefix}`);
 }
 
 async function uploadSingleFile(
@@ -114,6 +126,7 @@ async function uploadSingleFile(
   });
 
   await s3Client.send(command);
+  info(`Uploaded ${localFilePath} to s3://${bucketName}/${s3Key}`);
 }
 
 export const downloadBaseImages = async () => {
@@ -177,6 +190,7 @@ export const uploadAllImages = async (hash: string) => {
 
 export const uploadBaseImages = async (newFilePaths: string[]) => {
   const bucketName = getInput('bucket-name', { required: true });
+  info(`Uploading ${newFilePaths.length} base image(s)`);
   return map(newFilePaths, newFilePath =>
     uploadSingleFile(newFilePath, bucketName, buildBaseImagePath(newFilePath))
   );
