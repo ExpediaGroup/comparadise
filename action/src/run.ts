@@ -40,14 +40,12 @@ export const run = async () => {
 
   const hash = commitHash || diffId;
 
-  const screenshotsDirectory = getInput('screenshots-directory');
-  const binPath = getInput('bin-path');
-
   const useBaseImages = getBooleanInput('use-base-images') ?? true;
   if (useBaseImages) {
     await downloadBaseImages();
   }
 
+  const binPath = getInput('bin-path');
   const visualTestExitCode = await Promise.all(
     visualTestCommands.map(cmd =>
       exec(cmd, [], {
@@ -65,9 +63,10 @@ export const run = async () => {
     code => code !== 0
   ).length;
 
+  const screenshotsDirectory = getInput('screenshots-directory');
   const screenshotsPath = path.join(process.cwd(), screenshotsDirectory);
   const filesInScreenshotDirectory =
-    sync(`${screenshotsPath}/**`, { absolute: false }) || [];
+    sync(`${screenshotsPath}/**/*.png`, { absolute: false }) || [];
   const diffFilePaths = filesInScreenshotDirectory.filter(file =>
     file.endsWith('diff.png')
   );
