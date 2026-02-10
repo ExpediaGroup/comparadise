@@ -15,7 +15,7 @@ import { map } from 'bluebird';
 import * as path from 'path';
 import * as fs from 'fs';
 import { promises as fsPromises } from 'fs';
-import { sync as globSync } from 'glob';
+import { glob } from 'glob';
 import { Readable } from 'stream';
 
 const s3Client = new S3Client();
@@ -84,7 +84,7 @@ async function uploadLocalDirectory(
   bucketName: string,
   s3Prefix: string
 ): Promise<void> {
-  const files = globSync('**/*.png', {
+  const files = await glob('**/*.png', {
     cwd: localDir,
     nodir: true,
     absolute: false
