@@ -68049,11 +68049,16 @@ var import_promises5 = require("fs/promises");
 var DEFAULT_MAX_WIDTH = 1500;
 var DEFAULT_MAX_HEIGHT = 1500;
 function getMaxDimensions() {
-  const width = Number(getInput("max-image-width"));
-  const height = Number(getInput("max-image-height"));
+  const widthInput = getInput("max-image-width");
+  const heightInput = getInput("max-image-height");
+  if (!widthInput && !heightInput) {
+    return void 0;
+  }
+  const width = Number(widthInput);
+  const height = Number(heightInput);
   return {
-    width: !width || isNaN(width) ? DEFAULT_MAX_WIDTH : width,
-    height: !height || isNaN(height) ? DEFAULT_MAX_HEIGHT : height
+    width: isNaN(width) ? DEFAULT_MAX_WIDTH : width,
+    height: isNaN(height) ? DEFAULT_MAX_HEIGHT : height
   };
 }
 async function resizeImageIfNeeded(filePath, maxWidth, maxHeight) {
@@ -68084,6 +68089,10 @@ async function resizeImageIfNeeded(filePath, maxWidth, maxHeight) {
 }
 async function resizeImages(filePaths) {
   const dimensions = getMaxDimensions();
+  if (!dimensions) {
+    info("Image resizing disabled (no max dimensions configured)");
+    return;
+  }
   const width = dimensions.width;
   const height = dimensions.height;
   info(

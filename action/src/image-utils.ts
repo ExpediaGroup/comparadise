@@ -7,15 +7,24 @@ export const DEFAULT_MAX_WIDTH = 1500;
 export const DEFAULT_MAX_HEIGHT = 1500;
 
 /**
- * Get max dimensions from GitHub Action inputs or use defaults
+ * Get max dimensions from GitHub Action inputs
+ * Returns undefined if not configured (to skip resizing)
  */
-function getMaxDimensions() {
-  const width = Number(getInput('max-image-width'));
-  const height = Number(getInput('max-image-height'));
+function getMaxDimensions(): { width: number; height: number } | undefined {
+  const widthInput = getInput('max-image-width');
+  const heightInput = getInput('max-image-height');
+
+  // If neither input is provided, don't resize
+  if (!widthInput && !heightInput) {
+    return undefined;
+  }
+
+  const width = Number(widthInput);
+  const height = Number(heightInput);
 
   return {
-    width: !width || isNaN(width) ? DEFAULT_MAX_WIDTH : width,
-    height: !height || isNaN(height) ? DEFAULT_MAX_HEIGHT : height
+    width: isNaN(width) ? DEFAULT_MAX_WIDTH : width,
+    height: isNaN(height) ? DEFAULT_MAX_HEIGHT : height
   };
 }
 
@@ -64,6 +73,13 @@ export async function resizeImageIfNeeded(
  */
 export async function resizeImages(filePaths: string[]) {
   const dimensions = getMaxDimensions();
+
+  // If no max dimensions configured, skip resizing
+  if (!dimensions) {
+    info('Image resizing disabled (no max dimensions configured)');
+    return;
+  }
+
   const width = dimensions.width;
   const height = dimensions.height;
 

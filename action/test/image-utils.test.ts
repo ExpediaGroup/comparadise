@@ -3,10 +3,14 @@ import sharp from 'sharp';
 import { mkdir, rm } from 'fs/promises';
 import { join } from 'path';
 
+// Create a comprehensive mock for @actions/core to avoid conflicts with other tests
 mock.module('@actions/core', () => ({
   info: mock(() => {}),
   getInput: mock(() => ''),
-  setFailed: mock(() => {})
+  setFailed: mock(() => {}),
+  getBooleanInput: mock(() => false),
+  getMultilineInput: mock(() => []),
+  warning: mock()
 }));
 
 const imageUtils = await import('../src/image-utils');
@@ -171,5 +175,43 @@ describe('image-utils', () => {
     expect(metadata.height).toBeLessThanOrEqual(customMax);
     expect(metadata.width).toBe(customMax);
     expect(metadata.height).toBe(customMax);
+  });
+});
+
+describe('resizeImages batch function', () => {
+  beforeEach(async () => {
+    await mkdir(TEST_DIR, { recursive: true });
+  });
+
+  afterEach(async () => {
+    await rm(TEST_DIR, { recursive: true, force: true });
+  });
+
+  it('should skip resizing when no max dimensions are configured', async () => {
+    const testImagePath = join(TEST_DIR, 'large.png');
+
+    // Create a large test image (3000x3000)
+    await sharp({
+      create: {
+        width: 3000,
+        height: 3000,
+        channels: 4,
+        background: { r: 255, g: 0, b: 0, alpha: 1 }
+      }
+    })
+      .png()
+      .toFile(testImagePath);
+
+    const originalMetadata = await sharp(testImagePath).metadata();
+
+    // Import resizeImages dynamically to use mocked getInput
+    const { resizeImages } = await import('../src/image-utils');
+    await resizeImages([testImagePath]);
+
+    const newMetadata = await sharp(testImagePath).metadata();
+
+    // Image should not be resized (dimensions unchanged)
+    expect(newMetadata.width).toBe(originalMetadata.width);
+    expect(newMetadata.height).toBe(originalMetadata.height);
   });
 });
