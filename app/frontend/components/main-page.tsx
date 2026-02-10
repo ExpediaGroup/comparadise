@@ -81,7 +81,7 @@ export const MainPage = ({
         }
       }
     });
-  }, [isNextPageReady, data?.images]);
+  }, [data?.images]);
 
   if (error) {
     return <Error error={error} />;
