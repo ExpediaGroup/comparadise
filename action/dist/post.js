@@ -30784,7 +30784,9 @@ var post = async () => {
   info("Cleaning up PNG files in screenshots directory...");
   const screenshotsDirectory = getInput("screenshots-directory");
   try {
-    const pngFiles = await glob(`${screenshotsDirectory}/**/*.png`);
+    const pngFiles = await glob(
+      `${screenshotsDirectory}/**/{base,diff,new}.png`
+    );
     await (0, import_bluebird.map)(pngFiles, (file) => (0, import_promises2.rm)(file, { force: true }));
     info(`Removed ${pngFiles.length} PNG file(s) from ${screenshotsDirectory}`);
   } catch (error) {

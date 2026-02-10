@@ -42,7 +42,7 @@ async function downloadS3Directory(
   s3Prefix: string,
   localDir: string
 ): Promise<void> {
-  info(`Downloading screenshots from s3://${bucketName}/${s3Prefix}`);
+  info(`Downloading base images from s3://${bucketName}/${s3Prefix}`);
 
   const command = new ListObjectsV2Command({
     Bucket: bucketName,
@@ -50,21 +50,22 @@ async function downloadS3Directory(
   });
 
   const response = await s3Client.send(command);
-  const objects = response.Contents ?? [];
+  const allObjects = response.Contents ?? [];
+  const baseObjects = allObjects.filter(obj => obj.Key?.endsWith('base.png'));
 
-  info(`Found ${objects.length} file(s) to download`);
+  info(`Found ${baseObjects.length} base image(s) to download`);
 
-  await map(objects, async object => {
-    if (!object.Key) return;
+  await map(baseObjects, async ({ Key }) => {
+    if (!Key) return;
 
-    const relativePath = object.Key.substring(s3Prefix.length);
+    const relativePath = Key.substring(s3Prefix.length);
     const localFilePath = path.join(localDir, relativePath);
 
     await fsPromises.mkdir(path.dirname(localFilePath), { recursive: true });
 
     const getCommand = new GetObjectCommand({
       Bucket: bucketName,
-      Key: object.Key
+      Key
     });
 
     const { Body } = await s3Client.send(getCommand);
@@ -76,7 +77,7 @@ async function downloadS3Directory(
     }
   });
 
-  info(`Downloaded ${objects.length} file(s) to ${localDir}`);
+  info(`Downloaded ${baseObjects.length} base image(s) to ${localDir}`);
 }
 
 async function uploadLocalDirectory(
@@ -84,7 +85,7 @@ async function uploadLocalDirectory(
   bucketName: string,
   s3Prefix: string
 ): Promise<void> {
-  const files = await glob('**/*.png', {
+  const files = await glob('**/{base,diff,new}.png', {
     cwd: localDir,
     nodir: true,
     absolute: false
