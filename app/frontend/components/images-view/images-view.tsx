@@ -24,7 +24,7 @@ export const ImagesView: React.FC<ImageCanvasProps> = ({
       setCurrentView(viewType);
       setPageImages(images);
     }
-  }, [isNextPageReady, viewType]);
+  }, [isNextPageReady, viewType, images]);
 
   if (!currentView) {
     return null;
