@@ -25,6 +25,7 @@ import {
 } from 'shared';
 import { buildComparadiseUrl } from './build-comparadise-url';
 import { disableAutoMerge } from './disable-auto-merge';
+import { getFilteredPath } from './get-filtered-path';
 
 export const run = async () => {
   const visualTestCommands = getMultilineInput('visual-test-command', {
@@ -47,8 +48,17 @@ export const run = async () => {
     await downloadBaseImages();
   }
 
+  const filteredPath = getFilteredPath();
   const visualTestExitCode = await Promise.all(
-    visualTestCommands.map(cmd => exec(cmd, [], { ignoreReturnCode: true }))
+    visualTestCommands.map(cmd =>
+      exec(cmd, [], {
+        ignoreReturnCode: true,
+        env: {
+          ...process.env,
+          PATH: filteredPath
+        }
+      })
+    )
   );
   const numVisualTestFailures = visualTestExitCode.filter(
     code => code !== 0
