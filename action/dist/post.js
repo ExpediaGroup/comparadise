@@ -30786,9 +30786,7 @@ var post = async () => {
   try {
     const pngFiles = sync(`${screenshotsDirectory}/**/*.png`);
     await (0, import_bluebird.map)(pngFiles, (file) => (0, import_promises2.rm)(file, { force: true }));
-    info(
-      `Removed ${pngFiles.length} PNG file(s) from ${screenshotsDirectory}`
-    );
+    info(`Removed ${pngFiles.length} PNG file(s) from ${screenshotsDirectory}`);
   } catch (error) {
     info(`Could not clean up PNG files: ${error}`);
   }
