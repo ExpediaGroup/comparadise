@@ -15,7 +15,7 @@ import { exec } from '@actions/exec';
 import { octokit } from './octokit';
 import { context } from '@actions/github';
 import * as path from 'path';
-import { sync } from 'glob';
+import { glob } from 'glob';
 import { unlinkSync } from 'fs';
 import { createGithubComment } from './comment';
 import { getLatestVisualRegressionStatus } from './get-latest-visual-regression-status';
@@ -40,8 +40,6 @@ export const run = async () => {
 
   const hash = commitHash || diffId;
 
-  const screenshotsDirectory = getInput('screenshots-directory');
-
   const useBaseImages = getBooleanInput('use-base-images') ?? true;
   if (useBaseImages) {
     await downloadBaseImages();
@@ -54,9 +52,11 @@ export const run = async () => {
     code => code !== 0
   ).length;
 
+  const screenshotsDirectory = getInput('screenshots-directory');
   const screenshotsPath = path.join(process.cwd(), screenshotsDirectory);
-  const filesInScreenshotDirectory =
-    sync(`${screenshotsPath}/**`, { absolute: false }) || [];
+  const filesInScreenshotDirectory = await glob(`${screenshotsPath}/**/*.png`, {
+    absolute: false
+  });
   const diffFilePaths = filesInScreenshotDirectory.filter(file =>
     file.endsWith('diff.png')
   );

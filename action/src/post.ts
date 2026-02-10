@@ -1,6 +1,6 @@
 import { info, getInput } from '@actions/core';
 import { rm } from 'fs/promises';
-import { sync as globSync } from 'glob';
+import { glob } from 'glob';
 import { map } from 'bluebird';
 
 const post = async () => {
@@ -9,7 +9,7 @@ const post = async () => {
   const screenshotsDirectory = getInput('screenshots-directory');
 
   try {
-    const pngFiles = globSync(`${screenshotsDirectory}/**/*.png`);
+    const pngFiles = await glob(`${screenshotsDirectory}/**/*.png`);
     await map(pngFiles, file => rm(file, { force: true }));
 
     info(`Removed ${pngFiles.length} PNG file(s) from ${screenshotsDirectory}`);

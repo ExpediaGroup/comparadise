@@ -84,7 +84,7 @@ async function uploadLocalDirectory(
   bucketName: string,
   s3Prefix: string
 ): Promise<void> {
-  const files = await glob('**/*', {
+  const files = await glob('**/*.png', {
     cwd: localDir,
     nodir: true,
     absolute: false
