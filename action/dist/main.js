@@ -61523,7 +61523,7 @@ async function downloadS3Directory(bucketName, s3Prefix, localDir) {
   info(`Downloaded ${objects.length} file(s) to ${localDir}`);
 }
 async function uploadLocalDirectory(localDir, bucketName, s3Prefix) {
-  const files = await glob("**/*", {
+  const files = sync("**/*.png", {
     cwd: localDir,
     nodir: true,
     absolute: false
