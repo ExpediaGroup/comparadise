@@ -17,6 +17,7 @@ import * as fs from 'fs';
 import { promises as fsPromises } from 'fs';
 import { glob } from 'glob';
 import { Readable } from 'stream';
+import { resizeImages } from './image-utils';
 
 const s3Client = new S3Client();
 
@@ -94,6 +95,9 @@ async function uploadLocalDirectory(
   info(
     `Uploading ${files.length} file(s) from ${localDir} to s3://${bucketName}/${s3Prefix}`
   );
+
+  const filePaths = files.map(file => path.join(localDir, file));
+  await resizeImages(filePaths);
 
   await map(files, async file => {
     const localFilePath = path.join(localDir, file);
@@ -192,6 +196,7 @@ export const uploadAllImages = async (hash: string) => {
 export const uploadBaseImages = async (newFilePaths: string[]) => {
   const bucketName = getInput('bucket-name', { required: true });
   info(`Uploading ${newFilePaths.length} base image(s)`);
+  await resizeImages(newFilePaths);
   return map(newFilePaths, newFilePath =>
     uploadSingleFile(newFilePath, bucketName, buildBaseImagePath(newFilePath))
   );

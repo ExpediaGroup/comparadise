@@ -35,6 +35,14 @@ inputs:
     description: 'The GitHub access token'
     required: false
     default: ${{ github.token }}
+  max-image-width:
+    description: 'Maximum width for uploaded images (in pixels). Images larger than this will be resized.'
+    required: false
+    default: '2000'
+  max-image-height:
+    description: 'Maximum height for uploaded images (in pixels). Images larger than this will be resized.'
+    required: false
+    default: '2000'
 runs:
   using: 'node20'
   main: 'action/dist/main.js'
