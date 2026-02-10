@@ -31,9 +31,6 @@ inputs:
   comment-details:
     description: 'Additional details you would like to leave on the Comparadise comment'
     required: false
-  bin-path:
-    description: 'Directory to prepend to PATH for executable resolution (e.g., /opt/homebrew/bin)'
-    required: false
   github-token:
     description: 'The GitHub access token'
     required: false

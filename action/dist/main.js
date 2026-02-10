@@ -65569,17 +65569,10 @@ var run = async () => {
   if (useBaseImages) {
     await downloadBaseImages();
   }
-  const binPath = getInput("bin-path");
   const visualTestExitCode = await Promise.all(
     visualTestCommands.map(
       (cmd) => exec(cmd, [], {
-        ignoreReturnCode: true,
-        env: {
-          ...process.env,
-          ...binPath && {
-            PATH: `${binPath}:${process.env.PATH}`
-          }
-        }
+        ignoreReturnCode: true
       })
     )
   );
