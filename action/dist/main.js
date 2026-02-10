@@ -61523,7 +61523,7 @@ async function downloadS3Directory(bucketName, s3Prefix, localDir) {
   info(`Downloaded ${objects.length} file(s) to ${localDir}`);
 }
 async function uploadLocalDirectory(localDir, bucketName, s3Prefix) {
-  const files = await glob("**/*", {
+  const files = await glob("**/*.png", {
     cwd: localDir,
     nodir: true,
     absolute: false
@@ -65565,7 +65565,6 @@ var run = async () => {
     return;
   }
   const hash = commitHash || diffId;
-  const screenshotsDirectory = getInput("screenshots-directory");
   const useBaseImages = getBooleanInput("use-base-images") ?? true;
   if (useBaseImages) {
     await downloadBaseImages();
@@ -65576,8 +65575,11 @@ var run = async () => {
   const numVisualTestFailures = visualTestExitCode.filter(
     (code) => code !== 0
   ).length;
+  const screenshotsDirectory = getInput("screenshots-directory");
   const screenshotsPath = path6.join(process.cwd(), screenshotsDirectory);
-  const filesInScreenshotDirectory = sync(`${screenshotsPath}/**`, { absolute: false }) || [];
+  const filesInScreenshotDirectory = await glob(`${screenshotsPath}/**/*.png`, {
+    absolute: false
+  });
   const diffFilePaths = filesInScreenshotDirectory.filter(
     (file) => file.endsWith("diff.png")
   );

@@ -9,9 +9,9 @@ mock.module('../src/disable-auto-merge', () => ({
   disableAutoMerge: disableAutoMergeMock
 }));
 
-const globSyncMock = mock();
+const globMock = mock();
 mock.module('glob', () => ({
-  sync: globSyncMock
+  glob: globMock
 }));
 
 const getInputMock = mock();
@@ -159,6 +159,8 @@ describe('main', () => {
     unlinkSyncMock.mockReturnValue(undefined);
     rmMock.mockResolvedValue(undefined);
 
+    globMock.mockResolvedValue([]);
+
     s3OperationCalls = [];
   });
 
@@ -211,7 +213,7 @@ describe('main', () => {
     };
     getInputMock.mockImplementation(name => extendedInputMap[name]);
     execMock.mockResolvedValue(0);
-    globSyncMock.mockReturnValue(['path/to/screenshots/base.png']);
+    globMock.mockResolvedValue(['path/to/screenshots/base.png']);
     await runAction();
     expect(setFailedMock).not.toHaveBeenCalled();
     expect(createCommitStatusMock).toHaveBeenCalledWith({
@@ -233,7 +235,7 @@ describe('main', () => {
 
   it('should pass if visual tests pass and no diffs or new images', async () => {
     execMock.mockResolvedValue(0);
-    globSyncMock.mockReturnValue(['path/to/screenshots/base.png']);
+    globMock.mockResolvedValue(['path/to/screenshots/base.png']);
     await runAction();
     expect(setFailedMock).not.toHaveBeenCalled();
     expect(createCommitStatusMock).toHaveBeenCalledWith({
@@ -249,7 +251,7 @@ describe('main', () => {
   it('should pass if visual tests pass and no diffs or new images with diff-id input', async () => {
     getInputMock.mockImplementation(name => diffIdInputMap[name]);
     execMock.mockResolvedValue(0);
-    globSyncMock.mockReturnValue(['path/to/screenshots/base.png']);
+    globMock.mockResolvedValue(['path/to/screenshots/base.png']);
     await runAction();
     expect(setFailedMock).not.toHaveBeenCalled();
     assertNoOctokitCalls();
@@ -257,7 +259,7 @@ describe('main', () => {
 
   it('should fail if visual tests pass and some diff images were created', async () => {
     execMock.mockResolvedValue(1);
-    globSyncMock.mockReturnValue([
+    globMock.mockResolvedValue([
       'path/to/screenshots/base.png',
       'path/to/screenshots/diff.png',
       'path/to/screenshots/new.png',
@@ -287,7 +289,7 @@ describe('main', () => {
   it('should fail if visual tests pass and some diff images were created', async () => {
     getInputMock.mockImplementation(name => diffIdInputMap[name]);
     execMock.mockResolvedValue(1);
-    globSyncMock.mockReturnValue([
+    globMock.mockResolvedValue([
       'path/to/screenshots/base.png',
       'path/to/screenshots/diff.png',
       'path/to/screenshots/new.png',
@@ -312,7 +314,7 @@ describe('main', () => {
       name => multiLineInputMapMultipleCommands[name]
     );
     execMock.mockResolvedValue(1);
-    globSyncMock.mockReturnValue([
+    globMock.mockResolvedValue([
       'path/to/screenshots/base.png',
       'path/to/screenshots/diff.png',
       'path/to/screenshots/new.png'
@@ -338,7 +340,7 @@ describe('main', () => {
       name => multiLineInputMapMultipleCommands[name]
     );
     execMock.mockResolvedValue(1);
-    globSyncMock.mockReturnValue([
+    globMock.mockResolvedValue([
       'path/to/screenshots/base.png',
       'path/to/screenshots/diff.png',
       'path/to/screenshots/new.png'
@@ -350,7 +352,7 @@ describe('main', () => {
 
   it('should pass if visual tests initially fail but pass on retry', async () => {
     execMock.mockResolvedValue(0);
-    globSyncMock.mockReturnValue(['path/to/screenshots/diff.png']);
+    globMock.mockResolvedValue(['path/to/screenshots/diff.png']);
     await runAction();
     expect(setFailedMock).not.toHaveBeenCalled();
     expect(unlinkSyncMock).toHaveBeenCalledWith('path/to/screenshots/diff.png');
@@ -367,7 +369,7 @@ describe('main', () => {
   it('should pass if visual tests initially fail but pass on retry with diff-id input', async () => {
     getInputMock.mockImplementation(name => diffIdInputMap[name]);
     execMock.mockResolvedValue(0);
-    globSyncMock.mockReturnValue(['path/to/screenshots/diff.png']);
+    globMock.mockResolvedValue(['path/to/screenshots/diff.png']);
     await runAction();
     expect(setFailedMock).not.toHaveBeenCalled();
     expect(unlinkSyncMock).toHaveBeenCalledWith('path/to/screenshots/diff.png');
@@ -376,7 +378,7 @@ describe('main', () => {
 
   it('should pass and upload base images if visual tests pass and only new images were created', async () => {
     execMock.mockResolvedValue(0);
-    globSyncMock.mockReturnValue([
+    globMock.mockResolvedValue([
       'path/to/screenshots/existingTest/base.png',
       'path/to/screenshots/newTest1/new.png',
       'path/to/screenshots/newTest2/new.png'
@@ -401,7 +403,7 @@ describe('main', () => {
   it('should pass and upload base images if visual tests pass and only new images were created  with diff-id input', async () => {
     getInputMock.mockImplementation(name => diffIdInputMap[name]);
     execMock.mockResolvedValue(0);
-    globSyncMock.mockReturnValue([
+    globMock.mockResolvedValue([
       'path/to/screenshots/existingTest/base.png',
       'path/to/screenshots/newTest1/new.png',
       'path/to/screenshots/newTest2/new.png'
@@ -422,7 +424,7 @@ describe('main', () => {
       'package-paths': 'path/1,path/2'
     };
     getInputMock.mockImplementation(name => extendedInputMap[name]);
-    globSyncMock.mockReturnValue([
+    globMock.mockResolvedValue([
       'path/to/screenshots/base.png',
       'path/to/screenshots/diff.png',
       'path/to/screenshots/new.png'
@@ -439,7 +441,7 @@ describe('main', () => {
       'package-paths': 'path/1,path/2'
     };
     getInputMock.mockImplementation(name => extendedInputMap[name]);
-    globSyncMock.mockReturnValue([
+    globMock.mockResolvedValue([
       'path/to/screenshots/base.png',
       'path/to/screenshots/diff.png',
       'path/to/screenshots/new.png'
@@ -455,7 +457,7 @@ describe('main', () => {
     execMock.mockResolvedValue(0);
     getInputMock.mockImplementation(name => inputMap[name]);
     getBooleanInputMock.mockImplementation(() => downloadBaseImages);
-    globSyncMock.mockReturnValue([
+    globMock.mockResolvedValue([
       'path/to/screenshots/base.png',
       'path/to/screenshots/diff.png',
       'path/to/screenshots/new.png'
@@ -469,7 +471,7 @@ describe('main', () => {
     execMock.mockResolvedValue(0);
     getInputMock.mockImplementation(name => inputMap[name]);
     getBooleanInputMock.mockImplementation(() => downloadBaseImages);
-    globSyncMock.mockReturnValue([
+    globMock.mockResolvedValue([
       'path/to/screenshots/base.png',
       'path/to/screenshots/diff.png',
       'path/to/screenshots/new.png'
@@ -496,7 +498,7 @@ describe('main', () => {
       'package-paths': 'path/1,path/2'
     };
     getInputMock.mockImplementation(name => extendedInputMap[name]);
-    globSyncMock.mockReturnValue([
+    globMock.mockResolvedValue([
       'path/to/screenshots/base.png',
       'path/to/screenshots/diff.png',
       'path/to/screenshots/new.png'
@@ -508,7 +510,7 @@ describe('main', () => {
 
   it('should not set successful commit status or create comment if the latest Visual Regression status is failure', async () => {
     execMock.mockResolvedValue(0);
-    globSyncMock.mockReturnValue(['path/to/screenshots/base.png']);
+    globMock.mockResolvedValue(['path/to/screenshots/base.png']);
     listCommitStatusesForRefMock.mockImplementationOnce(() => ({
       data: [
         {
@@ -536,7 +538,7 @@ describe('main', () => {
 
   it('should not set successful commit status if the latest Visual Regression status has been set', async () => {
     execMock.mockResolvedValue(0);
-    globSyncMock.mockReturnValue(['path/to/screenshots/base.png']);
+    globMock.mockResolvedValue(['path/to/screenshots/base.png']);
     listCommitStatusesForRefMock.mockImplementationOnce(() => ({
       data: [
         {
@@ -562,7 +564,7 @@ describe('main', () => {
 
   it('should not set commit status or create comment if the latest Visual Regression status is failure because tests failed to execute successfully', async () => {
     execMock.mockResolvedValue(1);
-    globSyncMock.mockReturnValue([
+    globMock.mockResolvedValue([
       'path/to/screenshots/base.png',
       'path/to/screenshots/diff.png',
       'path/to/screenshots/new.png'
@@ -596,7 +598,7 @@ describe('main', () => {
   it('should set successful commit status (and disable auto merge) if a visual test failed to execute but this is a re-run', async () => {
     githubContext.runAttempt = 2;
     execMock.mockResolvedValue(0);
-    globSyncMock.mockReturnValue(['path/to/screenshots/base.png']);
+    globMock.mockResolvedValue(['path/to/screenshots/base.png']);
     listCommitStatusesForRefMock.mockImplementationOnce(() => ({
       data: [
         {
@@ -625,7 +627,7 @@ describe('main', () => {
   it('should set failure commit status (and not disable auto merge) if a visual test failed to execute but this is a re-run', async () => {
     githubContext.runAttempt = 2;
     execMock.mockResolvedValue(1);
-    globSyncMock.mockReturnValue([
+    globMock.mockResolvedValue([
       'path/to/screenshots/base.png',
       'path/to/screenshots/diff.png',
       'path/to/screenshots/new.png'
