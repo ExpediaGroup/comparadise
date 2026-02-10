@@ -65588,7 +65588,7 @@ var run = async () => {
   ).length;
   const screenshotsDirectory = getInput("screenshots-directory");
   const screenshotsPath = path6.join(process.cwd(), screenshotsDirectory);
-  const filesInScreenshotDirectory = sync(`${screenshotsPath}/**/*.png`, { absolute: false }) || [];
+  const filesInScreenshotDirectory = sync(`${screenshotsPath}/**/*.png`, { absolute: false });
   const diffFilePaths = filesInScreenshotDirectory.filter(
     (file) => file.endsWith("diff.png")
   );

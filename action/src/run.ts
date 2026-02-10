@@ -15,7 +15,7 @@ import { exec } from '@actions/exec';
 import { octokit } from './octokit';
 import { context } from '@actions/github';
 import * as path from 'path';
-import { sync } from 'glob';
+import { sync as globSync } from 'glob';
 import { unlinkSync } from 'fs';
 import { createGithubComment } from './comment';
 import { getLatestVisualRegressionStatus } from './get-latest-visual-regression-status';
@@ -65,8 +65,9 @@ export const run = async () => {
 
   const screenshotsDirectory = getInput('screenshots-directory');
   const screenshotsPath = path.join(process.cwd(), screenshotsDirectory);
-  const filesInScreenshotDirectory =
-    sync(`${screenshotsPath}/**/*.png`, { absolute: false }) || [];
+  const filesInScreenshotDirectory = globSync(`${screenshotsPath}/**/*.png`, {
+    absolute: false
+  });
   const diffFilePaths = filesInScreenshotDirectory.filter(file =>
     file.endsWith('diff.png')
   );
