@@ -61495,22 +61495,23 @@ async function checkS3PrefixExists(bucketName, prefix) {
   }
 }
 async function downloadS3Directory(bucketName, s3Prefix, localDir) {
-  info(`Downloading screenshots from s3://${bucketName}/${s3Prefix}`);
+  info(`Downloading base images from s3://${bucketName}/${s3Prefix}`);
   const command = new ListObjectsV2Command({
     Bucket: bucketName,
     Prefix: s3Prefix
   });
   const response = await s3Client.send(command);
-  const objects = response.Contents ?? [];
-  info(`Found ${objects.length} file(s) to download`);
-  await (0, import_bluebird.map)(objects, async (object) => {
-    if (!object.Key) return;
-    const relativePath = object.Key.substring(s3Prefix.length);
+  const allObjects = response.Contents ?? [];
+  const baseObjects = allObjects.filter((obj2) => obj2.Key?.endsWith("base.png"));
+  info(`Found ${baseObjects.length} base image(s) to download`);
+  await (0, import_bluebird.map)(baseObjects, async ({ Key }) => {
+    if (!Key) return;
+    const relativePath = Key.substring(s3Prefix.length);
     const localFilePath = path5.join(localDir, relativePath);
     await import_fs5.promises.mkdir(path5.dirname(localFilePath), { recursive: true });
     const getCommand = new GetObjectCommand({
       Bucket: bucketName,
-      Key: object.Key
+      Key
     });
     const { Body } = await s3Client.send(getCommand);
     if (Body instanceof import_stream10.Readable) {
@@ -61520,10 +61521,10 @@ async function downloadS3Directory(bucketName, s3Prefix, localDir) {
       });
     }
   });
-  info(`Downloaded ${objects.length} file(s) to ${localDir}`);
+  info(`Downloaded ${baseObjects.length} base image(s) to ${localDir}`);
 }
 async function uploadLocalDirectory(localDir, bucketName, s3Prefix) {
-  const files = await glob("**/*.png", {
+  const files = await glob("**/{base,diff,new}.png", {
     cwd: localDir,
     nodir: true,
     absolute: false
@@ -65577,9 +65578,12 @@ var run = async () => {
   ).length;
   const screenshotsDirectory = getInput("screenshots-directory");
   const screenshotsPath = path6.join(process.cwd(), screenshotsDirectory);
-  const filesInScreenshotDirectory = await glob(`${screenshotsPath}/**/*.png`, {
-    absolute: false
-  });
+  const filesInScreenshotDirectory = await glob(
+    `${screenshotsPath}/**/{base,diff,new}.png`,
+    {
+      absolute: false
+    }
+  );
   const diffFilePaths = filesInScreenshotDirectory.filter(
     (file) => file.endsWith("diff.png")
   );

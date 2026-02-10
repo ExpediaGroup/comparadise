@@ -54,9 +54,12 @@ export const run = async () => {
 
   const screenshotsDirectory = getInput('screenshots-directory');
   const screenshotsPath = path.join(process.cwd(), screenshotsDirectory);
-  const filesInScreenshotDirectory = await glob(`${screenshotsPath}/**/*.png`, {
-    absolute: false
-  });
+  const filesInScreenshotDirectory = await glob(
+    `${screenshotsPath}/**/{base,diff,new}.png`,
+    {
+      absolute: false
+    }
+  );
   const diffFilePaths = filesInScreenshotDirectory.filter(file =>
     file.endsWith('diff.png')
   );

@@ -9,7 +9,9 @@ const post = async () => {
   const screenshotsDirectory = getInput('screenshots-directory');
 
   try {
-    const pngFiles = await glob(`${screenshotsDirectory}/**/*.png`);
+    const pngFiles = await glob(
+      `${screenshotsDirectory}/**/{base,diff,new}.png`
+    );
     await map(pngFiles, file => rm(file, { force: true }));
 
     info(`Removed ${pngFiles.length} PNG file(s) from ${screenshotsDirectory}`);

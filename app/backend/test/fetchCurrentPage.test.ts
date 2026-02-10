@@ -11,7 +11,9 @@ const listObjectsV2Mock = mock(() => ({
     { Key: `${pathPrefix}/SMALL/srpPage/base.png` },
     { Key: `${pathPrefix}/SMALL/srpPage/diff.png` },
     { Key: `${pathPrefix}/SMALL/srpPage/new.png` },
-    { Key: `${pathPrefix}/EXTRA_LARGE/pdpPage/new.png }` }
+    { Key: `${pathPrefix}/EXTRA_LARGE/pdpPage/new.png }` },
+    { Key: `${pathPrefix}/LARGE/invalidPage/invalid.png` },
+    { Key: `${pathPrefix}/LARGE/invalidPage/new.png` }
   ]
 }));
 mock.module('../src/s3Client', () => ({
@@ -61,7 +63,7 @@ describe('fetchCurrentPage', () => {
           url: 'url'
         }
       ],
-      nextPage: undefined
+      nextPage: 3
     });
   });
 
@@ -72,6 +74,16 @@ describe('fetchCurrentPage', () => {
         bucket: 'bucket',
         page: 12
       })
-    ).rejects.toThrow('Page 12 does not exist. Only 2 pages were found.');
+    ).rejects.toThrow('Page 12 does not exist. Only 3 pages were found.');
+  });
+
+  it('should throw when a key does not conform to fileNameSchema', async () => {
+    expect(
+      fetchCurrentPage({
+        hash: 'hash',
+        bucket: 'bucket',
+        page: 3
+      })
+    ).rejects.toThrow('Invalid file name');
   });
 });

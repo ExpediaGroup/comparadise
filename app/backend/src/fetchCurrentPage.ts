@@ -18,21 +18,22 @@ export const fetchCurrentPage = async ({
     });
   }
   const { keys, title } = currentPage;
-  const images = (
-    await Promise.all(
-      keys.map(async key => {
-        const result = fileNameSchema.safeParse(parse(key).name);
-        if (!result.success) {
-          return;
-        }
+  const images = await Promise.all(
+    keys.map(async key => {
+      const result = fileNameSchema.safeParse(parse(key).name);
+      if (!result.success) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: `Invalid file name: ${key}. ${result.error.message}`
+        });
+      }
 
-        return {
-          name: result.data,
-          url: await getTemporaryObjectUrl(key, bucket)
-        };
-      })
-    )
-  ).filter(Boolean);
+      return {
+        name: result.data,
+        url: await getTemporaryObjectUrl(key, bucket)
+      };
+    })
+  );
   const nextPage = page < paginatedKeys.length ? page + 1 : undefined;
   return {
     title,
