@@ -25,7 +25,6 @@ import {
 } from 'shared';
 import { buildComparadiseUrl } from './build-comparadise-url';
 import { disableAutoMerge } from './disable-auto-merge';
-import { getFilteredPath } from './get-filtered-path';
 
 export const run = async () => {
   const visualTestCommands = getMultilineInput('visual-test-command', {
@@ -42,20 +41,22 @@ export const run = async () => {
   const hash = commitHash || diffId;
 
   const screenshotsDirectory = getInput('screenshots-directory');
+  const binPath = getInput('bin-path');
 
   const useBaseImages = getBooleanInput('use-base-images') ?? true;
   if (useBaseImages) {
     await downloadBaseImages();
   }
 
-  const filteredPath = getFilteredPath();
   const visualTestExitCode = await Promise.all(
     visualTestCommands.map(cmd =>
       exec(cmd, [], {
         ignoreReturnCode: true,
         env: {
           ...process.env,
-          PATH: filteredPath
+          ...(binPath && {
+            PATH: `${binPath}:${process.env.PATH}`
+          })
         }
       })
     )
