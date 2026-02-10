@@ -65570,11 +65570,7 @@ var run = async () => {
     await downloadBaseImages();
   }
   const visualTestExitCode = await Promise.all(
-    visualTestCommands.map(
-      (cmd) => exec(cmd, [], {
-        ignoreReturnCode: true
-      })
-    )
+    visualTestCommands.map((cmd) => exec(cmd, [], { ignoreReturnCode: true }))
   );
   const numVisualTestFailures = visualTestExitCode.filter(
     (code) => code !== 0
