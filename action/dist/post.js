@@ -65,44 +65,44 @@ var require_tunnel = __commonJS({
       return agent;
     }
     function TunnelingAgent(options) {
-      var self = this;
-      self.options = options || {};
-      self.proxyOptions = self.options.proxy || {};
-      self.maxSockets = self.options.maxSockets || http.Agent.defaultMaxSockets;
-      self.requests = [];
-      self.sockets = [];
-      self.on("free", function onFree(socket, host, port, localAddress) {
+      var self2 = this;
+      self2.options = options || {};
+      self2.proxyOptions = self2.options.proxy || {};
+      self2.maxSockets = self2.options.maxSockets || http.Agent.defaultMaxSockets;
+      self2.requests = [];
+      self2.sockets = [];
+      self2.on("free", function onFree(socket, host, port, localAddress) {
         var options2 = toOptions(host, port, localAddress);
-        for (var i = 0, len = self.requests.length; i < len; ++i) {
-          var pending = self.requests[i];
+        for (var i = 0, len = self2.requests.length; i < len; ++i) {
+          var pending = self2.requests[i];
           if (pending.host === options2.host && pending.port === options2.port) {
-            self.requests.splice(i, 1);
+            self2.requests.splice(i, 1);
             pending.request.onSocket(socket);
             return;
           }
         }
         socket.destroy();
-        self.removeSocket(socket);
+        self2.removeSocket(socket);
       });
     }
     util.inherits(TunnelingAgent, events.EventEmitter);
     TunnelingAgent.prototype.addRequest = function addRequest(req, host, port, localAddress) {
-      var self = this;
-      var options = mergeOptions({ request: req }, self.options, toOptions(host, port, localAddress));
-      if (self.sockets.length >= this.maxSockets) {
-        self.requests.push(options);
+      var self2 = this;
+      var options = mergeOptions({ request: req }, self2.options, toOptions(host, port, localAddress));
+      if (self2.sockets.length >= this.maxSockets) {
+        self2.requests.push(options);
         return;
       }
-      self.createSocket(options, function(socket) {
+      self2.createSocket(options, function(socket) {
         socket.on("free", onFree);
         socket.on("close", onCloseOrRemove);
         socket.on("agentRemove", onCloseOrRemove);
         req.onSocket(socket);
         function onFree() {
-          self.emit("free", socket, options);
+          self2.emit("free", socket, options);
         }
         function onCloseOrRemove(err) {
-          self.removeSocket(socket);
+          self2.removeSocket(socket);
           socket.removeListener("free", onFree);
           socket.removeListener("close", onCloseOrRemove);
           socket.removeListener("agentRemove", onCloseOrRemove);
@@ -110,10 +110,10 @@ var require_tunnel = __commonJS({
       });
     };
     TunnelingAgent.prototype.createSocket = function createSocket(options, cb) {
-      var self = this;
+      var self2 = this;
       var placeholder = {};
-      self.sockets.push(placeholder);
-      var connectOptions = mergeOptions({}, self.proxyOptions, {
+      self2.sockets.push(placeholder);
+      var connectOptions = mergeOptions({}, self2.proxyOptions, {
         method: "CONNECT",
         path: options.host + ":" + options.port,
         agent: false,
@@ -129,7 +129,7 @@ var require_tunnel = __commonJS({
         connectOptions.headers["Proxy-Authorization"] = "Basic " + new Buffer(connectOptions.proxyAuth).toString("base64");
       }
       debug2("making CONNECT request");
-      var connectReq = self.request(connectOptions);
+      var connectReq = self2.request(connectOptions);
       connectReq.useChunkedEncodingByDefault = false;
       connectReq.once("response", onResponse);
       connectReq.once("upgrade", onUpgrade);
@@ -156,7 +156,7 @@ var require_tunnel = __commonJS({
           var error = new Error("tunneling socket could not be established, statusCode=" + res.statusCode);
           error.code = "ECONNRESET";
           options.request.emit("error", error);
-          self.removeSocket(placeholder);
+          self2.removeSocket(placeholder);
           return;
         }
         if (head.length > 0) {
@@ -165,11 +165,11 @@ var require_tunnel = __commonJS({
           var error = new Error("got illegal response body from proxy");
           error.code = "ECONNRESET";
           options.request.emit("error", error);
-          self.removeSocket(placeholder);
+          self2.removeSocket(placeholder);
           return;
         }
         debug2("tunneling connection has established");
-        self.sockets[self.sockets.indexOf(placeholder)] = socket;
+        self2.sockets[self2.sockets.indexOf(placeholder)] = socket;
         return cb(socket);
       }
       function onError(cause) {
@@ -182,7 +182,7 @@ var require_tunnel = __commonJS({
         var error = new Error("tunneling socket could not be established, cause=" + cause.message);
         error.code = "ECONNRESET";
         options.request.emit("error", error);
-        self.removeSocket(placeholder);
+        self2.removeSocket(placeholder);
       }
     };
     TunnelingAgent.prototype.removeSocket = function removeSocket(socket) {
@@ -199,15 +199,15 @@ var require_tunnel = __commonJS({
       }
     };
     function createSecureSocket(options, cb) {
-      var self = this;
-      TunnelingAgent.prototype.createSocket.call(self, options, function(socket) {
+      var self2 = this;
+      TunnelingAgent.prototype.createSocket.call(self2, options, function(socket) {
         var hostHeader = options.request.getHeader("host");
-        var tlsOptions = mergeOptions({}, self.options, {
+        var tlsOptions = mergeOptions({}, self2.options, {
           socket,
           servername: hostHeader ? hostHeader.replace(/:.*$/, "") : options.host
         });
         var secureSocket = tls.connect(0, tlsOptions);
-        self.sockets[self.sockets.indexOf(socket)] = secureSocket;
+        self2.sockets[self2.sockets.indexOf(socket)] = secureSocket;
         cb(secureSocket);
       });
     }
@@ -941,7 +941,7 @@ var require_util = __commonJS({
     var assert = require("assert");
     var { kDestroyed, kBodyUsed, kListeners, kBody } = require_symbols();
     var { IncomingMessage } = require("http");
-    var stream = require("stream");
+    var stream2 = require("stream");
     var net = require("net");
     var { Blob: Blob2 } = require("buffer");
     var nodeUtil = require("util");
@@ -963,7 +963,7 @@ var require_util = __commonJS({
       }
     };
     function wrapRequestBody(body) {
-      if (isStream(body)) {
+      if (isStream2(body)) {
         if (bodyLength(body) === 0) {
           body.on("data", function() {
             assert(false);
@@ -986,8 +986,8 @@ var require_util = __commonJS({
     }
     function nop() {
     }
-    function isStream(obj) {
-      return obj && typeof obj === "object" && typeof obj.pipe === "function" && typeof obj.on === "function";
+    function isStream2(obj2) {
+      return obj2 && typeof obj2 === "object" && typeof obj2.pipe === "function" && typeof obj2.on === "function";
     }
     function isBlobLike(object) {
       if (object === null) {
@@ -1050,14 +1050,14 @@ var require_util = __commonJS({
         }
         const port = url.port != null ? url.port : url.protocol === "https:" ? 443 : 80;
         let origin = url.origin != null ? url.origin : `${url.protocol || ""}//${url.hostname || ""}:${port}`;
-        let path = url.path != null ? url.path : `${url.pathname || ""}${url.search || ""}`;
+        let path2 = url.path != null ? url.path : `${url.pathname || ""}${url.search || ""}`;
         if (origin[origin.length - 1] === "/") {
           origin = origin.slice(0, origin.length - 1);
         }
-        if (path && path[0] !== "/") {
-          path = `/${path}`;
+        if (path2 && path2[0] !== "/") {
+          path2 = `/${path2}`;
         }
-        return new URL(`${origin}${path}`);
+        return new URL(`${origin}${path2}`);
       }
       if (!isHttpOrHttpsPrefixed(url.origin || url.protocol)) {
         throw new InvalidArgumentError("Invalid URL protocol: the URL must start with `http:` or `https:`.");
@@ -1092,19 +1092,19 @@ var require_util = __commonJS({
       }
       return servername;
     }
-    function deepClone(obj) {
-      return JSON.parse(JSON.stringify(obj));
+    function deepClone(obj2) {
+      return JSON.parse(JSON.stringify(obj2));
     }
-    function isAsyncIterable(obj) {
-      return !!(obj != null && typeof obj[Symbol.asyncIterator] === "function");
+    function isAsyncIterable(obj2) {
+      return !!(obj2 != null && typeof obj2[Symbol.asyncIterator] === "function");
     }
-    function isIterable(obj) {
-      return !!(obj != null && (typeof obj[Symbol.iterator] === "function" || typeof obj[Symbol.asyncIterator] === "function"));
+    function isIterable(obj2) {
+      return !!(obj2 != null && (typeof obj2[Symbol.iterator] === "function" || typeof obj2[Symbol.asyncIterator] === "function"));
     }
     function bodyLength(body) {
       if (body == null) {
         return 0;
-      } else if (isStream(body)) {
+      } else if (isStream2(body)) {
         const state = body._readableState;
         return state && state.objectMode === false && state.ended === true && Number.isFinite(state.length) ? state.length : null;
       } else if (isBlobLike(body)) {
@@ -1115,24 +1115,24 @@ var require_util = __commonJS({
       return null;
     }
     function isDestroyed(body) {
-      return body && !!(body.destroyed || body[kDestroyed] || stream.isDestroyed?.(body));
+      return body && !!(body.destroyed || body[kDestroyed] || stream2.isDestroyed?.(body));
     }
-    function destroy(stream2, err) {
-      if (stream2 == null || !isStream(stream2) || isDestroyed(stream2)) {
+    function destroy(stream3, err) {
+      if (stream3 == null || !isStream2(stream3) || isDestroyed(stream3)) {
         return;
       }
-      if (typeof stream2.destroy === "function") {
-        if (Object.getPrototypeOf(stream2).constructor === IncomingMessage) {
-          stream2.socket = null;
+      if (typeof stream3.destroy === "function") {
+        if (Object.getPrototypeOf(stream3).constructor === IncomingMessage) {
+          stream3.socket = null;
         }
-        stream2.destroy(err);
+        stream3.destroy(err);
       } else if (err) {
         queueMicrotask(() => {
-          stream2.emit("error", err);
+          stream3.emit("error", err);
         });
       }
-      if (stream2.destroyed !== true) {
-        stream2[kDestroyed] = true;
+      if (stream3.destroyed !== true) {
+        stream3[kDestroyed] = true;
       }
     }
     var KEEPALIVE_TIMEOUT_EXPR = /timeout=(\d+)/;
@@ -1146,34 +1146,34 @@ var require_util = __commonJS({
     function bufferToLowerCasedHeaderName(value) {
       return tree.lookup(value) ?? value.toString("latin1").toLowerCase();
     }
-    function parseHeaders(headers, obj) {
-      if (obj === void 0) obj = {};
+    function parseHeaders(headers, obj2) {
+      if (obj2 === void 0) obj2 = {};
       for (let i = 0; i < headers.length; i += 2) {
         const key = headerNameToString(headers[i]);
-        let val = obj[key];
+        let val = obj2[key];
         if (val) {
           if (typeof val === "string") {
             val = [val];
-            obj[key] = val;
+            obj2[key] = val;
           }
           val.push(headers[i + 1].toString("utf8"));
         } else {
           const headersValue = headers[i + 1];
           if (typeof headersValue === "string") {
-            obj[key] = headersValue;
+            obj2[key] = headersValue;
           } else {
-            obj[key] = Array.isArray(headersValue) ? headersValue.map((x) => x.toString("utf8")) : headersValue.toString("utf8");
+            obj2[key] = Array.isArray(headersValue) ? headersValue.map((x) => x.toString("utf8")) : headersValue.toString("utf8");
           }
         }
       }
-      if ("content-length" in obj && "content-disposition" in obj) {
-        obj["content-disposition"] = Buffer.from(obj["content-disposition"]).toString("latin1");
+      if ("content-length" in obj2 && "content-disposition" in obj2) {
+        obj2["content-disposition"] = Buffer.from(obj2["content-disposition"]).toString("latin1");
       }
-      return obj;
+      return obj2;
     }
     function parseRawHeaders(headers) {
       const len = headers.length;
-      const ret = new Array(len);
+      const ret2 = new Array(len);
       let hasContentLength = false;
       let contentDispositionIdx = -1;
       let key;
@@ -1190,13 +1190,13 @@ var require_util = __commonJS({
         } else if (kLen === 19 && key[7] === "-" && (key === "content-disposition" || key.toLowerCase() === "content-disposition")) {
           contentDispositionIdx = n + 1;
         }
-        ret[n] = key;
-        ret[n + 1] = val;
+        ret2[n] = key;
+        ret2[n + 1] = val;
       }
       if (hasContentLength && contentDispositionIdx !== -1) {
-        ret[contentDispositionIdx] = Buffer.from(ret[contentDispositionIdx]).toString("latin1");
+        ret2[contentDispositionIdx] = Buffer.from(ret2[contentDispositionIdx]).toString("latin1");
       }
-      return ret;
+      return ret2;
     }
     function isBuffer(buffer) {
       return buffer instanceof Uint8Array || Buffer.isBuffer(buffer);
@@ -1231,13 +1231,13 @@ var require_util = __commonJS({
       }
     }
     function isDisturbed(body) {
-      return !!(body && (stream.isDisturbed(body) || body[kBodyUsed]));
+      return !!(body && (stream2.isDisturbed(body) || body[kBodyUsed]));
     }
     function isErrored(body) {
-      return !!(body && stream.isErrored(body));
+      return !!(body && stream2.isErrored(body));
     }
-    function isReadable(body) {
-      return !!(body && stream.isReadable(body));
+    function isReadable2(body) {
+      return !!(body && stream2.isReadable(body));
     }
     function getSocketInfo(socket) {
       return {
@@ -1338,26 +1338,26 @@ var require_util = __commonJS({
     function isValidHeaderValue(characters) {
       return !headerCharRegex.test(characters);
     }
-    function parseRangeHeader(range) {
-      if (range == null || range === "") return { start: 0, end: null, size: null };
-      const m = range ? range.match(/^bytes (\d+)-(\d+)\/(\d+)?$/) : null;
+    function parseRangeHeader(range2) {
+      if (range2 == null || range2 === "") return { start: 0, end: null, size: null };
+      const m = range2 ? range2.match(/^bytes (\d+)-(\d+)\/(\d+)?$/) : null;
       return m ? {
         start: parseInt(m[1]),
         end: m[2] ? parseInt(m[2]) : null,
         size: m[3] ? parseInt(m[3]) : null
       } : null;
     }
-    function addListener(obj, name, listener) {
-      const listeners = obj[kListeners] ??= [];
+    function addListener(obj2, name, listener) {
+      const listeners = obj2[kListeners] ??= [];
       listeners.push([name, listener]);
-      obj.on(name, listener);
-      return obj;
+      obj2.on(name, listener);
+      return obj2;
     }
-    function removeAllListeners(obj) {
-      for (const [name, listener] of obj[kListeners] ?? []) {
-        obj.removeListener(name, listener);
+    function removeAllListeners(obj2) {
+      for (const [name, listener] of obj2[kListeners] ?? []) {
+        obj2.removeListener(name, listener);
       }
-      obj[kListeners] = null;
+      obj2[kListeners] = null;
     }
     function errorRequest(client, request, err) {
       try {
@@ -1395,14 +1395,14 @@ var require_util = __commonJS({
       nop,
       isDisturbed,
       isErrored,
-      isReadable,
+      isReadable: isReadable2,
       toUSVString,
       isUSVString,
       isBlobLike,
       parseOrigin,
       parseURL,
       getServerName,
-      isStream,
+      isStream: isStream2,
       isIterable,
       isAsyncIterable,
       isDestroyed,
@@ -1508,39 +1508,39 @@ var require_diagnostics = __commonJS({
       });
       diagnosticsChannel.channel("undici:client:sendHeaders").subscribe((evt) => {
         const {
-          request: { method, path, origin }
+          request: { method, path: path2, origin }
         } = evt;
-        debuglog("sending request to %s %s/%s", method, origin, path);
+        debuglog("sending request to %s %s/%s", method, origin, path2);
       });
       diagnosticsChannel.channel("undici:request:headers").subscribe((evt) => {
         const {
-          request: { method, path, origin },
+          request: { method, path: path2, origin },
           response: { statusCode }
         } = evt;
         debuglog(
           "received response to %s %s/%s - HTTP %d",
           method,
           origin,
-          path,
+          path2,
           statusCode
         );
       });
       diagnosticsChannel.channel("undici:request:trailers").subscribe((evt) => {
         const {
-          request: { method, path, origin }
+          request: { method, path: path2, origin }
         } = evt;
-        debuglog("trailers received from %s %s/%s", method, origin, path);
+        debuglog("trailers received from %s %s/%s", method, origin, path2);
       });
       diagnosticsChannel.channel("undici:request:error").subscribe((evt) => {
         const {
-          request: { method, path, origin },
+          request: { method, path: path2, origin },
           error
         } = evt;
         debuglog(
           "request to %s %s/%s errored - %s",
           method,
           origin,
-          path,
+          path2,
           error.message
         );
       });
@@ -1589,9 +1589,9 @@ var require_diagnostics = __commonJS({
         });
         diagnosticsChannel.channel("undici:client:sendHeaders").subscribe((evt) => {
           const {
-            request: { method, path, origin }
+            request: { method, path: path2, origin }
           } = evt;
-          debuglog("sending request to %s %s/%s", method, origin, path);
+          debuglog("sending request to %s %s/%s", method, origin, path2);
         });
       }
       diagnosticsChannel.channel("undici:websocket:open").subscribe((evt) => {
@@ -1637,7 +1637,7 @@ var require_request = __commonJS({
     var {
       isValidHTTPToken,
       isValidHeaderValue,
-      isStream,
+      isStream: isStream2,
       destroy,
       isBuffer,
       isFormDataLike,
@@ -1654,7 +1654,7 @@ var require_request = __commonJS({
     var kHandler = /* @__PURE__ */ Symbol("handler");
     var Request = class {
       constructor(origin, {
-        path,
+        path: path2,
         method,
         body,
         headers,
@@ -1669,11 +1669,11 @@ var require_request = __commonJS({
         expectContinue,
         servername
       }, handler) {
-        if (typeof path !== "string") {
+        if (typeof path2 !== "string") {
           throw new InvalidArgumentError("path must be a string");
-        } else if (path[0] !== "/" && !(path.startsWith("http://") || path.startsWith("https://")) && method !== "CONNECT") {
+        } else if (path2[0] !== "/" && !(path2.startsWith("http://") || path2.startsWith("https://")) && method !== "CONNECT") {
           throw new InvalidArgumentError("path must be an absolute URL or start with a slash");
-        } else if (invalidPathRegex.test(path)) {
+        } else if (invalidPathRegex.test(path2)) {
           throw new InvalidArgumentError("invalid request path");
         }
         if (typeof method !== "string") {
@@ -1703,7 +1703,7 @@ var require_request = __commonJS({
         this.abort = null;
         if (body == null) {
           this.body = null;
-        } else if (isStream(body)) {
+        } else if (isStream2(body)) {
           this.body = body;
           const rState = this.body._readableState;
           if (!rState || !rState.autoDestroy) {
@@ -1736,7 +1736,7 @@ var require_request = __commonJS({
         this.completed = false;
         this.aborted = false;
         this.upgrade = upgrade || null;
-        this.path = query ? buildURL(path, query) : path;
+        this.path = query ? buildURL(path2, query) : path2;
         this.origin = origin;
         this.idempotent = idempotent == null ? method === "HEAD" || method === "GET" : idempotent;
         this.blocking = blocking == null ? false : blocking;
@@ -1953,8 +1953,8 @@ var require_request = __commonJS({
 var require_dispatcher = __commonJS({
   "../node_modules/undici/lib/dispatcher/dispatcher.js"(exports2, module2) {
     "use strict";
-    var EventEmitter = require("events");
-    var Dispatcher = class extends EventEmitter {
+    var EventEmitter2 = require("events");
+    var Dispatcher = class extends EventEmitter2 {
       dispatch() {
         throw new Error("not implemented");
       }
@@ -2582,10 +2582,10 @@ var require_utils = __commonJS({
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.enumToMap = void 0;
-    function enumToMap(obj) {
+    function enumToMap(obj2) {
       const res = {};
-      Object.keys(obj).forEach((key) => {
-        const value = obj[key];
+      Object.keys(obj2).forEach((key) => {
+        const value = obj2[key];
         if (typeof value === "number") {
           res[key] = value;
         }
@@ -2603,34 +2603,34 @@ var require_constants2 = __commonJS({
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.SPECIAL_HEADERS = exports2.HEADER_STATE = exports2.MINOR = exports2.MAJOR = exports2.CONNECTION_TOKEN_CHARS = exports2.HEADER_CHARS = exports2.TOKEN = exports2.STRICT_TOKEN = exports2.HEX = exports2.URL_CHAR = exports2.STRICT_URL_CHAR = exports2.USERINFO_CHARS = exports2.MARK = exports2.ALPHANUM = exports2.NUM = exports2.HEX_MAP = exports2.NUM_MAP = exports2.ALPHA = exports2.FINISH = exports2.H_METHOD_MAP = exports2.METHOD_MAP = exports2.METHODS_RTSP = exports2.METHODS_ICE = exports2.METHODS_HTTP = exports2.METHODS = exports2.LENIENT_FLAGS = exports2.FLAGS = exports2.TYPE = exports2.ERROR = void 0;
     var utils_1 = require_utils();
-    var ERROR;
-    (function(ERROR2) {
-      ERROR2[ERROR2["OK"] = 0] = "OK";
-      ERROR2[ERROR2["INTERNAL"] = 1] = "INTERNAL";
-      ERROR2[ERROR2["STRICT"] = 2] = "STRICT";
-      ERROR2[ERROR2["LF_EXPECTED"] = 3] = "LF_EXPECTED";
-      ERROR2[ERROR2["UNEXPECTED_CONTENT_LENGTH"] = 4] = "UNEXPECTED_CONTENT_LENGTH";
-      ERROR2[ERROR2["CLOSED_CONNECTION"] = 5] = "CLOSED_CONNECTION";
-      ERROR2[ERROR2["INVALID_METHOD"] = 6] = "INVALID_METHOD";
-      ERROR2[ERROR2["INVALID_URL"] = 7] = "INVALID_URL";
-      ERROR2[ERROR2["INVALID_CONSTANT"] = 8] = "INVALID_CONSTANT";
-      ERROR2[ERROR2["INVALID_VERSION"] = 9] = "INVALID_VERSION";
-      ERROR2[ERROR2["INVALID_HEADER_TOKEN"] = 10] = "INVALID_HEADER_TOKEN";
-      ERROR2[ERROR2["INVALID_CONTENT_LENGTH"] = 11] = "INVALID_CONTENT_LENGTH";
-      ERROR2[ERROR2["INVALID_CHUNK_SIZE"] = 12] = "INVALID_CHUNK_SIZE";
-      ERROR2[ERROR2["INVALID_STATUS"] = 13] = "INVALID_STATUS";
-      ERROR2[ERROR2["INVALID_EOF_STATE"] = 14] = "INVALID_EOF_STATE";
-      ERROR2[ERROR2["INVALID_TRANSFER_ENCODING"] = 15] = "INVALID_TRANSFER_ENCODING";
-      ERROR2[ERROR2["CB_MESSAGE_BEGIN"] = 16] = "CB_MESSAGE_BEGIN";
-      ERROR2[ERROR2["CB_HEADERS_COMPLETE"] = 17] = "CB_HEADERS_COMPLETE";
-      ERROR2[ERROR2["CB_MESSAGE_COMPLETE"] = 18] = "CB_MESSAGE_COMPLETE";
-      ERROR2[ERROR2["CB_CHUNK_HEADER"] = 19] = "CB_CHUNK_HEADER";
-      ERROR2[ERROR2["CB_CHUNK_COMPLETE"] = 20] = "CB_CHUNK_COMPLETE";
-      ERROR2[ERROR2["PAUSED"] = 21] = "PAUSED";
-      ERROR2[ERROR2["PAUSED_UPGRADE"] = 22] = "PAUSED_UPGRADE";
-      ERROR2[ERROR2["PAUSED_H2_UPGRADE"] = 23] = "PAUSED_H2_UPGRADE";
-      ERROR2[ERROR2["USER"] = 24] = "USER";
-    })(ERROR = exports2.ERROR || (exports2.ERROR = {}));
+    var ERROR2;
+    (function(ERROR3) {
+      ERROR3[ERROR3["OK"] = 0] = "OK";
+      ERROR3[ERROR3["INTERNAL"] = 1] = "INTERNAL";
+      ERROR3[ERROR3["STRICT"] = 2] = "STRICT";
+      ERROR3[ERROR3["LF_EXPECTED"] = 3] = "LF_EXPECTED";
+      ERROR3[ERROR3["UNEXPECTED_CONTENT_LENGTH"] = 4] = "UNEXPECTED_CONTENT_LENGTH";
+      ERROR3[ERROR3["CLOSED_CONNECTION"] = 5] = "CLOSED_CONNECTION";
+      ERROR3[ERROR3["INVALID_METHOD"] = 6] = "INVALID_METHOD";
+      ERROR3[ERROR3["INVALID_URL"] = 7] = "INVALID_URL";
+      ERROR3[ERROR3["INVALID_CONSTANT"] = 8] = "INVALID_CONSTANT";
+      ERROR3[ERROR3["INVALID_VERSION"] = 9] = "INVALID_VERSION";
+      ERROR3[ERROR3["INVALID_HEADER_TOKEN"] = 10] = "INVALID_HEADER_TOKEN";
+      ERROR3[ERROR3["INVALID_CONTENT_LENGTH"] = 11] = "INVALID_CONTENT_LENGTH";
+      ERROR3[ERROR3["INVALID_CHUNK_SIZE"] = 12] = "INVALID_CHUNK_SIZE";
+      ERROR3[ERROR3["INVALID_STATUS"] = 13] = "INVALID_STATUS";
+      ERROR3[ERROR3["INVALID_EOF_STATE"] = 14] = "INVALID_EOF_STATE";
+      ERROR3[ERROR3["INVALID_TRANSFER_ENCODING"] = 15] = "INVALID_TRANSFER_ENCODING";
+      ERROR3[ERROR3["CB_MESSAGE_BEGIN"] = 16] = "CB_MESSAGE_BEGIN";
+      ERROR3[ERROR3["CB_HEADERS_COMPLETE"] = 17] = "CB_HEADERS_COMPLETE";
+      ERROR3[ERROR3["CB_MESSAGE_COMPLETE"] = 18] = "CB_MESSAGE_COMPLETE";
+      ERROR3[ERROR3["CB_CHUNK_HEADER"] = 19] = "CB_CHUNK_HEADER";
+      ERROR3[ERROR3["CB_CHUNK_COMPLETE"] = 20] = "CB_CHUNK_COMPLETE";
+      ERROR3[ERROR3["PAUSED"] = 21] = "PAUSED";
+      ERROR3[ERROR3["PAUSED_UPGRADE"] = 22] = "PAUSED_UPGRADE";
+      ERROR3[ERROR3["PAUSED_H2_UPGRADE"] = 23] = "PAUSED_H2_UPGRADE";
+      ERROR3[ERROR3["USER"] = 24] = "USER";
+    })(ERROR2 = exports2.ERROR || (exports2.ERROR = {}));
     var TYPE;
     (function(TYPE2) {
       TYPE2[TYPE2["BOTH"] = 0] = "BOTH";
@@ -3545,7 +3545,7 @@ var require_data_url = __commonJS({
 var require_webidl = __commonJS({
   "../node_modules/undici/lib/web/fetch/webidl.js"(exports2, module2) {
     "use strict";
-    var { types, inspect } = require("util");
+    var { types: types2, inspect } = require("util");
     var { markAsUncloneable } = require("worker_threads");
     var { toUSVString } = require_util();
     var webidl = {};
@@ -3735,7 +3735,7 @@ var require_webidl = __commonJS({
           });
         }
         const result = {};
-        if (!types.isProxy(O)) {
+        if (!types2.isProxy(O)) {
           const keys2 = [...Object.getOwnPropertyNames(O), ...Object.getOwnPropertySymbols(O)];
           for (const key of keys2) {
             const typedKey = keyConverter(key, prefix, argument);
@@ -3864,14 +3864,14 @@ var require_webidl = __commonJS({
       return x;
     };
     webidl.converters.ArrayBuffer = function(V, prefix, argument, opts) {
-      if (webidl.util.Type(V) !== "Object" || !types.isAnyArrayBuffer(V)) {
+      if (webidl.util.Type(V) !== "Object" || !types2.isAnyArrayBuffer(V)) {
         throw webidl.errors.conversionFailed({
           prefix,
           argument: `${argument} ("${webidl.util.Stringify(V)}")`,
           types: ["ArrayBuffer"]
         });
       }
-      if (opts?.allowShared === false && types.isSharedArrayBuffer(V)) {
+      if (opts?.allowShared === false && types2.isSharedArrayBuffer(V)) {
         throw webidl.errors.exception({
           header: "ArrayBuffer",
           message: "SharedArrayBuffer is not allowed."
@@ -3886,14 +3886,14 @@ var require_webidl = __commonJS({
       return V;
     };
     webidl.converters.TypedArray = function(V, T, prefix, name, opts) {
-      if (webidl.util.Type(V) !== "Object" || !types.isTypedArray(V) || V.constructor.name !== T.name) {
+      if (webidl.util.Type(V) !== "Object" || !types2.isTypedArray(V) || V.constructor.name !== T.name) {
         throw webidl.errors.conversionFailed({
           prefix,
           argument: `${name} ("${webidl.util.Stringify(V)}")`,
           types: [T.name]
         });
       }
-      if (opts?.allowShared === false && types.isSharedArrayBuffer(V.buffer)) {
+      if (opts?.allowShared === false && types2.isSharedArrayBuffer(V.buffer)) {
         throw webidl.errors.exception({
           header: "ArrayBuffer",
           message: "SharedArrayBuffer is not allowed."
@@ -3908,13 +3908,13 @@ var require_webidl = __commonJS({
       return V;
     };
     webidl.converters.DataView = function(V, prefix, name, opts) {
-      if (webidl.util.Type(V) !== "Object" || !types.isDataView(V)) {
+      if (webidl.util.Type(V) !== "Object" || !types2.isDataView(V)) {
         throw webidl.errors.exception({
           header: prefix,
           message: `${name} is not a DataView.`
         });
       }
-      if (opts?.allowShared === false && types.isSharedArrayBuffer(V.buffer)) {
+      if (opts?.allowShared === false && types2.isSharedArrayBuffer(V.buffer)) {
         throw webidl.errors.exception({
           header: "ArrayBuffer",
           message: "SharedArrayBuffer is not allowed."
@@ -3929,13 +3929,13 @@ var require_webidl = __commonJS({
       return V;
     };
     webidl.converters.BufferSource = function(V, prefix, name, opts) {
-      if (types.isAnyArrayBuffer(V)) {
+      if (types2.isAnyArrayBuffer(V)) {
         return webidl.converters.ArrayBuffer(V, prefix, name, { ...opts, allowShared: false });
       }
-      if (types.isTypedArray(V)) {
+      if (types2.isTypedArray(V)) {
         return webidl.converters.TypedArray(V, V.constructor, prefix, name, { ...opts, allowShared: false });
       }
-      if (types.isDataView(V)) {
+      if (types2.isDataView(V)) {
         return webidl.converters.DataView(V, prefix, name, { ...opts, allowShared: false });
       }
       throw webidl.errors.conversionFailed({
@@ -4526,8 +4526,8 @@ var require_util2 = __commonJS({
         errorSteps(e);
       }
     }
-    function isReadableStreamLike(stream) {
-      return stream instanceof ReadableStream || stream[Symbol.toStringTag] === "ReadableStream" && typeof stream.tee === "function";
+    function isReadableStreamLike(stream2) {
+      return stream2 instanceof ReadableStream || stream2[Symbol.toStringTag] === "ReadableStream" && typeof stream2.tee === "function";
     }
     function readableStreamClose(controller) {
       try {
@@ -5343,20 +5343,20 @@ var require_body = __commonJS({
     var streamRegistry;
     if (hasFinalizationRegistry) {
       streamRegistry = new FinalizationRegistry((weakRef) => {
-        const stream = weakRef.deref();
-        if (stream && !stream.locked && !isDisturbed(stream) && !isErrored(stream)) {
-          stream.cancel("Response object has been garbage collected").catch(noop);
+        const stream2 = weakRef.deref();
+        if (stream2 && !stream2.locked && !isDisturbed(stream2) && !isErrored(stream2)) {
+          stream2.cancel("Response object has been garbage collected").catch(noop);
         }
       });
     }
     function extractBody(object, keepalive = false) {
-      let stream = null;
+      let stream2 = null;
       if (object instanceof ReadableStream) {
-        stream = object;
+        stream2 = object;
       } else if (isBlobLike(object)) {
-        stream = object.stream();
+        stream2 = object.stream();
       } else {
-        stream = new ReadableStream({
+        stream2 = new ReadableStream({
           async pull(controller) {
             const buffer = typeof source === "string" ? textEncoder.encode(source) : source;
             if (buffer.byteLength) {
@@ -5369,7 +5369,7 @@ var require_body = __commonJS({
           type: "bytes"
         });
       }
-      assert(isReadableStreamLike(stream));
+      assert(isReadableStreamLike(stream2));
       let action = null;
       let source = null;
       let length = null;
@@ -5388,7 +5388,7 @@ var require_body = __commonJS({
         const boundary = `----formdata-undici-0${`${random(1e11)}`.padStart(11, "0")}`;
         const prefix = `--${boundary}\r
 Content-Disposition: form-data`;
-        const escape = (str) => str.replace(/\n/g, "%0A").replace(/\r/g, "%0D").replace(/"/g, "%22");
+        const escape2 = (str) => str.replace(/\n/g, "%0A").replace(/\r/g, "%0D").replace(/"/g, "%22");
         const normalizeLinefeeds = (value) => value.replace(/\r?\n|\r/g, "\r\n");
         const blobParts = [];
         const rn = new Uint8Array([13, 10]);
@@ -5396,14 +5396,14 @@ Content-Disposition: form-data`;
         let hasUnknownSizeValue = false;
         for (const [name, value] of object) {
           if (typeof value === "string") {
-            const chunk2 = textEncoder.encode(prefix + `; name="${escape(normalizeLinefeeds(name))}"\r
+            const chunk2 = textEncoder.encode(prefix + `; name="${escape2(normalizeLinefeeds(name))}"\r
 \r
 ${normalizeLinefeeds(value)}\r
 `);
             blobParts.push(chunk2);
             length += chunk2.byteLength;
           } else {
-            const chunk2 = textEncoder.encode(`${prefix}; name="${escape(normalizeLinefeeds(name))}"` + (value.name ? `; filename="${escape(value.name)}"` : "") + `\r
+            const chunk2 = textEncoder.encode(`${prefix}; name="${escape2(normalizeLinefeeds(name))}"` + (value.name ? `; filename="${escape2(value.name)}"` : "") + `\r
 Content-Type: ${value.type || "application/octet-stream"}\r
 \r
 `);
@@ -5448,14 +5448,14 @@ Content-Type: ${value.type || "application/octet-stream"}\r
             "Response body object should not be disturbed or locked"
           );
         }
-        stream = object instanceof ReadableStream ? object : ReadableStreamFrom(object);
+        stream2 = object instanceof ReadableStream ? object : ReadableStreamFrom(object);
       }
       if (typeof source === "string" || util.isBuffer(source)) {
         length = Buffer.byteLength(source);
       }
       if (action != null) {
         let iterator;
-        stream = new ReadableStream({
+        stream2 = new ReadableStream({
           async start() {
             iterator = action(object)[Symbol.asyncIterator]();
           },
@@ -5467,7 +5467,7 @@ Content-Type: ${value.type || "application/octet-stream"}\r
                 controller.byobRequest?.respond(0);
               });
             } else {
-              if (!isErrored(stream)) {
+              if (!isErrored(stream2)) {
                 const buffer = new Uint8Array(value);
                 if (buffer.byteLength) {
                   controller.enqueue(buffer);
@@ -5482,7 +5482,7 @@ Content-Type: ${value.type || "application/octet-stream"}\r
           type: "bytes"
         });
       }
-      const body = { stream, source, length };
+      const body = { stream: stream2, source, length };
       return [body, type];
     }
     function safelyExtractBody(object, keepalive = false) {
@@ -5827,11 +5827,11 @@ var require_client_h1 = __commonJS({
         }
         new Uint8Array(llhttp.memory.buffer, currentBufferPtr, currentBufferSize).set(data);
         try {
-          let ret;
+          let ret2;
           try {
             currentBufferRef = data;
             currentParser = this;
-            ret = llhttp.llhttp_execute(this.ptr, currentBufferPtr, data.length);
+            ret2 = llhttp.llhttp_execute(this.ptr, currentBufferPtr, data.length);
           } catch (err) {
             throw err;
           } finally {
@@ -5839,19 +5839,19 @@ var require_client_h1 = __commonJS({
             currentBufferRef = null;
           }
           const offset = llhttp.llhttp_get_error_pos(this.ptr) - currentBufferPtr;
-          if (ret === constants3.ERROR.PAUSED_UPGRADE) {
+          if (ret2 === constants3.ERROR.PAUSED_UPGRADE) {
             this.onUpgrade(data.slice(offset));
-          } else if (ret === constants3.ERROR.PAUSED) {
+          } else if (ret2 === constants3.ERROR.PAUSED) {
             this.paused = true;
             socket.unshift(data.slice(offset));
-          } else if (ret !== constants3.ERROR.OK) {
+          } else if (ret2 !== constants3.ERROR.OK) {
             const ptr = llhttp.llhttp_get_error_reason(this.ptr);
             let message = "";
             if (ptr) {
               const len = new Uint8Array(llhttp.memory.buffer, ptr).indexOf(0);
               message = "Response does not match the HTTP/1.1 protocol (" + Buffer.from(llhttp.memory.buffer, ptr, len).toString() + ")";
             }
-            throw new HTTPParserError(message, constants3.ERROR[ret], data.slice(offset));
+            throw new HTTPParserError(message, constants3.ERROR[ret2], data.slice(offset));
           }
         } catch (err) {
           util.destroy(socket, err);
@@ -6249,7 +6249,7 @@ var require_client_h1 = __commonJS({
       return method !== "GET" && method !== "HEAD" && method !== "OPTIONS" && method !== "TRACE" && method !== "CONNECT";
     }
     function writeH1(client, request) {
-      const { method, path, host, upgrade, blocking, reset } = request;
+      const { method, path: path2, host, upgrade, blocking, reset } = request;
       let { body, headers, contentLength } = request;
       const expectsPayload = method === "PUT" || method === "POST" || method === "PATCH" || method === "QUERY" || method === "PROPFIND" || method === "PROPPATCH";
       if (util.isFormDataLike(body)) {
@@ -6315,7 +6315,7 @@ var require_client_h1 = __commonJS({
       if (blocking) {
         socket[kBlocking] = true;
       }
-      let header = `${method} ${path} HTTP/1.1\r
+      let header = `${method} ${path2} HTTP/1.1\r
 `;
       if (typeof host === "string") {
         header += `host: ${host}\r
@@ -6578,17 +6578,17 @@ ${len.toString(16)}\r
 `, "latin1");
         }
         this.bytesWritten += len;
-        const ret = socket.write(chunk);
+        const ret2 = socket.write(chunk);
         socket.uncork();
         request.onBodySent(chunk);
-        if (!ret) {
+        if (!ret2) {
           if (socket[kParser].timeout && socket[kParser].timeoutType === TIMEOUT_HEADERS) {
             if (socket[kParser].timeout.refresh) {
               socket[kParser].timeout.refresh();
             }
           }
         }
-        return ret;
+        return ret2;
       }
       end() {
         const { socket, contentLength, client, bytesWritten, expectsPayload, header, request } = this;
@@ -6841,7 +6841,7 @@ var require_client_h2 = __commonJS({
     }
     function writeH2(client, request) {
       const session = client[kHTTP2Session];
-      const { method, path, host, upgrade, expectContinue, signal, headers: reqHeaders } = request;
+      const { method, path: path2, host, upgrade, expectContinue, signal, headers: reqHeaders } = request;
       let { body } = request;
       if (upgrade) {
         util.errorRequest(client, request, new Error("Upgrade not supported for H2"));
@@ -6863,7 +6863,7 @@ var require_client_h2 = __commonJS({
           headers[key] = val;
         }
       }
-      let stream;
+      let stream2;
       const { hostname, port } = client[kUrl];
       headers[HTTP2_HEADER_AUTHORITY] = host || `${hostname}${port ? `:${port}` : ""}`;
       headers[HTTP2_HEADER_METHOD] = method;
@@ -6873,8 +6873,8 @@ var require_client_h2 = __commonJS({
         }
         err = err || new RequestAbortedError();
         util.errorRequest(client, request, err);
-        if (stream != null) {
-          util.destroy(stream, err);
+        if (stream2 != null) {
+          util.destroy(stream2, err);
         }
         util.destroy(body, err);
         client[kQueue][client[kRunningIdx]++] = null;
@@ -6890,25 +6890,25 @@ var require_client_h2 = __commonJS({
       }
       if (method === "CONNECT") {
         session.ref();
-        stream = session.request(headers, { endStream: false, signal });
-        if (stream.id && !stream.pending) {
-          request.onUpgrade(null, null, stream);
+        stream2 = session.request(headers, { endStream: false, signal });
+        if (stream2.id && !stream2.pending) {
+          request.onUpgrade(null, null, stream2);
           ++session[kOpenStreams];
           client[kQueue][client[kRunningIdx]++] = null;
         } else {
-          stream.once("ready", () => {
-            request.onUpgrade(null, null, stream);
+          stream2.once("ready", () => {
+            request.onUpgrade(null, null, stream2);
             ++session[kOpenStreams];
             client[kQueue][client[kRunningIdx]++] = null;
           });
         }
-        stream.once("close", () => {
+        stream2.once("close", () => {
           session[kOpenStreams] -= 1;
           if (session[kOpenStreams] === 0) session.unref();
         });
         return true;
       }
-      headers[HTTP2_HEADER_PATH] = path;
+      headers[HTTP2_HEADER_PATH] = path2;
       headers[HTTP2_HEADER_SCHEME] = "https";
       const expectsPayload = method === "PUT" || method === "POST" || method === "PATCH";
       if (body && typeof body.read === "function") {
@@ -6943,36 +6943,36 @@ var require_client_h2 = __commonJS({
       const shouldEndStream = method === "GET" || method === "HEAD" || body === null;
       if (expectContinue) {
         headers[HTTP2_HEADER_EXPECT] = "100-continue";
-        stream = session.request(headers, { endStream: shouldEndStream, signal });
-        stream.once("continue", writeBodyH2);
+        stream2 = session.request(headers, { endStream: shouldEndStream, signal });
+        stream2.once("continue", writeBodyH2);
       } else {
-        stream = session.request(headers, {
+        stream2 = session.request(headers, {
           endStream: shouldEndStream,
           signal
         });
         writeBodyH2();
       }
       ++session[kOpenStreams];
-      stream.once("response", (headers2) => {
+      stream2.once("response", (headers2) => {
         const { [HTTP2_HEADER_STATUS]: statusCode, ...realHeaders } = headers2;
         request.onResponseStarted();
         if (request.aborted) {
           const err = new RequestAbortedError();
           util.errorRequest(client, request, err);
-          util.destroy(stream, err);
+          util.destroy(stream2, err);
           return;
         }
-        if (request.onHeaders(Number(statusCode), parseH2Headers(realHeaders), stream.resume.bind(stream), "") === false) {
-          stream.pause();
+        if (request.onHeaders(Number(statusCode), parseH2Headers(realHeaders), stream2.resume.bind(stream2), "") === false) {
+          stream2.pause();
         }
-        stream.on("data", (chunk) => {
+        stream2.on("data", (chunk) => {
           if (request.onData(chunk) === false) {
-            stream.pause();
+            stream2.pause();
           }
         });
       });
-      stream.once("end", () => {
-        if (stream.state?.state == null || stream.state.state < 6) {
+      stream2.once("end", () => {
+        if (stream2.state?.state == null || stream2.state.state < 6) {
           request.onComplete([]);
         }
         if (session[kOpenStreams] === 0) {
@@ -6983,16 +6983,16 @@ var require_client_h2 = __commonJS({
         client[kPendingIdx] = client[kRunningIdx];
         client[kResume]();
       });
-      stream.once("close", () => {
+      stream2.once("close", () => {
         session[kOpenStreams] -= 1;
         if (session[kOpenStreams] === 0) {
           session.unref();
         }
       });
-      stream.once("error", function(err) {
+      stream2.once("error", function(err) {
         abort(err);
       });
-      stream.once("frameError", (type, code) => {
+      stream2.once("frameError", (type, code) => {
         abort(new InformationalError(`HTTP/2: "frameError" received - type ${type}, code ${code}`));
       });
       return true;
@@ -7000,7 +7000,7 @@ var require_client_h2 = __commonJS({
         if (!body || contentLength === 0) {
           writeBuffer(
             abort,
-            stream,
+            stream2,
             null,
             client,
             request,
@@ -7011,7 +7011,7 @@ var require_client_h2 = __commonJS({
         } else if (util.isBuffer(body)) {
           writeBuffer(
             abort,
-            stream,
+            stream2,
             body,
             client,
             request,
@@ -7023,7 +7023,7 @@ var require_client_h2 = __commonJS({
           if (typeof body.stream === "function") {
             writeIterable(
               abort,
-              stream,
+              stream2,
               body.stream(),
               client,
               request,
@@ -7034,7 +7034,7 @@ var require_client_h2 = __commonJS({
           } else {
             writeBlob(
               abort,
-              stream,
+              stream2,
               body,
               client,
               request,
@@ -7048,7 +7048,7 @@ var require_client_h2 = __commonJS({
             abort,
             client[kSocket],
             expectsPayload,
-            stream,
+            stream2,
             body,
             client,
             request,
@@ -7057,7 +7057,7 @@ var require_client_h2 = __commonJS({
         } else if (util.isIterable(body)) {
           writeIterable(
             abort,
-            stream,
+            stream2,
             body,
             client,
             request,
@@ -7261,9 +7261,9 @@ var require_redirect_handler = __commonJS({
           return this.handler.onHeaders(statusCode, headers, resume, statusText);
         }
         const { origin, pathname, search } = util.parseURL(new URL(this.location, this.opts.origin && new URL(this.opts.path, this.opts.origin)));
-        const path = search ? `${pathname}${search}` : pathname;
+        const path2 = search ? `${pathname}${search}` : pathname;
         this.opts.headers = cleanRequestHeaders(this.opts.headers, statusCode === 303, this.opts.origin !== origin);
-        this.opts.path = path;
+        this.opts.path = path2;
         this.opts.origin = origin;
         this.opts.maxRedirections = 0;
         this.opts.query = null;
@@ -7317,23 +7317,23 @@ var require_redirect_handler = __commonJS({
       return false;
     }
     function cleanRequestHeaders(headers, removeContent, unknownOrigin) {
-      const ret = [];
+      const ret2 = [];
       if (Array.isArray(headers)) {
         for (let i = 0; i < headers.length; i += 2) {
           if (!shouldRemoveHeader(headers[i], removeContent, unknownOrigin)) {
-            ret.push(headers[i], headers[i + 1]);
+            ret2.push(headers[i], headers[i + 1]);
           }
         }
       } else if (headers && typeof headers === "object") {
         for (const key of Object.keys(headers)) {
           if (!shouldRemoveHeader(key, removeContent, unknownOrigin)) {
-            ret.push(key, headers[key]);
+            ret2.push(key, headers[key]);
           }
         }
       } else {
         assert(headers == null, "headers must be an object or an array");
       }
-      return ret;
+      return ret2;
     }
     module2.exports = RedirectHandler;
   }
@@ -7577,7 +7577,7 @@ var require_client = __commonJS({
         this[kQueue] = [];
         this[kRunningIdx] = 0;
         this[kPendingIdx] = 0;
-        this[kResume] = (sync) => resume(this, sync);
+        this[kResume] = (sync2) => resume(this, sync2);
         this[kOnError] = (err) => onError(this, err);
       }
       get pipelining() {
@@ -7782,12 +7782,12 @@ var require_client = __commonJS({
       client[kNeedDrain] = 0;
       client.emit("drain", client[kUrl], [client]);
     }
-    function resume(client, sync) {
+    function resume(client, sync2) {
       if (client[kResuming] === 2) {
         return;
       }
       client[kResuming] = 2;
-      _resume(client, sync);
+      _resume(client, sync2);
       client[kResuming] = 0;
       if (client[kRunningIdx] > 256) {
         client[kQueue].splice(0, client[kRunningIdx]);
@@ -7795,7 +7795,7 @@ var require_client = __commonJS({
         client[kRunningIdx] = 0;
       }
     }
-    function _resume(client, sync) {
+    function _resume(client, sync2) {
       while (true) {
         if (client.destroyed) {
           assert(client[kPending] === 0);
@@ -7812,7 +7812,7 @@ var require_client = __commonJS({
         if (client[kBusy]) {
           client[kNeedDrain] = 2;
         } else if (client[kNeedDrain] === 2) {
-          if (sync) {
+          if (sync2) {
             client[kNeedDrain] = 1;
             queueMicrotask(() => emitDrain(client));
           } else {
@@ -8019,25 +8019,25 @@ var require_pool_base = __commonJS({
         return this[kClients].filter((client) => client[kConnected] && !client[kNeedDrain]).length;
       }
       get [kPending]() {
-        let ret = this[kQueued];
+        let ret2 = this[kQueued];
         for (const { [kPending]: pending } of this[kClients]) {
-          ret += pending;
+          ret2 += pending;
         }
-        return ret;
+        return ret2;
       }
       get [kRunning]() {
-        let ret = 0;
+        let ret2 = 0;
         for (const { [kRunning]: running } of this[kClients]) {
-          ret += running;
+          ret2 += running;
         }
-        return ret;
+        return ret2;
       }
       get [kSize]() {
-        let ret = this[kQueued];
+        let ret2 = this[kQueued];
         for (const { [kSize]: size } of this[kClients]) {
-          ret += size;
+          ret2 += size;
         }
-        return ret;
+        return ret2;
       }
       get stats() {
         return this[kStats];
@@ -8397,11 +8397,11 @@ var require_agent = __commonJS({
         };
       }
       get [kRunning]() {
-        let ret = 0;
+        let ret2 = 0;
         for (const client of this[kClients].values()) {
-          ret += client[kRunning];
+          ret2 += client[kRunning];
         }
-        return ret;
+        return ret2;
       }
       [kDispatch](opts, handler) {
         let key;
@@ -8498,10 +8498,10 @@ var require_proxy_agent = __commonJS({
         };
         const {
           origin,
-          path = "/",
+          path: path2 = "/",
           headers = {}
         } = opts;
-        opts.path = origin + path;
+        opts.path = origin + path2;
         if (!("host" in headers) && !("Host" in headers)) {
           const { host } = new URL2(origin);
           headers.host = host;
@@ -8994,8 +8994,8 @@ var require_retry_handler = __commonJS({
         }
         if (this.end == null) {
           if (statusCode === 206) {
-            const range = parseRangeHeader(headers["content-range"]);
-            if (range == null) {
+            const range2 = parseRangeHeader(headers["content-range"]);
+            if (range2 == null) {
               return this.handler.onHeaders(
                 statusCode,
                 rawHeaders,
@@ -9003,7 +9003,7 @@ var require_retry_handler = __commonJS({
                 statusMessage
               );
             }
-            const { start, size, end = size - 1 } = range;
+            const { start, size, end = size - 1 } = range2;
             assert(
               start != null && Number.isFinite(start),
               "content-range mismatch"
@@ -9197,11 +9197,11 @@ var require_readable = __commonJS({
         return this.on(ev, ...args);
       }
       off(ev, ...args) {
-        const ret = super.off(ev, ...args);
+        const ret2 = super.off(ev, ...args);
         if (ev === "data" || ev === "readable") {
           this[kReading] = this.listenerCount("data") > 0 || this.listenerCount("readable") > 0;
         }
-        return ret;
+        return ret2;
       }
       removeListener(ev, ...args) {
         return this.off(ev, ...args);
@@ -9286,19 +9286,19 @@ var require_readable = __commonJS({
         });
       }
     };
-    function isLocked(self) {
-      return self[kBody] && self[kBody].locked === true || self[kConsume];
+    function isLocked(self2) {
+      return self2[kBody] && self2[kBody].locked === true || self2[kConsume];
     }
-    function isUnusable(self) {
-      return util.isDisturbed(self) || isLocked(self);
+    function isUnusable(self2) {
+      return util.isDisturbed(self2) || isLocked(self2);
     }
-    async function consume(stream, type) {
-      assert(!stream[kConsume]);
+    async function consume(stream2, type) {
+      assert(!stream2[kConsume]);
       return new Promise((resolve, reject) => {
-        if (isUnusable(stream)) {
-          const rState = stream._readableState;
+        if (isUnusable(stream2)) {
+          const rState = stream2._readableState;
           if (rState.destroyed && rState.closeEmitted === false) {
-            stream.on("error", (err) => {
+            stream2.on("error", (err) => {
               reject(err);
             }).on("close", () => {
               reject(new TypeError("unusable"));
@@ -9308,22 +9308,22 @@ var require_readable = __commonJS({
           }
         } else {
           queueMicrotask(() => {
-            stream[kConsume] = {
+            stream2[kConsume] = {
               type,
-              stream,
+              stream: stream2,
               resolve,
               reject,
               length: 0,
               body: []
             };
-            stream.on("error", function(err) {
+            stream2.on("error", function(err) {
               consumeFinish(this[kConsume], err);
             }).on("close", function() {
               if (this[kConsume].body !== null) {
                 consumeFinish(this[kConsume], new RequestAbortedError());
               }
             });
-            consumeStart(stream[kConsume]);
+            consumeStart(stream2[kConsume]);
           });
         }
       });
@@ -9381,7 +9381,7 @@ var require_readable = __commonJS({
       return buffer;
     }
     function consumeEnd(consume2) {
-      const { type, body, resolve, stream, length } = consume2;
+      const { type, body, resolve, stream: stream2, length } = consume2;
       try {
         if (type === "text") {
           resolve(chunksDecode(body, length));
@@ -9390,13 +9390,13 @@ var require_readable = __commonJS({
         } else if (type === "arrayBuffer") {
           resolve(chunksConcat(body, length).buffer);
         } else if (type === "blob") {
-          resolve(new Blob(body, { type: stream[kContentType] }));
+          resolve(new Blob(body, { type: stream2[kContentType] }));
         } else if (type === "bytes") {
           resolve(chunksConcat(body, length));
         }
         consumeFinish(consume2);
       } catch (err) {
-        stream.destroy(err);
+        stream2.destroy(err);
       }
     }
     function consumePush(consume2, chunk) {
@@ -9679,42 +9679,42 @@ var require_abort_signal = __commonJS({
     var { RequestAbortedError } = require_errors();
     var kListener = /* @__PURE__ */ Symbol("kListener");
     var kSignal = /* @__PURE__ */ Symbol("kSignal");
-    function abort(self) {
-      if (self.abort) {
-        self.abort(self[kSignal]?.reason);
+    function abort(self2) {
+      if (self2.abort) {
+        self2.abort(self2[kSignal]?.reason);
       } else {
-        self.reason = self[kSignal]?.reason ?? new RequestAbortedError();
+        self2.reason = self2[kSignal]?.reason ?? new RequestAbortedError();
       }
-      removeSignal(self);
+      removeSignal(self2);
     }
-    function addSignal(self, signal) {
-      self.reason = null;
-      self[kSignal] = null;
-      self[kListener] = null;
+    function addSignal(self2, signal) {
+      self2.reason = null;
+      self2[kSignal] = null;
+      self2[kListener] = null;
       if (!signal) {
         return;
       }
       if (signal.aborted) {
-        abort(self);
+        abort(self2);
         return;
       }
-      self[kSignal] = signal;
-      self[kListener] = () => {
-        abort(self);
+      self2[kSignal] = signal;
+      self2[kListener] = () => {
+        abort(self2);
       };
-      addAbortListener(self[kSignal], self[kListener]);
+      addAbortListener(self2[kSignal], self2[kListener]);
     }
-    function removeSignal(self) {
-      if (!self[kSignal]) {
+    function removeSignal(self2) {
+      if (!self2[kSignal]) {
         return;
       }
-      if ("removeEventListener" in self[kSignal]) {
-        self[kSignal].removeEventListener("abort", self[kListener]);
+      if ("removeEventListener" in self2[kSignal]) {
+        self2[kSignal].removeEventListener("abort", self2[kListener]);
       } else {
-        self[kSignal].removeListener("abort", self[kListener]);
+        self2[kSignal].removeListener("abort", self2[kListener]);
       }
-      self[kSignal] = null;
-      self[kListener] = null;
+      self2[kSignal] = null;
+      self2[kListener] = null;
     }
     module2.exports = {
       addSignal,
@@ -9874,10 +9874,10 @@ var require_api_stream = __commonJS({
         }
       }
     };
-    function stream(opts, factory, callback) {
+    function stream2(opts, factory, callback) {
       if (callback === void 0) {
         return new Promise((resolve, reject) => {
-          stream.call(this, opts, factory, (err, data) => {
+          stream2.call(this, opts, factory, (err, data) => {
             return err ? reject(err) : resolve(data);
           });
         });
@@ -9892,7 +9892,7 @@ var require_api_stream = __commonJS({
         queueMicrotask(() => callback(err, { opaque }));
       }
     }
-    module2.exports = stream;
+    module2.exports = stream2;
   }
 });
 
@@ -9991,8 +9991,8 @@ var require_api_pipeline = __commonJS({
             }
           },
           destroy: (err, callback) => {
-            const { body, req, res, ret, abort } = this;
-            if (!err && !ret._readableState.endEmitted) {
+            const { body, req, res, ret: ret2, abort } = this;
+            if (!err && !ret2._readableState.endEmitted) {
               err = new RequestAbortedError();
             }
             if (abort && err) {
@@ -10012,13 +10012,13 @@ var require_api_pipeline = __commonJS({
         addSignal(this, signal);
       }
       onConnect(abort, context) {
-        const { ret, res } = this;
+        const { ret: ret2, res } = this;
         if (this.reason) {
           abort(this.reason);
           return;
         }
         assert(!res, "pipeline cannot be retried");
-        assert(!ret.destroyed);
+        assert(!ret2.destroyed);
         this.abort = abort;
         this.context = context;
       }
@@ -10051,20 +10051,20 @@ var require_api_pipeline = __commonJS({
           throw new InvalidReturnValueError("expected Readable");
         }
         body.on("data", (chunk) => {
-          const { ret, body: body2 } = this;
-          if (!ret.push(chunk) && body2.pause) {
+          const { ret: ret2, body: body2 } = this;
+          if (!ret2.push(chunk) && body2.pause) {
             body2.pause();
           }
         }).on("error", (err) => {
-          const { ret } = this;
-          util.destroy(ret, err);
+          const { ret: ret2 } = this;
+          util.destroy(ret2, err);
         }).on("end", () => {
-          const { ret } = this;
-          ret.push(null);
+          const { ret: ret2 } = this;
+          ret2.push(null);
         }).on("close", () => {
-          const { ret } = this;
-          if (!ret._readableState.ended) {
-            util.destroy(ret, new RequestAbortedError());
+          const { ret: ret2 } = this;
+          if (!ret2._readableState.ended) {
+            util.destroy(ret2, new RequestAbortedError());
           }
         });
         this.body = body;
@@ -10078,9 +10078,9 @@ var require_api_pipeline = __commonJS({
         res.push(null);
       }
       onError(err) {
-        const { ret } = this;
+        const { ret: ret2 } = this;
         this.handler = null;
-        util.destroy(ret, err);
+        util.destroy(ret2, err);
       }
     };
     function pipeline(opts, handler) {
@@ -10362,15 +10362,15 @@ var require_mock_utils = __commonJS({
         isPromise
       }
     } = require("util");
-    function matchValue(match, value) {
-      if (typeof match === "string") {
-        return match === value;
+    function matchValue(match2, value) {
+      if (typeof match2 === "string") {
+        return match2 === value;
       }
-      if (match instanceof RegExp) {
-        return match.test(value);
+      if (match2 instanceof RegExp) {
+        return match2.test(value);
       }
-      if (typeof match === "function") {
-        return match(value) === true;
+      if (typeof match2 === "function") {
+        return match2(value) === true;
       }
       return false;
     }
@@ -10424,20 +10424,20 @@ var require_mock_utils = __commonJS({
       }
       return true;
     }
-    function safeUrl(path) {
-      if (typeof path !== "string") {
-        return path;
+    function safeUrl(path2) {
+      if (typeof path2 !== "string") {
+        return path2;
       }
-      const pathSegments = path.split("?");
+      const pathSegments = path2.split("?");
       if (pathSegments.length !== 2) {
-        return path;
+        return path2;
       }
       const qp = new URLSearchParams(pathSegments.pop());
       qp.sort();
       return [...pathSegments, qp.toString()].join("?");
     }
-    function matchKey(mockDispatch2, { path, method, body, headers }) {
-      const pathMatch = matchValue(mockDispatch2.path, path);
+    function matchKey(mockDispatch2, { path: path2, method, body, headers }) {
+      const pathMatch = matchValue(mockDispatch2.path, path2);
       const methodMatch = matchValue(mockDispatch2.method, method);
       const bodyMatch = typeof mockDispatch2.body !== "undefined" ? matchValue(mockDispatch2.body, body) : true;
       const headersMatch = matchHeaders(mockDispatch2, headers);
@@ -10459,7 +10459,7 @@ var require_mock_utils = __commonJS({
     function getMockDispatch(mockDispatches, key) {
       const basePath = key.query ? buildURL(key.path, key.query) : key.path;
       const resolvedPath = typeof basePath === "string" ? safeUrl(basePath) : basePath;
-      let matchedMockDispatches = mockDispatches.filter(({ consumed }) => !consumed).filter(({ path }) => matchValue(safeUrl(path), resolvedPath));
+      let matchedMockDispatches = mockDispatches.filter(({ consumed }) => !consumed).filter(({ path: path2 }) => matchValue(safeUrl(path2), resolvedPath));
       if (matchedMockDispatches.length === 0) {
         throw new MockNotMatchedError(`Mock dispatch not matched for path '${resolvedPath}'`);
       }
@@ -10497,9 +10497,9 @@ var require_mock_utils = __commonJS({
       }
     }
     function buildKey(opts) {
-      const { path, method, body, headers, query } = opts;
+      const { path: path2, method, body, headers, query } = opts;
       return {
-        path,
+        path: path2,
         method,
         body,
         headers,
@@ -10962,10 +10962,10 @@ var require_pending_interceptors_formatter = __commonJS({
       }
       format(pendingInterceptors) {
         const withPrettyHeaders = pendingInterceptors.map(
-          ({ method, path, data: { statusCode }, persist, times, timesInvoked, origin }) => ({
+          ({ method, path: path2, data: { statusCode }, persist, times, timesInvoked, origin }) => ({
             Method: method,
             Origin: origin,
-            Path: path,
+            Path: path2,
             "Status code": statusCode,
             Persistent: persist ? PERSISTENT : NOT_PERSISTENT,
             Invocations: timesInvoked,
@@ -12090,7 +12090,7 @@ var require_response = __commonJS({
     var { URLSerializer } = require_data_url();
     var { kConstruct } = require_symbols();
     var assert = require("assert");
-    var { types } = require("util");
+    var { types: types2 } = require("util");
     var textEncoder = new TextEncoder("utf-8");
     var Response = class _Response {
       // Creates network error Response.
@@ -12287,11 +12287,11 @@ var require_response = __commonJS({
       };
     }
     function makeNetworkError(reason) {
-      const isError = isErrorLike(reason);
+      const isError2 = isErrorLike(reason);
       return makeResponse({
         type: "error",
         status: 0,
-        error: isError ? reason : new Error(reason ? String(reason) : reason),
+        error: isError2 ? reason : new Error(reason ? String(reason) : reason),
         aborted: reason && reason.name === "AbortError"
       });
     }
@@ -12411,7 +12411,7 @@ var require_response = __commonJS({
       if (isBlobLike(V)) {
         return webidl.converters.Blob(V, prefix, name, { strict: false });
       }
-      if (ArrayBuffer.isView(V) || types.isArrayBuffer(V)) {
+      if (ArrayBuffer.isView(V) || types2.isArrayBuffer(V)) {
         return webidl.converters.BufferSource(V, prefix, name);
       }
       if (util.isFormDataLike(V)) {
@@ -12600,15 +12600,15 @@ var require_request2 = __commonJS({
           signal = input[kSignal];
         }
         const origin = environmentSettingsObject.settingsObject.origin;
-        let window = "client";
+        let window2 = "client";
         if (request.window?.constructor?.name === "EnvironmentSettingsObject" && sameOrigin(request.window, origin)) {
-          window = request.window;
+          window2 = request.window;
         }
         if (init.window != null) {
-          throw new TypeError(`'window' option '${window}' must be null`);
+          throw new TypeError(`'window' option '${window2}' must be null`);
         }
         if ("window" in init) {
-          window = "no-window";
+          window2 = "no-window";
         }
         request = makeRequest({
           // URL request’s URL.
@@ -12623,7 +12623,7 @@ var require_request2 = __commonJS({
           // client This’s relevant settings object.
           client: environmentSettingsObject.settingsObject,
           // window window.
-          window,
+          window: window2,
           // priority request’s priority.
           priority: request.priority,
           // origin request’s origin. The propagation of the origin is only significant for navigation requests
@@ -13258,7 +13258,7 @@ var require_fetch = __commonJS({
     } = require_constants3();
     var EE = require("events");
     var { Readable, pipeline, finished } = require("stream");
-    var { addAbortListener, isErrored, isReadable, bufferToLowerCasedHeaderName } = require_util();
+    var { addAbortListener, isErrored, isReadable: isReadable2, bufferToLowerCasedHeaderName } = require_util();
     var { dataURLProcessor, serializeAMimeType, minimizeSupportedMimeType } = require_data_url();
     var { getGlobalDispatcher } = require_global2();
     var { webidl } = require_webidl();
@@ -13314,8 +13314,8 @@ var require_fetch = __commonJS({
         abortFetch(p, request, null, requestObject.signal.reason);
         return p.promise;
       }
-      const globalObject = request.client.globalObject;
-      if (globalObject?.constructor?.name === "ServiceWorkerGlobalScope") {
+      const globalObject2 = request.client.globalObject;
+      if (globalObject2?.constructor?.name === "ServiceWorkerGlobalScope") {
         request.serviceWorkers = "none";
       }
       let responseObject = null;
@@ -13393,7 +13393,7 @@ var require_fetch = __commonJS({
       if (p) {
         p.reject(error);
       }
-      if (request.body != null && isReadable(request.body?.stream)) {
+      if (request.body != null && isReadable2(request.body?.stream)) {
         request.body.stream.cancel(error).catch((err) => {
           if (err.code === "ERR_INVALID_STATE") {
             return;
@@ -13405,7 +13405,7 @@ var require_fetch = __commonJS({
         return;
       }
       const response = responseObject[kState];
-      if (response.body != null && isReadable(response.body?.stream)) {
+      if (response.body != null && isReadable2(response.body?.stream)) {
         response.body.stream.cancel(error).catch((err) => {
           if (err.code === "ERR_INVALID_STATE") {
             return;
@@ -14042,7 +14042,7 @@ var require_fetch = __commonJS({
           fetchParams.controller.abort(reason);
         }
       };
-      const stream = new ReadableStream(
+      const stream2 = new ReadableStream(
         {
           async start(controller) {
             fetchParams.controller.controller = controller;
@@ -14056,7 +14056,7 @@ var require_fetch = __commonJS({
           type: "bytes"
         }
       );
-      response.body = { stream, source: null, length: null };
+      response.body = { stream: stream2, source: null, length: null };
       fetchParams.controller.onAborted = onAborted;
       fetchParams.controller.on("terminated", onAborted);
       fetchParams.controller.resume = async () => {
@@ -14091,7 +14091,7 @@ var require_fetch = __commonJS({
           if (buffer.byteLength) {
             fetchParams.controller.controller.enqueue(buffer);
           }
-          if (isErrored(stream)) {
+          if (isErrored(stream2)) {
             fetchParams.controller.terminate();
             return;
           }
@@ -14103,13 +14103,13 @@ var require_fetch = __commonJS({
       function onAborted(reason) {
         if (isAborted(fetchParams)) {
           response.aborted = true;
-          if (isReadable(stream)) {
+          if (isReadable2(stream2)) {
             fetchParams.controller.controller.error(
               fetchParams.controller.serializedAbortReason
             );
           }
         } else {
-          if (isReadable(stream)) {
+          if (isReadable2(stream2)) {
             fetchParams.controller.controller.error(new TypeError("terminated", {
               cause: isErrorLike(reason) ? reason : void 0
             }));
@@ -14647,8 +14647,8 @@ var require_util4 = __commonJS({
     var { ProgressEvent } = require_progressevent();
     var { getEncoding } = require_encoding();
     var { serializeAMimeType, parseMIMEType } = require_data_url();
-    var { types } = require("util");
-    var { StringDecoder } = require("string_decoder");
+    var { types: types2 } = require("util");
+    var { StringDecoder: StringDecoder2 } = require("string_decoder");
     var { btoa } = require("buffer");
     var staticPropertyDescriptors = {
       enumerable: true,
@@ -14662,8 +14662,8 @@ var require_util4 = __commonJS({
       fr[kState] = "loading";
       fr[kResult] = null;
       fr[kError] = null;
-      const stream = blob.stream();
-      const reader = stream.getReader();
+      const stream2 = blob.stream();
+      const reader = stream2.getReader();
       const bytes = [];
       let chunkPromise = reader.read();
       let isFirstChunk = true;
@@ -14677,7 +14677,7 @@ var require_util4 = __commonJS({
               });
             }
             isFirstChunk = false;
-            if (!done && types.isUint8Array(value)) {
+            if (!done && types2.isUint8Array(value)) {
               bytes.push(value);
               if ((fr[kLastProgressEventFired] === void 0 || Date.now() - fr[kLastProgressEventFired] >= 50) && !fr[kAborted]) {
                 fr[kLastProgressEventFired] = Date.now();
@@ -14739,7 +14739,7 @@ var require_util4 = __commonJS({
             dataURL += serializeAMimeType(parsed);
           }
           dataURL += ";base64,";
-          const decoder = new StringDecoder("latin1");
+          const decoder = new StringDecoder2("latin1");
           for (const chunk of bytes) {
             dataURL += btoa(decoder.write(chunk));
           }
@@ -14768,7 +14768,7 @@ var require_util4 = __commonJS({
         }
         case "BinaryString": {
           let binaryString = "";
-          const decoder = new StringDecoder("latin1");
+          const decoder = new StringDecoder2("latin1");
           for (const chunk of bytes) {
             binaryString += decoder.write(chunk);
           }
@@ -15322,8 +15322,8 @@ var require_cache = __commonJS({
         const clonedResponse = cloneResponse(innerResponse);
         const bodyReadPromise = createDeferredPromise();
         if (innerResponse.body != null) {
-          const stream = innerResponse.body.stream;
-          const reader = stream.getReader();
+          const stream2 = innerResponse.body.stream;
+          const reader = stream2.getReader();
           readAllBytes(reader).then(bodyReadPromise.resolve, bodyReadPromise.reject);
         } else {
           bodyReadPromise.resolve(void 0);
@@ -15846,9 +15846,9 @@ var require_util6 = __commonJS({
         }
       }
     }
-    function validateCookiePath(path) {
-      for (let i = 0; i < path.length; ++i) {
-        const code = path.charCodeAt(i);
+    function validateCookiePath(path2) {
+      for (let i = 0; i < path2.length; ++i) {
+        const code = path2.charCodeAt(i);
         if (code < 32 || // exclude CTLs (0-31)
         code === 127 || // DEL
         code === 59) {
@@ -17465,7 +17465,7 @@ var require_websocket = __commonJS({
     var { ByteParser } = require_receiver();
     var { kEnumerableProperty, isBlobLike } = require_util();
     var { getGlobalDispatcher } = require_global2();
-    var { types } = require("util");
+    var { types: types2 } = require("util");
     var { ErrorEvent, CloseEvent } = require_events();
     var { SendQueue } = require_sender();
     var WebSocket = class _WebSocket extends EventTarget {
@@ -17588,7 +17588,7 @@ var require_websocket = __commonJS({
           this.#sendQueue.add(data, () => {
             this.#bufferedAmount -= length;
           }, sendHints.string);
-        } else if (types.isArrayBuffer(data)) {
+        } else if (types2.isArrayBuffer(data)) {
           this.#bufferedAmount += data.byteLength;
           this.#sendQueue.add(data, () => {
             this.#bufferedAmount -= data.byteLength;
@@ -17794,7 +17794,7 @@ var require_websocket = __commonJS({
         if (isBlobLike(V)) {
           return webidl.converters.Blob(V, { strict: false });
         }
-        if (ArrayBuffer.isView(V) || types.isArrayBuffer(V)) {
+        if (ArrayBuffer.isView(V) || types2.isArrayBuffer(V)) {
           return webidl.converters.BufferSource(V);
         }
       }
@@ -18097,7 +18097,7 @@ var require_eventsource = __commonJS({
     var defaultReconnectionTime = 3e3;
     var CONNECTING = 0;
     var OPEN = 1;
-    var CLOSED = 2;
+    var CLOSED2 = 2;
     var ANONYMOUS = "anonymous";
     var USE_CREDENTIALS = "use-credentials";
     var EventSource = class _EventSource extends EventTarget {
@@ -18195,7 +18195,7 @@ var require_eventsource = __commonJS({
         return this.#withCredentials;
       }
       #connect() {
-        if (this.#readyState === CLOSED) return;
+        if (this.#readyState === CLOSED2) return;
         this.#readyState = CONNECTING;
         const fetchParams = {
           request: this.#request,
@@ -18258,7 +18258,7 @@ var require_eventsource = __commonJS({
        * @returns {Promise<void>}
        */
       async #reconnect() {
-        if (this.#readyState === CLOSED) return;
+        if (this.#readyState === CLOSED2) return;
         this.#readyState = CONNECTING;
         this.dispatchEvent(new Event("error"));
         await delay(this.#state.reconnectionTime);
@@ -18274,8 +18274,8 @@ var require_eventsource = __commonJS({
        */
       close() {
         webidl.brandCheck(this, _EventSource);
-        if (this.#readyState === CLOSED) return;
-        this.#readyState = CLOSED;
+        if (this.#readyState === CLOSED2) return;
+        this.#readyState = CLOSED2;
         this.#controller.abort();
         this.#request = null;
       }
@@ -18341,7 +18341,7 @@ var require_eventsource = __commonJS({
         __proto__: null,
         configurable: false,
         enumerable: true,
-        value: CLOSED,
+        value: CLOSED2,
         writable: false
       }
     };
@@ -18442,11 +18442,11 @@ var require_undici = __commonJS({
           if (typeof opts.path !== "string") {
             throw new InvalidArgumentError("invalid opts.path");
           }
-          let path = opts.path;
+          let path2 = opts.path;
           if (!opts.path.startsWith("/")) {
-            path = `/${path}`;
+            path2 = `/${path2}`;
           }
-          url = new URL(util.parseOrigin(url).origin + path);
+          url = new URL(util.parseOrigin(url).origin + path2);
         } else {
           if (!opts) {
             opts = typeof url === "object" ? url : {};
@@ -18514,6 +18514,5292 @@ var require_undici = __commonJS({
     module2.exports.mockErrors = mockErrors;
     var { EventSource } = require_eventsource();
     module2.exports.EventSource = EventSource;
+  }
+});
+
+// ../node_modules/bluebird/js/release/es5.js
+var require_es5 = __commonJS({
+  "../node_modules/bluebird/js/release/es5.js"(exports2, module2) {
+    "use strict";
+    var isES5 = (function() {
+      "use strict";
+      return this === void 0;
+    })();
+    if (isES5) {
+      module2.exports = {
+        freeze: Object.freeze,
+        defineProperty: Object.defineProperty,
+        getDescriptor: Object.getOwnPropertyDescriptor,
+        keys: Object.keys,
+        names: Object.getOwnPropertyNames,
+        getPrototypeOf: Object.getPrototypeOf,
+        isArray: Array.isArray,
+        isES5,
+        propertyIsWritable: function(obj2, prop) {
+          var descriptor = Object.getOwnPropertyDescriptor(obj2, prop);
+          return !!(!descriptor || descriptor.writable || descriptor.set);
+        }
+      };
+    } else {
+      has = {}.hasOwnProperty;
+      str = {}.toString;
+      proto = {}.constructor.prototype;
+      ObjectKeys = function(o) {
+        var ret2 = [];
+        for (var key in o) {
+          if (has.call(o, key)) {
+            ret2.push(key);
+          }
+        }
+        return ret2;
+      };
+      ObjectGetDescriptor = function(o, key) {
+        return { value: o[key] };
+      };
+      ObjectDefineProperty = function(o, key, desc) {
+        o[key] = desc.value;
+        return o;
+      };
+      ObjectFreeze = function(obj2) {
+        return obj2;
+      };
+      ObjectGetPrototypeOf = function(obj2) {
+        try {
+          return Object(obj2).constructor.prototype;
+        } catch (e) {
+          return proto;
+        }
+      };
+      ArrayIsArray = function(obj2) {
+        try {
+          return str.call(obj2) === "[object Array]";
+        } catch (e) {
+          return false;
+        }
+      };
+      module2.exports = {
+        isArray: ArrayIsArray,
+        keys: ObjectKeys,
+        names: ObjectKeys,
+        defineProperty: ObjectDefineProperty,
+        getDescriptor: ObjectGetDescriptor,
+        freeze: ObjectFreeze,
+        getPrototypeOf: ObjectGetPrototypeOf,
+        isES5,
+        propertyIsWritable: function() {
+          return true;
+        }
+      };
+    }
+    var has;
+    var str;
+    var proto;
+    var ObjectKeys;
+    var ObjectGetDescriptor;
+    var ObjectDefineProperty;
+    var ObjectFreeze;
+    var ObjectGetPrototypeOf;
+    var ArrayIsArray;
+  }
+});
+
+// ../node_modules/bluebird/js/release/util.js
+var require_util9 = __commonJS({
+  "../node_modules/bluebird/js/release/util.js"(exports, module) {
+    "use strict";
+    var es5 = require_es5();
+    var canEvaluate = typeof navigator == "undefined";
+    var errorObj = { e: {} };
+    var tryCatchTarget;
+    var globalObject = typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : typeof global !== "undefined" ? global : exports !== void 0 ? exports : null;
+    function tryCatcher() {
+      try {
+        var target = tryCatchTarget;
+        tryCatchTarget = null;
+        return target.apply(this, arguments);
+      } catch (e) {
+        errorObj.e = e;
+        return errorObj;
+      }
+    }
+    function tryCatch(fn) {
+      tryCatchTarget = fn;
+      return tryCatcher;
+    }
+    var inherits = function(Child, Parent) {
+      var hasProp = {}.hasOwnProperty;
+      function T() {
+        this.constructor = Child;
+        this.constructor$ = Parent;
+        for (var propertyName in Parent.prototype) {
+          if (hasProp.call(Parent.prototype, propertyName) && propertyName.charAt(propertyName.length - 1) !== "$") {
+            this[propertyName + "$"] = Parent.prototype[propertyName];
+          }
+        }
+      }
+      T.prototype = Parent.prototype;
+      Child.prototype = new T();
+      return Child.prototype;
+    };
+    function isPrimitive(val) {
+      return val == null || val === true || val === false || typeof val === "string" || typeof val === "number";
+    }
+    function isObject(value) {
+      return typeof value === "function" || typeof value === "object" && value !== null;
+    }
+    function maybeWrapAsError(maybeError) {
+      if (!isPrimitive(maybeError)) return maybeError;
+      return new Error(safeToString(maybeError));
+    }
+    function withAppended(target, appendee) {
+      var len = target.length;
+      var ret2 = new Array(len + 1);
+      var i;
+      for (i = 0; i < len; ++i) {
+        ret2[i] = target[i];
+      }
+      ret2[i] = appendee;
+      return ret2;
+    }
+    function getDataPropertyOrDefault(obj2, key, defaultValue) {
+      if (es5.isES5) {
+        var desc = Object.getOwnPropertyDescriptor(obj2, key);
+        if (desc != null) {
+          return desc.get == null && desc.set == null ? desc.value : defaultValue;
+        }
+      } else {
+        return {}.hasOwnProperty.call(obj2, key) ? obj2[key] : void 0;
+      }
+    }
+    function notEnumerableProp(obj2, name, value) {
+      if (isPrimitive(obj2)) return obj2;
+      var descriptor = {
+        value,
+        configurable: true,
+        enumerable: false,
+        writable: true
+      };
+      es5.defineProperty(obj2, name, descriptor);
+      return obj2;
+    }
+    function thrower(r) {
+      throw r;
+    }
+    var inheritedDataKeys = (function() {
+      var excludedPrototypes = [
+        Array.prototype,
+        Object.prototype,
+        Function.prototype
+      ];
+      var isExcludedProto = function(val) {
+        for (var i = 0; i < excludedPrototypes.length; ++i) {
+          if (excludedPrototypes[i] === val) {
+            return true;
+          }
+        }
+        return false;
+      };
+      if (es5.isES5) {
+        var getKeys = Object.getOwnPropertyNames;
+        return function(obj2) {
+          var ret2 = [];
+          var visitedKeys = /* @__PURE__ */ Object.create(null);
+          while (obj2 != null && !isExcludedProto(obj2)) {
+            var keys;
+            try {
+              keys = getKeys(obj2);
+            } catch (e) {
+              return ret2;
+            }
+            for (var i = 0; i < keys.length; ++i) {
+              var key = keys[i];
+              if (visitedKeys[key]) continue;
+              visitedKeys[key] = true;
+              var desc = Object.getOwnPropertyDescriptor(obj2, key);
+              if (desc != null && desc.get == null && desc.set == null) {
+                ret2.push(key);
+              }
+            }
+            obj2 = es5.getPrototypeOf(obj2);
+          }
+          return ret2;
+        };
+      } else {
+        var hasProp = {}.hasOwnProperty;
+        return function(obj2) {
+          if (isExcludedProto(obj2)) return [];
+          var ret2 = [];
+          enumeration: for (var key in obj2) {
+            if (hasProp.call(obj2, key)) {
+              ret2.push(key);
+            } else {
+              for (var i = 0; i < excludedPrototypes.length; ++i) {
+                if (hasProp.call(excludedPrototypes[i], key)) {
+                  continue enumeration;
+                }
+              }
+              ret2.push(key);
+            }
+          }
+          return ret2;
+        };
+      }
+    })();
+    var thisAssignmentPattern = /this\s*\.\s*\S+\s*=/;
+    function isClass(fn) {
+      try {
+        if (typeof fn === "function") {
+          var keys = es5.names(fn.prototype);
+          var hasMethods = es5.isES5 && keys.length > 1;
+          var hasMethodsOtherThanConstructor = keys.length > 0 && !(keys.length === 1 && keys[0] === "constructor");
+          var hasThisAssignmentAndStaticMethods = thisAssignmentPattern.test(fn + "") && es5.names(fn).length > 0;
+          if (hasMethods || hasMethodsOtherThanConstructor || hasThisAssignmentAndStaticMethods) {
+            return true;
+          }
+        }
+        return false;
+      } catch (e) {
+        return false;
+      }
+    }
+    function toFastProperties(obj) {
+      function FakeConstructor() {
+      }
+      FakeConstructor.prototype = obj;
+      var receiver = new FakeConstructor();
+      function ic() {
+        return typeof receiver.foo;
+      }
+      ic();
+      ic();
+      return obj;
+      eval(obj);
+    }
+    var rident = /^[a-z$_][a-z$_0-9]*$/i;
+    function isIdentifier(str) {
+      return rident.test(str);
+    }
+    function filledRange(count, prefix, suffix) {
+      var ret2 = new Array(count);
+      for (var i = 0; i < count; ++i) {
+        ret2[i] = prefix + i + suffix;
+      }
+      return ret2;
+    }
+    function safeToString(obj2) {
+      try {
+        return obj2 + "";
+      } catch (e) {
+        return "[no string representation]";
+      }
+    }
+    function isError(obj2) {
+      return obj2 instanceof Error || obj2 !== null && typeof obj2 === "object" && typeof obj2.message === "string" && typeof obj2.name === "string";
+    }
+    function markAsOriginatingFromRejection(e) {
+      try {
+        notEnumerableProp(e, "isOperational", true);
+      } catch (ignore) {
+      }
+    }
+    function originatesFromRejection(e) {
+      if (e == null) return false;
+      return e instanceof Error["__BluebirdErrorTypes__"].OperationalError || e["isOperational"] === true;
+    }
+    function canAttachTrace(obj2) {
+      return isError(obj2) && es5.propertyIsWritable(obj2, "stack");
+    }
+    var ensureErrorObject = (function() {
+      if (!("stack" in new Error())) {
+        return function(value) {
+          if (canAttachTrace(value)) return value;
+          try {
+            throw new Error(safeToString(value));
+          } catch (err) {
+            return err;
+          }
+        };
+      } else {
+        return function(value) {
+          if (canAttachTrace(value)) return value;
+          return new Error(safeToString(value));
+        };
+      }
+    })();
+    function classString(obj2) {
+      return {}.toString.call(obj2);
+    }
+    function copyDescriptors(from, to, filter2) {
+      var keys = es5.names(from);
+      for (var i = 0; i < keys.length; ++i) {
+        var key = keys[i];
+        if (filter2(key)) {
+          try {
+            es5.defineProperty(to, key, es5.getDescriptor(from, key));
+          } catch (ignore) {
+          }
+        }
+      }
+    }
+    var asArray = function(v) {
+      if (es5.isArray(v)) {
+        return v;
+      }
+      return null;
+    };
+    if (typeof Symbol !== "undefined" && Symbol.iterator) {
+      ArrayFrom = typeof Array.from === "function" ? function(v) {
+        return Array.from(v);
+      } : function(v) {
+        var ret2 = [];
+        var it = v[Symbol.iterator]();
+        var itResult;
+        while (!(itResult = it.next()).done) {
+          ret2.push(itResult.value);
+        }
+        return ret2;
+      };
+      asArray = function(v) {
+        if (es5.isArray(v)) {
+          return v;
+        } else if (v != null && typeof v[Symbol.iterator] === "function") {
+          return ArrayFrom(v);
+        }
+        return null;
+      };
+    }
+    var ArrayFrom;
+    var isNode = typeof process !== "undefined" && classString(process).toLowerCase() === "[object process]";
+    var hasEnvVariables = typeof process !== "undefined" && typeof process.env !== "undefined";
+    function env(key) {
+      return hasEnvVariables ? process.env[key] : void 0;
+    }
+    function getNativePromise() {
+      if (typeof Promise === "function") {
+        try {
+          var promise = new Promise(function() {
+          });
+          if (classString(promise) === "[object Promise]") {
+            return Promise;
+          }
+        } catch (e) {
+        }
+      }
+    }
+    var reflectHandler;
+    function contextBind(ctx, cb) {
+      if (ctx === null || typeof cb !== "function" || cb === reflectHandler) {
+        return cb;
+      }
+      if (ctx.domain !== null) {
+        cb = ctx.domain.bind(cb);
+      }
+      var async = ctx.async;
+      if (async !== null) {
+        var old = cb;
+        cb = function() {
+          var $_len = arguments.length + 2;
+          var args = new Array($_len);
+          for (var $_i = 2; $_i < $_len; ++$_i) {
+            args[$_i] = arguments[$_i - 2];
+          }
+          ;
+          args[0] = old;
+          args[1] = this;
+          return async.runInAsyncScope.apply(async, args);
+        };
+      }
+      return cb;
+    }
+    var ret = {
+      setReflectHandler: function(fn) {
+        reflectHandler = fn;
+      },
+      isClass,
+      isIdentifier,
+      inheritedDataKeys,
+      getDataPropertyOrDefault,
+      thrower,
+      isArray: es5.isArray,
+      asArray,
+      notEnumerableProp,
+      isPrimitive,
+      isObject,
+      isError,
+      canEvaluate,
+      errorObj,
+      tryCatch,
+      inherits,
+      withAppended,
+      maybeWrapAsError,
+      toFastProperties,
+      filledRange,
+      toString: safeToString,
+      canAttachTrace,
+      ensureErrorObject,
+      originatesFromRejection,
+      markAsOriginatingFromRejection,
+      classString,
+      copyDescriptors,
+      isNode,
+      hasEnvVariables,
+      env,
+      global: globalObject,
+      getNativePromise,
+      contextBind
+    };
+    ret.isRecentNode = ret.isNode && (function() {
+      var version;
+      if (process.versions && process.versions.node) {
+        version = process.versions.node.split(".").map(Number);
+      } else if (process.version) {
+        version = process.version.split(".").map(Number);
+      }
+      return version[0] === 0 && version[1] > 10 || version[0] > 0;
+    })();
+    ret.nodeSupportsAsyncResource = ret.isNode && (function() {
+      var supportsAsync = false;
+      try {
+        var res = require("async_hooks").AsyncResource;
+        supportsAsync = typeof res.prototype.runInAsyncScope === "function";
+      } catch (e) {
+        supportsAsync = false;
+      }
+      return supportsAsync;
+    })();
+    if (ret.isNode) ret.toFastProperties(process);
+    try {
+      throw new Error();
+    } catch (e) {
+      ret.lastLineError = e;
+    }
+    module.exports = ret;
+  }
+});
+
+// ../node_modules/bluebird/js/release/schedule.js
+var require_schedule = __commonJS({
+  "../node_modules/bluebird/js/release/schedule.js"(exports2, module2) {
+    "use strict";
+    var util = require_util9();
+    var schedule;
+    var noAsyncScheduler = function() {
+      throw new Error("No async scheduler available\n\n    See http://goo.gl/MqrFmX\n");
+    };
+    var NativePromise = util.getNativePromise();
+    if (util.isNode && typeof MutationObserver === "undefined") {
+      GlobalSetImmediate = global.setImmediate;
+      ProcessNextTick = process.nextTick;
+      schedule = util.isRecentNode ? function(fn) {
+        GlobalSetImmediate.call(global, fn);
+      } : function(fn) {
+        ProcessNextTick.call(process, fn);
+      };
+    } else if (typeof NativePromise === "function" && typeof NativePromise.resolve === "function") {
+      nativePromise = NativePromise.resolve();
+      schedule = function(fn) {
+        nativePromise.then(fn);
+      };
+    } else if (typeof MutationObserver !== "undefined" && !(typeof window !== "undefined" && window.navigator && (window.navigator.standalone || window.cordova)) && "classList" in document.documentElement) {
+      schedule = (function() {
+        var div = document.createElement("div");
+        var opts = { attributes: true };
+        var toggleScheduled = false;
+        var div2 = document.createElement("div");
+        var o2 = new MutationObserver(function() {
+          div.classList.toggle("foo");
+          toggleScheduled = false;
+        });
+        o2.observe(div2, opts);
+        var scheduleToggle = function() {
+          if (toggleScheduled) return;
+          toggleScheduled = true;
+          div2.classList.toggle("foo");
+        };
+        return function schedule2(fn) {
+          var o = new MutationObserver(function() {
+            o.disconnect();
+            fn();
+          });
+          o.observe(div, opts);
+          scheduleToggle();
+        };
+      })();
+    } else if (typeof setImmediate !== "undefined") {
+      schedule = function(fn) {
+        setImmediate(fn);
+      };
+    } else if (typeof setTimeout !== "undefined") {
+      schedule = function(fn) {
+        setTimeout(fn, 0);
+      };
+    } else {
+      schedule = noAsyncScheduler;
+    }
+    var GlobalSetImmediate;
+    var ProcessNextTick;
+    var nativePromise;
+    module2.exports = schedule;
+  }
+});
+
+// ../node_modules/bluebird/js/release/queue.js
+var require_queue = __commonJS({
+  "../node_modules/bluebird/js/release/queue.js"(exports2, module2) {
+    "use strict";
+    function arrayMove(src, srcIndex, dst, dstIndex, len) {
+      for (var j = 0; j < len; ++j) {
+        dst[j + dstIndex] = src[j + srcIndex];
+        src[j + srcIndex] = void 0;
+      }
+    }
+    function Queue(capacity) {
+      this._capacity = capacity;
+      this._length = 0;
+      this._front = 0;
+    }
+    Queue.prototype._willBeOverCapacity = function(size) {
+      return this._capacity < size;
+    };
+    Queue.prototype._pushOne = function(arg) {
+      var length = this.length();
+      this._checkCapacity(length + 1);
+      var i = this._front + length & this._capacity - 1;
+      this[i] = arg;
+      this._length = length + 1;
+    };
+    Queue.prototype.push = function(fn, receiver2, arg) {
+      var length = this.length() + 3;
+      if (this._willBeOverCapacity(length)) {
+        this._pushOne(fn);
+        this._pushOne(receiver2);
+        this._pushOne(arg);
+        return;
+      }
+      var j = this._front + length - 3;
+      this._checkCapacity(length);
+      var wrapMask = this._capacity - 1;
+      this[j + 0 & wrapMask] = fn;
+      this[j + 1 & wrapMask] = receiver2;
+      this[j + 2 & wrapMask] = arg;
+      this._length = length;
+    };
+    Queue.prototype.shift = function() {
+      var front = this._front, ret2 = this[front];
+      this[front] = void 0;
+      this._front = front + 1 & this._capacity - 1;
+      this._length--;
+      return ret2;
+    };
+    Queue.prototype.length = function() {
+      return this._length;
+    };
+    Queue.prototype._checkCapacity = function(size) {
+      if (this._capacity < size) {
+        this._resizeTo(this._capacity << 1);
+      }
+    };
+    Queue.prototype._resizeTo = function(capacity) {
+      var oldCapacity = this._capacity;
+      this._capacity = capacity;
+      var front = this._front;
+      var length = this._length;
+      var moveItemsCount = front + length & oldCapacity - 1;
+      arrayMove(this, 0, this, oldCapacity, moveItemsCount);
+    };
+    module2.exports = Queue;
+  }
+});
+
+// ../node_modules/bluebird/js/release/async.js
+var require_async = __commonJS({
+  "../node_modules/bluebird/js/release/async.js"(exports2, module2) {
+    "use strict";
+    var firstLineError;
+    try {
+      throw new Error();
+    } catch (e) {
+      firstLineError = e;
+    }
+    var schedule = require_schedule();
+    var Queue = require_queue();
+    function Async() {
+      this._customScheduler = false;
+      this._isTickUsed = false;
+      this._lateQueue = new Queue(16);
+      this._normalQueue = new Queue(16);
+      this._haveDrainedQueues = false;
+      var self2 = this;
+      this.drainQueues = function() {
+        self2._drainQueues();
+      };
+      this._schedule = schedule;
+    }
+    Async.prototype.setScheduler = function(fn) {
+      var prev = this._schedule;
+      this._schedule = fn;
+      this._customScheduler = true;
+      return prev;
+    };
+    Async.prototype.hasCustomScheduler = function() {
+      return this._customScheduler;
+    };
+    Async.prototype.haveItemsQueued = function() {
+      return this._isTickUsed || this._haveDrainedQueues;
+    };
+    Async.prototype.fatalError = function(e, isNode2) {
+      if (isNode2) {
+        process.stderr.write("Fatal " + (e instanceof Error ? e.stack : e) + "\n");
+        process.exit(2);
+      } else {
+        this.throwLater(e);
+      }
+    };
+    Async.prototype.throwLater = function(fn, arg) {
+      if (arguments.length === 1) {
+        arg = fn;
+        fn = function() {
+          throw arg;
+        };
+      }
+      if (typeof setTimeout !== "undefined") {
+        setTimeout(function() {
+          fn(arg);
+        }, 0);
+      } else try {
+        this._schedule(function() {
+          fn(arg);
+        });
+      } catch (e) {
+        throw new Error("No async scheduler available\n\n    See http://goo.gl/MqrFmX\n");
+      }
+    };
+    function AsyncInvokeLater(fn, receiver2, arg) {
+      this._lateQueue.push(fn, receiver2, arg);
+      this._queueTick();
+    }
+    function AsyncInvoke(fn, receiver2, arg) {
+      this._normalQueue.push(fn, receiver2, arg);
+      this._queueTick();
+    }
+    function AsyncSettlePromises(promise) {
+      this._normalQueue._pushOne(promise);
+      this._queueTick();
+    }
+    Async.prototype.invokeLater = AsyncInvokeLater;
+    Async.prototype.invoke = AsyncInvoke;
+    Async.prototype.settlePromises = AsyncSettlePromises;
+    function _drainQueue(queue) {
+      while (queue.length() > 0) {
+        _drainQueueStep(queue);
+      }
+    }
+    function _drainQueueStep(queue) {
+      var fn = queue.shift();
+      if (typeof fn !== "function") {
+        fn._settlePromises();
+      } else {
+        var receiver2 = queue.shift();
+        var arg = queue.shift();
+        fn.call(receiver2, arg);
+      }
+    }
+    Async.prototype._drainQueues = function() {
+      _drainQueue(this._normalQueue);
+      this._reset();
+      this._haveDrainedQueues = true;
+      _drainQueue(this._lateQueue);
+    };
+    Async.prototype._queueTick = function() {
+      if (!this._isTickUsed) {
+        this._isTickUsed = true;
+        this._schedule(this.drainQueues);
+      }
+    };
+    Async.prototype._reset = function() {
+      this._isTickUsed = false;
+    };
+    module2.exports = Async;
+    module2.exports.firstLineError = firstLineError;
+  }
+});
+
+// ../node_modules/bluebird/js/release/errors.js
+var require_errors2 = __commonJS({
+  "../node_modules/bluebird/js/release/errors.js"(exports2, module2) {
+    "use strict";
+    var es52 = require_es5();
+    var Objectfreeze = es52.freeze;
+    var util = require_util9();
+    var inherits2 = util.inherits;
+    var notEnumerableProp2 = util.notEnumerableProp;
+    function subError(nameProperty, defaultMessage) {
+      function SubError(message) {
+        if (!(this instanceof SubError)) return new SubError(message);
+        notEnumerableProp2(
+          this,
+          "message",
+          typeof message === "string" ? message : defaultMessage
+        );
+        notEnumerableProp2(this, "name", nameProperty);
+        if (Error.captureStackTrace) {
+          Error.captureStackTrace(this, this.constructor);
+        } else {
+          Error.call(this);
+        }
+      }
+      inherits2(SubError, Error);
+      return SubError;
+    }
+    var _TypeError;
+    var _RangeError;
+    var Warning = subError("Warning", "warning");
+    var CancellationError = subError("CancellationError", "cancellation error");
+    var TimeoutError = subError("TimeoutError", "timeout error");
+    var AggregateError = subError("AggregateError", "aggregate error");
+    try {
+      _TypeError = TypeError;
+      _RangeError = RangeError;
+    } catch (e) {
+      _TypeError = subError("TypeError", "type error");
+      _RangeError = subError("RangeError", "range error");
+    }
+    var methods = "join pop push shift unshift slice filter forEach some every map indexOf lastIndexOf reduce reduceRight sort reverse".split(" ");
+    for (i = 0; i < methods.length; ++i) {
+      if (typeof Array.prototype[methods[i]] === "function") {
+        AggregateError.prototype[methods[i]] = Array.prototype[methods[i]];
+      }
+    }
+    var i;
+    es52.defineProperty(AggregateError.prototype, "length", {
+      value: 0,
+      configurable: false,
+      writable: true,
+      enumerable: true
+    });
+    AggregateError.prototype["isOperational"] = true;
+    var level = 0;
+    AggregateError.prototype.toString = function() {
+      var indent = Array(level * 4 + 1).join(" ");
+      var ret2 = "\n" + indent + "AggregateError of:\n";
+      level++;
+      indent = Array(level * 4 + 1).join(" ");
+      for (var i2 = 0; i2 < this.length; ++i2) {
+        var str = this[i2] === this ? "[Circular AggregateError]" : this[i2] + "";
+        var lines = str.split("\n");
+        for (var j = 0; j < lines.length; ++j) {
+          lines[j] = indent + lines[j];
+        }
+        str = lines.join("\n");
+        ret2 += str + "\n";
+      }
+      level--;
+      return ret2;
+    };
+    function OperationalError(message) {
+      if (!(this instanceof OperationalError))
+        return new OperationalError(message);
+      notEnumerableProp2(this, "name", "OperationalError");
+      notEnumerableProp2(this, "message", message);
+      this.cause = message;
+      this["isOperational"] = true;
+      if (message instanceof Error) {
+        notEnumerableProp2(this, "message", message.message);
+        notEnumerableProp2(this, "stack", message.stack);
+      } else if (Error.captureStackTrace) {
+        Error.captureStackTrace(this, this.constructor);
+      }
+    }
+    inherits2(OperationalError, Error);
+    var errorTypes = Error["__BluebirdErrorTypes__"];
+    if (!errorTypes) {
+      errorTypes = Objectfreeze({
+        CancellationError,
+        TimeoutError,
+        OperationalError,
+        RejectionError: OperationalError,
+        AggregateError
+      });
+      es52.defineProperty(Error, "__BluebirdErrorTypes__", {
+        value: errorTypes,
+        writable: false,
+        enumerable: false,
+        configurable: false
+      });
+    }
+    module2.exports = {
+      Error,
+      TypeError: _TypeError,
+      RangeError: _RangeError,
+      CancellationError: errorTypes.CancellationError,
+      OperationalError: errorTypes.OperationalError,
+      TimeoutError: errorTypes.TimeoutError,
+      AggregateError: errorTypes.AggregateError,
+      Warning
+    };
+  }
+});
+
+// ../node_modules/bluebird/js/release/thenables.js
+var require_thenables = __commonJS({
+  "../node_modules/bluebird/js/release/thenables.js"(exports2, module2) {
+    "use strict";
+    module2.exports = function(Promise2, INTERNAL) {
+      var util = require_util9();
+      var errorObj2 = util.errorObj;
+      var isObject2 = util.isObject;
+      function tryConvertToPromise(obj2, context) {
+        if (isObject2(obj2)) {
+          if (obj2 instanceof Promise2) return obj2;
+          var then = getThen(obj2);
+          if (then === errorObj2) {
+            if (context) context._pushContext();
+            var ret2 = Promise2.reject(then.e);
+            if (context) context._popContext();
+            return ret2;
+          } else if (typeof then === "function") {
+            if (isAnyBluebirdPromise(obj2)) {
+              var ret2 = new Promise2(INTERNAL);
+              obj2._then(
+                ret2._fulfill,
+                ret2._reject,
+                void 0,
+                ret2,
+                null
+              );
+              return ret2;
+            }
+            return doThenable(obj2, then, context);
+          }
+        }
+        return obj2;
+      }
+      function doGetThen(obj2) {
+        return obj2.then;
+      }
+      function getThen(obj2) {
+        try {
+          return doGetThen(obj2);
+        } catch (e) {
+          errorObj2.e = e;
+          return errorObj2;
+        }
+      }
+      var hasProp = {}.hasOwnProperty;
+      function isAnyBluebirdPromise(obj2) {
+        try {
+          return hasProp.call(obj2, "_promise0");
+        } catch (e) {
+          return false;
+        }
+      }
+      function doThenable(x, then, context) {
+        var promise = new Promise2(INTERNAL);
+        var ret2 = promise;
+        if (context) context._pushContext();
+        promise._captureStackTrace();
+        if (context) context._popContext();
+        var synchronous = true;
+        var result = util.tryCatch(then).call(x, resolve, reject);
+        synchronous = false;
+        if (promise && result === errorObj2) {
+          promise._rejectCallback(result.e, true, true);
+          promise = null;
+        }
+        function resolve(value) {
+          if (!promise) return;
+          promise._resolveCallback(value);
+          promise = null;
+        }
+        function reject(reason) {
+          if (!promise) return;
+          promise._rejectCallback(reason, synchronous, true);
+          promise = null;
+        }
+        return ret2;
+      }
+      return tryConvertToPromise;
+    };
+  }
+});
+
+// ../node_modules/bluebird/js/release/promise_array.js
+var require_promise_array = __commonJS({
+  "../node_modules/bluebird/js/release/promise_array.js"(exports2, module2) {
+    "use strict";
+    module2.exports = function(Promise2, INTERNAL, tryConvertToPromise, apiRejection, Proxyable) {
+      var util = require_util9();
+      var isArray = util.isArray;
+      function toResolutionValue(val) {
+        switch (val) {
+          case -2:
+            return [];
+          case -3:
+            return {};
+          case -6:
+            return /* @__PURE__ */ new Map();
+        }
+      }
+      function PromiseArray(values) {
+        var promise = this._promise = new Promise2(INTERNAL);
+        if (values instanceof Promise2) {
+          promise._propagateFrom(values, 3);
+          values.suppressUnhandledRejections();
+        }
+        promise._setOnCancel(this);
+        this._values = values;
+        this._length = 0;
+        this._totalResolved = 0;
+        this._init(void 0, -2);
+      }
+      util.inherits(PromiseArray, Proxyable);
+      PromiseArray.prototype.length = function() {
+        return this._length;
+      };
+      PromiseArray.prototype.promise = function() {
+        return this._promise;
+      };
+      PromiseArray.prototype._init = function init(_, resolveValueIfEmpty) {
+        var values = tryConvertToPromise(this._values, this._promise);
+        if (values instanceof Promise2) {
+          values = values._target();
+          var bitField = values._bitField;
+          ;
+          this._values = values;
+          if ((bitField & 50397184) === 0) {
+            this._promise._setAsyncGuaranteed();
+            return values._then(
+              init,
+              this._reject,
+              void 0,
+              this,
+              resolveValueIfEmpty
+            );
+          } else if ((bitField & 33554432) !== 0) {
+            values = values._value();
+          } else if ((bitField & 16777216) !== 0) {
+            return this._reject(values._reason());
+          } else {
+            return this._cancel();
+          }
+        }
+        values = util.asArray(values);
+        if (values === null) {
+          var err = apiRejection(
+            "expecting an array or an iterable object but got " + util.classString(values)
+          ).reason();
+          this._promise._rejectCallback(err, false);
+          return;
+        }
+        if (values.length === 0) {
+          if (resolveValueIfEmpty === -5) {
+            this._resolveEmptyArray();
+          } else {
+            this._resolve(toResolutionValue(resolveValueIfEmpty));
+          }
+          return;
+        }
+        this._iterate(values);
+      };
+      PromiseArray.prototype._iterate = function(values) {
+        var len = this.getActualLength(values.length);
+        this._length = len;
+        this._values = this.shouldCopyValues() ? new Array(len) : this._values;
+        var result = this._promise;
+        var isResolved = false;
+        var bitField = null;
+        for (var i = 0; i < len; ++i) {
+          var maybePromise = tryConvertToPromise(values[i], result);
+          if (maybePromise instanceof Promise2) {
+            maybePromise = maybePromise._target();
+            bitField = maybePromise._bitField;
+          } else {
+            bitField = null;
+          }
+          if (isResolved) {
+            if (bitField !== null) {
+              maybePromise.suppressUnhandledRejections();
+            }
+          } else if (bitField !== null) {
+            if ((bitField & 50397184) === 0) {
+              maybePromise._proxy(this, i);
+              this._values[i] = maybePromise;
+            } else if ((bitField & 33554432) !== 0) {
+              isResolved = this._promiseFulfilled(maybePromise._value(), i);
+            } else if ((bitField & 16777216) !== 0) {
+              isResolved = this._promiseRejected(maybePromise._reason(), i);
+            } else {
+              isResolved = this._promiseCancelled(i);
+            }
+          } else {
+            isResolved = this._promiseFulfilled(maybePromise, i);
+          }
+        }
+        if (!isResolved) result._setAsyncGuaranteed();
+      };
+      PromiseArray.prototype._isResolved = function() {
+        return this._values === null;
+      };
+      PromiseArray.prototype._resolve = function(value) {
+        this._values = null;
+        this._promise._fulfill(value);
+      };
+      PromiseArray.prototype._cancel = function() {
+        if (this._isResolved() || !this._promise._isCancellable()) return;
+        this._values = null;
+        this._promise._cancel();
+      };
+      PromiseArray.prototype._reject = function(reason) {
+        this._values = null;
+        this._promise._rejectCallback(reason, false);
+      };
+      PromiseArray.prototype._promiseFulfilled = function(value, index) {
+        this._values[index] = value;
+        var totalResolved = ++this._totalResolved;
+        if (totalResolved >= this._length) {
+          this._resolve(this._values);
+          return true;
+        }
+        return false;
+      };
+      PromiseArray.prototype._promiseCancelled = function() {
+        this._cancel();
+        return true;
+      };
+      PromiseArray.prototype._promiseRejected = function(reason) {
+        this._totalResolved++;
+        this._reject(reason);
+        return true;
+      };
+      PromiseArray.prototype._resultCancelled = function() {
+        if (this._isResolved()) return;
+        var values = this._values;
+        this._cancel();
+        if (values instanceof Promise2) {
+          values.cancel();
+        } else {
+          for (var i = 0; i < values.length; ++i) {
+            if (values[i] instanceof Promise2) {
+              values[i].cancel();
+            }
+          }
+        }
+      };
+      PromiseArray.prototype.shouldCopyValues = function() {
+        return true;
+      };
+      PromiseArray.prototype.getActualLength = function(len) {
+        return len;
+      };
+      return PromiseArray;
+    };
+  }
+});
+
+// ../node_modules/bluebird/js/release/context.js
+var require_context = __commonJS({
+  "../node_modules/bluebird/js/release/context.js"(exports2, module2) {
+    "use strict";
+    module2.exports = function(Promise2) {
+      var longStackTraces = false;
+      var contextStack = [];
+      Promise2.prototype._promiseCreated = function() {
+      };
+      Promise2.prototype._pushContext = function() {
+      };
+      Promise2.prototype._popContext = function() {
+        return null;
+      };
+      Promise2._peekContext = Promise2.prototype._peekContext = function() {
+      };
+      function Context() {
+        this._trace = new Context.CapturedTrace(peekContext());
+      }
+      Context.prototype._pushContext = function() {
+        if (this._trace !== void 0) {
+          this._trace._promiseCreated = null;
+          contextStack.push(this._trace);
+        }
+      };
+      Context.prototype._popContext = function() {
+        if (this._trace !== void 0) {
+          var trace = contextStack.pop();
+          var ret2 = trace._promiseCreated;
+          trace._promiseCreated = null;
+          return ret2;
+        }
+        return null;
+      };
+      function createContext() {
+        if (longStackTraces) return new Context();
+      }
+      function peekContext() {
+        var lastIndex = contextStack.length - 1;
+        if (lastIndex >= 0) {
+          return contextStack[lastIndex];
+        }
+        return void 0;
+      }
+      Context.CapturedTrace = null;
+      Context.create = createContext;
+      Context.deactivateLongStackTraces = function() {
+      };
+      Context.activateLongStackTraces = function() {
+        var Promise_pushContext = Promise2.prototype._pushContext;
+        var Promise_popContext = Promise2.prototype._popContext;
+        var Promise_PeekContext = Promise2._peekContext;
+        var Promise_peekContext = Promise2.prototype._peekContext;
+        var Promise_promiseCreated = Promise2.prototype._promiseCreated;
+        Context.deactivateLongStackTraces = function() {
+          Promise2.prototype._pushContext = Promise_pushContext;
+          Promise2.prototype._popContext = Promise_popContext;
+          Promise2._peekContext = Promise_PeekContext;
+          Promise2.prototype._peekContext = Promise_peekContext;
+          Promise2.prototype._promiseCreated = Promise_promiseCreated;
+          longStackTraces = false;
+        };
+        longStackTraces = true;
+        Promise2.prototype._pushContext = Context.prototype._pushContext;
+        Promise2.prototype._popContext = Context.prototype._popContext;
+        Promise2._peekContext = Promise2.prototype._peekContext = peekContext;
+        Promise2.prototype._promiseCreated = function() {
+          var ctx = this._peekContext();
+          if (ctx && ctx._promiseCreated == null) ctx._promiseCreated = this;
+        };
+      };
+      return Context;
+    };
+  }
+});
+
+// ../node_modules/bluebird/js/release/debuggability.js
+var require_debuggability = __commonJS({
+  "../node_modules/bluebird/js/release/debuggability.js"(exports2, module2) {
+    "use strict";
+    module2.exports = function(Promise2, Context, enableAsyncHooks, disableAsyncHooks) {
+      var async = Promise2._async;
+      var Warning = require_errors2().Warning;
+      var util = require_util9();
+      var es52 = require_es5();
+      var canAttachTrace2 = util.canAttachTrace;
+      var unhandledRejectionHandled;
+      var possiblyUnhandledRejection;
+      var bluebirdFramePattern = /[\\\/]bluebird[\\\/]js[\\\/](release|debug|instrumented)/;
+      var nodeFramePattern = /\((?:timers\.js):\d+:\d+\)/;
+      var parseLinePattern = /[\/<\(](.+?):(\d+):(\d+)\)?\s*$/;
+      var stackFramePattern = null;
+      var formatStack = null;
+      var indentStackFrames = false;
+      var printWarning;
+      var debugging = !!(util.env("BLUEBIRD_DEBUG") != 0 && (util.env("BLUEBIRD_DEBUG") || util.env("NODE_ENV") === "development"));
+      var warnings = !!(util.env("BLUEBIRD_WARNINGS") != 0 && (debugging || util.env("BLUEBIRD_WARNINGS")));
+      var longStackTraces = !!(util.env("BLUEBIRD_LONG_STACK_TRACES") != 0 && (debugging || util.env("BLUEBIRD_LONG_STACK_TRACES")));
+      var wForgottenReturn = util.env("BLUEBIRD_W_FORGOTTEN_RETURN") != 0 && (warnings || !!util.env("BLUEBIRD_W_FORGOTTEN_RETURN"));
+      var deferUnhandledRejectionCheck;
+      (function() {
+        var promises3 = [];
+        function unhandledRejectionCheck() {
+          for (var i = 0; i < promises3.length; ++i) {
+            promises3[i]._notifyUnhandledRejection();
+          }
+          unhandledRejectionClear();
+        }
+        function unhandledRejectionClear() {
+          promises3.length = 0;
+        }
+        deferUnhandledRejectionCheck = function(promise) {
+          promises3.push(promise);
+          setTimeout(unhandledRejectionCheck, 1);
+        };
+        es52.defineProperty(Promise2, "_unhandledRejectionCheck", {
+          value: unhandledRejectionCheck
+        });
+        es52.defineProperty(Promise2, "_unhandledRejectionClear", {
+          value: unhandledRejectionClear
+        });
+      })();
+      Promise2.prototype.suppressUnhandledRejections = function() {
+        var target = this._target();
+        target._bitField = target._bitField & ~1048576 | 524288;
+      };
+      Promise2.prototype._ensurePossibleRejectionHandled = function() {
+        if ((this._bitField & 524288) !== 0) return;
+        this._setRejectionIsUnhandled();
+        deferUnhandledRejectionCheck(this);
+      };
+      Promise2.prototype._notifyUnhandledRejectionIsHandled = function() {
+        fireRejectionEvent(
+          "rejectionHandled",
+          unhandledRejectionHandled,
+          void 0,
+          this
+        );
+      };
+      Promise2.prototype._setReturnedNonUndefined = function() {
+        this._bitField = this._bitField | 268435456;
+      };
+      Promise2.prototype._returnedNonUndefined = function() {
+        return (this._bitField & 268435456) !== 0;
+      };
+      Promise2.prototype._notifyUnhandledRejection = function() {
+        if (this._isRejectionUnhandled()) {
+          var reason = this._settledValue();
+          this._setUnhandledRejectionIsNotified();
+          fireRejectionEvent(
+            "unhandledRejection",
+            possiblyUnhandledRejection,
+            reason,
+            this
+          );
+        }
+      };
+      Promise2.prototype._setUnhandledRejectionIsNotified = function() {
+        this._bitField = this._bitField | 262144;
+      };
+      Promise2.prototype._unsetUnhandledRejectionIsNotified = function() {
+        this._bitField = this._bitField & ~262144;
+      };
+      Promise2.prototype._isUnhandledRejectionNotified = function() {
+        return (this._bitField & 262144) > 0;
+      };
+      Promise2.prototype._setRejectionIsUnhandled = function() {
+        this._bitField = this._bitField | 1048576;
+      };
+      Promise2.prototype._unsetRejectionIsUnhandled = function() {
+        this._bitField = this._bitField & ~1048576;
+        if (this._isUnhandledRejectionNotified()) {
+          this._unsetUnhandledRejectionIsNotified();
+          this._notifyUnhandledRejectionIsHandled();
+        }
+      };
+      Promise2.prototype._isRejectionUnhandled = function() {
+        return (this._bitField & 1048576) > 0;
+      };
+      Promise2.prototype._warn = function(message, shouldUseOwnTrace, promise) {
+        return warn(message, shouldUseOwnTrace, promise || this);
+      };
+      Promise2.onPossiblyUnhandledRejection = function(fn) {
+        var context = Promise2._getContext();
+        possiblyUnhandledRejection = util.contextBind(context, fn);
+      };
+      Promise2.onUnhandledRejectionHandled = function(fn) {
+        var context = Promise2._getContext();
+        unhandledRejectionHandled = util.contextBind(context, fn);
+      };
+      var disableLongStackTraces = function() {
+      };
+      Promise2.longStackTraces = function() {
+        if (async.haveItemsQueued() && !config.longStackTraces) {
+          throw new Error("cannot enable long stack traces after promises have been created\n\n    See http://goo.gl/MqrFmX\n");
+        }
+        if (!config.longStackTraces && longStackTracesIsSupported()) {
+          var Promise_captureStackTrace = Promise2.prototype._captureStackTrace;
+          var Promise_attachExtraTrace = Promise2.prototype._attachExtraTrace;
+          var Promise_dereferenceTrace = Promise2.prototype._dereferenceTrace;
+          config.longStackTraces = true;
+          disableLongStackTraces = function() {
+            if (async.haveItemsQueued() && !config.longStackTraces) {
+              throw new Error("cannot enable long stack traces after promises have been created\n\n    See http://goo.gl/MqrFmX\n");
+            }
+            Promise2.prototype._captureStackTrace = Promise_captureStackTrace;
+            Promise2.prototype._attachExtraTrace = Promise_attachExtraTrace;
+            Promise2.prototype._dereferenceTrace = Promise_dereferenceTrace;
+            Context.deactivateLongStackTraces();
+            config.longStackTraces = false;
+          };
+          Promise2.prototype._captureStackTrace = longStackTracesCaptureStackTrace;
+          Promise2.prototype._attachExtraTrace = longStackTracesAttachExtraTrace;
+          Promise2.prototype._dereferenceTrace = longStackTracesDereferenceTrace;
+          Context.activateLongStackTraces();
+        }
+      };
+      Promise2.hasLongStackTraces = function() {
+        return config.longStackTraces && longStackTracesIsSupported();
+      };
+      var legacyHandlers = {
+        unhandledrejection: {
+          before: function() {
+            var ret2 = util.global.onunhandledrejection;
+            util.global.onunhandledrejection = null;
+            return ret2;
+          },
+          after: function(fn) {
+            util.global.onunhandledrejection = fn;
+          }
+        },
+        rejectionhandled: {
+          before: function() {
+            var ret2 = util.global.onrejectionhandled;
+            util.global.onrejectionhandled = null;
+            return ret2;
+          },
+          after: function(fn) {
+            util.global.onrejectionhandled = fn;
+          }
+        }
+      };
+      var fireDomEvent = (function() {
+        var dispatch = function(legacy, e) {
+          if (legacy) {
+            var fn;
+            try {
+              fn = legacy.before();
+              return !util.global.dispatchEvent(e);
+            } finally {
+              legacy.after(fn);
+            }
+          } else {
+            return !util.global.dispatchEvent(e);
+          }
+        };
+        try {
+          if (typeof CustomEvent === "function") {
+            var event = new CustomEvent("CustomEvent");
+            util.global.dispatchEvent(event);
+            return function(name, event2) {
+              name = name.toLowerCase();
+              var eventData = {
+                detail: event2,
+                cancelable: true
+              };
+              var domEvent = new CustomEvent(name, eventData);
+              es52.defineProperty(
+                domEvent,
+                "promise",
+                { value: event2.promise }
+              );
+              es52.defineProperty(
+                domEvent,
+                "reason",
+                { value: event2.reason }
+              );
+              return dispatch(legacyHandlers[name], domEvent);
+            };
+          } else if (typeof Event === "function") {
+            var event = new Event("CustomEvent");
+            util.global.dispatchEvent(event);
+            return function(name, event2) {
+              name = name.toLowerCase();
+              var domEvent = new Event(name, {
+                cancelable: true
+              });
+              domEvent.detail = event2;
+              es52.defineProperty(domEvent, "promise", { value: event2.promise });
+              es52.defineProperty(domEvent, "reason", { value: event2.reason });
+              return dispatch(legacyHandlers[name], domEvent);
+            };
+          } else {
+            var event = document.createEvent("CustomEvent");
+            event.initCustomEvent("testingtheevent", false, true, {});
+            util.global.dispatchEvent(event);
+            return function(name, event2) {
+              name = name.toLowerCase();
+              var domEvent = document.createEvent("CustomEvent");
+              domEvent.initCustomEvent(
+                name,
+                false,
+                true,
+                event2
+              );
+              return dispatch(legacyHandlers[name], domEvent);
+            };
+          }
+        } catch (e) {
+        }
+        return function() {
+          return false;
+        };
+      })();
+      var fireGlobalEvent = (function() {
+        if (util.isNode) {
+          return function() {
+            return process.emit.apply(process, arguments);
+          };
+        } else {
+          if (!util.global) {
+            return function() {
+              return false;
+            };
+          }
+          return function(name) {
+            var methodName = "on" + name.toLowerCase();
+            var method = util.global[methodName];
+            if (!method) return false;
+            method.apply(util.global, [].slice.call(arguments, 1));
+            return true;
+          };
+        }
+      })();
+      function generatePromiseLifecycleEventObject(name, promise) {
+        return { promise };
+      }
+      var eventToObjectGenerator = {
+        promiseCreated: generatePromiseLifecycleEventObject,
+        promiseFulfilled: generatePromiseLifecycleEventObject,
+        promiseRejected: generatePromiseLifecycleEventObject,
+        promiseResolved: generatePromiseLifecycleEventObject,
+        promiseCancelled: generatePromiseLifecycleEventObject,
+        promiseChained: function(name, promise, child) {
+          return { promise, child };
+        },
+        warning: function(name, warning) {
+          return { warning };
+        },
+        unhandledRejection: function(name, reason, promise) {
+          return { reason, promise };
+        },
+        rejectionHandled: generatePromiseLifecycleEventObject
+      };
+      var activeFireEvent = function(name) {
+        var globalEventFired = false;
+        try {
+          globalEventFired = fireGlobalEvent.apply(null, arguments);
+        } catch (e) {
+          async.throwLater(e);
+          globalEventFired = true;
+        }
+        var domEventFired = false;
+        try {
+          domEventFired = fireDomEvent(
+            name,
+            eventToObjectGenerator[name].apply(null, arguments)
+          );
+        } catch (e) {
+          async.throwLater(e);
+          domEventFired = true;
+        }
+        return domEventFired || globalEventFired;
+      };
+      Promise2.config = function(opts) {
+        opts = Object(opts);
+        if ("longStackTraces" in opts) {
+          if (opts.longStackTraces) {
+            Promise2.longStackTraces();
+          } else if (!opts.longStackTraces && Promise2.hasLongStackTraces()) {
+            disableLongStackTraces();
+          }
+        }
+        if ("warnings" in opts) {
+          var warningsOption = opts.warnings;
+          config.warnings = !!warningsOption;
+          wForgottenReturn = config.warnings;
+          if (util.isObject(warningsOption)) {
+            if ("wForgottenReturn" in warningsOption) {
+              wForgottenReturn = !!warningsOption.wForgottenReturn;
+            }
+          }
+        }
+        if ("cancellation" in opts && opts.cancellation && !config.cancellation) {
+          if (async.haveItemsQueued()) {
+            throw new Error(
+              "cannot enable cancellation after promises are in use"
+            );
+          }
+          Promise2.prototype._clearCancellationData = cancellationClearCancellationData;
+          Promise2.prototype._propagateFrom = cancellationPropagateFrom;
+          Promise2.prototype._onCancel = cancellationOnCancel;
+          Promise2.prototype._setOnCancel = cancellationSetOnCancel;
+          Promise2.prototype._attachCancellationCallback = cancellationAttachCancellationCallback;
+          Promise2.prototype._execute = cancellationExecute;
+          propagateFromFunction = cancellationPropagateFrom;
+          config.cancellation = true;
+        }
+        if ("monitoring" in opts) {
+          if (opts.monitoring && !config.monitoring) {
+            config.monitoring = true;
+            Promise2.prototype._fireEvent = activeFireEvent;
+          } else if (!opts.monitoring && config.monitoring) {
+            config.monitoring = false;
+            Promise2.prototype._fireEvent = defaultFireEvent;
+          }
+        }
+        if ("asyncHooks" in opts && util.nodeSupportsAsyncResource) {
+          var prev = config.asyncHooks;
+          var cur = !!opts.asyncHooks;
+          if (prev !== cur) {
+            config.asyncHooks = cur;
+            if (cur) {
+              enableAsyncHooks();
+            } else {
+              disableAsyncHooks();
+            }
+          }
+        }
+        return Promise2;
+      };
+      function defaultFireEvent() {
+        return false;
+      }
+      Promise2.prototype._fireEvent = defaultFireEvent;
+      Promise2.prototype._execute = function(executor, resolve, reject) {
+        try {
+          executor(resolve, reject);
+        } catch (e) {
+          return e;
+        }
+      };
+      Promise2.prototype._onCancel = function() {
+      };
+      Promise2.prototype._setOnCancel = function(handler) {
+        ;
+      };
+      Promise2.prototype._attachCancellationCallback = function(onCancel) {
+        ;
+      };
+      Promise2.prototype._captureStackTrace = function() {
+      };
+      Promise2.prototype._attachExtraTrace = function() {
+      };
+      Promise2.prototype._dereferenceTrace = function() {
+      };
+      Promise2.prototype._clearCancellationData = function() {
+      };
+      Promise2.prototype._propagateFrom = function(parent, flags) {
+        ;
+        ;
+      };
+      function cancellationExecute(executor, resolve, reject) {
+        var promise = this;
+        try {
+          executor(resolve, reject, function(onCancel) {
+            if (typeof onCancel !== "function") {
+              throw new TypeError("onCancel must be a function, got: " + util.toString(onCancel));
+            }
+            promise._attachCancellationCallback(onCancel);
+          });
+        } catch (e) {
+          return e;
+        }
+      }
+      function cancellationAttachCancellationCallback(onCancel) {
+        if (!this._isCancellable()) return this;
+        var previousOnCancel = this._onCancel();
+        if (previousOnCancel !== void 0) {
+          if (util.isArray(previousOnCancel)) {
+            previousOnCancel.push(onCancel);
+          } else {
+            this._setOnCancel([previousOnCancel, onCancel]);
+          }
+        } else {
+          this._setOnCancel(onCancel);
+        }
+      }
+      function cancellationOnCancel() {
+        return this._onCancelField;
+      }
+      function cancellationSetOnCancel(onCancel) {
+        this._onCancelField = onCancel;
+      }
+      function cancellationClearCancellationData() {
+        this._cancellationParent = void 0;
+        this._onCancelField = void 0;
+      }
+      function cancellationPropagateFrom(parent, flags) {
+        if ((flags & 1) !== 0) {
+          this._cancellationParent = parent;
+          var branchesRemainingToCancel = parent._branchesRemainingToCancel;
+          if (branchesRemainingToCancel === void 0) {
+            branchesRemainingToCancel = 0;
+          }
+          parent._branchesRemainingToCancel = branchesRemainingToCancel + 1;
+        }
+        if ((flags & 2) !== 0 && parent._isBound()) {
+          this._setBoundTo(parent._boundTo);
+        }
+      }
+      function bindingPropagateFrom(parent, flags) {
+        if ((flags & 2) !== 0 && parent._isBound()) {
+          this._setBoundTo(parent._boundTo);
+        }
+      }
+      var propagateFromFunction = bindingPropagateFrom;
+      function boundValueFunction() {
+        var ret2 = this._boundTo;
+        if (ret2 !== void 0) {
+          if (ret2 instanceof Promise2) {
+            if (ret2.isFulfilled()) {
+              return ret2.value();
+            } else {
+              return void 0;
+            }
+          }
+        }
+        return ret2;
+      }
+      function longStackTracesCaptureStackTrace() {
+        this._trace = new CapturedTrace(this._peekContext());
+      }
+      function longStackTracesAttachExtraTrace(error, ignoreSelf) {
+        if (canAttachTrace2(error)) {
+          var trace = this._trace;
+          if (trace !== void 0) {
+            if (ignoreSelf) trace = trace._parent;
+          }
+          if (trace !== void 0) {
+            trace.attachExtraTrace(error);
+          } else if (!error.__stackCleaned__) {
+            var parsed = parseStackAndMessage(error);
+            util.notEnumerableProp(
+              error,
+              "stack",
+              parsed.message + "\n" + parsed.stack.join("\n")
+            );
+            util.notEnumerableProp(error, "__stackCleaned__", true);
+          }
+        }
+      }
+      function longStackTracesDereferenceTrace() {
+        this._trace = void 0;
+      }
+      function checkForgottenReturns(returnValue, promiseCreated, name, promise, parent) {
+        if (returnValue === void 0 && promiseCreated !== null && wForgottenReturn) {
+          if (parent !== void 0 && parent._returnedNonUndefined()) return;
+          if ((promise._bitField & 65535) === 0) return;
+          if (name) name = name + " ";
+          var handlerLine = "";
+          var creatorLine = "";
+          if (promiseCreated._trace) {
+            var traceLines = promiseCreated._trace.stack.split("\n");
+            var stack = cleanStack(traceLines);
+            for (var i = stack.length - 1; i >= 0; --i) {
+              var line = stack[i];
+              if (!nodeFramePattern.test(line)) {
+                var lineMatches = line.match(parseLinePattern);
+                if (lineMatches) {
+                  handlerLine = "at " + lineMatches[1] + ":" + lineMatches[2] + ":" + lineMatches[3] + " ";
+                }
+                break;
+              }
+            }
+            if (stack.length > 0) {
+              var firstUserLine = stack[0];
+              for (var i = 0; i < traceLines.length; ++i) {
+                if (traceLines[i] === firstUserLine) {
+                  if (i > 0) {
+                    creatorLine = "\n" + traceLines[i - 1];
+                  }
+                  break;
+                }
+              }
+            }
+          }
+          var msg = "a promise was created in a " + name + "handler " + handlerLine + "but was not returned from it, see http://goo.gl/rRqMUw" + creatorLine;
+          promise._warn(msg, true, promiseCreated);
+        }
+      }
+      function deprecated(name, replacement) {
+        var message = name + " is deprecated and will be removed in a future version.";
+        if (replacement) message += " Use " + replacement + " instead.";
+        return warn(message);
+      }
+      function warn(message, shouldUseOwnTrace, promise) {
+        if (!config.warnings) return;
+        var warning = new Warning(message);
+        var ctx;
+        if (shouldUseOwnTrace) {
+          promise._attachExtraTrace(warning);
+        } else if (config.longStackTraces && (ctx = Promise2._peekContext())) {
+          ctx.attachExtraTrace(warning);
+        } else {
+          var parsed = parseStackAndMessage(warning);
+          warning.stack = parsed.message + "\n" + parsed.stack.join("\n");
+        }
+        if (!activeFireEvent("warning", warning)) {
+          formatAndLogError(warning, "", true);
+        }
+      }
+      function reconstructStack(message, stacks) {
+        for (var i = 0; i < stacks.length - 1; ++i) {
+          stacks[i].push("From previous event:");
+          stacks[i] = stacks[i].join("\n");
+        }
+        if (i < stacks.length) {
+          stacks[i] = stacks[i].join("\n");
+        }
+        return message + "\n" + stacks.join("\n");
+      }
+      function removeDuplicateOrEmptyJumps(stacks) {
+        for (var i = 0; i < stacks.length; ++i) {
+          if (stacks[i].length === 0 || i + 1 < stacks.length && stacks[i][0] === stacks[i + 1][0]) {
+            stacks.splice(i, 1);
+            i--;
+          }
+        }
+      }
+      function removeCommonRoots(stacks) {
+        var current = stacks[0];
+        for (var i = 1; i < stacks.length; ++i) {
+          var prev = stacks[i];
+          var currentLastIndex = current.length - 1;
+          var currentLastLine = current[currentLastIndex];
+          var commonRootMeetPoint = -1;
+          for (var j = prev.length - 1; j >= 0; --j) {
+            if (prev[j] === currentLastLine) {
+              commonRootMeetPoint = j;
+              break;
+            }
+          }
+          for (var j = commonRootMeetPoint; j >= 0; --j) {
+            var line = prev[j];
+            if (current[currentLastIndex] === line) {
+              current.pop();
+              currentLastIndex--;
+            } else {
+              break;
+            }
+          }
+          current = prev;
+        }
+      }
+      function cleanStack(stack) {
+        var ret2 = [];
+        for (var i = 0; i < stack.length; ++i) {
+          var line = stack[i];
+          var isTraceLine = "    (No stack trace)" === line || stackFramePattern.test(line);
+          var isInternalFrame = isTraceLine && shouldIgnore(line);
+          if (isTraceLine && !isInternalFrame) {
+            if (indentStackFrames && line.charAt(0) !== " ") {
+              line = "    " + line;
+            }
+            ret2.push(line);
+          }
+        }
+        return ret2;
+      }
+      function stackFramesAsArray(error) {
+        var stack = error.stack.replace(/\s+$/g, "").split("\n");
+        for (var i = 0; i < stack.length; ++i) {
+          var line = stack[i];
+          if ("    (No stack trace)" === line || stackFramePattern.test(line)) {
+            break;
+          }
+        }
+        if (i > 0 && error.name != "SyntaxError") {
+          stack = stack.slice(i);
+        }
+        return stack;
+      }
+      function parseStackAndMessage(error) {
+        var stack = error.stack;
+        var message = error.toString();
+        stack = typeof stack === "string" && stack.length > 0 ? stackFramesAsArray(error) : ["    (No stack trace)"];
+        return {
+          message,
+          stack: error.name == "SyntaxError" ? stack : cleanStack(stack)
+        };
+      }
+      function formatAndLogError(error, title, isSoft) {
+        if (typeof console !== "undefined") {
+          var message;
+          if (util.isObject(error)) {
+            var stack = error.stack;
+            message = title + formatStack(stack, error);
+          } else {
+            message = title + String(error);
+          }
+          if (typeof printWarning === "function") {
+            printWarning(message, isSoft);
+          } else if (typeof console.log === "function" || typeof console.log === "object") {
+            console.log(message);
+          }
+        }
+      }
+      function fireRejectionEvent(name, localHandler, reason, promise) {
+        var localEventFired = false;
+        try {
+          if (typeof localHandler === "function") {
+            localEventFired = true;
+            if (name === "rejectionHandled") {
+              localHandler(promise);
+            } else {
+              localHandler(reason, promise);
+            }
+          }
+        } catch (e) {
+          async.throwLater(e);
+        }
+        if (name === "unhandledRejection") {
+          if (!activeFireEvent(name, reason, promise) && !localEventFired) {
+            formatAndLogError(reason, "Unhandled rejection ");
+          }
+        } else {
+          activeFireEvent(name, promise);
+        }
+      }
+      function formatNonError(obj2) {
+        var str;
+        if (typeof obj2 === "function") {
+          str = "[function " + (obj2.name || "anonymous") + "]";
+        } else {
+          str = obj2 && typeof obj2.toString === "function" ? obj2.toString() : util.toString(obj2);
+          var ruselessToString = /\[object [a-zA-Z0-9$_]+\]/;
+          if (ruselessToString.test(str)) {
+            try {
+              var newStr = JSON.stringify(obj2);
+              str = newStr;
+            } catch (e) {
+            }
+          }
+          if (str.length === 0) {
+            str = "(empty array)";
+          }
+        }
+        return "(<" + snip(str) + ">, no stack trace)";
+      }
+      function snip(str) {
+        var maxChars = 41;
+        if (str.length < maxChars) {
+          return str;
+        }
+        return str.substr(0, maxChars - 3) + "...";
+      }
+      function longStackTracesIsSupported() {
+        return typeof captureStackTrace === "function";
+      }
+      var shouldIgnore = function() {
+        return false;
+      };
+      var parseLineInfoRegex = /[\/<\(]([^:\/]+):(\d+):(?:\d+)\)?\s*$/;
+      function parseLineInfo(line) {
+        var matches = line.match(parseLineInfoRegex);
+        if (matches) {
+          return {
+            fileName: matches[1],
+            line: parseInt(matches[2], 10)
+          };
+        }
+      }
+      function setBounds(firstLineError, lastLineError) {
+        if (!longStackTracesIsSupported()) return;
+        var firstStackLines = (firstLineError.stack || "").split("\n");
+        var lastStackLines = (lastLineError.stack || "").split("\n");
+        var firstIndex = -1;
+        var lastIndex = -1;
+        var firstFileName;
+        var lastFileName;
+        for (var i = 0; i < firstStackLines.length; ++i) {
+          var result = parseLineInfo(firstStackLines[i]);
+          if (result) {
+            firstFileName = result.fileName;
+            firstIndex = result.line;
+            break;
+          }
+        }
+        for (var i = 0; i < lastStackLines.length; ++i) {
+          var result = parseLineInfo(lastStackLines[i]);
+          if (result) {
+            lastFileName = result.fileName;
+            lastIndex = result.line;
+            break;
+          }
+        }
+        if (firstIndex < 0 || lastIndex < 0 || !firstFileName || !lastFileName || firstFileName !== lastFileName || firstIndex >= lastIndex) {
+          return;
+        }
+        shouldIgnore = function(line) {
+          if (bluebirdFramePattern.test(line)) return true;
+          var info2 = parseLineInfo(line);
+          if (info2) {
+            if (info2.fileName === firstFileName && (firstIndex <= info2.line && info2.line <= lastIndex)) {
+              return true;
+            }
+          }
+          return false;
+        };
+      }
+      function CapturedTrace(parent) {
+        this._parent = parent;
+        this._promisesCreated = 0;
+        var length = this._length = 1 + (parent === void 0 ? 0 : parent._length);
+        captureStackTrace(this, CapturedTrace);
+        if (length > 32) this.uncycle();
+      }
+      util.inherits(CapturedTrace, Error);
+      Context.CapturedTrace = CapturedTrace;
+      CapturedTrace.prototype.uncycle = function() {
+        var length = this._length;
+        if (length < 2) return;
+        var nodes = [];
+        var stackToIndex = {};
+        for (var i = 0, node = this; node !== void 0; ++i) {
+          nodes.push(node);
+          node = node._parent;
+        }
+        length = this._length = i;
+        for (var i = length - 1; i >= 0; --i) {
+          var stack = nodes[i].stack;
+          if (stackToIndex[stack] === void 0) {
+            stackToIndex[stack] = i;
+          }
+        }
+        for (var i = 0; i < length; ++i) {
+          var currentStack = nodes[i].stack;
+          var index = stackToIndex[currentStack];
+          if (index !== void 0 && index !== i) {
+            if (index > 0) {
+              nodes[index - 1]._parent = void 0;
+              nodes[index - 1]._length = 1;
+            }
+            nodes[i]._parent = void 0;
+            nodes[i]._length = 1;
+            var cycleEdgeNode = i > 0 ? nodes[i - 1] : this;
+            if (index < length - 1) {
+              cycleEdgeNode._parent = nodes[index + 1];
+              cycleEdgeNode._parent.uncycle();
+              cycleEdgeNode._length = cycleEdgeNode._parent._length + 1;
+            } else {
+              cycleEdgeNode._parent = void 0;
+              cycleEdgeNode._length = 1;
+            }
+            var currentChildLength = cycleEdgeNode._length + 1;
+            for (var j = i - 2; j >= 0; --j) {
+              nodes[j]._length = currentChildLength;
+              currentChildLength++;
+            }
+            return;
+          }
+        }
+      };
+      CapturedTrace.prototype.attachExtraTrace = function(error) {
+        if (error.__stackCleaned__) return;
+        this.uncycle();
+        var parsed = parseStackAndMessage(error);
+        var message = parsed.message;
+        var stacks = [parsed.stack];
+        var trace = this;
+        while (trace !== void 0) {
+          stacks.push(cleanStack(trace.stack.split("\n")));
+          trace = trace._parent;
+        }
+        removeCommonRoots(stacks);
+        removeDuplicateOrEmptyJumps(stacks);
+        util.notEnumerableProp(error, "stack", reconstructStack(message, stacks));
+        util.notEnumerableProp(error, "__stackCleaned__", true);
+      };
+      var captureStackTrace = (function stackDetection() {
+        var v8stackFramePattern = /^\s*at\s*/;
+        var v8stackFormatter = function(stack, error) {
+          if (typeof stack === "string") return stack;
+          if (error.name !== void 0 && error.message !== void 0) {
+            return error.toString();
+          }
+          return formatNonError(error);
+        };
+        if (typeof Error.stackTraceLimit === "number" && typeof Error.captureStackTrace === "function") {
+          Error.stackTraceLimit += 6;
+          stackFramePattern = v8stackFramePattern;
+          formatStack = v8stackFormatter;
+          var captureStackTrace2 = Error.captureStackTrace;
+          shouldIgnore = function(line) {
+            return bluebirdFramePattern.test(line);
+          };
+          return function(receiver2, ignoreUntil) {
+            Error.stackTraceLimit += 6;
+            captureStackTrace2(receiver2, ignoreUntil);
+            Error.stackTraceLimit -= 6;
+          };
+        }
+        var err = new Error();
+        if (typeof err.stack === "string" && err.stack.split("\n")[0].indexOf("stackDetection@") >= 0) {
+          stackFramePattern = /@/;
+          formatStack = v8stackFormatter;
+          indentStackFrames = true;
+          return function captureStackTrace3(o) {
+            o.stack = new Error().stack;
+          };
+        }
+        var hasStackAfterThrow;
+        try {
+          throw new Error();
+        } catch (e) {
+          hasStackAfterThrow = "stack" in e;
+        }
+        if (!("stack" in err) && hasStackAfterThrow && typeof Error.stackTraceLimit === "number") {
+          stackFramePattern = v8stackFramePattern;
+          formatStack = v8stackFormatter;
+          return function captureStackTrace3(o) {
+            Error.stackTraceLimit += 6;
+            try {
+              throw new Error();
+            } catch (e) {
+              o.stack = e.stack;
+            }
+            Error.stackTraceLimit -= 6;
+          };
+        }
+        formatStack = function(stack, error) {
+          if (typeof stack === "string") return stack;
+          if ((typeof error === "object" || typeof error === "function") && error.name !== void 0 && error.message !== void 0) {
+            return error.toString();
+          }
+          return formatNonError(error);
+        };
+        return null;
+      })([]);
+      if (typeof console !== "undefined" && typeof console.warn !== "undefined") {
+        printWarning = function(message) {
+          console.warn(message);
+        };
+        if (util.isNode && process.stderr.isTTY) {
+          printWarning = function(message, isSoft) {
+            var color = isSoft ? "\x1B[33m" : "\x1B[31m";
+            console.warn(color + message + "\x1B[0m\n");
+          };
+        } else if (!util.isNode && typeof new Error().stack === "string") {
+          printWarning = function(message, isSoft) {
+            console.warn(
+              "%c" + message,
+              isSoft ? "color: darkorange" : "color: red"
+            );
+          };
+        }
+      }
+      var config = {
+        warnings,
+        longStackTraces: false,
+        cancellation: false,
+        monitoring: false,
+        asyncHooks: false
+      };
+      if (longStackTraces) Promise2.longStackTraces();
+      return {
+        asyncHooks: function() {
+          return config.asyncHooks;
+        },
+        longStackTraces: function() {
+          return config.longStackTraces;
+        },
+        warnings: function() {
+          return config.warnings;
+        },
+        cancellation: function() {
+          return config.cancellation;
+        },
+        monitoring: function() {
+          return config.monitoring;
+        },
+        propagateFromFunction: function() {
+          return propagateFromFunction;
+        },
+        boundValueFunction: function() {
+          return boundValueFunction;
+        },
+        checkForgottenReturns,
+        setBounds,
+        warn,
+        deprecated,
+        CapturedTrace,
+        fireDomEvent,
+        fireGlobalEvent
+      };
+    };
+  }
+});
+
+// ../node_modules/bluebird/js/release/catch_filter.js
+var require_catch_filter = __commonJS({
+  "../node_modules/bluebird/js/release/catch_filter.js"(exports2, module2) {
+    "use strict";
+    module2.exports = function(NEXT_FILTER) {
+      var util = require_util9();
+      var getKeys = require_es5().keys;
+      var tryCatch2 = util.tryCatch;
+      var errorObj2 = util.errorObj;
+      function catchFilter(instances, cb, promise) {
+        return function(e) {
+          var boundTo = promise._boundValue();
+          predicateLoop: for (var i = 0; i < instances.length; ++i) {
+            var item = instances[i];
+            if (item === Error || item != null && item.prototype instanceof Error) {
+              if (e instanceof item) {
+                return tryCatch2(cb).call(boundTo, e);
+              }
+            } else if (typeof item === "function") {
+              var matchesPredicate = tryCatch2(item).call(boundTo, e);
+              if (matchesPredicate === errorObj2) {
+                return matchesPredicate;
+              } else if (matchesPredicate) {
+                return tryCatch2(cb).call(boundTo, e);
+              }
+            } else if (util.isObject(e)) {
+              var keys = getKeys(item);
+              for (var j = 0; j < keys.length; ++j) {
+                var key = keys[j];
+                if (item[key] != e[key]) {
+                  continue predicateLoop;
+                }
+              }
+              return tryCatch2(cb).call(boundTo, e);
+            }
+          }
+          return NEXT_FILTER;
+        };
+      }
+      return catchFilter;
+    };
+  }
+});
+
+// ../node_modules/bluebird/js/release/finally.js
+var require_finally = __commonJS({
+  "../node_modules/bluebird/js/release/finally.js"(exports2, module2) {
+    "use strict";
+    module2.exports = function(Promise2, tryConvertToPromise, NEXT_FILTER) {
+      var util = require_util9();
+      var CancellationError = Promise2.CancellationError;
+      var errorObj2 = util.errorObj;
+      var catchFilter = require_catch_filter()(NEXT_FILTER);
+      function PassThroughHandlerContext(promise, type, handler) {
+        this.promise = promise;
+        this.type = type;
+        this.handler = handler;
+        this.called = false;
+        this.cancelPromise = null;
+      }
+      PassThroughHandlerContext.prototype.isFinallyHandler = function() {
+        return this.type === 0;
+      };
+      function FinallyHandlerCancelReaction(finallyHandler2) {
+        this.finallyHandler = finallyHandler2;
+      }
+      FinallyHandlerCancelReaction.prototype._resultCancelled = function() {
+        checkCancel(this.finallyHandler);
+      };
+      function checkCancel(ctx, reason) {
+        if (ctx.cancelPromise != null) {
+          if (arguments.length > 1) {
+            ctx.cancelPromise._reject(reason);
+          } else {
+            ctx.cancelPromise._cancel();
+          }
+          ctx.cancelPromise = null;
+          return true;
+        }
+        return false;
+      }
+      function succeed() {
+        return finallyHandler.call(this, this.promise._target()._settledValue());
+      }
+      function fail(reason) {
+        if (checkCancel(this, reason)) return;
+        errorObj2.e = reason;
+        return errorObj2;
+      }
+      function finallyHandler(reasonOrValue) {
+        var promise = this.promise;
+        var handler = this.handler;
+        if (!this.called) {
+          this.called = true;
+          var ret2 = this.isFinallyHandler() ? handler.call(promise._boundValue()) : handler.call(promise._boundValue(), reasonOrValue);
+          if (ret2 === NEXT_FILTER) {
+            return ret2;
+          } else if (ret2 !== void 0) {
+            promise._setReturnedNonUndefined();
+            var maybePromise = tryConvertToPromise(ret2, promise);
+            if (maybePromise instanceof Promise2) {
+              if (this.cancelPromise != null) {
+                if (maybePromise._isCancelled()) {
+                  var reason = new CancellationError("late cancellation observer");
+                  promise._attachExtraTrace(reason);
+                  errorObj2.e = reason;
+                  return errorObj2;
+                } else if (maybePromise.isPending()) {
+                  maybePromise._attachCancellationCallback(
+                    new FinallyHandlerCancelReaction(this)
+                  );
+                }
+              }
+              return maybePromise._then(
+                succeed,
+                fail,
+                void 0,
+                this,
+                void 0
+              );
+            }
+          }
+        }
+        if (promise.isRejected()) {
+          checkCancel(this);
+          errorObj2.e = reasonOrValue;
+          return errorObj2;
+        } else {
+          checkCancel(this);
+          return reasonOrValue;
+        }
+      }
+      Promise2.prototype._passThrough = function(handler, type, success, fail2) {
+        if (typeof handler !== "function") return this.then();
+        return this._then(
+          success,
+          fail2,
+          void 0,
+          new PassThroughHandlerContext(this, type, handler),
+          void 0
+        );
+      };
+      Promise2.prototype.lastly = Promise2.prototype["finally"] = function(handler) {
+        return this._passThrough(
+          handler,
+          0,
+          finallyHandler,
+          finallyHandler
+        );
+      };
+      Promise2.prototype.tap = function(handler) {
+        return this._passThrough(handler, 1, finallyHandler);
+      };
+      Promise2.prototype.tapCatch = function(handlerOrPredicate) {
+        var len = arguments.length;
+        if (len === 1) {
+          return this._passThrough(
+            handlerOrPredicate,
+            1,
+            void 0,
+            finallyHandler
+          );
+        } else {
+          var catchInstances = new Array(len - 1), j = 0, i;
+          for (i = 0; i < len - 1; ++i) {
+            var item = arguments[i];
+            if (util.isObject(item)) {
+              catchInstances[j++] = item;
+            } else {
+              return Promise2.reject(new TypeError(
+                "tapCatch statement predicate: expecting an object but got " + util.classString(item)
+              ));
+            }
+          }
+          catchInstances.length = j;
+          var handler = arguments[i];
+          return this._passThrough(
+            catchFilter(catchInstances, handler, this),
+            1,
+            void 0,
+            finallyHandler
+          );
+        }
+      };
+      return PassThroughHandlerContext;
+    };
+  }
+});
+
+// ../node_modules/bluebird/js/release/nodeback.js
+var require_nodeback = __commonJS({
+  "../node_modules/bluebird/js/release/nodeback.js"(exports2, module2) {
+    "use strict";
+    var util = require_util9();
+    var maybeWrapAsError2 = util.maybeWrapAsError;
+    var errors = require_errors2();
+    var OperationalError = errors.OperationalError;
+    var es52 = require_es5();
+    function isUntypedError(obj2) {
+      return obj2 instanceof Error && es52.getPrototypeOf(obj2) === Error.prototype;
+    }
+    var rErrorKey = /^(?:name|message|stack|cause)$/;
+    function wrapAsOperationalError(obj2) {
+      var ret2;
+      if (isUntypedError(obj2)) {
+        ret2 = new OperationalError(obj2);
+        ret2.name = obj2.name;
+        ret2.message = obj2.message;
+        ret2.stack = obj2.stack;
+        var keys = es52.keys(obj2);
+        for (var i = 0; i < keys.length; ++i) {
+          var key = keys[i];
+          if (!rErrorKey.test(key)) {
+            ret2[key] = obj2[key];
+          }
+        }
+        return ret2;
+      }
+      util.markAsOriginatingFromRejection(obj2);
+      return obj2;
+    }
+    function nodebackForPromise(promise, multiArgs) {
+      return function(err, value) {
+        if (promise === null) return;
+        if (err) {
+          var wrapped = wrapAsOperationalError(maybeWrapAsError2(err));
+          promise._attachExtraTrace(wrapped);
+          promise._reject(wrapped);
+        } else if (!multiArgs) {
+          promise._fulfill(value);
+        } else {
+          var $_len = arguments.length;
+          var args = new Array(Math.max($_len - 1, 0));
+          for (var $_i = 1; $_i < $_len; ++$_i) {
+            args[$_i - 1] = arguments[$_i];
+          }
+          ;
+          promise._fulfill(args);
+        }
+        promise = null;
+      };
+    }
+    module2.exports = nodebackForPromise;
+  }
+});
+
+// ../node_modules/bluebird/js/release/method.js
+var require_method = __commonJS({
+  "../node_modules/bluebird/js/release/method.js"(exports2, module2) {
+    "use strict";
+    module2.exports = function(Promise2, INTERNAL, tryConvertToPromise, apiRejection, debug2) {
+      var util = require_util9();
+      var tryCatch2 = util.tryCatch;
+      Promise2.method = function(fn) {
+        if (typeof fn !== "function") {
+          throw new Promise2.TypeError("expecting a function but got " + util.classString(fn));
+        }
+        return function() {
+          var ret2 = new Promise2(INTERNAL);
+          ret2._captureStackTrace();
+          ret2._pushContext();
+          var value = tryCatch2(fn).apply(this, arguments);
+          var promiseCreated = ret2._popContext();
+          debug2.checkForgottenReturns(
+            value,
+            promiseCreated,
+            "Promise.method",
+            ret2
+          );
+          ret2._resolveFromSyncValue(value);
+          return ret2;
+        };
+      };
+      Promise2.attempt = Promise2["try"] = function(fn) {
+        if (typeof fn !== "function") {
+          return apiRejection("expecting a function but got " + util.classString(fn));
+        }
+        var ret2 = new Promise2(INTERNAL);
+        ret2._captureStackTrace();
+        ret2._pushContext();
+        var value;
+        if (arguments.length > 1) {
+          debug2.deprecated("calling Promise.try with more than 1 argument");
+          var arg = arguments[1];
+          var ctx = arguments[2];
+          value = util.isArray(arg) ? tryCatch2(fn).apply(ctx, arg) : tryCatch2(fn).call(ctx, arg);
+        } else {
+          value = tryCatch2(fn)();
+        }
+        var promiseCreated = ret2._popContext();
+        debug2.checkForgottenReturns(
+          value,
+          promiseCreated,
+          "Promise.try",
+          ret2
+        );
+        ret2._resolveFromSyncValue(value);
+        return ret2;
+      };
+      Promise2.prototype._resolveFromSyncValue = function(value) {
+        if (value === util.errorObj) {
+          this._rejectCallback(value.e, false);
+        } else {
+          this._resolveCallback(value, true);
+        }
+      };
+    };
+  }
+});
+
+// ../node_modules/bluebird/js/release/bind.js
+var require_bind = __commonJS({
+  "../node_modules/bluebird/js/release/bind.js"(exports2, module2) {
+    "use strict";
+    module2.exports = function(Promise2, INTERNAL, tryConvertToPromise, debug2) {
+      var calledBind = false;
+      var rejectThis = function(_, e) {
+        this._reject(e);
+      };
+      var targetRejected = function(e, context) {
+        context.promiseRejectionQueued = true;
+        context.bindingPromise._then(rejectThis, rejectThis, null, this, e);
+      };
+      var bindingResolved = function(thisArg, context) {
+        if ((this._bitField & 50397184) === 0) {
+          this._resolveCallback(context.target);
+        }
+      };
+      var bindingRejected = function(e, context) {
+        if (!context.promiseRejectionQueued) this._reject(e);
+      };
+      Promise2.prototype.bind = function(thisArg) {
+        if (!calledBind) {
+          calledBind = true;
+          Promise2.prototype._propagateFrom = debug2.propagateFromFunction();
+          Promise2.prototype._boundValue = debug2.boundValueFunction();
+        }
+        var maybePromise = tryConvertToPromise(thisArg);
+        var ret2 = new Promise2(INTERNAL);
+        ret2._propagateFrom(this, 1);
+        var target = this._target();
+        ret2._setBoundTo(maybePromise);
+        if (maybePromise instanceof Promise2) {
+          var context = {
+            promiseRejectionQueued: false,
+            promise: ret2,
+            target,
+            bindingPromise: maybePromise
+          };
+          target._then(INTERNAL, targetRejected, void 0, ret2, context);
+          maybePromise._then(
+            bindingResolved,
+            bindingRejected,
+            void 0,
+            ret2,
+            context
+          );
+          ret2._setOnCancel(maybePromise);
+        } else {
+          ret2._resolveCallback(target);
+        }
+        return ret2;
+      };
+      Promise2.prototype._setBoundTo = function(obj2) {
+        if (obj2 !== void 0) {
+          this._bitField = this._bitField | 2097152;
+          this._boundTo = obj2;
+        } else {
+          this._bitField = this._bitField & ~2097152;
+        }
+      };
+      Promise2.prototype._isBound = function() {
+        return (this._bitField & 2097152) === 2097152;
+      };
+      Promise2.bind = function(thisArg, value) {
+        return Promise2.resolve(value).bind(thisArg);
+      };
+    };
+  }
+});
+
+// ../node_modules/bluebird/js/release/cancel.js
+var require_cancel = __commonJS({
+  "../node_modules/bluebird/js/release/cancel.js"(exports2, module2) {
+    "use strict";
+    module2.exports = function(Promise2, PromiseArray, apiRejection, debug2) {
+      var util = require_util9();
+      var tryCatch2 = util.tryCatch;
+      var errorObj2 = util.errorObj;
+      var async = Promise2._async;
+      Promise2.prototype["break"] = Promise2.prototype.cancel = function() {
+        if (!debug2.cancellation()) return this._warn("cancellation is disabled");
+        var promise = this;
+        var child = promise;
+        while (promise._isCancellable()) {
+          if (!promise._cancelBy(child)) {
+            if (child._isFollowing()) {
+              child._followee().cancel();
+            } else {
+              child._cancelBranched();
+            }
+            break;
+          }
+          var parent = promise._cancellationParent;
+          if (parent == null || !parent._isCancellable()) {
+            if (promise._isFollowing()) {
+              promise._followee().cancel();
+            } else {
+              promise._cancelBranched();
+            }
+            break;
+          } else {
+            if (promise._isFollowing()) promise._followee().cancel();
+            promise._setWillBeCancelled();
+            child = promise;
+            promise = parent;
+          }
+        }
+      };
+      Promise2.prototype._branchHasCancelled = function() {
+        this._branchesRemainingToCancel--;
+      };
+      Promise2.prototype._enoughBranchesHaveCancelled = function() {
+        return this._branchesRemainingToCancel === void 0 || this._branchesRemainingToCancel <= 0;
+      };
+      Promise2.prototype._cancelBy = function(canceller) {
+        if (canceller === this) {
+          this._branchesRemainingToCancel = 0;
+          this._invokeOnCancel();
+          return true;
+        } else {
+          this._branchHasCancelled();
+          if (this._enoughBranchesHaveCancelled()) {
+            this._invokeOnCancel();
+            return true;
+          }
+        }
+        return false;
+      };
+      Promise2.prototype._cancelBranched = function() {
+        if (this._enoughBranchesHaveCancelled()) {
+          this._cancel();
+        }
+      };
+      Promise2.prototype._cancel = function() {
+        if (!this._isCancellable()) return;
+        this._setCancelled();
+        async.invoke(this._cancelPromises, this, void 0);
+      };
+      Promise2.prototype._cancelPromises = function() {
+        if (this._length() > 0) this._settlePromises();
+      };
+      Promise2.prototype._unsetOnCancel = function() {
+        this._onCancelField = void 0;
+      };
+      Promise2.prototype._isCancellable = function() {
+        return this.isPending() && !this._isCancelled();
+      };
+      Promise2.prototype.isCancellable = function() {
+        return this.isPending() && !this.isCancelled();
+      };
+      Promise2.prototype._doInvokeOnCancel = function(onCancelCallback, internalOnly) {
+        if (util.isArray(onCancelCallback)) {
+          for (var i = 0; i < onCancelCallback.length; ++i) {
+            this._doInvokeOnCancel(onCancelCallback[i], internalOnly);
+          }
+        } else if (onCancelCallback !== void 0) {
+          if (typeof onCancelCallback === "function") {
+            if (!internalOnly) {
+              var e = tryCatch2(onCancelCallback).call(this._boundValue());
+              if (e === errorObj2) {
+                this._attachExtraTrace(e.e);
+                async.throwLater(e.e);
+              }
+            }
+          } else {
+            onCancelCallback._resultCancelled(this);
+          }
+        }
+      };
+      Promise2.prototype._invokeOnCancel = function() {
+        var onCancelCallback = this._onCancel();
+        this._unsetOnCancel();
+        async.invoke(this._doInvokeOnCancel, this, onCancelCallback);
+      };
+      Promise2.prototype._invokeInternalOnCancel = function() {
+        if (this._isCancellable()) {
+          this._doInvokeOnCancel(this._onCancel(), true);
+          this._unsetOnCancel();
+        }
+      };
+      Promise2.prototype._resultCancelled = function() {
+        this.cancel();
+      };
+    };
+  }
+});
+
+// ../node_modules/bluebird/js/release/direct_resolve.js
+var require_direct_resolve = __commonJS({
+  "../node_modules/bluebird/js/release/direct_resolve.js"(exports2, module2) {
+    "use strict";
+    module2.exports = function(Promise2) {
+      function returner() {
+        return this.value;
+      }
+      function thrower2() {
+        throw this.reason;
+      }
+      Promise2.prototype["return"] = Promise2.prototype.thenReturn = function(value) {
+        if (value instanceof Promise2) value.suppressUnhandledRejections();
+        return this._then(
+          returner,
+          void 0,
+          void 0,
+          { value },
+          void 0
+        );
+      };
+      Promise2.prototype["throw"] = Promise2.prototype.thenThrow = function(reason) {
+        return this._then(
+          thrower2,
+          void 0,
+          void 0,
+          { reason },
+          void 0
+        );
+      };
+      Promise2.prototype.catchThrow = function(reason) {
+        if (arguments.length <= 1) {
+          return this._then(
+            void 0,
+            thrower2,
+            void 0,
+            { reason },
+            void 0
+          );
+        } else {
+          var _reason = arguments[1];
+          var handler = function() {
+            throw _reason;
+          };
+          return this.caught(reason, handler);
+        }
+      };
+      Promise2.prototype.catchReturn = function(value) {
+        if (arguments.length <= 1) {
+          if (value instanceof Promise2) value.suppressUnhandledRejections();
+          return this._then(
+            void 0,
+            returner,
+            void 0,
+            { value },
+            void 0
+          );
+        } else {
+          var _value = arguments[1];
+          if (_value instanceof Promise2) _value.suppressUnhandledRejections();
+          var handler = function() {
+            return _value;
+          };
+          return this.caught(value, handler);
+        }
+      };
+    };
+  }
+});
+
+// ../node_modules/bluebird/js/release/synchronous_inspection.js
+var require_synchronous_inspection = __commonJS({
+  "../node_modules/bluebird/js/release/synchronous_inspection.js"(exports2, module2) {
+    "use strict";
+    module2.exports = function(Promise2) {
+      function PromiseInspection(promise) {
+        if (promise !== void 0) {
+          promise = promise._target();
+          this._bitField = promise._bitField;
+          this._settledValueField = promise._isFateSealed() ? promise._settledValue() : void 0;
+        } else {
+          this._bitField = 0;
+          this._settledValueField = void 0;
+        }
+      }
+      PromiseInspection.prototype._settledValue = function() {
+        return this._settledValueField;
+      };
+      var value = PromiseInspection.prototype.value = function() {
+        if (!this.isFulfilled()) {
+          throw new TypeError("cannot get fulfillment value of a non-fulfilled promise\n\n    See http://goo.gl/MqrFmX\n");
+        }
+        return this._settledValue();
+      };
+      var reason = PromiseInspection.prototype.error = PromiseInspection.prototype.reason = function() {
+        if (!this.isRejected()) {
+          throw new TypeError("cannot get rejection reason of a non-rejected promise\n\n    See http://goo.gl/MqrFmX\n");
+        }
+        return this._settledValue();
+      };
+      var isFulfilled = PromiseInspection.prototype.isFulfilled = function() {
+        return (this._bitField & 33554432) !== 0;
+      };
+      var isRejected = PromiseInspection.prototype.isRejected = function() {
+        return (this._bitField & 16777216) !== 0;
+      };
+      var isPending = PromiseInspection.prototype.isPending = function() {
+        return (this._bitField & 50397184) === 0;
+      };
+      var isResolved = PromiseInspection.prototype.isResolved = function() {
+        return (this._bitField & 50331648) !== 0;
+      };
+      PromiseInspection.prototype.isCancelled = function() {
+        return (this._bitField & 8454144) !== 0;
+      };
+      Promise2.prototype.__isCancelled = function() {
+        return (this._bitField & 65536) === 65536;
+      };
+      Promise2.prototype._isCancelled = function() {
+        return this._target().__isCancelled();
+      };
+      Promise2.prototype.isCancelled = function() {
+        return (this._target()._bitField & 8454144) !== 0;
+      };
+      Promise2.prototype.isPending = function() {
+        return isPending.call(this._target());
+      };
+      Promise2.prototype.isRejected = function() {
+        return isRejected.call(this._target());
+      };
+      Promise2.prototype.isFulfilled = function() {
+        return isFulfilled.call(this._target());
+      };
+      Promise2.prototype.isResolved = function() {
+        return isResolved.call(this._target());
+      };
+      Promise2.prototype.value = function() {
+        return value.call(this._target());
+      };
+      Promise2.prototype.reason = function() {
+        var target = this._target();
+        target._unsetRejectionIsUnhandled();
+        return reason.call(target);
+      };
+      Promise2.prototype._value = function() {
+        return this._settledValue();
+      };
+      Promise2.prototype._reason = function() {
+        this._unsetRejectionIsUnhandled();
+        return this._settledValue();
+      };
+      Promise2.PromiseInspection = PromiseInspection;
+    };
+  }
+});
+
+// ../node_modules/bluebird/js/release/join.js
+var require_join = __commonJS({
+  "../node_modules/bluebird/js/release/join.js"(exports2, module2) {
+    "use strict";
+    module2.exports = function(Promise2, PromiseArray, tryConvertToPromise, INTERNAL, async) {
+      var util = require_util9();
+      var canEvaluate2 = util.canEvaluate;
+      var tryCatch2 = util.tryCatch;
+      var errorObj2 = util.errorObj;
+      var reject;
+      if (true) {
+        if (canEvaluate2) {
+          var thenCallback = function(i2) {
+            return new Function("value", "holder", "                             \n            'use strict';                                                    \n            holder.pIndex = value;                                           \n            holder.checkFulfillment(this);                                   \n            ".replace(/Index/g, i2));
+          };
+          var promiseSetter = function(i2) {
+            return new Function("promise", "holder", "                           \n            'use strict';                                                    \n            holder.pIndex = promise;                                         \n            ".replace(/Index/g, i2));
+          };
+          var generateHolderClass = function(total) {
+            var props = new Array(total);
+            for (var i2 = 0; i2 < props.length; ++i2) {
+              props[i2] = "this.p" + (i2 + 1);
+            }
+            var assignment = props.join(" = ") + " = null;";
+            var cancellationCode = "var promise;\n" + props.map(function(prop) {
+              return "                                                         \n                promise = " + prop + ";                                      \n                if (promise instanceof Promise) {                            \n                    promise.cancel();                                        \n                }                                                            \n            ";
+            }).join("\n");
+            var passedArguments = props.join(", ");
+            var name = "Holder$" + total;
+            var code = "return function(tryCatch, errorObj, Promise, async) {    \n            'use strict';                                                    \n            function [TheName](fn) {                                         \n                [TheProperties]                                              \n                this.fn = fn;                                                \n                this.asyncNeeded = true;                                     \n                this.now = 0;                                                \n            }                                                                \n                                                                             \n            [TheName].prototype._callFunction = function(promise) {          \n                promise._pushContext();                                      \n                var ret = tryCatch(this.fn)([ThePassedArguments]);           \n                promise._popContext();                                       \n                if (ret === errorObj) {                                      \n                    promise._rejectCallback(ret.e, false);                   \n                } else {                                                     \n                    promise._resolveCallback(ret);                           \n                }                                                            \n            };                                                               \n                                                                             \n            [TheName].prototype.checkFulfillment = function(promise) {       \n                var now = ++this.now;                                        \n                if (now === [TheTotal]) {                                    \n                    if (this.asyncNeeded) {                                  \n                        async.invoke(this._callFunction, this, promise);     \n                    } else {                                                 \n                        this._callFunction(promise);                         \n                    }                                                        \n                                                                             \n                }                                                            \n            };                                                               \n                                                                             \n            [TheName].prototype._resultCancelled = function() {              \n                [CancellationCode]                                           \n            };                                                               \n                                                                             \n            return [TheName];                                                \n        }(tryCatch, errorObj, Promise, async);                               \n        ";
+            code = code.replace(/\[TheName\]/g, name).replace(/\[TheTotal\]/g, total).replace(/\[ThePassedArguments\]/g, passedArguments).replace(/\[TheProperties\]/g, assignment).replace(/\[CancellationCode\]/g, cancellationCode);
+            return new Function("tryCatch", "errorObj", "Promise", "async", code)(tryCatch2, errorObj2, Promise2, async);
+          };
+          var holderClasses = [];
+          var thenCallbacks = [];
+          var promiseSetters = [];
+          for (var i = 0; i < 8; ++i) {
+            holderClasses.push(generateHolderClass(i + 1));
+            thenCallbacks.push(thenCallback(i + 1));
+            promiseSetters.push(promiseSetter(i + 1));
+          }
+          reject = function(reason) {
+            this._reject(reason);
+          };
+        }
+      }
+      Promise2.join = function() {
+        var last = arguments.length - 1;
+        var fn;
+        if (last > 0 && typeof arguments[last] === "function") {
+          fn = arguments[last];
+          if (true) {
+            if (last <= 8 && canEvaluate2) {
+              var ret2 = new Promise2(INTERNAL);
+              ret2._captureStackTrace();
+              var HolderClass = holderClasses[last - 1];
+              var holder = new HolderClass(fn);
+              var callbacks = thenCallbacks;
+              for (var i2 = 0; i2 < last; ++i2) {
+                var maybePromise = tryConvertToPromise(arguments[i2], ret2);
+                if (maybePromise instanceof Promise2) {
+                  maybePromise = maybePromise._target();
+                  var bitField = maybePromise._bitField;
+                  ;
+                  if ((bitField & 50397184) === 0) {
+                    maybePromise._then(
+                      callbacks[i2],
+                      reject,
+                      void 0,
+                      ret2,
+                      holder
+                    );
+                    promiseSetters[i2](maybePromise, holder);
+                    holder.asyncNeeded = false;
+                  } else if ((bitField & 33554432) !== 0) {
+                    callbacks[i2].call(
+                      ret2,
+                      maybePromise._value(),
+                      holder
+                    );
+                  } else if ((bitField & 16777216) !== 0) {
+                    ret2._reject(maybePromise._reason());
+                  } else {
+                    ret2._cancel();
+                  }
+                } else {
+                  callbacks[i2].call(ret2, maybePromise, holder);
+                }
+              }
+              if (!ret2._isFateSealed()) {
+                if (holder.asyncNeeded) {
+                  var context = Promise2._getContext();
+                  holder.fn = util.contextBind(context, holder.fn);
+                }
+                ret2._setAsyncGuaranteed();
+                ret2._setOnCancel(holder);
+              }
+              return ret2;
+            }
+          }
+        }
+        var $_len = arguments.length;
+        var args = new Array($_len);
+        for (var $_i = 0; $_i < $_len; ++$_i) {
+          args[$_i] = arguments[$_i];
+        }
+        ;
+        if (fn) args.pop();
+        var ret2 = new PromiseArray(args).promise();
+        return fn !== void 0 ? ret2.spread(fn) : ret2;
+      };
+    };
+  }
+});
+
+// ../node_modules/bluebird/js/release/call_get.js
+var require_call_get = __commonJS({
+  "../node_modules/bluebird/js/release/call_get.js"(exports2, module2) {
+    "use strict";
+    var cr = Object.create;
+    if (cr) {
+      callerCache = cr(null);
+      getterCache = cr(null);
+      callerCache[" size"] = getterCache[" size"] = 0;
+    }
+    var callerCache;
+    var getterCache;
+    module2.exports = function(Promise2) {
+      var util = require_util9();
+      var canEvaluate2 = util.canEvaluate;
+      var isIdentifier2 = util.isIdentifier;
+      var getMethodCaller;
+      var getGetter;
+      if (true) {
+        var makeMethodCaller = function(methodName) {
+          return new Function("ensureMethod", "                                    \n        return function(obj) {                                               \n            'use strict'                                                     \n            var len = this.length;                                           \n            ensureMethod(obj, 'methodName');                                 \n            switch(len) {                                                    \n                case 1: return obj.methodName(this[0]);                      \n                case 2: return obj.methodName(this[0], this[1]);             \n                case 3: return obj.methodName(this[0], this[1], this[2]);    \n                case 0: return obj.methodName();                             \n                default:                                                     \n                    return obj.methodName.apply(obj, this);                  \n            }                                                                \n        };                                                                   \n        ".replace(/methodName/g, methodName))(ensureMethod);
+        };
+        var makeGetter = function(propertyName) {
+          return new Function("obj", "                                             \n        'use strict';                                                        \n        return obj.propertyName;                                             \n        ".replace("propertyName", propertyName));
+        };
+        var getCompiled = function(name, compiler, cache) {
+          var ret2 = cache[name];
+          if (typeof ret2 !== "function") {
+            if (!isIdentifier2(name)) {
+              return null;
+            }
+            ret2 = compiler(name);
+            cache[name] = ret2;
+            cache[" size"]++;
+            if (cache[" size"] > 512) {
+              var keys = Object.keys(cache);
+              for (var i = 0; i < 256; ++i) delete cache[keys[i]];
+              cache[" size"] = keys.length - 256;
+            }
+          }
+          return ret2;
+        };
+        getMethodCaller = function(name) {
+          return getCompiled(name, makeMethodCaller, callerCache);
+        };
+        getGetter = function(name) {
+          return getCompiled(name, makeGetter, getterCache);
+        };
+      }
+      function ensureMethod(obj2, methodName) {
+        var fn;
+        if (obj2 != null) fn = obj2[methodName];
+        if (typeof fn !== "function") {
+          var message = "Object " + util.classString(obj2) + " has no method '" + util.toString(methodName) + "'";
+          throw new Promise2.TypeError(message);
+        }
+        return fn;
+      }
+      function caller(obj2) {
+        var methodName = this.pop();
+        var fn = ensureMethod(obj2, methodName);
+        return fn.apply(obj2, this);
+      }
+      Promise2.prototype.call = function(methodName) {
+        var $_len = arguments.length;
+        var args = new Array(Math.max($_len - 1, 0));
+        for (var $_i = 1; $_i < $_len; ++$_i) {
+          args[$_i - 1] = arguments[$_i];
+        }
+        ;
+        if (true) {
+          if (canEvaluate2) {
+            var maybeCaller = getMethodCaller(methodName);
+            if (maybeCaller !== null) {
+              return this._then(
+                maybeCaller,
+                void 0,
+                void 0,
+                args,
+                void 0
+              );
+            }
+          }
+        }
+        args.push(methodName);
+        return this._then(caller, void 0, void 0, args, void 0);
+      };
+      function namedGetter(obj2) {
+        return obj2[this];
+      }
+      function indexedGetter(obj2) {
+        var index = +this;
+        if (index < 0) index = Math.max(0, index + obj2.length);
+        return obj2[index];
+      }
+      Promise2.prototype.get = function(propertyName) {
+        var isIndex = typeof propertyName === "number";
+        var getter;
+        if (!isIndex) {
+          if (canEvaluate2) {
+            var maybeGetter = getGetter(propertyName);
+            getter = maybeGetter !== null ? maybeGetter : namedGetter;
+          } else {
+            getter = namedGetter;
+          }
+        } else {
+          getter = indexedGetter;
+        }
+        return this._then(getter, void 0, void 0, propertyName, void 0);
+      };
+    };
+  }
+});
+
+// ../node_modules/bluebird/js/release/generators.js
+var require_generators = __commonJS({
+  "../node_modules/bluebird/js/release/generators.js"(exports2, module2) {
+    "use strict";
+    module2.exports = function(Promise2, apiRejection, INTERNAL, tryConvertToPromise, Proxyable, debug2) {
+      var errors = require_errors2();
+      var TypeError2 = errors.TypeError;
+      var util = require_util9();
+      var errorObj2 = util.errorObj;
+      var tryCatch2 = util.tryCatch;
+      var yieldHandlers = [];
+      function promiseFromYieldHandler(value, yieldHandlers2, traceParent) {
+        for (var i = 0; i < yieldHandlers2.length; ++i) {
+          traceParent._pushContext();
+          var result = tryCatch2(yieldHandlers2[i])(value);
+          traceParent._popContext();
+          if (result === errorObj2) {
+            traceParent._pushContext();
+            var ret2 = Promise2.reject(errorObj2.e);
+            traceParent._popContext();
+            return ret2;
+          }
+          var maybePromise = tryConvertToPromise(result, traceParent);
+          if (maybePromise instanceof Promise2) return maybePromise;
+        }
+        return null;
+      }
+      function PromiseSpawn(generatorFunction, receiver2, yieldHandler, stack) {
+        if (debug2.cancellation()) {
+          var internal = new Promise2(INTERNAL);
+          var _finallyPromise = this._finallyPromise = new Promise2(INTERNAL);
+          this._promise = internal.lastly(function() {
+            return _finallyPromise;
+          });
+          internal._captureStackTrace();
+          internal._setOnCancel(this);
+        } else {
+          var promise = this._promise = new Promise2(INTERNAL);
+          promise._captureStackTrace();
+        }
+        this._stack = stack;
+        this._generatorFunction = generatorFunction;
+        this._receiver = receiver2;
+        this._generator = void 0;
+        this._yieldHandlers = typeof yieldHandler === "function" ? [yieldHandler].concat(yieldHandlers) : yieldHandlers;
+        this._yieldedPromise = null;
+        this._cancellationPhase = false;
+      }
+      util.inherits(PromiseSpawn, Proxyable);
+      PromiseSpawn.prototype._isResolved = function() {
+        return this._promise === null;
+      };
+      PromiseSpawn.prototype._cleanup = function() {
+        this._promise = this._generator = null;
+        if (debug2.cancellation() && this._finallyPromise !== null) {
+          this._finallyPromise._fulfill();
+          this._finallyPromise = null;
+        }
+      };
+      PromiseSpawn.prototype._promiseCancelled = function() {
+        if (this._isResolved()) return;
+        var implementsReturn = typeof this._generator["return"] !== "undefined";
+        var result;
+        if (!implementsReturn) {
+          var reason = new Promise2.CancellationError(
+            "generator .return() sentinel"
+          );
+          Promise2.coroutine.returnSentinel = reason;
+          this._promise._attachExtraTrace(reason);
+          this._promise._pushContext();
+          result = tryCatch2(this._generator["throw"]).call(
+            this._generator,
+            reason
+          );
+          this._promise._popContext();
+        } else {
+          this._promise._pushContext();
+          result = tryCatch2(this._generator["return"]).call(
+            this._generator,
+            void 0
+          );
+          this._promise._popContext();
+        }
+        this._cancellationPhase = true;
+        this._yieldedPromise = null;
+        this._continue(result);
+      };
+      PromiseSpawn.prototype._promiseFulfilled = function(value) {
+        this._yieldedPromise = null;
+        this._promise._pushContext();
+        var result = tryCatch2(this._generator.next).call(this._generator, value);
+        this._promise._popContext();
+        this._continue(result);
+      };
+      PromiseSpawn.prototype._promiseRejected = function(reason) {
+        this._yieldedPromise = null;
+        this._promise._attachExtraTrace(reason);
+        this._promise._pushContext();
+        var result = tryCatch2(this._generator["throw"]).call(this._generator, reason);
+        this._promise._popContext();
+        this._continue(result);
+      };
+      PromiseSpawn.prototype._resultCancelled = function() {
+        if (this._yieldedPromise instanceof Promise2) {
+          var promise = this._yieldedPromise;
+          this._yieldedPromise = null;
+          promise.cancel();
+        }
+      };
+      PromiseSpawn.prototype.promise = function() {
+        return this._promise;
+      };
+      PromiseSpawn.prototype._run = function() {
+        this._generator = this._generatorFunction.call(this._receiver);
+        this._receiver = this._generatorFunction = void 0;
+        this._promiseFulfilled(void 0);
+      };
+      PromiseSpawn.prototype._continue = function(result) {
+        var promise = this._promise;
+        if (result === errorObj2) {
+          this._cleanup();
+          if (this._cancellationPhase) {
+            return promise.cancel();
+          } else {
+            return promise._rejectCallback(result.e, false);
+          }
+        }
+        var value = result.value;
+        if (result.done === true) {
+          this._cleanup();
+          if (this._cancellationPhase) {
+            return promise.cancel();
+          } else {
+            return promise._resolveCallback(value);
+          }
+        } else {
+          var maybePromise = tryConvertToPromise(value, this._promise);
+          if (!(maybePromise instanceof Promise2)) {
+            maybePromise = promiseFromYieldHandler(
+              maybePromise,
+              this._yieldHandlers,
+              this._promise
+            );
+            if (maybePromise === null) {
+              this._promiseRejected(
+                new TypeError2(
+                  "A value %s was yielded that could not be treated as a promise\n\n    See http://goo.gl/MqrFmX\n\n".replace("%s", String(value)) + "From coroutine:\n" + this._stack.split("\n").slice(1, -7).join("\n")
+                )
+              );
+              return;
+            }
+          }
+          maybePromise = maybePromise._target();
+          var bitField = maybePromise._bitField;
+          ;
+          if ((bitField & 50397184) === 0) {
+            this._yieldedPromise = maybePromise;
+            maybePromise._proxy(this, null);
+          } else if ((bitField & 33554432) !== 0) {
+            Promise2._async.invoke(
+              this._promiseFulfilled,
+              this,
+              maybePromise._value()
+            );
+          } else if ((bitField & 16777216) !== 0) {
+            Promise2._async.invoke(
+              this._promiseRejected,
+              this,
+              maybePromise._reason()
+            );
+          } else {
+            this._promiseCancelled();
+          }
+        }
+      };
+      Promise2.coroutine = function(generatorFunction, options) {
+        if (typeof generatorFunction !== "function") {
+          throw new TypeError2("generatorFunction must be a function\n\n    See http://goo.gl/MqrFmX\n");
+        }
+        var yieldHandler = Object(options).yieldHandler;
+        var PromiseSpawn$ = PromiseSpawn;
+        var stack = new Error().stack;
+        return function() {
+          var generator = generatorFunction.apply(this, arguments);
+          var spawn = new PromiseSpawn$(
+            void 0,
+            void 0,
+            yieldHandler,
+            stack
+          );
+          var ret2 = spawn.promise();
+          spawn._generator = generator;
+          spawn._promiseFulfilled(void 0);
+          return ret2;
+        };
+      };
+      Promise2.coroutine.addYieldHandler = function(fn) {
+        if (typeof fn !== "function") {
+          throw new TypeError2("expecting a function but got " + util.classString(fn));
+        }
+        yieldHandlers.push(fn);
+      };
+      Promise2.spawn = function(generatorFunction) {
+        debug2.deprecated("Promise.spawn()", "Promise.coroutine()");
+        if (typeof generatorFunction !== "function") {
+          return apiRejection("generatorFunction must be a function\n\n    See http://goo.gl/MqrFmX\n");
+        }
+        var spawn = new PromiseSpawn(generatorFunction, this);
+        var ret2 = spawn.promise();
+        spawn._run(Promise2.spawn);
+        return ret2;
+      };
+    };
+  }
+});
+
+// ../node_modules/bluebird/js/release/map.js
+var require_map = __commonJS({
+  "../node_modules/bluebird/js/release/map.js"(exports2, module2) {
+    "use strict";
+    module2.exports = function(Promise2, PromiseArray, apiRejection, tryConvertToPromise, INTERNAL, debug2) {
+      var util = require_util9();
+      var tryCatch2 = util.tryCatch;
+      var errorObj2 = util.errorObj;
+      var async = Promise2._async;
+      function MappingPromiseArray(promises3, fn, limit, _filter) {
+        this.constructor$(promises3);
+        this._promise._captureStackTrace();
+        var context = Promise2._getContext();
+        this._callback = util.contextBind(context, fn);
+        this._preservedValues = _filter === INTERNAL ? new Array(this.length()) : null;
+        this._limit = limit;
+        this._inFlight = 0;
+        this._queue = [];
+        async.invoke(this._asyncInit, this, void 0);
+        if (util.isArray(promises3)) {
+          for (var i = 0; i < promises3.length; ++i) {
+            var maybePromise = promises3[i];
+            if (maybePromise instanceof Promise2) {
+              maybePromise.suppressUnhandledRejections();
+            }
+          }
+        }
+      }
+      util.inherits(MappingPromiseArray, PromiseArray);
+      MappingPromiseArray.prototype._asyncInit = function() {
+        this._init$(void 0, -2);
+      };
+      MappingPromiseArray.prototype._init = function() {
+      };
+      MappingPromiseArray.prototype._promiseFulfilled = function(value, index) {
+        var values = this._values;
+        var length = this.length();
+        var preservedValues = this._preservedValues;
+        var limit = this._limit;
+        if (index < 0) {
+          index = index * -1 - 1;
+          values[index] = value;
+          if (limit >= 1) {
+            this._inFlight--;
+            this._drainQueue();
+            if (this._isResolved()) return true;
+          }
+        } else {
+          if (limit >= 1 && this._inFlight >= limit) {
+            values[index] = value;
+            this._queue.push(index);
+            return false;
+          }
+          if (preservedValues !== null) preservedValues[index] = value;
+          var promise = this._promise;
+          var callback = this._callback;
+          var receiver2 = promise._boundValue();
+          promise._pushContext();
+          var ret2 = tryCatch2(callback).call(receiver2, value, index, length);
+          var promiseCreated = promise._popContext();
+          debug2.checkForgottenReturns(
+            ret2,
+            promiseCreated,
+            preservedValues !== null ? "Promise.filter" : "Promise.map",
+            promise
+          );
+          if (ret2 === errorObj2) {
+            this._reject(ret2.e);
+            return true;
+          }
+          var maybePromise = tryConvertToPromise(ret2, this._promise);
+          if (maybePromise instanceof Promise2) {
+            maybePromise = maybePromise._target();
+            var bitField = maybePromise._bitField;
+            ;
+            if ((bitField & 50397184) === 0) {
+              if (limit >= 1) this._inFlight++;
+              values[index] = maybePromise;
+              maybePromise._proxy(this, (index + 1) * -1);
+              return false;
+            } else if ((bitField & 33554432) !== 0) {
+              ret2 = maybePromise._value();
+            } else if ((bitField & 16777216) !== 0) {
+              this._reject(maybePromise._reason());
+              return true;
+            } else {
+              this._cancel();
+              return true;
+            }
+          }
+          values[index] = ret2;
+        }
+        var totalResolved = ++this._totalResolved;
+        if (totalResolved >= length) {
+          if (preservedValues !== null) {
+            this._filter(values, preservedValues);
+          } else {
+            this._resolve(values);
+          }
+          return true;
+        }
+        return false;
+      };
+      MappingPromiseArray.prototype._drainQueue = function() {
+        var queue = this._queue;
+        var limit = this._limit;
+        var values = this._values;
+        while (queue.length > 0 && this._inFlight < limit) {
+          if (this._isResolved()) return;
+          var index = queue.pop();
+          this._promiseFulfilled(values[index], index);
+        }
+      };
+      MappingPromiseArray.prototype._filter = function(booleans, values) {
+        var len = values.length;
+        var ret2 = new Array(len);
+        var j = 0;
+        for (var i = 0; i < len; ++i) {
+          if (booleans[i]) ret2[j++] = values[i];
+        }
+        ret2.length = j;
+        this._resolve(ret2);
+      };
+      MappingPromiseArray.prototype.preservedValues = function() {
+        return this._preservedValues;
+      };
+      function map2(promises3, fn, options, _filter) {
+        if (typeof fn !== "function") {
+          return apiRejection("expecting a function but got " + util.classString(fn));
+        }
+        var limit = 0;
+        if (options !== void 0) {
+          if (typeof options === "object" && options !== null) {
+            if (typeof options.concurrency !== "number") {
+              return Promise2.reject(
+                new TypeError("'concurrency' must be a number but it is " + util.classString(options.concurrency))
+              );
+            }
+            limit = options.concurrency;
+          } else {
+            return Promise2.reject(new TypeError(
+              "options argument must be an object but it is " + util.classString(options)
+            ));
+          }
+        }
+        limit = typeof limit === "number" && isFinite(limit) && limit >= 1 ? limit : 0;
+        return new MappingPromiseArray(promises3, fn, limit, _filter).promise();
+      }
+      Promise2.prototype.map = function(fn, options) {
+        return map2(this, fn, options, null);
+      };
+      Promise2.map = function(promises3, fn, options, _filter) {
+        return map2(promises3, fn, options, _filter);
+      };
+    };
+  }
+});
+
+// ../node_modules/bluebird/js/release/nodeify.js
+var require_nodeify = __commonJS({
+  "../node_modules/bluebird/js/release/nodeify.js"(exports2, module2) {
+    "use strict";
+    module2.exports = function(Promise2) {
+      var util = require_util9();
+      var async = Promise2._async;
+      var tryCatch2 = util.tryCatch;
+      var errorObj2 = util.errorObj;
+      function spreadAdapter(val, nodeback) {
+        var promise = this;
+        if (!util.isArray(val)) return successAdapter.call(promise, val, nodeback);
+        var ret2 = tryCatch2(nodeback).apply(promise._boundValue(), [null].concat(val));
+        if (ret2 === errorObj2) {
+          async.throwLater(ret2.e);
+        }
+      }
+      function successAdapter(val, nodeback) {
+        var promise = this;
+        var receiver2 = promise._boundValue();
+        var ret2 = val === void 0 ? tryCatch2(nodeback).call(receiver2, null) : tryCatch2(nodeback).call(receiver2, null, val);
+        if (ret2 === errorObj2) {
+          async.throwLater(ret2.e);
+        }
+      }
+      function errorAdapter(reason, nodeback) {
+        var promise = this;
+        if (!reason) {
+          var newReason = new Error(reason + "");
+          newReason.cause = reason;
+          reason = newReason;
+        }
+        var ret2 = tryCatch2(nodeback).call(promise._boundValue(), reason);
+        if (ret2 === errorObj2) {
+          async.throwLater(ret2.e);
+        }
+      }
+      Promise2.prototype.asCallback = Promise2.prototype.nodeify = function(nodeback, options) {
+        if (typeof nodeback == "function") {
+          var adapter = successAdapter;
+          if (options !== void 0 && Object(options).spread) {
+            adapter = spreadAdapter;
+          }
+          this._then(
+            adapter,
+            errorAdapter,
+            void 0,
+            this,
+            nodeback
+          );
+        }
+        return this;
+      };
+    };
+  }
+});
+
+// ../node_modules/bluebird/js/release/promisify.js
+var require_promisify = __commonJS({
+  "../node_modules/bluebird/js/release/promisify.js"(exports2, module2) {
+    "use strict";
+    module2.exports = function(Promise2, INTERNAL) {
+      var THIS = {};
+      var util = require_util9();
+      var nodebackForPromise = require_nodeback();
+      var withAppended2 = util.withAppended;
+      var maybeWrapAsError2 = util.maybeWrapAsError;
+      var canEvaluate2 = util.canEvaluate;
+      var TypeError2 = require_errors2().TypeError;
+      var defaultSuffix = "Async";
+      var defaultPromisified = { __isPromisified__: true };
+      var noCopyProps = [
+        "arity",
+        "length",
+        "name",
+        "arguments",
+        "caller",
+        "callee",
+        "prototype",
+        "__isPromisified__"
+      ];
+      var noCopyPropsPattern = new RegExp("^(?:" + noCopyProps.join("|") + ")$");
+      var defaultFilter = function(name) {
+        return util.isIdentifier(name) && name.charAt(0) !== "_" && name !== "constructor";
+      };
+      function propsFilter(key) {
+        return !noCopyPropsPattern.test(key);
+      }
+      function isPromisified(fn) {
+        try {
+          return fn.__isPromisified__ === true;
+        } catch (e) {
+          return false;
+        }
+      }
+      function hasPromisified(obj2, key, suffix) {
+        var val = util.getDataPropertyOrDefault(
+          obj2,
+          key + suffix,
+          defaultPromisified
+        );
+        return val ? isPromisified(val) : false;
+      }
+      function checkValid(ret2, suffix, suffixRegexp) {
+        for (var i = 0; i < ret2.length; i += 2) {
+          var key = ret2[i];
+          if (suffixRegexp.test(key)) {
+            var keyWithoutAsyncSuffix = key.replace(suffixRegexp, "");
+            for (var j = 0; j < ret2.length; j += 2) {
+              if (ret2[j] === keyWithoutAsyncSuffix) {
+                throw new TypeError2("Cannot promisify an API that has normal methods with '%s'-suffix\n\n    See http://goo.gl/MqrFmX\n".replace("%s", suffix));
+              }
+            }
+          }
+        }
+      }
+      function promisifiableMethods(obj2, suffix, suffixRegexp, filter2) {
+        var keys = util.inheritedDataKeys(obj2);
+        var ret2 = [];
+        for (var i = 0; i < keys.length; ++i) {
+          var key = keys[i];
+          var value = obj2[key];
+          var passesDefaultFilter = filter2 === defaultFilter ? true : defaultFilter(key, value, obj2);
+          if (typeof value === "function" && !isPromisified(value) && !hasPromisified(obj2, key, suffix) && filter2(key, value, obj2, passesDefaultFilter)) {
+            ret2.push(key, value);
+          }
+        }
+        checkValid(ret2, suffix, suffixRegexp);
+        return ret2;
+      }
+      var escapeIdentRegex = function(str) {
+        return str.replace(/([$])/, "\\$");
+      };
+      var makeNodePromisifiedEval;
+      if (true) {
+        var switchCaseArgumentOrder = function(likelyArgumentCount) {
+          var ret2 = [likelyArgumentCount];
+          var min = Math.max(0, likelyArgumentCount - 1 - 3);
+          for (var i = likelyArgumentCount - 1; i >= min; --i) {
+            ret2.push(i);
+          }
+          for (var i = likelyArgumentCount + 1; i <= 3; ++i) {
+            ret2.push(i);
+          }
+          return ret2;
+        };
+        var argumentSequence = function(argumentCount) {
+          return util.filledRange(argumentCount, "_arg", "");
+        };
+        var parameterDeclaration = function(parameterCount2) {
+          return util.filledRange(
+            Math.max(parameterCount2, 3),
+            "_arg",
+            ""
+          );
+        };
+        var parameterCount = function(fn) {
+          if (typeof fn.length === "number") {
+            return Math.max(Math.min(fn.length, 1023 + 1), 0);
+          }
+          return 0;
+        };
+        makeNodePromisifiedEval = function(callback, receiver2, originalName, fn, _, multiArgs) {
+          var newParameterCount = Math.max(0, parameterCount(fn) - 1);
+          var argumentOrder = switchCaseArgumentOrder(newParameterCount);
+          var shouldProxyThis = typeof callback === "string" || receiver2 === THIS;
+          function generateCallForArgumentCount(count) {
+            var args = argumentSequence(count).join(", ");
+            var comma = count > 0 ? ", " : "";
+            var ret2;
+            if (shouldProxyThis) {
+              ret2 = "ret = callback.call(this, {{args}}, nodeback); break;\n";
+            } else {
+              ret2 = receiver2 === void 0 ? "ret = callback({{args}}, nodeback); break;\n" : "ret = callback.call(receiver, {{args}}, nodeback); break;\n";
+            }
+            return ret2.replace("{{args}}", args).replace(", ", comma);
+          }
+          function generateArgumentSwitchCase() {
+            var ret2 = "";
+            for (var i = 0; i < argumentOrder.length; ++i) {
+              ret2 += "case " + argumentOrder[i] + ":" + generateCallForArgumentCount(argumentOrder[i]);
+            }
+            ret2 += "                                                             \n        default:                                                             \n            var args = new Array(len + 1);                                   \n            var i = 0;                                                       \n            for (var i = 0; i < len; ++i) {                                  \n               args[i] = arguments[i];                                       \n            }                                                                \n            args[i] = nodeback;                                              \n            [CodeForCall]                                                    \n            break;                                                           \n        ".replace("[CodeForCall]", shouldProxyThis ? "ret = callback.apply(this, args);\n" : "ret = callback.apply(receiver, args);\n");
+            return ret2;
+          }
+          var getFunctionCode = typeof callback === "string" ? "this != null ? this['" + callback + "'] : fn" : "fn";
+          var body = "'use strict';                                                \n        var ret = function (Parameters) {                                    \n            'use strict';                                                    \n            var len = arguments.length;                                      \n            var promise = new Promise(INTERNAL);                             \n            promise._captureStackTrace();                                    \n            var nodeback = nodebackForPromise(promise, " + multiArgs + ");   \n            var ret;                                                         \n            var callback = tryCatch([GetFunctionCode]);                      \n            switch(len) {                                                    \n                [CodeForSwitchCase]                                          \n            }                                                                \n            if (ret === errorObj) {                                          \n                promise._rejectCallback(maybeWrapAsError(ret.e), true, true);\n            }                                                                \n            if (!promise._isFateSealed()) promise._setAsyncGuaranteed();     \n            return promise;                                                  \n        };                                                                   \n        notEnumerableProp(ret, '__isPromisified__', true);                   \n        return ret;                                                          \n    ".replace("[CodeForSwitchCase]", generateArgumentSwitchCase()).replace("[GetFunctionCode]", getFunctionCode);
+          body = body.replace("Parameters", parameterDeclaration(newParameterCount));
+          return new Function(
+            "Promise",
+            "fn",
+            "receiver",
+            "withAppended",
+            "maybeWrapAsError",
+            "nodebackForPromise",
+            "tryCatch",
+            "errorObj",
+            "notEnumerableProp",
+            "INTERNAL",
+            body
+          )(
+            Promise2,
+            fn,
+            receiver2,
+            withAppended2,
+            maybeWrapAsError2,
+            nodebackForPromise,
+            util.tryCatch,
+            util.errorObj,
+            util.notEnumerableProp,
+            INTERNAL
+          );
+        };
+      }
+      function makeNodePromisifiedClosure(callback, receiver2, _, fn, __, multiArgs) {
+        var defaultThis = /* @__PURE__ */ (function() {
+          return this;
+        })();
+        var method = callback;
+        if (typeof method === "string") {
+          callback = fn;
+        }
+        function promisified() {
+          var _receiver = receiver2;
+          if (receiver2 === THIS) _receiver = this;
+          var promise = new Promise2(INTERNAL);
+          promise._captureStackTrace();
+          var cb = typeof method === "string" && this !== defaultThis ? this[method] : callback;
+          var fn2 = nodebackForPromise(promise, multiArgs);
+          try {
+            cb.apply(_receiver, withAppended2(arguments, fn2));
+          } catch (e) {
+            promise._rejectCallback(maybeWrapAsError2(e), true, true);
+          }
+          if (!promise._isFateSealed()) promise._setAsyncGuaranteed();
+          return promise;
+        }
+        util.notEnumerableProp(promisified, "__isPromisified__", true);
+        return promisified;
+      }
+      var makeNodePromisified = canEvaluate2 ? makeNodePromisifiedEval : makeNodePromisifiedClosure;
+      function promisifyAll(obj2, suffix, filter2, promisifier, multiArgs) {
+        var suffixRegexp = new RegExp(escapeIdentRegex(suffix) + "$");
+        var methods = promisifiableMethods(obj2, suffix, suffixRegexp, filter2);
+        for (var i = 0, len = methods.length; i < len; i += 2) {
+          var key = methods[i];
+          var fn = methods[i + 1];
+          var promisifiedKey = key + suffix;
+          if (promisifier === makeNodePromisified) {
+            obj2[promisifiedKey] = makeNodePromisified(key, THIS, key, fn, suffix, multiArgs);
+          } else {
+            var promisified = promisifier(fn, function() {
+              return makeNodePromisified(
+                key,
+                THIS,
+                key,
+                fn,
+                suffix,
+                multiArgs
+              );
+            });
+            util.notEnumerableProp(promisified, "__isPromisified__", true);
+            obj2[promisifiedKey] = promisified;
+          }
+        }
+        util.toFastProperties(obj2);
+        return obj2;
+      }
+      function promisify(callback, receiver2, multiArgs) {
+        return makeNodePromisified(
+          callback,
+          receiver2,
+          void 0,
+          callback,
+          null,
+          multiArgs
+        );
+      }
+      Promise2.promisify = function(fn, options) {
+        if (typeof fn !== "function") {
+          throw new TypeError2("expecting a function but got " + util.classString(fn));
+        }
+        if (isPromisified(fn)) {
+          return fn;
+        }
+        options = Object(options);
+        var receiver2 = options.context === void 0 ? THIS : options.context;
+        var multiArgs = !!options.multiArgs;
+        var ret2 = promisify(fn, receiver2, multiArgs);
+        util.copyDescriptors(fn, ret2, propsFilter);
+        return ret2;
+      };
+      Promise2.promisifyAll = function(target, options) {
+        if (typeof target !== "function" && typeof target !== "object") {
+          throw new TypeError2("the target of promisifyAll must be an object or a function\n\n    See http://goo.gl/MqrFmX\n");
+        }
+        options = Object(options);
+        var multiArgs = !!options.multiArgs;
+        var suffix = options.suffix;
+        if (typeof suffix !== "string") suffix = defaultSuffix;
+        var filter2 = options.filter;
+        if (typeof filter2 !== "function") filter2 = defaultFilter;
+        var promisifier = options.promisifier;
+        if (typeof promisifier !== "function") promisifier = makeNodePromisified;
+        if (!util.isIdentifier(suffix)) {
+          throw new RangeError("suffix must be a valid identifier\n\n    See http://goo.gl/MqrFmX\n");
+        }
+        var keys = util.inheritedDataKeys(target);
+        for (var i = 0; i < keys.length; ++i) {
+          var value = target[keys[i]];
+          if (keys[i] !== "constructor" && util.isClass(value)) {
+            promisifyAll(
+              value.prototype,
+              suffix,
+              filter2,
+              promisifier,
+              multiArgs
+            );
+            promisifyAll(value, suffix, filter2, promisifier, multiArgs);
+          }
+        }
+        return promisifyAll(target, suffix, filter2, promisifier, multiArgs);
+      };
+    };
+  }
+});
+
+// ../node_modules/bluebird/js/release/props.js
+var require_props = __commonJS({
+  "../node_modules/bluebird/js/release/props.js"(exports2, module2) {
+    "use strict";
+    module2.exports = function(Promise2, PromiseArray, tryConvertToPromise, apiRejection) {
+      var util = require_util9();
+      var isObject2 = util.isObject;
+      var es52 = require_es5();
+      var Es6Map;
+      if (typeof Map === "function") Es6Map = Map;
+      var mapToEntries = /* @__PURE__ */ (function() {
+        var index = 0;
+        var size = 0;
+        function extractEntry(value, key) {
+          this[index] = value;
+          this[index + size] = key;
+          index++;
+        }
+        return function mapToEntries2(map2) {
+          size = map2.size;
+          index = 0;
+          var ret2 = new Array(map2.size * 2);
+          map2.forEach(extractEntry, ret2);
+          return ret2;
+        };
+      })();
+      var entriesToMap = function(entries) {
+        var ret2 = new Es6Map();
+        var length = entries.length / 2 | 0;
+        for (var i = 0; i < length; ++i) {
+          var key = entries[length + i];
+          var value = entries[i];
+          ret2.set(key, value);
+        }
+        return ret2;
+      };
+      function PropertiesPromiseArray(obj2) {
+        var isMap = false;
+        var entries;
+        if (Es6Map !== void 0 && obj2 instanceof Es6Map) {
+          entries = mapToEntries(obj2);
+          isMap = true;
+        } else {
+          var keys = es52.keys(obj2);
+          var len = keys.length;
+          entries = new Array(len * 2);
+          for (var i = 0; i < len; ++i) {
+            var key = keys[i];
+            entries[i] = obj2[key];
+            entries[i + len] = key;
+          }
+        }
+        this.constructor$(entries);
+        this._isMap = isMap;
+        this._init$(void 0, isMap ? -6 : -3);
+      }
+      util.inherits(PropertiesPromiseArray, PromiseArray);
+      PropertiesPromiseArray.prototype._init = function() {
+      };
+      PropertiesPromiseArray.prototype._promiseFulfilled = function(value, index) {
+        this._values[index] = value;
+        var totalResolved = ++this._totalResolved;
+        if (totalResolved >= this._length) {
+          var val;
+          if (this._isMap) {
+            val = entriesToMap(this._values);
+          } else {
+            val = {};
+            var keyOffset = this.length();
+            for (var i = 0, len = this.length(); i < len; ++i) {
+              val[this._values[i + keyOffset]] = this._values[i];
+            }
+          }
+          this._resolve(val);
+          return true;
+        }
+        return false;
+      };
+      PropertiesPromiseArray.prototype.shouldCopyValues = function() {
+        return false;
+      };
+      PropertiesPromiseArray.prototype.getActualLength = function(len) {
+        return len >> 1;
+      };
+      function props(promises3) {
+        var ret2;
+        var castValue = tryConvertToPromise(promises3);
+        if (!isObject2(castValue)) {
+          return apiRejection("cannot await properties of a non-object\n\n    See http://goo.gl/MqrFmX\n");
+        } else if (castValue instanceof Promise2) {
+          ret2 = castValue._then(
+            Promise2.props,
+            void 0,
+            void 0,
+            void 0,
+            void 0
+          );
+        } else {
+          ret2 = new PropertiesPromiseArray(castValue).promise();
+        }
+        if (castValue instanceof Promise2) {
+          ret2._propagateFrom(castValue, 2);
+        }
+        return ret2;
+      }
+      Promise2.prototype.props = function() {
+        return props(this);
+      };
+      Promise2.props = function(promises3) {
+        return props(promises3);
+      };
+    };
+  }
+});
+
+// ../node_modules/bluebird/js/release/race.js
+var require_race = __commonJS({
+  "../node_modules/bluebird/js/release/race.js"(exports2, module2) {
+    "use strict";
+    module2.exports = function(Promise2, INTERNAL, tryConvertToPromise, apiRejection) {
+      var util = require_util9();
+      var raceLater = function(promise) {
+        return promise.then(function(array) {
+          return race(array, promise);
+        });
+      };
+      function race(promises3, parent) {
+        var maybePromise = tryConvertToPromise(promises3);
+        if (maybePromise instanceof Promise2) {
+          return raceLater(maybePromise);
+        } else {
+          promises3 = util.asArray(promises3);
+          if (promises3 === null)
+            return apiRejection("expecting an array or an iterable object but got " + util.classString(promises3));
+        }
+        var ret2 = new Promise2(INTERNAL);
+        if (parent !== void 0) {
+          ret2._propagateFrom(parent, 3);
+        }
+        var fulfill = ret2._fulfill;
+        var reject = ret2._reject;
+        for (var i = 0, len = promises3.length; i < len; ++i) {
+          var val = promises3[i];
+          if (val === void 0 && !(i in promises3)) {
+            continue;
+          }
+          Promise2.cast(val)._then(fulfill, reject, void 0, ret2, null);
+        }
+        return ret2;
+      }
+      Promise2.race = function(promises3) {
+        return race(promises3, void 0);
+      };
+      Promise2.prototype.race = function() {
+        return race(this, void 0);
+      };
+    };
+  }
+});
+
+// ../node_modules/bluebird/js/release/reduce.js
+var require_reduce = __commonJS({
+  "../node_modules/bluebird/js/release/reduce.js"(exports2, module2) {
+    "use strict";
+    module2.exports = function(Promise2, PromiseArray, apiRejection, tryConvertToPromise, INTERNAL, debug2) {
+      var util = require_util9();
+      var tryCatch2 = util.tryCatch;
+      function ReductionPromiseArray(promises3, fn, initialValue, _each) {
+        this.constructor$(promises3);
+        var context = Promise2._getContext();
+        this._fn = util.contextBind(context, fn);
+        if (initialValue !== void 0) {
+          initialValue = Promise2.resolve(initialValue);
+          initialValue._attachCancellationCallback(this);
+        }
+        this._initialValue = initialValue;
+        this._currentCancellable = null;
+        if (_each === INTERNAL) {
+          this._eachValues = Array(this._length);
+        } else if (_each === 0) {
+          this._eachValues = null;
+        } else {
+          this._eachValues = void 0;
+        }
+        this._promise._captureStackTrace();
+        this._init$(void 0, -5);
+      }
+      util.inherits(ReductionPromiseArray, PromiseArray);
+      ReductionPromiseArray.prototype._gotAccum = function(accum) {
+        if (this._eachValues !== void 0 && this._eachValues !== null && accum !== INTERNAL) {
+          this._eachValues.push(accum);
+        }
+      };
+      ReductionPromiseArray.prototype._eachComplete = function(value) {
+        if (this._eachValues !== null) {
+          this._eachValues.push(value);
+        }
+        return this._eachValues;
+      };
+      ReductionPromiseArray.prototype._init = function() {
+      };
+      ReductionPromiseArray.prototype._resolveEmptyArray = function() {
+        this._resolve(this._eachValues !== void 0 ? this._eachValues : this._initialValue);
+      };
+      ReductionPromiseArray.prototype.shouldCopyValues = function() {
+        return false;
+      };
+      ReductionPromiseArray.prototype._resolve = function(value) {
+        this._promise._resolveCallback(value);
+        this._values = null;
+      };
+      ReductionPromiseArray.prototype._resultCancelled = function(sender) {
+        if (sender === this._initialValue) return this._cancel();
+        if (this._isResolved()) return;
+        this._resultCancelled$();
+        if (this._currentCancellable instanceof Promise2) {
+          this._currentCancellable.cancel();
+        }
+        if (this._initialValue instanceof Promise2) {
+          this._initialValue.cancel();
+        }
+      };
+      ReductionPromiseArray.prototype._iterate = function(values) {
+        this._values = values;
+        var value;
+        var i;
+        var length = values.length;
+        if (this._initialValue !== void 0) {
+          value = this._initialValue;
+          i = 0;
+        } else {
+          value = Promise2.resolve(values[0]);
+          i = 1;
+        }
+        this._currentCancellable = value;
+        for (var j = i; j < length; ++j) {
+          var maybePromise = values[j];
+          if (maybePromise instanceof Promise2) {
+            maybePromise.suppressUnhandledRejections();
+          }
+        }
+        if (!value.isRejected()) {
+          for (; i < length; ++i) {
+            var ctx = {
+              accum: null,
+              value: values[i],
+              index: i,
+              length,
+              array: this
+            };
+            value = value._then(gotAccum, void 0, void 0, ctx, void 0);
+            if ((i & 127) === 0) {
+              value._setNoAsyncGuarantee();
+            }
+          }
+        }
+        if (this._eachValues !== void 0) {
+          value = value._then(this._eachComplete, void 0, void 0, this, void 0);
+        }
+        value._then(completed, completed, void 0, value, this);
+      };
+      Promise2.prototype.reduce = function(fn, initialValue) {
+        return reduce(this, fn, initialValue, null);
+      };
+      Promise2.reduce = function(promises3, fn, initialValue, _each) {
+        return reduce(promises3, fn, initialValue, _each);
+      };
+      function completed(valueOrReason, array) {
+        if (this.isFulfilled()) {
+          array._resolve(valueOrReason);
+        } else {
+          array._reject(valueOrReason);
+        }
+      }
+      function reduce(promises3, fn, initialValue, _each) {
+        if (typeof fn !== "function") {
+          return apiRejection("expecting a function but got " + util.classString(fn));
+        }
+        var array = new ReductionPromiseArray(promises3, fn, initialValue, _each);
+        return array.promise();
+      }
+      function gotAccum(accum) {
+        this.accum = accum;
+        this.array._gotAccum(accum);
+        var value = tryConvertToPromise(this.value, this.array._promise);
+        if (value instanceof Promise2) {
+          this.array._currentCancellable = value;
+          return value._then(gotValue, void 0, void 0, this, void 0);
+        } else {
+          return gotValue.call(this, value);
+        }
+      }
+      function gotValue(value) {
+        var array = this.array;
+        var promise = array._promise;
+        var fn = tryCatch2(array._fn);
+        promise._pushContext();
+        var ret2;
+        if (array._eachValues !== void 0) {
+          ret2 = fn.call(promise._boundValue(), value, this.index, this.length);
+        } else {
+          ret2 = fn.call(
+            promise._boundValue(),
+            this.accum,
+            value,
+            this.index,
+            this.length
+          );
+        }
+        if (ret2 instanceof Promise2) {
+          array._currentCancellable = ret2;
+        }
+        var promiseCreated = promise._popContext();
+        debug2.checkForgottenReturns(
+          ret2,
+          promiseCreated,
+          array._eachValues !== void 0 ? "Promise.each" : "Promise.reduce",
+          promise
+        );
+        return ret2;
+      }
+    };
+  }
+});
+
+// ../node_modules/bluebird/js/release/settle.js
+var require_settle = __commonJS({
+  "../node_modules/bluebird/js/release/settle.js"(exports2, module2) {
+    "use strict";
+    module2.exports = function(Promise2, PromiseArray, debug2) {
+      var PromiseInspection = Promise2.PromiseInspection;
+      var util = require_util9();
+      function SettledPromiseArray(values) {
+        this.constructor$(values);
+      }
+      util.inherits(SettledPromiseArray, PromiseArray);
+      SettledPromiseArray.prototype._promiseResolved = function(index, inspection) {
+        this._values[index] = inspection;
+        var totalResolved = ++this._totalResolved;
+        if (totalResolved >= this._length) {
+          this._resolve(this._values);
+          return true;
+        }
+        return false;
+      };
+      SettledPromiseArray.prototype._promiseFulfilled = function(value, index) {
+        var ret2 = new PromiseInspection();
+        ret2._bitField = 33554432;
+        ret2._settledValueField = value;
+        return this._promiseResolved(index, ret2);
+      };
+      SettledPromiseArray.prototype._promiseRejected = function(reason, index) {
+        var ret2 = new PromiseInspection();
+        ret2._bitField = 16777216;
+        ret2._settledValueField = reason;
+        return this._promiseResolved(index, ret2);
+      };
+      Promise2.settle = function(promises3) {
+        debug2.deprecated(".settle()", ".reflect()");
+        return new SettledPromiseArray(promises3).promise();
+      };
+      Promise2.allSettled = function(promises3) {
+        return new SettledPromiseArray(promises3).promise();
+      };
+      Promise2.prototype.settle = function() {
+        return Promise2.settle(this);
+      };
+    };
+  }
+});
+
+// ../node_modules/bluebird/js/release/some.js
+var require_some = __commonJS({
+  "../node_modules/bluebird/js/release/some.js"(exports2, module2) {
+    "use strict";
+    module2.exports = function(Promise2, PromiseArray, apiRejection) {
+      var util = require_util9();
+      var RangeError2 = require_errors2().RangeError;
+      var AggregateError = require_errors2().AggregateError;
+      var isArray = util.isArray;
+      var CANCELLATION = {};
+      function SomePromiseArray(values) {
+        this.constructor$(values);
+        this._howMany = 0;
+        this._unwrap = false;
+        this._initialized = false;
+      }
+      util.inherits(SomePromiseArray, PromiseArray);
+      SomePromiseArray.prototype._init = function() {
+        if (!this._initialized) {
+          return;
+        }
+        if (this._howMany === 0) {
+          this._resolve([]);
+          return;
+        }
+        this._init$(void 0, -5);
+        var isArrayResolved = isArray(this._values);
+        if (!this._isResolved() && isArrayResolved && this._howMany > this._canPossiblyFulfill()) {
+          this._reject(this._getRangeError(this.length()));
+        }
+      };
+      SomePromiseArray.prototype.init = function() {
+        this._initialized = true;
+        this._init();
+      };
+      SomePromiseArray.prototype.setUnwrap = function() {
+        this._unwrap = true;
+      };
+      SomePromiseArray.prototype.howMany = function() {
+        return this._howMany;
+      };
+      SomePromiseArray.prototype.setHowMany = function(count) {
+        this._howMany = count;
+      };
+      SomePromiseArray.prototype._promiseFulfilled = function(value) {
+        this._addFulfilled(value);
+        if (this._fulfilled() === this.howMany()) {
+          this._values.length = this.howMany();
+          if (this.howMany() === 1 && this._unwrap) {
+            this._resolve(this._values[0]);
+          } else {
+            this._resolve(this._values);
+          }
+          return true;
+        }
+        return false;
+      };
+      SomePromiseArray.prototype._promiseRejected = function(reason) {
+        this._addRejected(reason);
+        return this._checkOutcome();
+      };
+      SomePromiseArray.prototype._promiseCancelled = function() {
+        if (this._values instanceof Promise2 || this._values == null) {
+          return this._cancel();
+        }
+        this._addRejected(CANCELLATION);
+        return this._checkOutcome();
+      };
+      SomePromiseArray.prototype._checkOutcome = function() {
+        if (this.howMany() > this._canPossiblyFulfill()) {
+          var e = new AggregateError();
+          for (var i = this.length(); i < this._values.length; ++i) {
+            if (this._values[i] !== CANCELLATION) {
+              e.push(this._values[i]);
+            }
+          }
+          if (e.length > 0) {
+            this._reject(e);
+          } else {
+            this._cancel();
+          }
+          return true;
+        }
+        return false;
+      };
+      SomePromiseArray.prototype._fulfilled = function() {
+        return this._totalResolved;
+      };
+      SomePromiseArray.prototype._rejected = function() {
+        return this._values.length - this.length();
+      };
+      SomePromiseArray.prototype._addRejected = function(reason) {
+        this._values.push(reason);
+      };
+      SomePromiseArray.prototype._addFulfilled = function(value) {
+        this._values[this._totalResolved++] = value;
+      };
+      SomePromiseArray.prototype._canPossiblyFulfill = function() {
+        return this.length() - this._rejected();
+      };
+      SomePromiseArray.prototype._getRangeError = function(count) {
+        var message = "Input array must contain at least " + this._howMany + " items but contains only " + count + " items";
+        return new RangeError2(message);
+      };
+      SomePromiseArray.prototype._resolveEmptyArray = function() {
+        this._reject(this._getRangeError(0));
+      };
+      function some(promises3, howMany) {
+        if ((howMany | 0) !== howMany || howMany < 0) {
+          return apiRejection("expecting a positive integer\n\n    See http://goo.gl/MqrFmX\n");
+        }
+        var ret2 = new SomePromiseArray(promises3);
+        var promise = ret2.promise();
+        ret2.setHowMany(howMany);
+        ret2.init();
+        return promise;
+      }
+      Promise2.some = function(promises3, howMany) {
+        return some(promises3, howMany);
+      };
+      Promise2.prototype.some = function(howMany) {
+        return some(this, howMany);
+      };
+      Promise2._SomePromiseArray = SomePromiseArray;
+    };
+  }
+});
+
+// ../node_modules/bluebird/js/release/timers.js
+var require_timers2 = __commonJS({
+  "../node_modules/bluebird/js/release/timers.js"(exports2, module2) {
+    "use strict";
+    module2.exports = function(Promise2, INTERNAL, debug2) {
+      var util = require_util9();
+      var TimeoutError = Promise2.TimeoutError;
+      function HandleWrapper(handle) {
+        this.handle = handle;
+      }
+      HandleWrapper.prototype._resultCancelled = function() {
+        clearTimeout(this.handle);
+      };
+      var afterValue = function(value) {
+        return delay(+this).thenReturn(value);
+      };
+      var delay = Promise2.delay = function(ms, value) {
+        var ret2;
+        var handle;
+        if (value !== void 0) {
+          ret2 = Promise2.resolve(value)._then(afterValue, null, null, ms, void 0);
+          if (debug2.cancellation() && value instanceof Promise2) {
+            ret2._setOnCancel(value);
+          }
+        } else {
+          ret2 = new Promise2(INTERNAL);
+          handle = setTimeout(function() {
+            ret2._fulfill();
+          }, +ms);
+          if (debug2.cancellation()) {
+            ret2._setOnCancel(new HandleWrapper(handle));
+          }
+          ret2._captureStackTrace();
+        }
+        ret2._setAsyncGuaranteed();
+        return ret2;
+      };
+      Promise2.prototype.delay = function(ms) {
+        return delay(ms, this);
+      };
+      var afterTimeout = function(promise, message, parent) {
+        var err;
+        if (typeof message !== "string") {
+          if (message instanceof Error) {
+            err = message;
+          } else {
+            err = new TimeoutError("operation timed out");
+          }
+        } else {
+          err = new TimeoutError(message);
+        }
+        util.markAsOriginatingFromRejection(err);
+        promise._attachExtraTrace(err);
+        promise._reject(err);
+        if (parent != null) {
+          parent.cancel();
+        }
+      };
+      function successClear(value) {
+        clearTimeout(this.handle);
+        return value;
+      }
+      function failureClear(reason) {
+        clearTimeout(this.handle);
+        throw reason;
+      }
+      Promise2.prototype.timeout = function(ms, message) {
+        ms = +ms;
+        var ret2, parent;
+        var handleWrapper = new HandleWrapper(setTimeout(function timeoutTimeout() {
+          if (ret2.isPending()) {
+            afterTimeout(ret2, message, parent);
+          }
+        }, ms));
+        if (debug2.cancellation()) {
+          parent = this.then();
+          ret2 = parent._then(
+            successClear,
+            failureClear,
+            void 0,
+            handleWrapper,
+            void 0
+          );
+          ret2._setOnCancel(handleWrapper);
+        } else {
+          ret2 = this._then(
+            successClear,
+            failureClear,
+            void 0,
+            handleWrapper,
+            void 0
+          );
+        }
+        return ret2;
+      };
+    };
+  }
+});
+
+// ../node_modules/bluebird/js/release/using.js
+var require_using = __commonJS({
+  "../node_modules/bluebird/js/release/using.js"(exports2, module2) {
+    "use strict";
+    module2.exports = function(Promise2, apiRejection, tryConvertToPromise, createContext, INTERNAL, debug2) {
+      var util = require_util9();
+      var TypeError2 = require_errors2().TypeError;
+      var inherits2 = require_util9().inherits;
+      var errorObj2 = util.errorObj;
+      var tryCatch2 = util.tryCatch;
+      var NULL = {};
+      function thrower2(e) {
+        setTimeout(function() {
+          throw e;
+        }, 0);
+      }
+      function castPreservingDisposable(thenable) {
+        var maybePromise = tryConvertToPromise(thenable);
+        if (maybePromise !== thenable && typeof thenable._isDisposable === "function" && typeof thenable._getDisposer === "function" && thenable._isDisposable()) {
+          maybePromise._setDisposable(thenable._getDisposer());
+        }
+        return maybePromise;
+      }
+      function dispose(resources, inspection) {
+        var i = 0;
+        var len = resources.length;
+        var ret2 = new Promise2(INTERNAL);
+        function iterator() {
+          if (i >= len) return ret2._fulfill();
+          var maybePromise = castPreservingDisposable(resources[i++]);
+          if (maybePromise instanceof Promise2 && maybePromise._isDisposable()) {
+            try {
+              maybePromise = tryConvertToPromise(
+                maybePromise._getDisposer().tryDispose(inspection),
+                resources.promise
+              );
+            } catch (e) {
+              return thrower2(e);
+            }
+            if (maybePromise instanceof Promise2) {
+              return maybePromise._then(
+                iterator,
+                thrower2,
+                null,
+                null,
+                null
+              );
+            }
+          }
+          iterator();
+        }
+        iterator();
+        return ret2;
+      }
+      function Disposer(data, promise, context) {
+        this._data = data;
+        this._promise = promise;
+        this._context = context;
+      }
+      Disposer.prototype.data = function() {
+        return this._data;
+      };
+      Disposer.prototype.promise = function() {
+        return this._promise;
+      };
+      Disposer.prototype.resource = function() {
+        if (this.promise().isFulfilled()) {
+          return this.promise().value();
+        }
+        return NULL;
+      };
+      Disposer.prototype.tryDispose = function(inspection) {
+        var resource = this.resource();
+        var context = this._context;
+        if (context !== void 0) context._pushContext();
+        var ret2 = resource !== NULL ? this.doDispose(resource, inspection) : null;
+        if (context !== void 0) context._popContext();
+        this._promise._unsetDisposable();
+        this._data = null;
+        return ret2;
+      };
+      Disposer.isDisposer = function(d) {
+        return d != null && typeof d.resource === "function" && typeof d.tryDispose === "function";
+      };
+      function FunctionDisposer(fn, promise, context) {
+        this.constructor$(fn, promise, context);
+      }
+      inherits2(FunctionDisposer, Disposer);
+      FunctionDisposer.prototype.doDispose = function(resource, inspection) {
+        var fn = this.data();
+        return fn.call(resource, resource, inspection);
+      };
+      function maybeUnwrapDisposer(value) {
+        if (Disposer.isDisposer(value)) {
+          this.resources[this.index]._setDisposable(value);
+          return value.promise();
+        }
+        return value;
+      }
+      function ResourceList(length) {
+        this.length = length;
+        this.promise = null;
+        this[length - 1] = null;
+      }
+      ResourceList.prototype._resultCancelled = function() {
+        var len = this.length;
+        for (var i = 0; i < len; ++i) {
+          var item = this[i];
+          if (item instanceof Promise2) {
+            item.cancel();
+          }
+        }
+      };
+      Promise2.using = function() {
+        var len = arguments.length;
+        if (len < 2) return apiRejection(
+          "you must pass at least 2 arguments to Promise.using"
+        );
+        var fn = arguments[len - 1];
+        if (typeof fn !== "function") {
+          return apiRejection("expecting a function but got " + util.classString(fn));
+        }
+        var input;
+        var spreadArgs = true;
+        if (len === 2 && Array.isArray(arguments[0])) {
+          input = arguments[0];
+          len = input.length;
+          spreadArgs = false;
+        } else {
+          input = arguments;
+          len--;
+        }
+        var resources = new ResourceList(len);
+        for (var i = 0; i < len; ++i) {
+          var resource = input[i];
+          if (Disposer.isDisposer(resource)) {
+            var disposer = resource;
+            resource = resource.promise();
+            resource._setDisposable(disposer);
+          } else {
+            var maybePromise = tryConvertToPromise(resource);
+            if (maybePromise instanceof Promise2) {
+              resource = maybePromise._then(maybeUnwrapDisposer, null, null, {
+                resources,
+                index: i
+              }, void 0);
+            }
+          }
+          resources[i] = resource;
+        }
+        var reflectedResources = new Array(resources.length);
+        for (var i = 0; i < reflectedResources.length; ++i) {
+          reflectedResources[i] = Promise2.resolve(resources[i]).reflect();
+        }
+        var resultPromise = Promise2.all(reflectedResources).then(function(inspections) {
+          for (var i2 = 0; i2 < inspections.length; ++i2) {
+            var inspection = inspections[i2];
+            if (inspection.isRejected()) {
+              errorObj2.e = inspection.error();
+              return errorObj2;
+            } else if (!inspection.isFulfilled()) {
+              resultPromise.cancel();
+              return;
+            }
+            inspections[i2] = inspection.value();
+          }
+          promise._pushContext();
+          fn = tryCatch2(fn);
+          var ret2 = spreadArgs ? fn.apply(void 0, inspections) : fn(inspections);
+          var promiseCreated = promise._popContext();
+          debug2.checkForgottenReturns(
+            ret2,
+            promiseCreated,
+            "Promise.using",
+            promise
+          );
+          return ret2;
+        });
+        var promise = resultPromise.lastly(function() {
+          var inspection = new Promise2.PromiseInspection(resultPromise);
+          return dispose(resources, inspection);
+        });
+        resources.promise = promise;
+        promise._setOnCancel(resources);
+        return promise;
+      };
+      Promise2.prototype._setDisposable = function(disposer) {
+        this._bitField = this._bitField | 131072;
+        this._disposer = disposer;
+      };
+      Promise2.prototype._isDisposable = function() {
+        return (this._bitField & 131072) > 0;
+      };
+      Promise2.prototype._getDisposer = function() {
+        return this._disposer;
+      };
+      Promise2.prototype._unsetDisposable = function() {
+        this._bitField = this._bitField & ~131072;
+        this._disposer = void 0;
+      };
+      Promise2.prototype.disposer = function(fn) {
+        if (typeof fn === "function") {
+          return new FunctionDisposer(fn, this, createContext());
+        }
+        throw new TypeError2();
+      };
+    };
+  }
+});
+
+// ../node_modules/bluebird/js/release/any.js
+var require_any = __commonJS({
+  "../node_modules/bluebird/js/release/any.js"(exports2, module2) {
+    "use strict";
+    module2.exports = function(Promise2) {
+      var SomePromiseArray = Promise2._SomePromiseArray;
+      function any(promises3) {
+        var ret2 = new SomePromiseArray(promises3);
+        var promise = ret2.promise();
+        ret2.setHowMany(1);
+        ret2.setUnwrap();
+        ret2.init();
+        return promise;
+      }
+      Promise2.any = function(promises3) {
+        return any(promises3);
+      };
+      Promise2.prototype.any = function() {
+        return any(this);
+      };
+    };
+  }
+});
+
+// ../node_modules/bluebird/js/release/each.js
+var require_each = __commonJS({
+  "../node_modules/bluebird/js/release/each.js"(exports2, module2) {
+    "use strict";
+    module2.exports = function(Promise2, INTERNAL) {
+      var PromiseReduce = Promise2.reduce;
+      var PromiseAll = Promise2.all;
+      function promiseAllThis() {
+        return PromiseAll(this);
+      }
+      function PromiseMapSeries(promises3, fn) {
+        return PromiseReduce(promises3, fn, INTERNAL, INTERNAL);
+      }
+      Promise2.prototype.each = function(fn) {
+        return PromiseReduce(this, fn, INTERNAL, 0)._then(promiseAllThis, void 0, void 0, this, void 0);
+      };
+      Promise2.prototype.mapSeries = function(fn) {
+        return PromiseReduce(this, fn, INTERNAL, INTERNAL);
+      };
+      Promise2.each = function(promises3, fn) {
+        return PromiseReduce(promises3, fn, INTERNAL, 0)._then(promiseAllThis, void 0, void 0, promises3, void 0);
+      };
+      Promise2.mapSeries = PromiseMapSeries;
+    };
+  }
+});
+
+// ../node_modules/bluebird/js/release/filter.js
+var require_filter = __commonJS({
+  "../node_modules/bluebird/js/release/filter.js"(exports2, module2) {
+    "use strict";
+    module2.exports = function(Promise2, INTERNAL) {
+      var PromiseMap = Promise2.map;
+      Promise2.prototype.filter = function(fn, options) {
+        return PromiseMap(this, fn, options, INTERNAL);
+      };
+      Promise2.filter = function(promises3, fn, options) {
+        return PromiseMap(promises3, fn, options, INTERNAL);
+      };
+    };
+  }
+});
+
+// ../node_modules/bluebird/js/release/promise.js
+var require_promise = __commonJS({
+  "../node_modules/bluebird/js/release/promise.js"(exports2, module2) {
+    "use strict";
+    module2.exports = function() {
+      var makeSelfResolutionError = function() {
+        return new TypeError2("circular promise resolution chain\n\n    See http://goo.gl/MqrFmX\n");
+      };
+      var reflectHandler2 = function() {
+        return new Promise2.PromiseInspection(this._target());
+      };
+      var apiRejection = function(msg) {
+        return Promise2.reject(new TypeError2(msg));
+      };
+      function Proxyable() {
+      }
+      var UNDEFINED_BINDING = {};
+      var util = require_util9();
+      util.setReflectHandler(reflectHandler2);
+      var getDomain = function() {
+        var domain = process.domain;
+        if (domain === void 0) {
+          return null;
+        }
+        return domain;
+      };
+      var getContextDefault = function() {
+        return null;
+      };
+      var getContextDomain = function() {
+        return {
+          domain: getDomain(),
+          async: null
+        };
+      };
+      var AsyncResource = util.isNode && util.nodeSupportsAsyncResource ? require("async_hooks").AsyncResource : null;
+      var getContextAsyncHooks = function() {
+        return {
+          domain: getDomain(),
+          async: new AsyncResource("Bluebird::Promise")
+        };
+      };
+      var getContext = util.isNode ? getContextDomain : getContextDefault;
+      util.notEnumerableProp(Promise2, "_getContext", getContext);
+      var enableAsyncHooks = function() {
+        getContext = getContextAsyncHooks;
+        util.notEnumerableProp(Promise2, "_getContext", getContextAsyncHooks);
+      };
+      var disableAsyncHooks = function() {
+        getContext = getContextDomain;
+        util.notEnumerableProp(Promise2, "_getContext", getContextDomain);
+      };
+      var es52 = require_es5();
+      var Async = require_async();
+      var async = new Async();
+      es52.defineProperty(Promise2, "_async", { value: async });
+      var errors = require_errors2();
+      var TypeError2 = Promise2.TypeError = errors.TypeError;
+      Promise2.RangeError = errors.RangeError;
+      var CancellationError = Promise2.CancellationError = errors.CancellationError;
+      Promise2.TimeoutError = errors.TimeoutError;
+      Promise2.OperationalError = errors.OperationalError;
+      Promise2.RejectionError = errors.OperationalError;
+      Promise2.AggregateError = errors.AggregateError;
+      var INTERNAL = function() {
+      };
+      var APPLY = {};
+      var NEXT_FILTER = {};
+      var tryConvertToPromise = require_thenables()(Promise2, INTERNAL);
+      var PromiseArray = require_promise_array()(
+        Promise2,
+        INTERNAL,
+        tryConvertToPromise,
+        apiRejection,
+        Proxyable
+      );
+      var Context = require_context()(Promise2);
+      var createContext = Context.create;
+      var debug2 = require_debuggability()(
+        Promise2,
+        Context,
+        enableAsyncHooks,
+        disableAsyncHooks
+      );
+      var CapturedTrace = debug2.CapturedTrace;
+      var PassThroughHandlerContext = require_finally()(Promise2, tryConvertToPromise, NEXT_FILTER);
+      var catchFilter = require_catch_filter()(NEXT_FILTER);
+      var nodebackForPromise = require_nodeback();
+      var errorObj2 = util.errorObj;
+      var tryCatch2 = util.tryCatch;
+      function check(self2, executor) {
+        if (self2 == null || self2.constructor !== Promise2) {
+          throw new TypeError2("the promise constructor cannot be invoked directly\n\n    See http://goo.gl/MqrFmX\n");
+        }
+        if (typeof executor !== "function") {
+          throw new TypeError2("expecting a function but got " + util.classString(executor));
+        }
+      }
+      function Promise2(executor) {
+        if (executor !== INTERNAL) {
+          check(this, executor);
+        }
+        this._bitField = 0;
+        this._fulfillmentHandler0 = void 0;
+        this._rejectionHandler0 = void 0;
+        this._promise0 = void 0;
+        this._receiver0 = void 0;
+        this._resolveFromExecutor(executor);
+        this._promiseCreated();
+        this._fireEvent("promiseCreated", this);
+      }
+      Promise2.prototype.toString = function() {
+        return "[object Promise]";
+      };
+      Promise2.prototype.caught = Promise2.prototype["catch"] = function(fn) {
+        var len = arguments.length;
+        if (len > 1) {
+          var catchInstances = new Array(len - 1), j = 0, i;
+          for (i = 0; i < len - 1; ++i) {
+            var item = arguments[i];
+            if (util.isObject(item)) {
+              catchInstances[j++] = item;
+            } else {
+              return apiRejection("Catch statement predicate: expecting an object but got " + util.classString(item));
+            }
+          }
+          catchInstances.length = j;
+          fn = arguments[i];
+          if (typeof fn !== "function") {
+            throw new TypeError2("The last argument to .catch() must be a function, got " + util.toString(fn));
+          }
+          return this.then(void 0, catchFilter(catchInstances, fn, this));
+        }
+        return this.then(void 0, fn);
+      };
+      Promise2.prototype.reflect = function() {
+        return this._then(
+          reflectHandler2,
+          reflectHandler2,
+          void 0,
+          this,
+          void 0
+        );
+      };
+      Promise2.prototype.then = function(didFulfill, didReject) {
+        if (debug2.warnings() && arguments.length > 0 && typeof didFulfill !== "function" && typeof didReject !== "function") {
+          var msg = ".then() only accepts functions but was passed: " + util.classString(didFulfill);
+          if (arguments.length > 1) {
+            msg += ", " + util.classString(didReject);
+          }
+          this._warn(msg);
+        }
+        return this._then(didFulfill, didReject, void 0, void 0, void 0);
+      };
+      Promise2.prototype.done = function(didFulfill, didReject) {
+        var promise = this._then(didFulfill, didReject, void 0, void 0, void 0);
+        promise._setIsFinal();
+      };
+      Promise2.prototype.spread = function(fn) {
+        if (typeof fn !== "function") {
+          return apiRejection("expecting a function but got " + util.classString(fn));
+        }
+        return this.all()._then(fn, void 0, void 0, APPLY, void 0);
+      };
+      Promise2.prototype.toJSON = function() {
+        var ret2 = {
+          isFulfilled: false,
+          isRejected: false,
+          fulfillmentValue: void 0,
+          rejectionReason: void 0
+        };
+        if (this.isFulfilled()) {
+          ret2.fulfillmentValue = this.value();
+          ret2.isFulfilled = true;
+        } else if (this.isRejected()) {
+          ret2.rejectionReason = this.reason();
+          ret2.isRejected = true;
+        }
+        return ret2;
+      };
+      Promise2.prototype.all = function() {
+        if (arguments.length > 0) {
+          this._warn(".all() was passed arguments but it does not take any");
+        }
+        return new PromiseArray(this).promise();
+      };
+      Promise2.prototype.error = function(fn) {
+        return this.caught(util.originatesFromRejection, fn);
+      };
+      Promise2.getNewLibraryCopy = module2.exports;
+      Promise2.is = function(val) {
+        return val instanceof Promise2;
+      };
+      Promise2.fromNode = Promise2.fromCallback = function(fn) {
+        var ret2 = new Promise2(INTERNAL);
+        ret2._captureStackTrace();
+        var multiArgs = arguments.length > 1 ? !!Object(arguments[1]).multiArgs : false;
+        var result = tryCatch2(fn)(nodebackForPromise(ret2, multiArgs));
+        if (result === errorObj2) {
+          ret2._rejectCallback(result.e, true);
+        }
+        if (!ret2._isFateSealed()) ret2._setAsyncGuaranteed();
+        return ret2;
+      };
+      Promise2.all = function(promises3) {
+        return new PromiseArray(promises3).promise();
+      };
+      Promise2.cast = function(obj2) {
+        var ret2 = tryConvertToPromise(obj2);
+        if (!(ret2 instanceof Promise2)) {
+          ret2 = new Promise2(INTERNAL);
+          ret2._captureStackTrace();
+          ret2._setFulfilled();
+          ret2._rejectionHandler0 = obj2;
+        }
+        return ret2;
+      };
+      Promise2.resolve = Promise2.fulfilled = Promise2.cast;
+      Promise2.reject = Promise2.rejected = function(reason) {
+        var ret2 = new Promise2(INTERNAL);
+        ret2._captureStackTrace();
+        ret2._rejectCallback(reason, true);
+        return ret2;
+      };
+      Promise2.setScheduler = function(fn) {
+        if (typeof fn !== "function") {
+          throw new TypeError2("expecting a function but got " + util.classString(fn));
+        }
+        return async.setScheduler(fn);
+      };
+      Promise2.prototype._then = function(didFulfill, didReject, _, receiver2, internalData) {
+        var haveInternalData = internalData !== void 0;
+        var promise = haveInternalData ? internalData : new Promise2(INTERNAL);
+        var target = this._target();
+        var bitField = target._bitField;
+        if (!haveInternalData) {
+          promise._propagateFrom(this, 3);
+          promise._captureStackTrace();
+          if (receiver2 === void 0 && (this._bitField & 2097152) !== 0) {
+            if (!((bitField & 50397184) === 0)) {
+              receiver2 = this._boundValue();
+            } else {
+              receiver2 = target === this ? void 0 : this._boundTo;
+            }
+          }
+          this._fireEvent("promiseChained", this, promise);
+        }
+        var context = getContext();
+        if (!((bitField & 50397184) === 0)) {
+          var handler, value, settler = target._settlePromiseCtx;
+          if ((bitField & 33554432) !== 0) {
+            value = target._rejectionHandler0;
+            handler = didFulfill;
+          } else if ((bitField & 16777216) !== 0) {
+            value = target._fulfillmentHandler0;
+            handler = didReject;
+            target._unsetRejectionIsUnhandled();
+          } else {
+            settler = target._settlePromiseLateCancellationObserver;
+            value = new CancellationError("late cancellation observer");
+            target._attachExtraTrace(value);
+            handler = didReject;
+          }
+          async.invoke(settler, target, {
+            handler: util.contextBind(context, handler),
+            promise,
+            receiver: receiver2,
+            value
+          });
+        } else {
+          target._addCallbacks(
+            didFulfill,
+            didReject,
+            promise,
+            receiver2,
+            context
+          );
+        }
+        return promise;
+      };
+      Promise2.prototype._length = function() {
+        return this._bitField & 65535;
+      };
+      Promise2.prototype._isFateSealed = function() {
+        return (this._bitField & 117506048) !== 0;
+      };
+      Promise2.prototype._isFollowing = function() {
+        return (this._bitField & 67108864) === 67108864;
+      };
+      Promise2.prototype._setLength = function(len) {
+        this._bitField = this._bitField & -65536 | len & 65535;
+      };
+      Promise2.prototype._setFulfilled = function() {
+        this._bitField = this._bitField | 33554432;
+        this._fireEvent("promiseFulfilled", this);
+      };
+      Promise2.prototype._setRejected = function() {
+        this._bitField = this._bitField | 16777216;
+        this._fireEvent("promiseRejected", this);
+      };
+      Promise2.prototype._setFollowing = function() {
+        this._bitField = this._bitField | 67108864;
+        this._fireEvent("promiseResolved", this);
+      };
+      Promise2.prototype._setIsFinal = function() {
+        this._bitField = this._bitField | 4194304;
+      };
+      Promise2.prototype._isFinal = function() {
+        return (this._bitField & 4194304) > 0;
+      };
+      Promise2.prototype._unsetCancelled = function() {
+        this._bitField = this._bitField & ~65536;
+      };
+      Promise2.prototype._setCancelled = function() {
+        this._bitField = this._bitField | 65536;
+        this._fireEvent("promiseCancelled", this);
+      };
+      Promise2.prototype._setWillBeCancelled = function() {
+        this._bitField = this._bitField | 8388608;
+      };
+      Promise2.prototype._setAsyncGuaranteed = function() {
+        if (async.hasCustomScheduler()) return;
+        var bitField = this._bitField;
+        this._bitField = bitField | (bitField & 536870912) >> 2 ^ 134217728;
+      };
+      Promise2.prototype._setNoAsyncGuarantee = function() {
+        this._bitField = (this._bitField | 536870912) & ~134217728;
+      };
+      Promise2.prototype._receiverAt = function(index) {
+        var ret2 = index === 0 ? this._receiver0 : this[index * 4 - 4 + 3];
+        if (ret2 === UNDEFINED_BINDING) {
+          return void 0;
+        } else if (ret2 === void 0 && this._isBound()) {
+          return this._boundValue();
+        }
+        return ret2;
+      };
+      Promise2.prototype._promiseAt = function(index) {
+        return this[index * 4 - 4 + 2];
+      };
+      Promise2.prototype._fulfillmentHandlerAt = function(index) {
+        return this[index * 4 - 4 + 0];
+      };
+      Promise2.prototype._rejectionHandlerAt = function(index) {
+        return this[index * 4 - 4 + 1];
+      };
+      Promise2.prototype._boundValue = function() {
+      };
+      Promise2.prototype._migrateCallback0 = function(follower) {
+        var bitField = follower._bitField;
+        var fulfill = follower._fulfillmentHandler0;
+        var reject = follower._rejectionHandler0;
+        var promise = follower._promise0;
+        var receiver2 = follower._receiverAt(0);
+        if (receiver2 === void 0) receiver2 = UNDEFINED_BINDING;
+        this._addCallbacks(fulfill, reject, promise, receiver2, null);
+      };
+      Promise2.prototype._migrateCallbackAt = function(follower, index) {
+        var fulfill = follower._fulfillmentHandlerAt(index);
+        var reject = follower._rejectionHandlerAt(index);
+        var promise = follower._promiseAt(index);
+        var receiver2 = follower._receiverAt(index);
+        if (receiver2 === void 0) receiver2 = UNDEFINED_BINDING;
+        this._addCallbacks(fulfill, reject, promise, receiver2, null);
+      };
+      Promise2.prototype._addCallbacks = function(fulfill, reject, promise, receiver2, context) {
+        var index = this._length();
+        if (index >= 65535 - 4) {
+          index = 0;
+          this._setLength(0);
+        }
+        if (index === 0) {
+          this._promise0 = promise;
+          this._receiver0 = receiver2;
+          if (typeof fulfill === "function") {
+            this._fulfillmentHandler0 = util.contextBind(context, fulfill);
+          }
+          if (typeof reject === "function") {
+            this._rejectionHandler0 = util.contextBind(context, reject);
+          }
+        } else {
+          var base = index * 4 - 4;
+          this[base + 2] = promise;
+          this[base + 3] = receiver2;
+          if (typeof fulfill === "function") {
+            this[base + 0] = util.contextBind(context, fulfill);
+          }
+          if (typeof reject === "function") {
+            this[base + 1] = util.contextBind(context, reject);
+          }
+        }
+        this._setLength(index + 1);
+        return index;
+      };
+      Promise2.prototype._proxy = function(proxyable, arg) {
+        this._addCallbacks(void 0, void 0, arg, proxyable, null);
+      };
+      Promise2.prototype._resolveCallback = function(value, shouldBind) {
+        if ((this._bitField & 117506048) !== 0) return;
+        if (value === this)
+          return this._rejectCallback(makeSelfResolutionError(), false);
+        var maybePromise = tryConvertToPromise(value, this);
+        if (!(maybePromise instanceof Promise2)) return this._fulfill(value);
+        if (shouldBind) this._propagateFrom(maybePromise, 2);
+        var promise = maybePromise._target();
+        if (promise === this) {
+          this._reject(makeSelfResolutionError());
+          return;
+        }
+        var bitField = promise._bitField;
+        if ((bitField & 50397184) === 0) {
+          var len = this._length();
+          if (len > 0) promise._migrateCallback0(this);
+          for (var i = 1; i < len; ++i) {
+            promise._migrateCallbackAt(this, i);
+          }
+          this._setFollowing();
+          this._setLength(0);
+          this._setFollowee(maybePromise);
+        } else if ((bitField & 33554432) !== 0) {
+          this._fulfill(promise._value());
+        } else if ((bitField & 16777216) !== 0) {
+          this._reject(promise._reason());
+        } else {
+          var reason = new CancellationError("late cancellation observer");
+          promise._attachExtraTrace(reason);
+          this._reject(reason);
+        }
+      };
+      Promise2.prototype._rejectCallback = function(reason, synchronous, ignoreNonErrorWarnings) {
+        var trace = util.ensureErrorObject(reason);
+        var hasStack = trace === reason;
+        if (!hasStack && !ignoreNonErrorWarnings && debug2.warnings()) {
+          var message = "a promise was rejected with a non-error: " + util.classString(reason);
+          this._warn(message, true);
+        }
+        this._attachExtraTrace(trace, synchronous ? hasStack : false);
+        this._reject(reason);
+      };
+      Promise2.prototype._resolveFromExecutor = function(executor) {
+        if (executor === INTERNAL) return;
+        var promise = this;
+        this._captureStackTrace();
+        this._pushContext();
+        var synchronous = true;
+        var r = this._execute(executor, function(value) {
+          promise._resolveCallback(value);
+        }, function(reason) {
+          promise._rejectCallback(reason, synchronous);
+        });
+        synchronous = false;
+        this._popContext();
+        if (r !== void 0) {
+          promise._rejectCallback(r, true);
+        }
+      };
+      Promise2.prototype._settlePromiseFromHandler = function(handler, receiver2, value, promise) {
+        var bitField = promise._bitField;
+        if ((bitField & 65536) !== 0) return;
+        promise._pushContext();
+        var x;
+        if (receiver2 === APPLY) {
+          if (!value || typeof value.length !== "number") {
+            x = errorObj2;
+            x.e = new TypeError2("cannot .spread() a non-array: " + util.classString(value));
+          } else {
+            x = tryCatch2(handler).apply(this._boundValue(), value);
+          }
+        } else {
+          x = tryCatch2(handler).call(receiver2, value);
+        }
+        var promiseCreated = promise._popContext();
+        bitField = promise._bitField;
+        if ((bitField & 65536) !== 0) return;
+        if (x === NEXT_FILTER) {
+          promise._reject(value);
+        } else if (x === errorObj2) {
+          promise._rejectCallback(x.e, false);
+        } else {
+          debug2.checkForgottenReturns(x, promiseCreated, "", promise, this);
+          promise._resolveCallback(x);
+        }
+      };
+      Promise2.prototype._target = function() {
+        var ret2 = this;
+        while (ret2._isFollowing()) ret2 = ret2._followee();
+        return ret2;
+      };
+      Promise2.prototype._followee = function() {
+        return this._rejectionHandler0;
+      };
+      Promise2.prototype._setFollowee = function(promise) {
+        this._rejectionHandler0 = promise;
+      };
+      Promise2.prototype._settlePromise = function(promise, handler, receiver2, value) {
+        var isPromise = promise instanceof Promise2;
+        var bitField = this._bitField;
+        var asyncGuaranteed = (bitField & 134217728) !== 0;
+        if ((bitField & 65536) !== 0) {
+          if (isPromise) promise._invokeInternalOnCancel();
+          if (receiver2 instanceof PassThroughHandlerContext && receiver2.isFinallyHandler()) {
+            receiver2.cancelPromise = promise;
+            if (tryCatch2(handler).call(receiver2, value) === errorObj2) {
+              promise._reject(errorObj2.e);
+            }
+          } else if (handler === reflectHandler2) {
+            promise._fulfill(reflectHandler2.call(receiver2));
+          } else if (receiver2 instanceof Proxyable) {
+            receiver2._promiseCancelled(promise);
+          } else if (isPromise || promise instanceof PromiseArray) {
+            promise._cancel();
+          } else {
+            receiver2.cancel();
+          }
+        } else if (typeof handler === "function") {
+          if (!isPromise) {
+            handler.call(receiver2, value, promise);
+          } else {
+            if (asyncGuaranteed) promise._setAsyncGuaranteed();
+            this._settlePromiseFromHandler(handler, receiver2, value, promise);
+          }
+        } else if (receiver2 instanceof Proxyable) {
+          if (!receiver2._isResolved()) {
+            if ((bitField & 33554432) !== 0) {
+              receiver2._promiseFulfilled(value, promise);
+            } else {
+              receiver2._promiseRejected(value, promise);
+            }
+          }
+        } else if (isPromise) {
+          if (asyncGuaranteed) promise._setAsyncGuaranteed();
+          if ((bitField & 33554432) !== 0) {
+            promise._fulfill(value);
+          } else {
+            promise._reject(value);
+          }
+        }
+      };
+      Promise2.prototype._settlePromiseLateCancellationObserver = function(ctx) {
+        var handler = ctx.handler;
+        var promise = ctx.promise;
+        var receiver2 = ctx.receiver;
+        var value = ctx.value;
+        if (typeof handler === "function") {
+          if (!(promise instanceof Promise2)) {
+            handler.call(receiver2, value, promise);
+          } else {
+            this._settlePromiseFromHandler(handler, receiver2, value, promise);
+          }
+        } else if (promise instanceof Promise2) {
+          promise._reject(value);
+        }
+      };
+      Promise2.prototype._settlePromiseCtx = function(ctx) {
+        this._settlePromise(ctx.promise, ctx.handler, ctx.receiver, ctx.value);
+      };
+      Promise2.prototype._settlePromise0 = function(handler, value, bitField) {
+        var promise = this._promise0;
+        var receiver2 = this._receiverAt(0);
+        this._promise0 = void 0;
+        this._receiver0 = void 0;
+        this._settlePromise(promise, handler, receiver2, value);
+      };
+      Promise2.prototype._clearCallbackDataAtIndex = function(index) {
+        var base = index * 4 - 4;
+        this[base + 2] = this[base + 3] = this[base + 0] = this[base + 1] = void 0;
+      };
+      Promise2.prototype._fulfill = function(value) {
+        var bitField = this._bitField;
+        if ((bitField & 117506048) >>> 16) return;
+        if (value === this) {
+          var err = makeSelfResolutionError();
+          this._attachExtraTrace(err);
+          return this._reject(err);
+        }
+        this._setFulfilled();
+        this._rejectionHandler0 = value;
+        if ((bitField & 65535) > 0) {
+          if ((bitField & 134217728) !== 0) {
+            this._settlePromises();
+          } else {
+            async.settlePromises(this);
+          }
+          this._dereferenceTrace();
+        }
+      };
+      Promise2.prototype._reject = function(reason) {
+        var bitField = this._bitField;
+        if ((bitField & 117506048) >>> 16) return;
+        this._setRejected();
+        this._fulfillmentHandler0 = reason;
+        if (this._isFinal()) {
+          return async.fatalError(reason, util.isNode);
+        }
+        if ((bitField & 65535) > 0) {
+          async.settlePromises(this);
+        } else {
+          this._ensurePossibleRejectionHandled();
+        }
+      };
+      Promise2.prototype._fulfillPromises = function(len, value) {
+        for (var i = 1; i < len; i++) {
+          var handler = this._fulfillmentHandlerAt(i);
+          var promise = this._promiseAt(i);
+          var receiver2 = this._receiverAt(i);
+          this._clearCallbackDataAtIndex(i);
+          this._settlePromise(promise, handler, receiver2, value);
+        }
+      };
+      Promise2.prototype._rejectPromises = function(len, reason) {
+        for (var i = 1; i < len; i++) {
+          var handler = this._rejectionHandlerAt(i);
+          var promise = this._promiseAt(i);
+          var receiver2 = this._receiverAt(i);
+          this._clearCallbackDataAtIndex(i);
+          this._settlePromise(promise, handler, receiver2, reason);
+        }
+      };
+      Promise2.prototype._settlePromises = function() {
+        var bitField = this._bitField;
+        var len = bitField & 65535;
+        if (len > 0) {
+          if ((bitField & 16842752) !== 0) {
+            var reason = this._fulfillmentHandler0;
+            this._settlePromise0(this._rejectionHandler0, reason, bitField);
+            this._rejectPromises(len, reason);
+          } else {
+            var value = this._rejectionHandler0;
+            this._settlePromise0(this._fulfillmentHandler0, value, bitField);
+            this._fulfillPromises(len, value);
+          }
+          this._setLength(0);
+        }
+        this._clearCancellationData();
+      };
+      Promise2.prototype._settledValue = function() {
+        var bitField = this._bitField;
+        if ((bitField & 33554432) !== 0) {
+          return this._rejectionHandler0;
+        } else if ((bitField & 16777216) !== 0) {
+          return this._fulfillmentHandler0;
+        }
+      };
+      if (typeof Symbol !== "undefined" && Symbol.toStringTag) {
+        es52.defineProperty(Promise2.prototype, Symbol.toStringTag, {
+          get: function() {
+            return "Object";
+          }
+        });
+      }
+      function deferResolve(v) {
+        this.promise._resolveCallback(v);
+      }
+      function deferReject(v) {
+        this.promise._rejectCallback(v, false);
+      }
+      Promise2.defer = Promise2.pending = function() {
+        debug2.deprecated("Promise.defer", "new Promise");
+        var promise = new Promise2(INTERNAL);
+        return {
+          promise,
+          resolve: deferResolve,
+          reject: deferReject
+        };
+      };
+      util.notEnumerableProp(
+        Promise2,
+        "_makeSelfResolutionError",
+        makeSelfResolutionError
+      );
+      require_method()(
+        Promise2,
+        INTERNAL,
+        tryConvertToPromise,
+        apiRejection,
+        debug2
+      );
+      require_bind()(Promise2, INTERNAL, tryConvertToPromise, debug2);
+      require_cancel()(Promise2, PromiseArray, apiRejection, debug2);
+      require_direct_resolve()(Promise2);
+      require_synchronous_inspection()(Promise2);
+      require_join()(
+        Promise2,
+        PromiseArray,
+        tryConvertToPromise,
+        INTERNAL,
+        async
+      );
+      Promise2.Promise = Promise2;
+      Promise2.version = "3.7.2";
+      require_call_get()(Promise2);
+      require_generators()(Promise2, apiRejection, INTERNAL, tryConvertToPromise, Proxyable, debug2);
+      require_map()(Promise2, PromiseArray, apiRejection, tryConvertToPromise, INTERNAL, debug2);
+      require_nodeify()(Promise2);
+      require_promisify()(Promise2, INTERNAL);
+      require_props()(Promise2, PromiseArray, tryConvertToPromise, apiRejection);
+      require_race()(Promise2, INTERNAL, tryConvertToPromise, apiRejection);
+      require_reduce()(Promise2, PromiseArray, apiRejection, tryConvertToPromise, INTERNAL, debug2);
+      require_settle()(Promise2, PromiseArray, debug2);
+      require_some()(Promise2, PromiseArray, apiRejection);
+      require_timers2()(Promise2, INTERNAL, debug2);
+      require_using()(Promise2, apiRejection, tryConvertToPromise, createContext, INTERNAL, debug2);
+      require_any()(Promise2);
+      require_each()(Promise2, INTERNAL);
+      require_filter()(Promise2, INTERNAL);
+      util.toFastProperties(Promise2);
+      util.toFastProperties(Promise2.prototype);
+      function fillTypes(value) {
+        var p = new Promise2(INTERNAL);
+        p._fulfillmentHandler0 = value;
+        p._rejectionHandler0 = value;
+        p._promise0 = value;
+        p._receiver0 = value;
+      }
+      fillTypes({ a: 1 });
+      fillTypes({ b: 2 });
+      fillTypes({ c: 3 });
+      fillTypes(1);
+      fillTypes(function() {
+      });
+      fillTypes(void 0);
+      fillTypes(false);
+      fillTypes(new Promise2(INTERNAL));
+      debug2.setBounds(Async.firstLineError, util.lastLineError);
+      return Promise2;
+    };
+  }
+});
+
+// ../node_modules/bluebird/js/release/bluebird.js
+var require_bluebird = __commonJS({
+  "../node_modules/bluebird/js/release/bluebird.js"(exports2, module2) {
+    "use strict";
+    var old;
+    if (typeof Promise !== "undefined") old = Promise;
+    function noConflict() {
+      try {
+        if (Promise === bluebird) Promise = old;
+      } catch (e) {
+      }
+      return bluebird;
+    }
+    var bluebird = require_promise()();
+    bluebird.noConflict = noConflict;
+    module2.exports = bluebird;
   }
 });
 
@@ -18896,14 +24182,6615 @@ function info(message) {
 }
 
 // src/post.ts
+var import_promises2 = require("fs/promises");
+
+// ../node_modules/@isaacs/balanced-match/dist/esm/index.js
+var balanced = (a, b, str) => {
+  const ma = a instanceof RegExp ? maybeMatch(a, str) : a;
+  const mb = b instanceof RegExp ? maybeMatch(b, str) : b;
+  const r = ma !== null && mb != null && range(ma, mb, str);
+  return r && {
+    start: r[0],
+    end: r[1],
+    pre: str.slice(0, r[0]),
+    body: str.slice(r[0] + ma.length, r[1]),
+    post: str.slice(r[1] + mb.length)
+  };
+};
+var maybeMatch = (reg, str) => {
+  const m = str.match(reg);
+  return m ? m[0] : null;
+};
+var range = (a, b, str) => {
+  let begs, beg, left, right = void 0, result;
+  let ai = str.indexOf(a);
+  let bi = str.indexOf(b, ai + 1);
+  let i = ai;
+  if (ai >= 0 && bi > 0) {
+    if (a === b) {
+      return [ai, bi];
+    }
+    begs = [];
+    left = str.length;
+    while (i >= 0 && !result) {
+      if (i === ai) {
+        begs.push(i);
+        ai = str.indexOf(a, i + 1);
+      } else if (begs.length === 1) {
+        const r = begs.pop();
+        if (r !== void 0)
+          result = [r, bi];
+      } else {
+        beg = begs.pop();
+        if (beg !== void 0 && beg < left) {
+          left = beg;
+          right = bi;
+        }
+        bi = str.indexOf(b, i + 1);
+      }
+      i = ai < bi && ai >= 0 ? ai : bi;
+    }
+    if (begs.length && right !== void 0) {
+      result = [left, right];
+    }
+  }
+  return result;
+};
+
+// ../node_modules/@isaacs/brace-expansion/dist/esm/index.js
+var escSlash = "\0SLASH" + Math.random() + "\0";
+var escOpen = "\0OPEN" + Math.random() + "\0";
+var escClose = "\0CLOSE" + Math.random() + "\0";
+var escComma = "\0COMMA" + Math.random() + "\0";
+var escPeriod = "\0PERIOD" + Math.random() + "\0";
+var escSlashPattern = new RegExp(escSlash, "g");
+var escOpenPattern = new RegExp(escOpen, "g");
+var escClosePattern = new RegExp(escClose, "g");
+var escCommaPattern = new RegExp(escComma, "g");
+var escPeriodPattern = new RegExp(escPeriod, "g");
+var slashPattern = /\\\\/g;
+var openPattern = /\\{/g;
+var closePattern = /\\}/g;
+var commaPattern = /\\,/g;
+var periodPattern = /\\./g;
+function numeric(str) {
+  return !isNaN(str) ? parseInt(str, 10) : str.charCodeAt(0);
+}
+function escapeBraces(str) {
+  return str.replace(slashPattern, escSlash).replace(openPattern, escOpen).replace(closePattern, escClose).replace(commaPattern, escComma).replace(periodPattern, escPeriod);
+}
+function unescapeBraces(str) {
+  return str.replace(escSlashPattern, "\\").replace(escOpenPattern, "{").replace(escClosePattern, "}").replace(escCommaPattern, ",").replace(escPeriodPattern, ".");
+}
+function parseCommaParts(str) {
+  if (!str) {
+    return [""];
+  }
+  const parts = [];
+  const m = balanced("{", "}", str);
+  if (!m) {
+    return str.split(",");
+  }
+  const { pre, body, post: post2 } = m;
+  const p = pre.split(",");
+  p[p.length - 1] += "{" + body + "}";
+  const postParts = parseCommaParts(post2);
+  if (post2.length) {
+    ;
+    p[p.length - 1] += postParts.shift();
+    p.push.apply(p, postParts);
+  }
+  parts.push.apply(parts, p);
+  return parts;
+}
+function expand(str) {
+  if (!str) {
+    return [];
+  }
+  if (str.slice(0, 2) === "{}") {
+    str = "\\{\\}" + str.slice(2);
+  }
+  return expand_(escapeBraces(str), true).map(unescapeBraces);
+}
+function embrace(str) {
+  return "{" + str + "}";
+}
+function isPadded(el) {
+  return /^-?0\d/.test(el);
+}
+function lte(i, y) {
+  return i <= y;
+}
+function gte(i, y) {
+  return i >= y;
+}
+function expand_(str, isTop) {
+  const expansions = [];
+  const m = balanced("{", "}", str);
+  if (!m)
+    return [str];
+  const pre = m.pre;
+  const post2 = m.post.length ? expand_(m.post, false) : [""];
+  if (/\$$/.test(m.pre)) {
+    for (let k = 0; k < post2.length; k++) {
+      const expansion = pre + "{" + m.body + "}" + post2[k];
+      expansions.push(expansion);
+    }
+  } else {
+    const isNumericSequence = /^-?\d+\.\.-?\d+(?:\.\.-?\d+)?$/.test(m.body);
+    const isAlphaSequence = /^[a-zA-Z]\.\.[a-zA-Z](?:\.\.-?\d+)?$/.test(m.body);
+    const isSequence = isNumericSequence || isAlphaSequence;
+    const isOptions = m.body.indexOf(",") >= 0;
+    if (!isSequence && !isOptions) {
+      if (m.post.match(/,(?!,).*\}/)) {
+        str = m.pre + "{" + m.body + escClose + m.post;
+        return expand_(str);
+      }
+      return [str];
+    }
+    let n;
+    if (isSequence) {
+      n = m.body.split(/\.\./);
+    } else {
+      n = parseCommaParts(m.body);
+      if (n.length === 1 && n[0] !== void 0) {
+        n = expand_(n[0], false).map(embrace);
+        if (n.length === 1) {
+          return post2.map((p) => m.pre + n[0] + p);
+        }
+      }
+    }
+    let N;
+    if (isSequence && n[0] !== void 0 && n[1] !== void 0) {
+      const x = numeric(n[0]);
+      const y = numeric(n[1]);
+      const width = Math.max(n[0].length, n[1].length);
+      let incr = n.length === 3 && n[2] !== void 0 ? Math.abs(numeric(n[2])) : 1;
+      let test = lte;
+      const reverse = y < x;
+      if (reverse) {
+        incr *= -1;
+        test = gte;
+      }
+      const pad = n.some(isPadded);
+      N = [];
+      for (let i = x; test(i, y); i += incr) {
+        let c;
+        if (isAlphaSequence) {
+          c = String.fromCharCode(i);
+          if (c === "\\") {
+            c = "";
+          }
+        } else {
+          c = String(i);
+          if (pad) {
+            const need = width - c.length;
+            if (need > 0) {
+              const z = new Array(need + 1).join("0");
+              if (i < 0) {
+                c = "-" + z + c.slice(1);
+              } else {
+                c = z + c;
+              }
+            }
+          }
+        }
+        N.push(c);
+      }
+    } else {
+      N = [];
+      for (let j = 0; j < n.length; j++) {
+        N.push.apply(N, expand_(n[j], false));
+      }
+    }
+    for (let j = 0; j < N.length; j++) {
+      for (let k = 0; k < post2.length; k++) {
+        const expansion = pre + N[j] + post2[k];
+        if (!isTop || isSequence || expansion) {
+          expansions.push(expansion);
+        }
+      }
+    }
+  }
+  return expansions;
+}
+
+// ../node_modules/glob/node_modules/minimatch/dist/esm/assert-valid-pattern.js
+var MAX_PATTERN_LENGTH = 1024 * 64;
+var assertValidPattern = (pattern) => {
+  if (typeof pattern !== "string") {
+    throw new TypeError("invalid pattern");
+  }
+  if (pattern.length > MAX_PATTERN_LENGTH) {
+    throw new TypeError("pattern is too long");
+  }
+};
+
+// ../node_modules/glob/node_modules/minimatch/dist/esm/brace-expressions.js
+var posixClasses = {
+  "[:alnum:]": ["\\p{L}\\p{Nl}\\p{Nd}", true],
+  "[:alpha:]": ["\\p{L}\\p{Nl}", true],
+  "[:ascii:]": ["\\x00-\\x7f", false],
+  "[:blank:]": ["\\p{Zs}\\t", true],
+  "[:cntrl:]": ["\\p{Cc}", true],
+  "[:digit:]": ["\\p{Nd}", true],
+  "[:graph:]": ["\\p{Z}\\p{C}", true, true],
+  "[:lower:]": ["\\p{Ll}", true],
+  "[:print:]": ["\\p{C}", true],
+  "[:punct:]": ["\\p{P}", true],
+  "[:space:]": ["\\p{Z}\\t\\r\\n\\v\\f", true],
+  "[:upper:]": ["\\p{Lu}", true],
+  "[:word:]": ["\\p{L}\\p{Nl}\\p{Nd}\\p{Pc}", true],
+  "[:xdigit:]": ["A-Fa-f0-9", false]
+};
+var braceEscape = (s) => s.replace(/[[\]\\-]/g, "\\$&");
+var regexpEscape = (s) => s.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+var rangesToString = (ranges) => ranges.join("");
+var parseClass = (glob2, position) => {
+  const pos = position;
+  if (glob2.charAt(pos) !== "[") {
+    throw new Error("not in a brace expression");
+  }
+  const ranges = [];
+  const negs = [];
+  let i = pos + 1;
+  let sawStart = false;
+  let uflag = false;
+  let escaping = false;
+  let negate = false;
+  let endPos = pos;
+  let rangeStart = "";
+  WHILE: while (i < glob2.length) {
+    const c = glob2.charAt(i);
+    if ((c === "!" || c === "^") && i === pos + 1) {
+      negate = true;
+      i++;
+      continue;
+    }
+    if (c === "]" && sawStart && !escaping) {
+      endPos = i + 1;
+      break;
+    }
+    sawStart = true;
+    if (c === "\\") {
+      if (!escaping) {
+        escaping = true;
+        i++;
+        continue;
+      }
+    }
+    if (c === "[" && !escaping) {
+      for (const [cls, [unip, u, neg]] of Object.entries(posixClasses)) {
+        if (glob2.startsWith(cls, i)) {
+          if (rangeStart) {
+            return ["$.", false, glob2.length - pos, true];
+          }
+          i += cls.length;
+          if (neg)
+            negs.push(unip);
+          else
+            ranges.push(unip);
+          uflag = uflag || u;
+          continue WHILE;
+        }
+      }
+    }
+    escaping = false;
+    if (rangeStart) {
+      if (c > rangeStart) {
+        ranges.push(braceEscape(rangeStart) + "-" + braceEscape(c));
+      } else if (c === rangeStart) {
+        ranges.push(braceEscape(c));
+      }
+      rangeStart = "";
+      i++;
+      continue;
+    }
+    if (glob2.startsWith("-]", i + 1)) {
+      ranges.push(braceEscape(c + "-"));
+      i += 2;
+      continue;
+    }
+    if (glob2.startsWith("-", i + 1)) {
+      rangeStart = c;
+      i += 2;
+      continue;
+    }
+    ranges.push(braceEscape(c));
+    i++;
+  }
+  if (endPos < i) {
+    return ["", false, 0, false];
+  }
+  if (!ranges.length && !negs.length) {
+    return ["$.", false, glob2.length - pos, true];
+  }
+  if (negs.length === 0 && ranges.length === 1 && /^\\?.$/.test(ranges[0]) && !negate) {
+    const r = ranges[0].length === 2 ? ranges[0].slice(-1) : ranges[0];
+    return [regexpEscape(r), false, endPos - pos, false];
+  }
+  const sranges = "[" + (negate ? "^" : "") + rangesToString(ranges) + "]";
+  const snegs = "[" + (negate ? "" : "^") + rangesToString(negs) + "]";
+  const comb = ranges.length && negs.length ? "(" + sranges + "|" + snegs + ")" : ranges.length ? sranges : snegs;
+  return [comb, uflag, endPos - pos, true];
+};
+
+// ../node_modules/glob/node_modules/minimatch/dist/esm/unescape.js
+var unescape = (s, { windowsPathsNoEscape = false, magicalBraces = true } = {}) => {
+  if (magicalBraces) {
+    return windowsPathsNoEscape ? s.replace(/\[([^\/\\])\]/g, "$1") : s.replace(/((?!\\).|^)\[([^\/\\])\]/g, "$1$2").replace(/\\([^\/])/g, "$1");
+  }
+  return windowsPathsNoEscape ? s.replace(/\[([^\/\\{}])\]/g, "$1") : s.replace(/((?!\\).|^)\[([^\/\\{}])\]/g, "$1$2").replace(/\\([^\/{}])/g, "$1");
+};
+
+// ../node_modules/glob/node_modules/minimatch/dist/esm/ast.js
+var types = /* @__PURE__ */ new Set(["!", "?", "+", "*", "@"]);
+var isExtglobType = (c) => types.has(c);
+var startNoTraversal = "(?!(?:^|/)\\.\\.?(?:$|/))";
+var startNoDot = "(?!\\.)";
+var addPatternStart = /* @__PURE__ */ new Set(["[", "."]);
+var justDots = /* @__PURE__ */ new Set(["..", "."]);
+var reSpecials = new Set("().*{}+?[]^$\\!");
+var regExpEscape = (s) => s.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+var qmark = "[^/]";
+var star = qmark + "*?";
+var starNoEmpty = qmark + "+?";
+var AST = class _AST {
+  type;
+  #root;
+  #hasMagic;
+  #uflag = false;
+  #parts = [];
+  #parent;
+  #parentIndex;
+  #negs;
+  #filledNegs = false;
+  #options;
+  #toString;
+  // set to true if it's an extglob with no children
+  // (which really means one child of '')
+  #emptyExt = false;
+  constructor(type, parent, options = {}) {
+    this.type = type;
+    if (type)
+      this.#hasMagic = true;
+    this.#parent = parent;
+    this.#root = this.#parent ? this.#parent.#root : this;
+    this.#options = this.#root === this ? options : this.#root.#options;
+    this.#negs = this.#root === this ? [] : this.#root.#negs;
+    if (type === "!" && !this.#root.#filledNegs)
+      this.#negs.push(this);
+    this.#parentIndex = this.#parent ? this.#parent.#parts.length : 0;
+  }
+  get hasMagic() {
+    if (this.#hasMagic !== void 0)
+      return this.#hasMagic;
+    for (const p of this.#parts) {
+      if (typeof p === "string")
+        continue;
+      if (p.type || p.hasMagic)
+        return this.#hasMagic = true;
+    }
+    return this.#hasMagic;
+  }
+  // reconstructs the pattern
+  toString() {
+    if (this.#toString !== void 0)
+      return this.#toString;
+    if (!this.type) {
+      return this.#toString = this.#parts.map((p) => String(p)).join("");
+    } else {
+      return this.#toString = this.type + "(" + this.#parts.map((p) => String(p)).join("|") + ")";
+    }
+  }
+  #fillNegs() {
+    if (this !== this.#root)
+      throw new Error("should only call on root");
+    if (this.#filledNegs)
+      return this;
+    this.toString();
+    this.#filledNegs = true;
+    let n;
+    while (n = this.#negs.pop()) {
+      if (n.type !== "!")
+        continue;
+      let p = n;
+      let pp = p.#parent;
+      while (pp) {
+        for (let i = p.#parentIndex + 1; !pp.type && i < pp.#parts.length; i++) {
+          for (const part of n.#parts) {
+            if (typeof part === "string") {
+              throw new Error("string part in extglob AST??");
+            }
+            part.copyIn(pp.#parts[i]);
+          }
+        }
+        p = pp;
+        pp = p.#parent;
+      }
+    }
+    return this;
+  }
+  push(...parts) {
+    for (const p of parts) {
+      if (p === "")
+        continue;
+      if (typeof p !== "string" && !(p instanceof _AST && p.#parent === this)) {
+        throw new Error("invalid part: " + p);
+      }
+      this.#parts.push(p);
+    }
+  }
+  toJSON() {
+    const ret2 = this.type === null ? this.#parts.slice().map((p) => typeof p === "string" ? p : p.toJSON()) : [this.type, ...this.#parts.map((p) => p.toJSON())];
+    if (this.isStart() && !this.type)
+      ret2.unshift([]);
+    if (this.isEnd() && (this === this.#root || this.#root.#filledNegs && this.#parent?.type === "!")) {
+      ret2.push({});
+    }
+    return ret2;
+  }
+  isStart() {
+    if (this.#root === this)
+      return true;
+    if (!this.#parent?.isStart())
+      return false;
+    if (this.#parentIndex === 0)
+      return true;
+    const p = this.#parent;
+    for (let i = 0; i < this.#parentIndex; i++) {
+      const pp = p.#parts[i];
+      if (!(pp instanceof _AST && pp.type === "!")) {
+        return false;
+      }
+    }
+    return true;
+  }
+  isEnd() {
+    if (this.#root === this)
+      return true;
+    if (this.#parent?.type === "!")
+      return true;
+    if (!this.#parent?.isEnd())
+      return false;
+    if (!this.type)
+      return this.#parent?.isEnd();
+    const pl = this.#parent ? this.#parent.#parts.length : 0;
+    return this.#parentIndex === pl - 1;
+  }
+  copyIn(part) {
+    if (typeof part === "string")
+      this.push(part);
+    else
+      this.push(part.clone(this));
+  }
+  clone(parent) {
+    const c = new _AST(this.type, parent);
+    for (const p of this.#parts) {
+      c.copyIn(p);
+    }
+    return c;
+  }
+  static #parseAST(str, ast, pos, opt) {
+    let escaping = false;
+    let inBrace = false;
+    let braceStart = -1;
+    let braceNeg = false;
+    if (ast.type === null) {
+      let i2 = pos;
+      let acc2 = "";
+      while (i2 < str.length) {
+        const c = str.charAt(i2++);
+        if (escaping || c === "\\") {
+          escaping = !escaping;
+          acc2 += c;
+          continue;
+        }
+        if (inBrace) {
+          if (i2 === braceStart + 1) {
+            if (c === "^" || c === "!") {
+              braceNeg = true;
+            }
+          } else if (c === "]" && !(i2 === braceStart + 2 && braceNeg)) {
+            inBrace = false;
+          }
+          acc2 += c;
+          continue;
+        } else if (c === "[") {
+          inBrace = true;
+          braceStart = i2;
+          braceNeg = false;
+          acc2 += c;
+          continue;
+        }
+        if (!opt.noext && isExtglobType(c) && str.charAt(i2) === "(") {
+          ast.push(acc2);
+          acc2 = "";
+          const ext2 = new _AST(c, ast);
+          i2 = _AST.#parseAST(str, ext2, i2, opt);
+          ast.push(ext2);
+          continue;
+        }
+        acc2 += c;
+      }
+      ast.push(acc2);
+      return i2;
+    }
+    let i = pos + 1;
+    let part = new _AST(null, ast);
+    const parts = [];
+    let acc = "";
+    while (i < str.length) {
+      const c = str.charAt(i++);
+      if (escaping || c === "\\") {
+        escaping = !escaping;
+        acc += c;
+        continue;
+      }
+      if (inBrace) {
+        if (i === braceStart + 1) {
+          if (c === "^" || c === "!") {
+            braceNeg = true;
+          }
+        } else if (c === "]" && !(i === braceStart + 2 && braceNeg)) {
+          inBrace = false;
+        }
+        acc += c;
+        continue;
+      } else if (c === "[") {
+        inBrace = true;
+        braceStart = i;
+        braceNeg = false;
+        acc += c;
+        continue;
+      }
+      if (isExtglobType(c) && str.charAt(i) === "(") {
+        part.push(acc);
+        acc = "";
+        const ext2 = new _AST(c, part);
+        part.push(ext2);
+        i = _AST.#parseAST(str, ext2, i, opt);
+        continue;
+      }
+      if (c === "|") {
+        part.push(acc);
+        acc = "";
+        parts.push(part);
+        part = new _AST(null, ast);
+        continue;
+      }
+      if (c === ")") {
+        if (acc === "" && ast.#parts.length === 0) {
+          ast.#emptyExt = true;
+        }
+        part.push(acc);
+        acc = "";
+        ast.push(...parts, part);
+        return i;
+      }
+      acc += c;
+    }
+    ast.type = null;
+    ast.#hasMagic = void 0;
+    ast.#parts = [str.substring(pos - 1)];
+    return i;
+  }
+  static fromGlob(pattern, options = {}) {
+    const ast = new _AST(null, void 0, options);
+    _AST.#parseAST(pattern, ast, 0, options);
+    return ast;
+  }
+  // returns the regular expression if there's magic, or the unescaped
+  // string if not.
+  toMMPattern() {
+    if (this !== this.#root)
+      return this.#root.toMMPattern();
+    const glob2 = this.toString();
+    const [re, body, hasMagic2, uflag] = this.toRegExpSource();
+    const anyMagic = hasMagic2 || this.#hasMagic || this.#options.nocase && !this.#options.nocaseMagicOnly && glob2.toUpperCase() !== glob2.toLowerCase();
+    if (!anyMagic) {
+      return body;
+    }
+    const flags = (this.#options.nocase ? "i" : "") + (uflag ? "u" : "");
+    return Object.assign(new RegExp(`^${re}$`, flags), {
+      _src: re,
+      _glob: glob2
+    });
+  }
+  get options() {
+    return this.#options;
+  }
+  // returns the string match, the regexp source, whether there's magic
+  // in the regexp (so a regular expression is required) and whether or
+  // not the uflag is needed for the regular expression (for posix classes)
+  // TODO: instead of injecting the start/end at this point, just return
+  // the BODY of the regexp, along with the start/end portions suitable
+  // for binding the start/end in either a joined full-path makeRe context
+  // (where we bind to (^|/), or a standalone matchPart context (where
+  // we bind to ^, and not /).  Otherwise slashes get duped!
+  //
+  // In part-matching mode, the start is:
+  // - if not isStart: nothing
+  // - if traversal possible, but not allowed: ^(?!\.\.?$)
+  // - if dots allowed or not possible: ^
+  // - if dots possible and not allowed: ^(?!\.)
+  // end is:
+  // - if not isEnd(): nothing
+  // - else: $
+  //
+  // In full-path matching mode, we put the slash at the START of the
+  // pattern, so start is:
+  // - if first pattern: same as part-matching mode
+  // - if not isStart(): nothing
+  // - if traversal possible, but not allowed: /(?!\.\.?(?:$|/))
+  // - if dots allowed or not possible: /
+  // - if dots possible and not allowed: /(?!\.)
+  // end is:
+  // - if last pattern, same as part-matching mode
+  // - else nothing
+  //
+  // Always put the (?:$|/) on negated tails, though, because that has to be
+  // there to bind the end of the negated pattern portion, and it's easier to
+  // just stick it in now rather than try to inject it later in the middle of
+  // the pattern.
+  //
+  // We can just always return the same end, and leave it up to the caller
+  // to know whether it's going to be used joined or in parts.
+  // And, if the start is adjusted slightly, can do the same there:
+  // - if not isStart: nothing
+  // - if traversal possible, but not allowed: (?:/|^)(?!\.\.?$)
+  // - if dots allowed or not possible: (?:/|^)
+  // - if dots possible and not allowed: (?:/|^)(?!\.)
+  //
+  // But it's better to have a simpler binding without a conditional, for
+  // performance, so probably better to return both start options.
+  //
+  // Then the caller just ignores the end if it's not the first pattern,
+  // and the start always gets applied.
+  //
+  // But that's always going to be $ if it's the ending pattern, or nothing,
+  // so the caller can just attach $ at the end of the pattern when building.
+  //
+  // So the todo is:
+  // - better detect what kind of start is needed
+  // - return both flavors of starting pattern
+  // - attach $ at the end of the pattern when creating the actual RegExp
+  //
+  // Ah, but wait, no, that all only applies to the root when the first pattern
+  // is not an extglob. If the first pattern IS an extglob, then we need all
+  // that dot prevention biz to live in the extglob portions, because eg
+  // +(*|.x*) can match .xy but not .yx.
+  //
+  // So, return the two flavors if it's #root and the first child is not an
+  // AST, otherwise leave it to the child AST to handle it, and there,
+  // use the (?:^|/) style of start binding.
+  //
+  // Even simplified further:
+  // - Since the start for a join is eg /(?!\.) and the start for a part
+  // is ^(?!\.), we can just prepend (?!\.) to the pattern (either root
+  // or start or whatever) and prepend ^ or / at the Regexp construction.
+  toRegExpSource(allowDot) {
+    const dot = allowDot ?? !!this.#options.dot;
+    if (this.#root === this)
+      this.#fillNegs();
+    if (!this.type) {
+      const noEmpty = this.isStart() && this.isEnd() && !this.#parts.some((s) => typeof s !== "string");
+      const src = this.#parts.map((p) => {
+        const [re, _, hasMagic2, uflag] = typeof p === "string" ? _AST.#parseGlob(p, this.#hasMagic, noEmpty) : p.toRegExpSource(allowDot);
+        this.#hasMagic = this.#hasMagic || hasMagic2;
+        this.#uflag = this.#uflag || uflag;
+        return re;
+      }).join("");
+      let start2 = "";
+      if (this.isStart()) {
+        if (typeof this.#parts[0] === "string") {
+          const dotTravAllowed = this.#parts.length === 1 && justDots.has(this.#parts[0]);
+          if (!dotTravAllowed) {
+            const aps = addPatternStart;
+            const needNoTrav = (
+              // dots are allowed, and the pattern starts with [ or .
+              dot && aps.has(src.charAt(0)) || // the pattern starts with \., and then [ or .
+              src.startsWith("\\.") && aps.has(src.charAt(2)) || // the pattern starts with \.\., and then [ or .
+              src.startsWith("\\.\\.") && aps.has(src.charAt(4))
+            );
+            const needNoDot = !dot && !allowDot && aps.has(src.charAt(0));
+            start2 = needNoTrav ? startNoTraversal : needNoDot ? startNoDot : "";
+          }
+        }
+      }
+      let end = "";
+      if (this.isEnd() && this.#root.#filledNegs && this.#parent?.type === "!") {
+        end = "(?:$|\\/)";
+      }
+      const final2 = start2 + src + end;
+      return [
+        final2,
+        unescape(src),
+        this.#hasMagic = !!this.#hasMagic,
+        this.#uflag
+      ];
+    }
+    const repeated = this.type === "*" || this.type === "+";
+    const start = this.type === "!" ? "(?:(?!(?:" : "(?:";
+    let body = this.#partsToRegExp(dot);
+    if (this.isStart() && this.isEnd() && !body && this.type !== "!") {
+      const s = this.toString();
+      this.#parts = [s];
+      this.type = null;
+      this.#hasMagic = void 0;
+      return [s, unescape(this.toString()), false, false];
+    }
+    let bodyDotAllowed = !repeated || allowDot || dot || !startNoDot ? "" : this.#partsToRegExp(true);
+    if (bodyDotAllowed === body) {
+      bodyDotAllowed = "";
+    }
+    if (bodyDotAllowed) {
+      body = `(?:${body})(?:${bodyDotAllowed})*?`;
+    }
+    let final = "";
+    if (this.type === "!" && this.#emptyExt) {
+      final = (this.isStart() && !dot ? startNoDot : "") + starNoEmpty;
+    } else {
+      const close = this.type === "!" ? (
+        // !() must match something,but !(x) can match ''
+        "))" + (this.isStart() && !dot && !allowDot ? startNoDot : "") + star + ")"
+      ) : this.type === "@" ? ")" : this.type === "?" ? ")?" : this.type === "+" && bodyDotAllowed ? ")" : this.type === "*" && bodyDotAllowed ? `)?` : `)${this.type}`;
+      final = start + body + close;
+    }
+    return [
+      final,
+      unescape(body),
+      this.#hasMagic = !!this.#hasMagic,
+      this.#uflag
+    ];
+  }
+  #partsToRegExp(dot) {
+    return this.#parts.map((p) => {
+      if (typeof p === "string") {
+        throw new Error("string type in extglob ast??");
+      }
+      const [re, _, _hasMagic, uflag] = p.toRegExpSource(dot);
+      this.#uflag = this.#uflag || uflag;
+      return re;
+    }).filter((p) => !(this.isStart() && this.isEnd()) || !!p).join("|");
+  }
+  static #parseGlob(glob2, hasMagic2, noEmpty = false) {
+    let escaping = false;
+    let re = "";
+    let uflag = false;
+    for (let i = 0; i < glob2.length; i++) {
+      const c = glob2.charAt(i);
+      if (escaping) {
+        escaping = false;
+        re += (reSpecials.has(c) ? "\\" : "") + c;
+        continue;
+      }
+      if (c === "\\") {
+        if (i === glob2.length - 1) {
+          re += "\\\\";
+        } else {
+          escaping = true;
+        }
+        continue;
+      }
+      if (c === "[") {
+        const [src, needUflag, consumed, magic] = parseClass(glob2, i);
+        if (consumed) {
+          re += src;
+          uflag = uflag || needUflag;
+          i += consumed - 1;
+          hasMagic2 = hasMagic2 || magic;
+          continue;
+        }
+      }
+      if (c === "*") {
+        re += noEmpty && glob2 === "*" ? starNoEmpty : star;
+        hasMagic2 = true;
+        continue;
+      }
+      if (c === "?") {
+        re += qmark;
+        hasMagic2 = true;
+        continue;
+      }
+      re += regExpEscape(c);
+    }
+    return [re, unescape(glob2), !!hasMagic2, uflag];
+  }
+};
+
+// ../node_modules/glob/node_modules/minimatch/dist/esm/escape.js
+var escape = (s, { windowsPathsNoEscape = false, magicalBraces = false } = {}) => {
+  if (magicalBraces) {
+    return windowsPathsNoEscape ? s.replace(/[?*()[\]{}]/g, "[$&]") : s.replace(/[?*()[\]\\{}]/g, "\\$&");
+  }
+  return windowsPathsNoEscape ? s.replace(/[?*()[\]]/g, "[$&]") : s.replace(/[?*()[\]\\]/g, "\\$&");
+};
+
+// ../node_modules/glob/node_modules/minimatch/dist/esm/index.js
+var minimatch = (p, pattern, options = {}) => {
+  assertValidPattern(pattern);
+  if (!options.nocomment && pattern.charAt(0) === "#") {
+    return false;
+  }
+  return new Minimatch(pattern, options).match(p);
+};
+var starDotExtRE = /^\*+([^+@!?\*\[\(]*)$/;
+var starDotExtTest = (ext2) => (f) => !f.startsWith(".") && f.endsWith(ext2);
+var starDotExtTestDot = (ext2) => (f) => f.endsWith(ext2);
+var starDotExtTestNocase = (ext2) => {
+  ext2 = ext2.toLowerCase();
+  return (f) => !f.startsWith(".") && f.toLowerCase().endsWith(ext2);
+};
+var starDotExtTestNocaseDot = (ext2) => {
+  ext2 = ext2.toLowerCase();
+  return (f) => f.toLowerCase().endsWith(ext2);
+};
+var starDotStarRE = /^\*+\.\*+$/;
+var starDotStarTest = (f) => !f.startsWith(".") && f.includes(".");
+var starDotStarTestDot = (f) => f !== "." && f !== ".." && f.includes(".");
+var dotStarRE = /^\.\*+$/;
+var dotStarTest = (f) => f !== "." && f !== ".." && f.startsWith(".");
+var starRE = /^\*+$/;
+var starTest = (f) => f.length !== 0 && !f.startsWith(".");
+var starTestDot = (f) => f.length !== 0 && f !== "." && f !== "..";
+var qmarksRE = /^\?+([^+@!?\*\[\(]*)?$/;
+var qmarksTestNocase = ([$0, ext2 = ""]) => {
+  const noext = qmarksTestNoExt([$0]);
+  if (!ext2)
+    return noext;
+  ext2 = ext2.toLowerCase();
+  return (f) => noext(f) && f.toLowerCase().endsWith(ext2);
+};
+var qmarksTestNocaseDot = ([$0, ext2 = ""]) => {
+  const noext = qmarksTestNoExtDot([$0]);
+  if (!ext2)
+    return noext;
+  ext2 = ext2.toLowerCase();
+  return (f) => noext(f) && f.toLowerCase().endsWith(ext2);
+};
+var qmarksTestDot = ([$0, ext2 = ""]) => {
+  const noext = qmarksTestNoExtDot([$0]);
+  return !ext2 ? noext : (f) => noext(f) && f.endsWith(ext2);
+};
+var qmarksTest = ([$0, ext2 = ""]) => {
+  const noext = qmarksTestNoExt([$0]);
+  return !ext2 ? noext : (f) => noext(f) && f.endsWith(ext2);
+};
+var qmarksTestNoExt = ([$0]) => {
+  const len = $0.length;
+  return (f) => f.length === len && !f.startsWith(".");
+};
+var qmarksTestNoExtDot = ([$0]) => {
+  const len = $0.length;
+  return (f) => f.length === len && f !== "." && f !== "..";
+};
+var defaultPlatform = typeof process === "object" && process ? typeof process.env === "object" && process.env && process.env.__MINIMATCH_TESTING_PLATFORM__ || process.platform : "posix";
+var path = {
+  win32: { sep: "\\" },
+  posix: { sep: "/" }
+};
+var sep = defaultPlatform === "win32" ? path.win32.sep : path.posix.sep;
+minimatch.sep = sep;
+var GLOBSTAR = /* @__PURE__ */ Symbol("globstar **");
+minimatch.GLOBSTAR = GLOBSTAR;
+var qmark2 = "[^/]";
+var star2 = qmark2 + "*?";
+var twoStarDot = "(?:(?!(?:\\/|^)(?:\\.{1,2})($|\\/)).)*?";
+var twoStarNoDot = "(?:(?!(?:\\/|^)\\.).)*?";
+var filter = (pattern, options = {}) => (p) => minimatch(p, pattern, options);
+minimatch.filter = filter;
+var ext = (a, b = {}) => Object.assign({}, a, b);
+var defaults = (def) => {
+  if (!def || typeof def !== "object" || !Object.keys(def).length) {
+    return minimatch;
+  }
+  const orig = minimatch;
+  const m = (p, pattern, options = {}) => orig(p, pattern, ext(def, options));
+  return Object.assign(m, {
+    Minimatch: class Minimatch extends orig.Minimatch {
+      constructor(pattern, options = {}) {
+        super(pattern, ext(def, options));
+      }
+      static defaults(options) {
+        return orig.defaults(ext(def, options)).Minimatch;
+      }
+    },
+    AST: class AST extends orig.AST {
+      /* c8 ignore start */
+      constructor(type, parent, options = {}) {
+        super(type, parent, ext(def, options));
+      }
+      /* c8 ignore stop */
+      static fromGlob(pattern, options = {}) {
+        return orig.AST.fromGlob(pattern, ext(def, options));
+      }
+    },
+    unescape: (s, options = {}) => orig.unescape(s, ext(def, options)),
+    escape: (s, options = {}) => orig.escape(s, ext(def, options)),
+    filter: (pattern, options = {}) => orig.filter(pattern, ext(def, options)),
+    defaults: (options) => orig.defaults(ext(def, options)),
+    makeRe: (pattern, options = {}) => orig.makeRe(pattern, ext(def, options)),
+    braceExpand: (pattern, options = {}) => orig.braceExpand(pattern, ext(def, options)),
+    match: (list, pattern, options = {}) => orig.match(list, pattern, ext(def, options)),
+    sep: orig.sep,
+    GLOBSTAR
+  });
+};
+minimatch.defaults = defaults;
+var braceExpand = (pattern, options = {}) => {
+  assertValidPattern(pattern);
+  if (options.nobrace || !/\{(?:(?!\{).)*\}/.test(pattern)) {
+    return [pattern];
+  }
+  return expand(pattern);
+};
+minimatch.braceExpand = braceExpand;
+var makeRe = (pattern, options = {}) => new Minimatch(pattern, options).makeRe();
+minimatch.makeRe = makeRe;
+var match = (list, pattern, options = {}) => {
+  const mm = new Minimatch(pattern, options);
+  list = list.filter((f) => mm.match(f));
+  if (mm.options.nonull && !list.length) {
+    list.push(pattern);
+  }
+  return list;
+};
+minimatch.match = match;
+var globMagic = /[?*]|[+@!]\(.*?\)|\[|\]/;
+var regExpEscape2 = (s) => s.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+var Minimatch = class {
+  options;
+  set;
+  pattern;
+  windowsPathsNoEscape;
+  nonegate;
+  negate;
+  comment;
+  empty;
+  preserveMultipleSlashes;
+  partial;
+  globSet;
+  globParts;
+  nocase;
+  isWindows;
+  platform;
+  windowsNoMagicRoot;
+  regexp;
+  constructor(pattern, options = {}) {
+    assertValidPattern(pattern);
+    options = options || {};
+    this.options = options;
+    this.pattern = pattern;
+    this.platform = options.platform || defaultPlatform;
+    this.isWindows = this.platform === "win32";
+    this.windowsPathsNoEscape = !!options.windowsPathsNoEscape || options.allowWindowsEscape === false;
+    if (this.windowsPathsNoEscape) {
+      this.pattern = this.pattern.replace(/\\/g, "/");
+    }
+    this.preserveMultipleSlashes = !!options.preserveMultipleSlashes;
+    this.regexp = null;
+    this.negate = false;
+    this.nonegate = !!options.nonegate;
+    this.comment = false;
+    this.empty = false;
+    this.partial = !!options.partial;
+    this.nocase = !!this.options.nocase;
+    this.windowsNoMagicRoot = options.windowsNoMagicRoot !== void 0 ? options.windowsNoMagicRoot : !!(this.isWindows && this.nocase);
+    this.globSet = [];
+    this.globParts = [];
+    this.set = [];
+    this.make();
+  }
+  hasMagic() {
+    if (this.options.magicalBraces && this.set.length > 1) {
+      return true;
+    }
+    for (const pattern of this.set) {
+      for (const part of pattern) {
+        if (typeof part !== "string")
+          return true;
+      }
+    }
+    return false;
+  }
+  debug(..._) {
+  }
+  make() {
+    const pattern = this.pattern;
+    const options = this.options;
+    if (!options.nocomment && pattern.charAt(0) === "#") {
+      this.comment = true;
+      return;
+    }
+    if (!pattern) {
+      this.empty = true;
+      return;
+    }
+    this.parseNegate();
+    this.globSet = [...new Set(this.braceExpand())];
+    if (options.debug) {
+      this.debug = (...args) => console.error(...args);
+    }
+    this.debug(this.pattern, this.globSet);
+    const rawGlobParts = this.globSet.map((s) => this.slashSplit(s));
+    this.globParts = this.preprocess(rawGlobParts);
+    this.debug(this.pattern, this.globParts);
+    let set = this.globParts.map((s, _, __) => {
+      if (this.isWindows && this.windowsNoMagicRoot) {
+        const isUNC = s[0] === "" && s[1] === "" && (s[2] === "?" || !globMagic.test(s[2])) && !globMagic.test(s[3]);
+        const isDrive = /^[a-z]:/i.test(s[0]);
+        if (isUNC) {
+          return [...s.slice(0, 4), ...s.slice(4).map((ss) => this.parse(ss))];
+        } else if (isDrive) {
+          return [s[0], ...s.slice(1).map((ss) => this.parse(ss))];
+        }
+      }
+      return s.map((ss) => this.parse(ss));
+    });
+    this.debug(this.pattern, set);
+    this.set = set.filter((s) => s.indexOf(false) === -1);
+    if (this.isWindows) {
+      for (let i = 0; i < this.set.length; i++) {
+        const p = this.set[i];
+        if (p[0] === "" && p[1] === "" && this.globParts[i][2] === "?" && typeof p[3] === "string" && /^[a-z]:$/i.test(p[3])) {
+          p[2] = "?";
+        }
+      }
+    }
+    this.debug(this.pattern, this.set);
+  }
+  // various transforms to equivalent pattern sets that are
+  // faster to process in a filesystem walk.  The goal is to
+  // eliminate what we can, and push all ** patterns as far
+  // to the right as possible, even if it increases the number
+  // of patterns that we have to process.
+  preprocess(globParts) {
+    if (this.options.noglobstar) {
+      for (let i = 0; i < globParts.length; i++) {
+        for (let j = 0; j < globParts[i].length; j++) {
+          if (globParts[i][j] === "**") {
+            globParts[i][j] = "*";
+          }
+        }
+      }
+    }
+    const { optimizationLevel = 1 } = this.options;
+    if (optimizationLevel >= 2) {
+      globParts = this.firstPhasePreProcess(globParts);
+      globParts = this.secondPhasePreProcess(globParts);
+    } else if (optimizationLevel >= 1) {
+      globParts = this.levelOneOptimize(globParts);
+    } else {
+      globParts = this.adjascentGlobstarOptimize(globParts);
+    }
+    return globParts;
+  }
+  // just get rid of adjascent ** portions
+  adjascentGlobstarOptimize(globParts) {
+    return globParts.map((parts) => {
+      let gs = -1;
+      while (-1 !== (gs = parts.indexOf("**", gs + 1))) {
+        let i = gs;
+        while (parts[i + 1] === "**") {
+          i++;
+        }
+        if (i !== gs) {
+          parts.splice(gs, i - gs);
+        }
+      }
+      return parts;
+    });
+  }
+  // get rid of adjascent ** and resolve .. portions
+  levelOneOptimize(globParts) {
+    return globParts.map((parts) => {
+      parts = parts.reduce((set, part) => {
+        const prev = set[set.length - 1];
+        if (part === "**" && prev === "**") {
+          return set;
+        }
+        if (part === "..") {
+          if (prev && prev !== ".." && prev !== "." && prev !== "**") {
+            set.pop();
+            return set;
+          }
+        }
+        set.push(part);
+        return set;
+      }, []);
+      return parts.length === 0 ? [""] : parts;
+    });
+  }
+  levelTwoFileOptimize(parts) {
+    if (!Array.isArray(parts)) {
+      parts = this.slashSplit(parts);
+    }
+    let didSomething = false;
+    do {
+      didSomething = false;
+      if (!this.preserveMultipleSlashes) {
+        for (let i = 1; i < parts.length - 1; i++) {
+          const p = parts[i];
+          if (i === 1 && p === "" && parts[0] === "")
+            continue;
+          if (p === "." || p === "") {
+            didSomething = true;
+            parts.splice(i, 1);
+            i--;
+          }
+        }
+        if (parts[0] === "." && parts.length === 2 && (parts[1] === "." || parts[1] === "")) {
+          didSomething = true;
+          parts.pop();
+        }
+      }
+      let dd = 0;
+      while (-1 !== (dd = parts.indexOf("..", dd + 1))) {
+        const p = parts[dd - 1];
+        if (p && p !== "." && p !== ".." && p !== "**") {
+          didSomething = true;
+          parts.splice(dd - 1, 2);
+          dd -= 2;
+        }
+      }
+    } while (didSomething);
+    return parts.length === 0 ? [""] : parts;
+  }
+  // First phase: single-pattern processing
+  // <pre> is 1 or more portions
+  // <rest> is 1 or more portions
+  // <p> is any portion other than ., .., '', or **
+  // <e> is . or ''
+  //
+  // **/.. is *brutal* for filesystem walking performance, because
+  // it effectively resets the recursive walk each time it occurs,
+  // and ** cannot be reduced out by a .. pattern part like a regexp
+  // or most strings (other than .., ., and '') can be.
+  //
+  // <pre>/**/../<p>/<p>/<rest> -> {<pre>/../<p>/<p>/<rest>,<pre>/**/<p>/<p>/<rest>}
+  // <pre>/<e>/<rest> -> <pre>/<rest>
+  // <pre>/<p>/../<rest> -> <pre>/<rest>
+  // **/**/<rest> -> **/<rest>
+  //
+  // **/*/<rest> -> */**/<rest> <== not valid because ** doesn't follow
+  // this WOULD be allowed if ** did follow symlinks, or * didn't
+  firstPhasePreProcess(globParts) {
+    let didSomething = false;
+    do {
+      didSomething = false;
+      for (let parts of globParts) {
+        let gs = -1;
+        while (-1 !== (gs = parts.indexOf("**", gs + 1))) {
+          let gss = gs;
+          while (parts[gss + 1] === "**") {
+            gss++;
+          }
+          if (gss > gs) {
+            parts.splice(gs + 1, gss - gs);
+          }
+          let next = parts[gs + 1];
+          const p = parts[gs + 2];
+          const p2 = parts[gs + 3];
+          if (next !== "..")
+            continue;
+          if (!p || p === "." || p === ".." || !p2 || p2 === "." || p2 === "..") {
+            continue;
+          }
+          didSomething = true;
+          parts.splice(gs, 1);
+          const other = parts.slice(0);
+          other[gs] = "**";
+          globParts.push(other);
+          gs--;
+        }
+        if (!this.preserveMultipleSlashes) {
+          for (let i = 1; i < parts.length - 1; i++) {
+            const p = parts[i];
+            if (i === 1 && p === "" && parts[0] === "")
+              continue;
+            if (p === "." || p === "") {
+              didSomething = true;
+              parts.splice(i, 1);
+              i--;
+            }
+          }
+          if (parts[0] === "." && parts.length === 2 && (parts[1] === "." || parts[1] === "")) {
+            didSomething = true;
+            parts.pop();
+          }
+        }
+        let dd = 0;
+        while (-1 !== (dd = parts.indexOf("..", dd + 1))) {
+          const p = parts[dd - 1];
+          if (p && p !== "." && p !== ".." && p !== "**") {
+            didSomething = true;
+            const needDot = dd === 1 && parts[dd + 1] === "**";
+            const splin = needDot ? ["."] : [];
+            parts.splice(dd - 1, 2, ...splin);
+            if (parts.length === 0)
+              parts.push("");
+            dd -= 2;
+          }
+        }
+      }
+    } while (didSomething);
+    return globParts;
+  }
+  // second phase: multi-pattern dedupes
+  // {<pre>/*/<rest>,<pre>/<p>/<rest>} -> <pre>/*/<rest>
+  // {<pre>/<rest>,<pre>/<rest>} -> <pre>/<rest>
+  // {<pre>/**/<rest>,<pre>/<rest>} -> <pre>/**/<rest>
+  //
+  // {<pre>/**/<rest>,<pre>/**/<p>/<rest>} -> <pre>/**/<rest>
+  // ^-- not valid because ** doens't follow symlinks
+  secondPhasePreProcess(globParts) {
+    for (let i = 0; i < globParts.length - 1; i++) {
+      for (let j = i + 1; j < globParts.length; j++) {
+        const matched = this.partsMatch(globParts[i], globParts[j], !this.preserveMultipleSlashes);
+        if (matched) {
+          globParts[i] = [];
+          globParts[j] = matched;
+          break;
+        }
+      }
+    }
+    return globParts.filter((gs) => gs.length);
+  }
+  partsMatch(a, b, emptyGSMatch = false) {
+    let ai = 0;
+    let bi = 0;
+    let result = [];
+    let which2 = "";
+    while (ai < a.length && bi < b.length) {
+      if (a[ai] === b[bi]) {
+        result.push(which2 === "b" ? b[bi] : a[ai]);
+        ai++;
+        bi++;
+      } else if (emptyGSMatch && a[ai] === "**" && b[bi] === a[ai + 1]) {
+        result.push(a[ai]);
+        ai++;
+      } else if (emptyGSMatch && b[bi] === "**" && a[ai] === b[bi + 1]) {
+        result.push(b[bi]);
+        bi++;
+      } else if (a[ai] === "*" && b[bi] && (this.options.dot || !b[bi].startsWith(".")) && b[bi] !== "**") {
+        if (which2 === "b")
+          return false;
+        which2 = "a";
+        result.push(a[ai]);
+        ai++;
+        bi++;
+      } else if (b[bi] === "*" && a[ai] && (this.options.dot || !a[ai].startsWith(".")) && a[ai] !== "**") {
+        if (which2 === "a")
+          return false;
+        which2 = "b";
+        result.push(b[bi]);
+        ai++;
+        bi++;
+      } else {
+        return false;
+      }
+    }
+    return a.length === b.length && result;
+  }
+  parseNegate() {
+    if (this.nonegate)
+      return;
+    const pattern = this.pattern;
+    let negate = false;
+    let negateOffset = 0;
+    for (let i = 0; i < pattern.length && pattern.charAt(i) === "!"; i++) {
+      negate = !negate;
+      negateOffset++;
+    }
+    if (negateOffset)
+      this.pattern = pattern.slice(negateOffset);
+    this.negate = negate;
+  }
+  // set partial to true to test if, for example,
+  // "/a/b" matches the start of "/*/b/*/d"
+  // Partial means, if you run out of file before you run
+  // out of pattern, then that's fine, as long as all
+  // the parts match.
+  matchOne(file, pattern, partial = false) {
+    const options = this.options;
+    if (this.isWindows) {
+      const fileDrive = typeof file[0] === "string" && /^[a-z]:$/i.test(file[0]);
+      const fileUNC = !fileDrive && file[0] === "" && file[1] === "" && file[2] === "?" && /^[a-z]:$/i.test(file[3]);
+      const patternDrive = typeof pattern[0] === "string" && /^[a-z]:$/i.test(pattern[0]);
+      const patternUNC = !patternDrive && pattern[0] === "" && pattern[1] === "" && pattern[2] === "?" && typeof pattern[3] === "string" && /^[a-z]:$/i.test(pattern[3]);
+      const fdi = fileUNC ? 3 : fileDrive ? 0 : void 0;
+      const pdi = patternUNC ? 3 : patternDrive ? 0 : void 0;
+      if (typeof fdi === "number" && typeof pdi === "number") {
+        const [fd, pd] = [file[fdi], pattern[pdi]];
+        if (fd.toLowerCase() === pd.toLowerCase()) {
+          pattern[pdi] = fd;
+          if (pdi > fdi) {
+            pattern = pattern.slice(pdi);
+          } else if (fdi > pdi) {
+            file = file.slice(fdi);
+          }
+        }
+      }
+    }
+    const { optimizationLevel = 1 } = this.options;
+    if (optimizationLevel >= 2) {
+      file = this.levelTwoFileOptimize(file);
+    }
+    this.debug("matchOne", this, { file, pattern });
+    this.debug("matchOne", file.length, pattern.length);
+    for (var fi = 0, pi = 0, fl = file.length, pl = pattern.length; fi < fl && pi < pl; fi++, pi++) {
+      this.debug("matchOne loop");
+      var p = pattern[pi];
+      var f = file[fi];
+      this.debug(pattern, p, f);
+      if (p === false) {
+        return false;
+      }
+      if (p === GLOBSTAR) {
+        this.debug("GLOBSTAR", [pattern, p, f]);
+        var fr = fi;
+        var pr = pi + 1;
+        if (pr === pl) {
+          this.debug("** at the end");
+          for (; fi < fl; fi++) {
+            if (file[fi] === "." || file[fi] === ".." || !options.dot && file[fi].charAt(0) === ".")
+              return false;
+          }
+          return true;
+        }
+        while (fr < fl) {
+          var swallowee = file[fr];
+          this.debug("\nglobstar while", file, fr, pattern, pr, swallowee);
+          if (this.matchOne(file.slice(fr), pattern.slice(pr), partial)) {
+            this.debug("globstar found match!", fr, fl, swallowee);
+            return true;
+          } else {
+            if (swallowee === "." || swallowee === ".." || !options.dot && swallowee.charAt(0) === ".") {
+              this.debug("dot detected!", file, fr, pattern, pr);
+              break;
+            }
+            this.debug("globstar swallow a segment, and continue");
+            fr++;
+          }
+        }
+        if (partial) {
+          this.debug("\n>>> no match, partial?", file, fr, pattern, pr);
+          if (fr === fl) {
+            return true;
+          }
+        }
+        return false;
+      }
+      let hit;
+      if (typeof p === "string") {
+        hit = f === p;
+        this.debug("string match", p, f, hit);
+      } else {
+        hit = p.test(f);
+        this.debug("pattern match", p, f, hit);
+      }
+      if (!hit)
+        return false;
+    }
+    if (fi === fl && pi === pl) {
+      return true;
+    } else if (fi === fl) {
+      return partial;
+    } else if (pi === pl) {
+      return fi === fl - 1 && file[fi] === "";
+    } else {
+      throw new Error("wtf?");
+    }
+  }
+  braceExpand() {
+    return braceExpand(this.pattern, this.options);
+  }
+  parse(pattern) {
+    assertValidPattern(pattern);
+    const options = this.options;
+    if (pattern === "**")
+      return GLOBSTAR;
+    if (pattern === "")
+      return "";
+    let m;
+    let fastTest = null;
+    if (m = pattern.match(starRE)) {
+      fastTest = options.dot ? starTestDot : starTest;
+    } else if (m = pattern.match(starDotExtRE)) {
+      fastTest = (options.nocase ? options.dot ? starDotExtTestNocaseDot : starDotExtTestNocase : options.dot ? starDotExtTestDot : starDotExtTest)(m[1]);
+    } else if (m = pattern.match(qmarksRE)) {
+      fastTest = (options.nocase ? options.dot ? qmarksTestNocaseDot : qmarksTestNocase : options.dot ? qmarksTestDot : qmarksTest)(m);
+    } else if (m = pattern.match(starDotStarRE)) {
+      fastTest = options.dot ? starDotStarTestDot : starDotStarTest;
+    } else if (m = pattern.match(dotStarRE)) {
+      fastTest = dotStarTest;
+    }
+    const re = AST.fromGlob(pattern, this.options).toMMPattern();
+    if (fastTest && typeof re === "object") {
+      Reflect.defineProperty(re, "test", { value: fastTest });
+    }
+    return re;
+  }
+  makeRe() {
+    if (this.regexp || this.regexp === false)
+      return this.regexp;
+    const set = this.set;
+    if (!set.length) {
+      this.regexp = false;
+      return this.regexp;
+    }
+    const options = this.options;
+    const twoStar = options.noglobstar ? star2 : options.dot ? twoStarDot : twoStarNoDot;
+    const flags = new Set(options.nocase ? ["i"] : []);
+    let re = set.map((pattern) => {
+      const pp = pattern.map((p) => {
+        if (p instanceof RegExp) {
+          for (const f of p.flags.split(""))
+            flags.add(f);
+        }
+        return typeof p === "string" ? regExpEscape2(p) : p === GLOBSTAR ? GLOBSTAR : p._src;
+      });
+      pp.forEach((p, i) => {
+        const next = pp[i + 1];
+        const prev = pp[i - 1];
+        if (p !== GLOBSTAR || prev === GLOBSTAR) {
+          return;
+        }
+        if (prev === void 0) {
+          if (next !== void 0 && next !== GLOBSTAR) {
+            pp[i + 1] = "(?:\\/|" + twoStar + "\\/)?" + next;
+          } else {
+            pp[i] = twoStar;
+          }
+        } else if (next === void 0) {
+          pp[i - 1] = prev + "(?:\\/|\\/" + twoStar + ")?";
+        } else if (next !== GLOBSTAR) {
+          pp[i - 1] = prev + "(?:\\/|\\/" + twoStar + "\\/)" + next;
+          pp[i + 1] = GLOBSTAR;
+        }
+      });
+      const filtered = pp.filter((p) => p !== GLOBSTAR);
+      if (this.partial && filtered.length >= 1) {
+        const prefixes = [];
+        for (let i = 1; i <= filtered.length; i++) {
+          prefixes.push(filtered.slice(0, i).join("/"));
+        }
+        return "(?:" + prefixes.join("|") + ")";
+      }
+      return filtered.join("/");
+    }).join("|");
+    const [open2, close] = set.length > 1 ? ["(?:", ")"] : ["", ""];
+    re = "^" + open2 + re + close + "$";
+    if (this.partial) {
+      re = "^(?:\\/|" + open2 + re.slice(1, -1) + close + ")$";
+    }
+    if (this.negate)
+      re = "^(?!" + re + ").+$";
+    try {
+      this.regexp = new RegExp(re, [...flags].join(""));
+    } catch (ex) {
+      this.regexp = false;
+    }
+    return this.regexp;
+  }
+  slashSplit(p) {
+    if (this.preserveMultipleSlashes) {
+      return p.split("/");
+    } else if (this.isWindows && /^\/\/[^\/]+/.test(p)) {
+      return ["", ...p.split(/\/+/)];
+    } else {
+      return p.split(/\/+/);
+    }
+  }
+  match(f, partial = this.partial) {
+    this.debug("match", f, this.pattern);
+    if (this.comment) {
+      return false;
+    }
+    if (this.empty) {
+      return f === "";
+    }
+    if (f === "/" && partial) {
+      return true;
+    }
+    const options = this.options;
+    if (this.isWindows) {
+      f = f.split("\\").join("/");
+    }
+    const ff = this.slashSplit(f);
+    this.debug(this.pattern, "split", ff);
+    const set = this.set;
+    this.debug(this.pattern, "set", set);
+    let filename = ff[ff.length - 1];
+    if (!filename) {
+      for (let i = ff.length - 2; !filename && i >= 0; i--) {
+        filename = ff[i];
+      }
+    }
+    for (let i = 0; i < set.length; i++) {
+      const pattern = set[i];
+      let file = ff;
+      if (options.matchBase && pattern.length === 1) {
+        file = [filename];
+      }
+      const hit = this.matchOne(file, pattern, partial);
+      if (hit) {
+        if (options.flipNegate) {
+          return true;
+        }
+        return !this.negate;
+      }
+    }
+    if (options.flipNegate) {
+      return false;
+    }
+    return this.negate;
+  }
+  static defaults(def) {
+    return minimatch.defaults(def).Minimatch;
+  }
+};
+minimatch.AST = AST;
+minimatch.Minimatch = Minimatch;
+minimatch.escape = escape;
+minimatch.unescape = unescape;
+
+// ../node_modules/glob/dist/esm/glob.js
+var import_node_url2 = require("url");
+
+// ../node_modules/lru-cache/dist/esm/index.js
+var perf = typeof performance === "object" && performance && typeof performance.now === "function" ? performance : Date;
+var warned = /* @__PURE__ */ new Set();
+var PROCESS = typeof process === "object" && !!process ? process : {};
+var emitWarning = (msg, type, code, fn) => {
+  typeof PROCESS.emitWarning === "function" ? PROCESS.emitWarning(msg, type, code, fn) : console.error(`[${code}] ${type}: ${msg}`);
+};
+var AC = globalThis.AbortController;
+var AS = globalThis.AbortSignal;
+if (typeof AC === "undefined") {
+  AS = class AbortSignal {
+    onabort;
+    _onabort = [];
+    reason;
+    aborted = false;
+    addEventListener(_, fn) {
+      this._onabort.push(fn);
+    }
+  };
+  AC = class AbortController {
+    constructor() {
+      warnACPolyfill();
+    }
+    signal = new AS();
+    abort(reason) {
+      if (this.signal.aborted)
+        return;
+      this.signal.reason = reason;
+      this.signal.aborted = true;
+      for (const fn of this.signal._onabort) {
+        fn(reason);
+      }
+      this.signal.onabort?.(reason);
+    }
+  };
+  let printACPolyfillWarning = PROCESS.env?.LRU_CACHE_IGNORE_AC_WARNING !== "1";
+  const warnACPolyfill = () => {
+    if (!printACPolyfillWarning)
+      return;
+    printACPolyfillWarning = false;
+    emitWarning("AbortController is not defined. If using lru-cache in node 14, load an AbortController polyfill from the `node-abort-controller` package. A minimal polyfill is provided for use by LRUCache.fetch(), but it should not be relied upon in other contexts (eg, passing it to other APIs that use AbortController/AbortSignal might have undesirable effects). You may disable this with LRU_CACHE_IGNORE_AC_WARNING=1 in the env.", "NO_ABORT_CONTROLLER", "ENOTSUP", warnACPolyfill);
+  };
+}
+var shouldWarn = (code) => !warned.has(code);
+var isPosInt = (n) => n && n === Math.floor(n) && n > 0 && isFinite(n);
+var getUintArray = (max) => !isPosInt(max) ? null : max <= Math.pow(2, 8) ? Uint8Array : max <= Math.pow(2, 16) ? Uint16Array : max <= Math.pow(2, 32) ? Uint32Array : max <= Number.MAX_SAFE_INTEGER ? ZeroArray : null;
+var ZeroArray = class extends Array {
+  constructor(size) {
+    super(size);
+    this.fill(0);
+  }
+};
+var Stack = class _Stack {
+  heap;
+  length;
+  // private constructor
+  static #constructing = false;
+  static create(max) {
+    const HeapCls = getUintArray(max);
+    if (!HeapCls)
+      return [];
+    _Stack.#constructing = true;
+    const s = new _Stack(max, HeapCls);
+    _Stack.#constructing = false;
+    return s;
+  }
+  constructor(max, HeapCls) {
+    if (!_Stack.#constructing) {
+      throw new TypeError("instantiate Stack using Stack.create(n)");
+    }
+    this.heap = new HeapCls(max);
+    this.length = 0;
+  }
+  push(n) {
+    this.heap[this.length++] = n;
+  }
+  pop() {
+    return this.heap[--this.length];
+  }
+};
+var LRUCache = class _LRUCache {
+  // options that cannot be changed without disaster
+  #max;
+  #maxSize;
+  #dispose;
+  #disposeAfter;
+  #fetchMethod;
+  #memoMethod;
+  /**
+   * {@link LRUCache.OptionsBase.ttl}
+   */
+  ttl;
+  /**
+   * {@link LRUCache.OptionsBase.ttlResolution}
+   */
+  ttlResolution;
+  /**
+   * {@link LRUCache.OptionsBase.ttlAutopurge}
+   */
+  ttlAutopurge;
+  /**
+   * {@link LRUCache.OptionsBase.updateAgeOnGet}
+   */
+  updateAgeOnGet;
+  /**
+   * {@link LRUCache.OptionsBase.updateAgeOnHas}
+   */
+  updateAgeOnHas;
+  /**
+   * {@link LRUCache.OptionsBase.allowStale}
+   */
+  allowStale;
+  /**
+   * {@link LRUCache.OptionsBase.noDisposeOnSet}
+   */
+  noDisposeOnSet;
+  /**
+   * {@link LRUCache.OptionsBase.noUpdateTTL}
+   */
+  noUpdateTTL;
+  /**
+   * {@link LRUCache.OptionsBase.maxEntrySize}
+   */
+  maxEntrySize;
+  /**
+   * {@link LRUCache.OptionsBase.sizeCalculation}
+   */
+  sizeCalculation;
+  /**
+   * {@link LRUCache.OptionsBase.noDeleteOnFetchRejection}
+   */
+  noDeleteOnFetchRejection;
+  /**
+   * {@link LRUCache.OptionsBase.noDeleteOnStaleGet}
+   */
+  noDeleteOnStaleGet;
+  /**
+   * {@link LRUCache.OptionsBase.allowStaleOnFetchAbort}
+   */
+  allowStaleOnFetchAbort;
+  /**
+   * {@link LRUCache.OptionsBase.allowStaleOnFetchRejection}
+   */
+  allowStaleOnFetchRejection;
+  /**
+   * {@link LRUCache.OptionsBase.ignoreFetchAbort}
+   */
+  ignoreFetchAbort;
+  // computed properties
+  #size;
+  #calculatedSize;
+  #keyMap;
+  #keyList;
+  #valList;
+  #next;
+  #prev;
+  #head;
+  #tail;
+  #free;
+  #disposed;
+  #sizes;
+  #starts;
+  #ttls;
+  #hasDispose;
+  #hasFetchMethod;
+  #hasDisposeAfter;
+  /**
+   * Do not call this method unless you need to inspect the
+   * inner workings of the cache.  If anything returned by this
+   * object is modified in any way, strange breakage may occur.
+   *
+   * These fields are private for a reason!
+   *
+   * @internal
+   */
+  static unsafeExposeInternals(c) {
+    return {
+      // properties
+      starts: c.#starts,
+      ttls: c.#ttls,
+      sizes: c.#sizes,
+      keyMap: c.#keyMap,
+      keyList: c.#keyList,
+      valList: c.#valList,
+      next: c.#next,
+      prev: c.#prev,
+      get head() {
+        return c.#head;
+      },
+      get tail() {
+        return c.#tail;
+      },
+      free: c.#free,
+      // methods
+      isBackgroundFetch: (p) => c.#isBackgroundFetch(p),
+      backgroundFetch: (k, index, options, context) => c.#backgroundFetch(k, index, options, context),
+      moveToTail: (index) => c.#moveToTail(index),
+      indexes: (options) => c.#indexes(options),
+      rindexes: (options) => c.#rindexes(options),
+      isStale: (index) => c.#isStale(index)
+    };
+  }
+  // Protected read-only members
+  /**
+   * {@link LRUCache.OptionsBase.max} (read-only)
+   */
+  get max() {
+    return this.#max;
+  }
+  /**
+   * {@link LRUCache.OptionsBase.maxSize} (read-only)
+   */
+  get maxSize() {
+    return this.#maxSize;
+  }
+  /**
+   * The total computed size of items in the cache (read-only)
+   */
+  get calculatedSize() {
+    return this.#calculatedSize;
+  }
+  /**
+   * The number of items stored in the cache (read-only)
+   */
+  get size() {
+    return this.#size;
+  }
+  /**
+   * {@link LRUCache.OptionsBase.fetchMethod} (read-only)
+   */
+  get fetchMethod() {
+    return this.#fetchMethod;
+  }
+  get memoMethod() {
+    return this.#memoMethod;
+  }
+  /**
+   * {@link LRUCache.OptionsBase.dispose} (read-only)
+   */
+  get dispose() {
+    return this.#dispose;
+  }
+  /**
+   * {@link LRUCache.OptionsBase.disposeAfter} (read-only)
+   */
+  get disposeAfter() {
+    return this.#disposeAfter;
+  }
+  constructor(options) {
+    const { max = 0, ttl, ttlResolution = 1, ttlAutopurge, updateAgeOnGet, updateAgeOnHas, allowStale, dispose, disposeAfter, noDisposeOnSet, noUpdateTTL, maxSize = 0, maxEntrySize = 0, sizeCalculation, fetchMethod, memoMethod, noDeleteOnFetchRejection, noDeleteOnStaleGet, allowStaleOnFetchRejection, allowStaleOnFetchAbort, ignoreFetchAbort } = options;
+    if (max !== 0 && !isPosInt(max)) {
+      throw new TypeError("max option must be a nonnegative integer");
+    }
+    const UintArray = max ? getUintArray(max) : Array;
+    if (!UintArray) {
+      throw new Error("invalid max value: " + max);
+    }
+    this.#max = max;
+    this.#maxSize = maxSize;
+    this.maxEntrySize = maxEntrySize || this.#maxSize;
+    this.sizeCalculation = sizeCalculation;
+    if (this.sizeCalculation) {
+      if (!this.#maxSize && !this.maxEntrySize) {
+        throw new TypeError("cannot set sizeCalculation without setting maxSize or maxEntrySize");
+      }
+      if (typeof this.sizeCalculation !== "function") {
+        throw new TypeError("sizeCalculation set to non-function");
+      }
+    }
+    if (memoMethod !== void 0 && typeof memoMethod !== "function") {
+      throw new TypeError("memoMethod must be a function if defined");
+    }
+    this.#memoMethod = memoMethod;
+    if (fetchMethod !== void 0 && typeof fetchMethod !== "function") {
+      throw new TypeError("fetchMethod must be a function if specified");
+    }
+    this.#fetchMethod = fetchMethod;
+    this.#hasFetchMethod = !!fetchMethod;
+    this.#keyMap = /* @__PURE__ */ new Map();
+    this.#keyList = new Array(max).fill(void 0);
+    this.#valList = new Array(max).fill(void 0);
+    this.#next = new UintArray(max);
+    this.#prev = new UintArray(max);
+    this.#head = 0;
+    this.#tail = 0;
+    this.#free = Stack.create(max);
+    this.#size = 0;
+    this.#calculatedSize = 0;
+    if (typeof dispose === "function") {
+      this.#dispose = dispose;
+    }
+    if (typeof disposeAfter === "function") {
+      this.#disposeAfter = disposeAfter;
+      this.#disposed = [];
+    } else {
+      this.#disposeAfter = void 0;
+      this.#disposed = void 0;
+    }
+    this.#hasDispose = !!this.#dispose;
+    this.#hasDisposeAfter = !!this.#disposeAfter;
+    this.noDisposeOnSet = !!noDisposeOnSet;
+    this.noUpdateTTL = !!noUpdateTTL;
+    this.noDeleteOnFetchRejection = !!noDeleteOnFetchRejection;
+    this.allowStaleOnFetchRejection = !!allowStaleOnFetchRejection;
+    this.allowStaleOnFetchAbort = !!allowStaleOnFetchAbort;
+    this.ignoreFetchAbort = !!ignoreFetchAbort;
+    if (this.maxEntrySize !== 0) {
+      if (this.#maxSize !== 0) {
+        if (!isPosInt(this.#maxSize)) {
+          throw new TypeError("maxSize must be a positive integer if specified");
+        }
+      }
+      if (!isPosInt(this.maxEntrySize)) {
+        throw new TypeError("maxEntrySize must be a positive integer if specified");
+      }
+      this.#initializeSizeTracking();
+    }
+    this.allowStale = !!allowStale;
+    this.noDeleteOnStaleGet = !!noDeleteOnStaleGet;
+    this.updateAgeOnGet = !!updateAgeOnGet;
+    this.updateAgeOnHas = !!updateAgeOnHas;
+    this.ttlResolution = isPosInt(ttlResolution) || ttlResolution === 0 ? ttlResolution : 1;
+    this.ttlAutopurge = !!ttlAutopurge;
+    this.ttl = ttl || 0;
+    if (this.ttl) {
+      if (!isPosInt(this.ttl)) {
+        throw new TypeError("ttl must be a positive integer if specified");
+      }
+      this.#initializeTTLTracking();
+    }
+    if (this.#max === 0 && this.ttl === 0 && this.#maxSize === 0) {
+      throw new TypeError("At least one of max, maxSize, or ttl is required");
+    }
+    if (!this.ttlAutopurge && !this.#max && !this.#maxSize) {
+      const code = "LRU_CACHE_UNBOUNDED";
+      if (shouldWarn(code)) {
+        warned.add(code);
+        const msg = "TTL caching without ttlAutopurge, max, or maxSize can result in unbounded memory consumption.";
+        emitWarning(msg, "UnboundedCacheWarning", code, _LRUCache);
+      }
+    }
+  }
+  /**
+   * Return the number of ms left in the item's TTL. If item is not in cache,
+   * returns `0`. Returns `Infinity` if item is in cache without a defined TTL.
+   */
+  getRemainingTTL(key) {
+    return this.#keyMap.has(key) ? Infinity : 0;
+  }
+  #initializeTTLTracking() {
+    const ttls = new ZeroArray(this.#max);
+    const starts = new ZeroArray(this.#max);
+    this.#ttls = ttls;
+    this.#starts = starts;
+    this.#setItemTTL = (index, ttl, start = perf.now()) => {
+      starts[index] = ttl !== 0 ? start : 0;
+      ttls[index] = ttl;
+      if (ttl !== 0 && this.ttlAutopurge) {
+        const t = setTimeout(() => {
+          if (this.#isStale(index)) {
+            this.#delete(this.#keyList[index], "expire");
+          }
+        }, ttl + 1);
+        if (t.unref) {
+          t.unref();
+        }
+      }
+    };
+    this.#updateItemAge = (index) => {
+      starts[index] = ttls[index] !== 0 ? perf.now() : 0;
+    };
+    this.#statusTTL = (status, index) => {
+      if (ttls[index]) {
+        const ttl = ttls[index];
+        const start = starts[index];
+        if (!ttl || !start)
+          return;
+        status.ttl = ttl;
+        status.start = start;
+        status.now = cachedNow || getNow();
+        const age = status.now - start;
+        status.remainingTTL = ttl - age;
+      }
+    };
+    let cachedNow = 0;
+    const getNow = () => {
+      const n = perf.now();
+      if (this.ttlResolution > 0) {
+        cachedNow = n;
+        const t = setTimeout(() => cachedNow = 0, this.ttlResolution);
+        if (t.unref) {
+          t.unref();
+        }
+      }
+      return n;
+    };
+    this.getRemainingTTL = (key) => {
+      const index = this.#keyMap.get(key);
+      if (index === void 0) {
+        return 0;
+      }
+      const ttl = ttls[index];
+      const start = starts[index];
+      if (!ttl || !start) {
+        return Infinity;
+      }
+      const age = (cachedNow || getNow()) - start;
+      return ttl - age;
+    };
+    this.#isStale = (index) => {
+      const s = starts[index];
+      const t = ttls[index];
+      return !!t && !!s && (cachedNow || getNow()) - s > t;
+    };
+  }
+  // conditionally set private methods related to TTL
+  #updateItemAge = () => {
+  };
+  #statusTTL = () => {
+  };
+  #setItemTTL = () => {
+  };
+  /* c8 ignore stop */
+  #isStale = () => false;
+  #initializeSizeTracking() {
+    const sizes = new ZeroArray(this.#max);
+    this.#calculatedSize = 0;
+    this.#sizes = sizes;
+    this.#removeItemSize = (index) => {
+      this.#calculatedSize -= sizes[index];
+      sizes[index] = 0;
+    };
+    this.#requireSize = (k, v, size, sizeCalculation) => {
+      if (this.#isBackgroundFetch(v)) {
+        return 0;
+      }
+      if (!isPosInt(size)) {
+        if (sizeCalculation) {
+          if (typeof sizeCalculation !== "function") {
+            throw new TypeError("sizeCalculation must be a function");
+          }
+          size = sizeCalculation(v, k);
+          if (!isPosInt(size)) {
+            throw new TypeError("sizeCalculation return invalid (expect positive integer)");
+          }
+        } else {
+          throw new TypeError("invalid size value (must be positive integer). When maxSize or maxEntrySize is used, sizeCalculation or size must be set.");
+        }
+      }
+      return size;
+    };
+    this.#addItemSize = (index, size, status) => {
+      sizes[index] = size;
+      if (this.#maxSize) {
+        const maxSize = this.#maxSize - sizes[index];
+        while (this.#calculatedSize > maxSize) {
+          this.#evict(true);
+        }
+      }
+      this.#calculatedSize += sizes[index];
+      if (status) {
+        status.entrySize = size;
+        status.totalCalculatedSize = this.#calculatedSize;
+      }
+    };
+  }
+  #removeItemSize = (_i) => {
+  };
+  #addItemSize = (_i, _s, _st) => {
+  };
+  #requireSize = (_k, _v, size, sizeCalculation) => {
+    if (size || sizeCalculation) {
+      throw new TypeError("cannot set size without setting maxSize or maxEntrySize on cache");
+    }
+    return 0;
+  };
+  *#indexes({ allowStale = this.allowStale } = {}) {
+    if (this.#size) {
+      for (let i = this.#tail; true; ) {
+        if (!this.#isValidIndex(i)) {
+          break;
+        }
+        if (allowStale || !this.#isStale(i)) {
+          yield i;
+        }
+        if (i === this.#head) {
+          break;
+        } else {
+          i = this.#prev[i];
+        }
+      }
+    }
+  }
+  *#rindexes({ allowStale = this.allowStale } = {}) {
+    if (this.#size) {
+      for (let i = this.#head; true; ) {
+        if (!this.#isValidIndex(i)) {
+          break;
+        }
+        if (allowStale || !this.#isStale(i)) {
+          yield i;
+        }
+        if (i === this.#tail) {
+          break;
+        } else {
+          i = this.#next[i];
+        }
+      }
+    }
+  }
+  #isValidIndex(index) {
+    return index !== void 0 && this.#keyMap.get(this.#keyList[index]) === index;
+  }
+  /**
+   * Return a generator yielding `[key, value]` pairs,
+   * in order from most recently used to least recently used.
+   */
+  *entries() {
+    for (const i of this.#indexes()) {
+      if (this.#valList[i] !== void 0 && this.#keyList[i] !== void 0 && !this.#isBackgroundFetch(this.#valList[i])) {
+        yield [this.#keyList[i], this.#valList[i]];
+      }
+    }
+  }
+  /**
+   * Inverse order version of {@link LRUCache.entries}
+   *
+   * Return a generator yielding `[key, value]` pairs,
+   * in order from least recently used to most recently used.
+   */
+  *rentries() {
+    for (const i of this.#rindexes()) {
+      if (this.#valList[i] !== void 0 && this.#keyList[i] !== void 0 && !this.#isBackgroundFetch(this.#valList[i])) {
+        yield [this.#keyList[i], this.#valList[i]];
+      }
+    }
+  }
+  /**
+   * Return a generator yielding the keys in the cache,
+   * in order from most recently used to least recently used.
+   */
+  *keys() {
+    for (const i of this.#indexes()) {
+      const k = this.#keyList[i];
+      if (k !== void 0 && !this.#isBackgroundFetch(this.#valList[i])) {
+        yield k;
+      }
+    }
+  }
+  /**
+   * Inverse order version of {@link LRUCache.keys}
+   *
+   * Return a generator yielding the keys in the cache,
+   * in order from least recently used to most recently used.
+   */
+  *rkeys() {
+    for (const i of this.#rindexes()) {
+      const k = this.#keyList[i];
+      if (k !== void 0 && !this.#isBackgroundFetch(this.#valList[i])) {
+        yield k;
+      }
+    }
+  }
+  /**
+   * Return a generator yielding the values in the cache,
+   * in order from most recently used to least recently used.
+   */
+  *values() {
+    for (const i of this.#indexes()) {
+      const v = this.#valList[i];
+      if (v !== void 0 && !this.#isBackgroundFetch(this.#valList[i])) {
+        yield this.#valList[i];
+      }
+    }
+  }
+  /**
+   * Inverse order version of {@link LRUCache.values}
+   *
+   * Return a generator yielding the values in the cache,
+   * in order from least recently used to most recently used.
+   */
+  *rvalues() {
+    for (const i of this.#rindexes()) {
+      const v = this.#valList[i];
+      if (v !== void 0 && !this.#isBackgroundFetch(this.#valList[i])) {
+        yield this.#valList[i];
+      }
+    }
+  }
+  /**
+   * Iterating over the cache itself yields the same results as
+   * {@link LRUCache.entries}
+   */
+  [Symbol.iterator]() {
+    return this.entries();
+  }
+  /**
+   * A String value that is used in the creation of the default string
+   * description of an object. Called by the built-in method
+   * `Object.prototype.toString`.
+   */
+  [Symbol.toStringTag] = "LRUCache";
+  /**
+   * Find a value for which the supplied fn method returns a truthy value,
+   * similar to `Array.find()`. fn is called as `fn(value, key, cache)`.
+   */
+  find(fn, getOptions = {}) {
+    for (const i of this.#indexes()) {
+      const v = this.#valList[i];
+      const value = this.#isBackgroundFetch(v) ? v.__staleWhileFetching : v;
+      if (value === void 0)
+        continue;
+      if (fn(value, this.#keyList[i], this)) {
+        return this.get(this.#keyList[i], getOptions);
+      }
+    }
+  }
+  /**
+   * Call the supplied function on each item in the cache, in order from most
+   * recently used to least recently used.
+   *
+   * `fn` is called as `fn(value, key, cache)`.
+   *
+   * If `thisp` is provided, function will be called in the `this`-context of
+   * the provided object, or the cache if no `thisp` object is provided.
+   *
+   * Does not update age or recenty of use, or iterate over stale values.
+   */
+  forEach(fn, thisp = this) {
+    for (const i of this.#indexes()) {
+      const v = this.#valList[i];
+      const value = this.#isBackgroundFetch(v) ? v.__staleWhileFetching : v;
+      if (value === void 0)
+        continue;
+      fn.call(thisp, value, this.#keyList[i], this);
+    }
+  }
+  /**
+   * The same as {@link LRUCache.forEach} but items are iterated over in
+   * reverse order.  (ie, less recently used items are iterated over first.)
+   */
+  rforEach(fn, thisp = this) {
+    for (const i of this.#rindexes()) {
+      const v = this.#valList[i];
+      const value = this.#isBackgroundFetch(v) ? v.__staleWhileFetching : v;
+      if (value === void 0)
+        continue;
+      fn.call(thisp, value, this.#keyList[i], this);
+    }
+  }
+  /**
+   * Delete any stale entries. Returns true if anything was removed,
+   * false otherwise.
+   */
+  purgeStale() {
+    let deleted = false;
+    for (const i of this.#rindexes({ allowStale: true })) {
+      if (this.#isStale(i)) {
+        this.#delete(this.#keyList[i], "expire");
+        deleted = true;
+      }
+    }
+    return deleted;
+  }
+  /**
+   * Get the extended info about a given entry, to get its value, size, and
+   * TTL info simultaneously. Returns `undefined` if the key is not present.
+   *
+   * Unlike {@link LRUCache#dump}, which is designed to be portable and survive
+   * serialization, the `start` value is always the current timestamp, and the
+   * `ttl` is a calculated remaining time to live (negative if expired).
+   *
+   * Always returns stale values, if their info is found in the cache, so be
+   * sure to check for expirations (ie, a negative {@link LRUCache.Entry#ttl})
+   * if relevant.
+   */
+  info(key) {
+    const i = this.#keyMap.get(key);
+    if (i === void 0)
+      return void 0;
+    const v = this.#valList[i];
+    const value = this.#isBackgroundFetch(v) ? v.__staleWhileFetching : v;
+    if (value === void 0)
+      return void 0;
+    const entry = { value };
+    if (this.#ttls && this.#starts) {
+      const ttl = this.#ttls[i];
+      const start = this.#starts[i];
+      if (ttl && start) {
+        const remain = ttl - (perf.now() - start);
+        entry.ttl = remain;
+        entry.start = Date.now();
+      }
+    }
+    if (this.#sizes) {
+      entry.size = this.#sizes[i];
+    }
+    return entry;
+  }
+  /**
+   * Return an array of [key, {@link LRUCache.Entry}] tuples which can be
+   * passed to {@link LRUCache#load}.
+   *
+   * The `start` fields are calculated relative to a portable `Date.now()`
+   * timestamp, even if `performance.now()` is available.
+   *
+   * Stale entries are always included in the `dump`, even if
+   * {@link LRUCache.OptionsBase.allowStale} is false.
+   *
+   * Note: this returns an actual array, not a generator, so it can be more
+   * easily passed around.
+   */
+  dump() {
+    const arr = [];
+    for (const i of this.#indexes({ allowStale: true })) {
+      const key = this.#keyList[i];
+      const v = this.#valList[i];
+      const value = this.#isBackgroundFetch(v) ? v.__staleWhileFetching : v;
+      if (value === void 0 || key === void 0)
+        continue;
+      const entry = { value };
+      if (this.#ttls && this.#starts) {
+        entry.ttl = this.#ttls[i];
+        const age = perf.now() - this.#starts[i];
+        entry.start = Math.floor(Date.now() - age);
+      }
+      if (this.#sizes) {
+        entry.size = this.#sizes[i];
+      }
+      arr.unshift([key, entry]);
+    }
+    return arr;
+  }
+  /**
+   * Reset the cache and load in the items in entries in the order listed.
+   *
+   * The shape of the resulting cache may be different if the same options are
+   * not used in both caches.
+   *
+   * The `start` fields are assumed to be calculated relative to a portable
+   * `Date.now()` timestamp, even if `performance.now()` is available.
+   */
+  load(arr) {
+    this.clear();
+    for (const [key, entry] of arr) {
+      if (entry.start) {
+        const age = Date.now() - entry.start;
+        entry.start = perf.now() - age;
+      }
+      this.set(key, entry.value, entry);
+    }
+  }
+  /**
+   * Add a value to the cache.
+   *
+   * Note: if `undefined` is specified as a value, this is an alias for
+   * {@link LRUCache#delete}
+   *
+   * Fields on the {@link LRUCache.SetOptions} options param will override
+   * their corresponding values in the constructor options for the scope
+   * of this single `set()` operation.
+   *
+   * If `start` is provided, then that will set the effective start
+   * time for the TTL calculation. Note that this must be a previous
+   * value of `performance.now()` if supported, or a previous value of
+   * `Date.now()` if not.
+   *
+   * Options object may also include `size`, which will prevent
+   * calling the `sizeCalculation` function and just use the specified
+   * number if it is a positive integer, and `noDisposeOnSet` which
+   * will prevent calling a `dispose` function in the case of
+   * overwrites.
+   *
+   * If the `size` (or return value of `sizeCalculation`) for a given
+   * entry is greater than `maxEntrySize`, then the item will not be
+   * added to the cache.
+   *
+   * Will update the recency of the entry.
+   *
+   * If the value is `undefined`, then this is an alias for
+   * `cache.delete(key)`. `undefined` is never stored in the cache.
+   */
+  set(k, v, setOptions = {}) {
+    if (v === void 0) {
+      this.delete(k);
+      return this;
+    }
+    const { ttl = this.ttl, start, noDisposeOnSet = this.noDisposeOnSet, sizeCalculation = this.sizeCalculation, status } = setOptions;
+    let { noUpdateTTL = this.noUpdateTTL } = setOptions;
+    const size = this.#requireSize(k, v, setOptions.size || 0, sizeCalculation);
+    if (this.maxEntrySize && size > this.maxEntrySize) {
+      if (status) {
+        status.set = "miss";
+        status.maxEntrySizeExceeded = true;
+      }
+      this.#delete(k, "set");
+      return this;
+    }
+    let index = this.#size === 0 ? void 0 : this.#keyMap.get(k);
+    if (index === void 0) {
+      index = this.#size === 0 ? this.#tail : this.#free.length !== 0 ? this.#free.pop() : this.#size === this.#max ? this.#evict(false) : this.#size;
+      this.#keyList[index] = k;
+      this.#valList[index] = v;
+      this.#keyMap.set(k, index);
+      this.#next[this.#tail] = index;
+      this.#prev[index] = this.#tail;
+      this.#tail = index;
+      this.#size++;
+      this.#addItemSize(index, size, status);
+      if (status)
+        status.set = "add";
+      noUpdateTTL = false;
+    } else {
+      this.#moveToTail(index);
+      const oldVal = this.#valList[index];
+      if (v !== oldVal) {
+        if (this.#hasFetchMethod && this.#isBackgroundFetch(oldVal)) {
+          oldVal.__abortController.abort(new Error("replaced"));
+          const { __staleWhileFetching: s } = oldVal;
+          if (s !== void 0 && !noDisposeOnSet) {
+            if (this.#hasDispose) {
+              this.#dispose?.(s, k, "set");
+            }
+            if (this.#hasDisposeAfter) {
+              this.#disposed?.push([s, k, "set"]);
+            }
+          }
+        } else if (!noDisposeOnSet) {
+          if (this.#hasDispose) {
+            this.#dispose?.(oldVal, k, "set");
+          }
+          if (this.#hasDisposeAfter) {
+            this.#disposed?.push([oldVal, k, "set"]);
+          }
+        }
+        this.#removeItemSize(index);
+        this.#addItemSize(index, size, status);
+        this.#valList[index] = v;
+        if (status) {
+          status.set = "replace";
+          const oldValue = oldVal && this.#isBackgroundFetch(oldVal) ? oldVal.__staleWhileFetching : oldVal;
+          if (oldValue !== void 0)
+            status.oldValue = oldValue;
+        }
+      } else if (status) {
+        status.set = "update";
+      }
+    }
+    if (ttl !== 0 && !this.#ttls) {
+      this.#initializeTTLTracking();
+    }
+    if (this.#ttls) {
+      if (!noUpdateTTL) {
+        this.#setItemTTL(index, ttl, start);
+      }
+      if (status)
+        this.#statusTTL(status, index);
+    }
+    if (!noDisposeOnSet && this.#hasDisposeAfter && this.#disposed) {
+      const dt = this.#disposed;
+      let task;
+      while (task = dt?.shift()) {
+        this.#disposeAfter?.(...task);
+      }
+    }
+    return this;
+  }
+  /**
+   * Evict the least recently used item, returning its value or
+   * `undefined` if cache is empty.
+   */
+  pop() {
+    try {
+      while (this.#size) {
+        const val = this.#valList[this.#head];
+        this.#evict(true);
+        if (this.#isBackgroundFetch(val)) {
+          if (val.__staleWhileFetching) {
+            return val.__staleWhileFetching;
+          }
+        } else if (val !== void 0) {
+          return val;
+        }
+      }
+    } finally {
+      if (this.#hasDisposeAfter && this.#disposed) {
+        const dt = this.#disposed;
+        let task;
+        while (task = dt?.shift()) {
+          this.#disposeAfter?.(...task);
+        }
+      }
+    }
+  }
+  #evict(free) {
+    const head = this.#head;
+    const k = this.#keyList[head];
+    const v = this.#valList[head];
+    if (this.#hasFetchMethod && this.#isBackgroundFetch(v)) {
+      v.__abortController.abort(new Error("evicted"));
+    } else if (this.#hasDispose || this.#hasDisposeAfter) {
+      if (this.#hasDispose) {
+        this.#dispose?.(v, k, "evict");
+      }
+      if (this.#hasDisposeAfter) {
+        this.#disposed?.push([v, k, "evict"]);
+      }
+    }
+    this.#removeItemSize(head);
+    if (free) {
+      this.#keyList[head] = void 0;
+      this.#valList[head] = void 0;
+      this.#free.push(head);
+    }
+    if (this.#size === 1) {
+      this.#head = this.#tail = 0;
+      this.#free.length = 0;
+    } else {
+      this.#head = this.#next[head];
+    }
+    this.#keyMap.delete(k);
+    this.#size--;
+    return head;
+  }
+  /**
+   * Check if a key is in the cache, without updating the recency of use.
+   * Will return false if the item is stale, even though it is technically
+   * in the cache.
+   *
+   * Check if a key is in the cache, without updating the recency of
+   * use. Age is updated if {@link LRUCache.OptionsBase.updateAgeOnHas} is set
+   * to `true` in either the options or the constructor.
+   *
+   * Will return `false` if the item is stale, even though it is technically in
+   * the cache. The difference can be determined (if it matters) by using a
+   * `status` argument, and inspecting the `has` field.
+   *
+   * Will not update item age unless
+   * {@link LRUCache.OptionsBase.updateAgeOnHas} is set.
+   */
+  has(k, hasOptions = {}) {
+    const { updateAgeOnHas = this.updateAgeOnHas, status } = hasOptions;
+    const index = this.#keyMap.get(k);
+    if (index !== void 0) {
+      const v = this.#valList[index];
+      if (this.#isBackgroundFetch(v) && v.__staleWhileFetching === void 0) {
+        return false;
+      }
+      if (!this.#isStale(index)) {
+        if (updateAgeOnHas) {
+          this.#updateItemAge(index);
+        }
+        if (status) {
+          status.has = "hit";
+          this.#statusTTL(status, index);
+        }
+        return true;
+      } else if (status) {
+        status.has = "stale";
+        this.#statusTTL(status, index);
+      }
+    } else if (status) {
+      status.has = "miss";
+    }
+    return false;
+  }
+  /**
+   * Like {@link LRUCache#get} but doesn't update recency or delete stale
+   * items.
+   *
+   * Returns `undefined` if the item is stale, unless
+   * {@link LRUCache.OptionsBase.allowStale} is set.
+   */
+  peek(k, peekOptions = {}) {
+    const { allowStale = this.allowStale } = peekOptions;
+    const index = this.#keyMap.get(k);
+    if (index === void 0 || !allowStale && this.#isStale(index)) {
+      return;
+    }
+    const v = this.#valList[index];
+    return this.#isBackgroundFetch(v) ? v.__staleWhileFetching : v;
+  }
+  #backgroundFetch(k, index, options, context) {
+    const v = index === void 0 ? void 0 : this.#valList[index];
+    if (this.#isBackgroundFetch(v)) {
+      return v;
+    }
+    const ac = new AC();
+    const { signal } = options;
+    signal?.addEventListener("abort", () => ac.abort(signal.reason), {
+      signal: ac.signal
+    });
+    const fetchOpts = {
+      signal: ac.signal,
+      options,
+      context
+    };
+    const cb = (v2, updateCache = false) => {
+      const { aborted } = ac.signal;
+      const ignoreAbort = options.ignoreFetchAbort && v2 !== void 0;
+      if (options.status) {
+        if (aborted && !updateCache) {
+          options.status.fetchAborted = true;
+          options.status.fetchError = ac.signal.reason;
+          if (ignoreAbort)
+            options.status.fetchAbortIgnored = true;
+        } else {
+          options.status.fetchResolved = true;
+        }
+      }
+      if (aborted && !ignoreAbort && !updateCache) {
+        return fetchFail(ac.signal.reason);
+      }
+      const bf2 = p;
+      if (this.#valList[index] === p) {
+        if (v2 === void 0) {
+          if (bf2.__staleWhileFetching) {
+            this.#valList[index] = bf2.__staleWhileFetching;
+          } else {
+            this.#delete(k, "fetch");
+          }
+        } else {
+          if (options.status)
+            options.status.fetchUpdated = true;
+          this.set(k, v2, fetchOpts.options);
+        }
+      }
+      return v2;
+    };
+    const eb = (er) => {
+      if (options.status) {
+        options.status.fetchRejected = true;
+        options.status.fetchError = er;
+      }
+      return fetchFail(er);
+    };
+    const fetchFail = (er) => {
+      const { aborted } = ac.signal;
+      const allowStaleAborted = aborted && options.allowStaleOnFetchAbort;
+      const allowStale = allowStaleAborted || options.allowStaleOnFetchRejection;
+      const noDelete = allowStale || options.noDeleteOnFetchRejection;
+      const bf2 = p;
+      if (this.#valList[index] === p) {
+        const del = !noDelete || bf2.__staleWhileFetching === void 0;
+        if (del) {
+          this.#delete(k, "fetch");
+        } else if (!allowStaleAborted) {
+          this.#valList[index] = bf2.__staleWhileFetching;
+        }
+      }
+      if (allowStale) {
+        if (options.status && bf2.__staleWhileFetching !== void 0) {
+          options.status.returnedStale = true;
+        }
+        return bf2.__staleWhileFetching;
+      } else if (bf2.__returned === bf2) {
+        throw er;
+      }
+    };
+    const pcall = (res, rej) => {
+      const fmp = this.#fetchMethod?.(k, v, fetchOpts);
+      if (fmp && fmp instanceof Promise) {
+        fmp.then((v2) => res(v2 === void 0 ? void 0 : v2), rej);
+      }
+      ac.signal.addEventListener("abort", () => {
+        if (!options.ignoreFetchAbort || options.allowStaleOnFetchAbort) {
+          res(void 0);
+          if (options.allowStaleOnFetchAbort) {
+            res = (v2) => cb(v2, true);
+          }
+        }
+      });
+    };
+    if (options.status)
+      options.status.fetchDispatched = true;
+    const p = new Promise(pcall).then(cb, eb);
+    const bf = Object.assign(p, {
+      __abortController: ac,
+      __staleWhileFetching: v,
+      __returned: void 0
+    });
+    if (index === void 0) {
+      this.set(k, bf, { ...fetchOpts.options, status: void 0 });
+      index = this.#keyMap.get(k);
+    } else {
+      this.#valList[index] = bf;
+    }
+    return bf;
+  }
+  #isBackgroundFetch(p) {
+    if (!this.#hasFetchMethod)
+      return false;
+    const b = p;
+    return !!b && b instanceof Promise && b.hasOwnProperty("__staleWhileFetching") && b.__abortController instanceof AC;
+  }
+  async fetch(k, fetchOptions = {}) {
+    const {
+      // get options
+      allowStale = this.allowStale,
+      updateAgeOnGet = this.updateAgeOnGet,
+      noDeleteOnStaleGet = this.noDeleteOnStaleGet,
+      // set options
+      ttl = this.ttl,
+      noDisposeOnSet = this.noDisposeOnSet,
+      size = 0,
+      sizeCalculation = this.sizeCalculation,
+      noUpdateTTL = this.noUpdateTTL,
+      // fetch exclusive options
+      noDeleteOnFetchRejection = this.noDeleteOnFetchRejection,
+      allowStaleOnFetchRejection = this.allowStaleOnFetchRejection,
+      ignoreFetchAbort = this.ignoreFetchAbort,
+      allowStaleOnFetchAbort = this.allowStaleOnFetchAbort,
+      context,
+      forceRefresh = false,
+      status,
+      signal
+    } = fetchOptions;
+    if (!this.#hasFetchMethod) {
+      if (status)
+        status.fetch = "get";
+      return this.get(k, {
+        allowStale,
+        updateAgeOnGet,
+        noDeleteOnStaleGet,
+        status
+      });
+    }
+    const options = {
+      allowStale,
+      updateAgeOnGet,
+      noDeleteOnStaleGet,
+      ttl,
+      noDisposeOnSet,
+      size,
+      sizeCalculation,
+      noUpdateTTL,
+      noDeleteOnFetchRejection,
+      allowStaleOnFetchRejection,
+      allowStaleOnFetchAbort,
+      ignoreFetchAbort,
+      status,
+      signal
+    };
+    let index = this.#keyMap.get(k);
+    if (index === void 0) {
+      if (status)
+        status.fetch = "miss";
+      const p = this.#backgroundFetch(k, index, options, context);
+      return p.__returned = p;
+    } else {
+      const v = this.#valList[index];
+      if (this.#isBackgroundFetch(v)) {
+        const stale = allowStale && v.__staleWhileFetching !== void 0;
+        if (status) {
+          status.fetch = "inflight";
+          if (stale)
+            status.returnedStale = true;
+        }
+        return stale ? v.__staleWhileFetching : v.__returned = v;
+      }
+      const isStale = this.#isStale(index);
+      if (!forceRefresh && !isStale) {
+        if (status)
+          status.fetch = "hit";
+        this.#moveToTail(index);
+        if (updateAgeOnGet) {
+          this.#updateItemAge(index);
+        }
+        if (status)
+          this.#statusTTL(status, index);
+        return v;
+      }
+      const p = this.#backgroundFetch(k, index, options, context);
+      const hasStale = p.__staleWhileFetching !== void 0;
+      const staleVal = hasStale && allowStale;
+      if (status) {
+        status.fetch = isStale ? "stale" : "refresh";
+        if (staleVal && isStale)
+          status.returnedStale = true;
+      }
+      return staleVal ? p.__staleWhileFetching : p.__returned = p;
+    }
+  }
+  async forceFetch(k, fetchOptions = {}) {
+    const v = await this.fetch(k, fetchOptions);
+    if (v === void 0)
+      throw new Error("fetch() returned undefined");
+    return v;
+  }
+  memo(k, memoOptions = {}) {
+    const memoMethod = this.#memoMethod;
+    if (!memoMethod) {
+      throw new Error("no memoMethod provided to constructor");
+    }
+    const { context, forceRefresh, ...options } = memoOptions;
+    const v = this.get(k, options);
+    if (!forceRefresh && v !== void 0)
+      return v;
+    const vv = memoMethod(k, v, {
+      options,
+      context
+    });
+    this.set(k, vv, options);
+    return vv;
+  }
+  /**
+   * Return a value from the cache. Will update the recency of the cache
+   * entry found.
+   *
+   * If the key is not found, get() will return `undefined`.
+   */
+  get(k, getOptions = {}) {
+    const { allowStale = this.allowStale, updateAgeOnGet = this.updateAgeOnGet, noDeleteOnStaleGet = this.noDeleteOnStaleGet, status } = getOptions;
+    const index = this.#keyMap.get(k);
+    if (index !== void 0) {
+      const value = this.#valList[index];
+      const fetching = this.#isBackgroundFetch(value);
+      if (status)
+        this.#statusTTL(status, index);
+      if (this.#isStale(index)) {
+        if (status)
+          status.get = "stale";
+        if (!fetching) {
+          if (!noDeleteOnStaleGet) {
+            this.#delete(k, "expire");
+          }
+          if (status && allowStale)
+            status.returnedStale = true;
+          return allowStale ? value : void 0;
+        } else {
+          if (status && allowStale && value.__staleWhileFetching !== void 0) {
+            status.returnedStale = true;
+          }
+          return allowStale ? value.__staleWhileFetching : void 0;
+        }
+      } else {
+        if (status)
+          status.get = "hit";
+        if (fetching) {
+          return value.__staleWhileFetching;
+        }
+        this.#moveToTail(index);
+        if (updateAgeOnGet) {
+          this.#updateItemAge(index);
+        }
+        return value;
+      }
+    } else if (status) {
+      status.get = "miss";
+    }
+  }
+  #connect(p, n) {
+    this.#prev[n] = p;
+    this.#next[p] = n;
+  }
+  #moveToTail(index) {
+    if (index !== this.#tail) {
+      if (index === this.#head) {
+        this.#head = this.#next[index];
+      } else {
+        this.#connect(this.#prev[index], this.#next[index]);
+      }
+      this.#connect(this.#tail, index);
+      this.#tail = index;
+    }
+  }
+  /**
+   * Deletes a key out of the cache.
+   *
+   * Returns true if the key was deleted, false otherwise.
+   */
+  delete(k) {
+    return this.#delete(k, "delete");
+  }
+  #delete(k, reason) {
+    let deleted = false;
+    if (this.#size !== 0) {
+      const index = this.#keyMap.get(k);
+      if (index !== void 0) {
+        deleted = true;
+        if (this.#size === 1) {
+          this.#clear(reason);
+        } else {
+          this.#removeItemSize(index);
+          const v = this.#valList[index];
+          if (this.#isBackgroundFetch(v)) {
+            v.__abortController.abort(new Error("deleted"));
+          } else if (this.#hasDispose || this.#hasDisposeAfter) {
+            if (this.#hasDispose) {
+              this.#dispose?.(v, k, reason);
+            }
+            if (this.#hasDisposeAfter) {
+              this.#disposed?.push([v, k, reason]);
+            }
+          }
+          this.#keyMap.delete(k);
+          this.#keyList[index] = void 0;
+          this.#valList[index] = void 0;
+          if (index === this.#tail) {
+            this.#tail = this.#prev[index];
+          } else if (index === this.#head) {
+            this.#head = this.#next[index];
+          } else {
+            const pi = this.#prev[index];
+            this.#next[pi] = this.#next[index];
+            const ni = this.#next[index];
+            this.#prev[ni] = this.#prev[index];
+          }
+          this.#size--;
+          this.#free.push(index);
+        }
+      }
+    }
+    if (this.#hasDisposeAfter && this.#disposed?.length) {
+      const dt = this.#disposed;
+      let task;
+      while (task = dt?.shift()) {
+        this.#disposeAfter?.(...task);
+      }
+    }
+    return deleted;
+  }
+  /**
+   * Clear the cache entirely, throwing away all values.
+   */
+  clear() {
+    return this.#clear("delete");
+  }
+  #clear(reason) {
+    for (const index of this.#rindexes({ allowStale: true })) {
+      const v = this.#valList[index];
+      if (this.#isBackgroundFetch(v)) {
+        v.__abortController.abort(new Error("deleted"));
+      } else {
+        const k = this.#keyList[index];
+        if (this.#hasDispose) {
+          this.#dispose?.(v, k, reason);
+        }
+        if (this.#hasDisposeAfter) {
+          this.#disposed?.push([v, k, reason]);
+        }
+      }
+    }
+    this.#keyMap.clear();
+    this.#valList.fill(void 0);
+    this.#keyList.fill(void 0);
+    if (this.#ttls && this.#starts) {
+      this.#ttls.fill(0);
+      this.#starts.fill(0);
+    }
+    if (this.#sizes) {
+      this.#sizes.fill(0);
+    }
+    this.#head = 0;
+    this.#tail = 0;
+    this.#free.length = 0;
+    this.#calculatedSize = 0;
+    this.#size = 0;
+    if (this.#hasDisposeAfter && this.#disposed) {
+      const dt = this.#disposed;
+      let task;
+      while (task = dt?.shift()) {
+        this.#disposeAfter?.(...task);
+      }
+    }
+  }
+};
+
+// ../node_modules/path-scurry/dist/esm/index.js
+var import_node_path = require("path");
+var import_node_url = require("url");
+var import_fs2 = require("fs");
+var actualFS = __toESM(require("fs"), 1);
 var import_promises = require("fs/promises");
+
+// ../node_modules/minipass/dist/esm/index.js
+var import_node_events = require("events");
+var import_node_stream = __toESM(require("stream"), 1);
+var import_node_string_decoder = require("string_decoder");
+var proc = typeof process === "object" && process ? process : {
+  stdout: null,
+  stderr: null
+};
+var isStream = (s) => !!s && typeof s === "object" && (s instanceof Minipass || s instanceof import_node_stream.default || isReadable(s) || isWritable(s));
+var isReadable = (s) => !!s && typeof s === "object" && s instanceof import_node_events.EventEmitter && typeof s.pipe === "function" && // node core Writable streams have a pipe() method, but it throws
+s.pipe !== import_node_stream.default.Writable.prototype.pipe;
+var isWritable = (s) => !!s && typeof s === "object" && s instanceof import_node_events.EventEmitter && typeof s.write === "function" && typeof s.end === "function";
+var EOF = /* @__PURE__ */ Symbol("EOF");
+var MAYBE_EMIT_END = /* @__PURE__ */ Symbol("maybeEmitEnd");
+var EMITTED_END = /* @__PURE__ */ Symbol("emittedEnd");
+var EMITTING_END = /* @__PURE__ */ Symbol("emittingEnd");
+var EMITTED_ERROR = /* @__PURE__ */ Symbol("emittedError");
+var CLOSED = /* @__PURE__ */ Symbol("closed");
+var READ = /* @__PURE__ */ Symbol("read");
+var FLUSH = /* @__PURE__ */ Symbol("flush");
+var FLUSHCHUNK = /* @__PURE__ */ Symbol("flushChunk");
+var ENCODING = /* @__PURE__ */ Symbol("encoding");
+var DECODER = /* @__PURE__ */ Symbol("decoder");
+var FLOWING = /* @__PURE__ */ Symbol("flowing");
+var PAUSED = /* @__PURE__ */ Symbol("paused");
+var RESUME = /* @__PURE__ */ Symbol("resume");
+var BUFFER = /* @__PURE__ */ Symbol("buffer");
+var PIPES = /* @__PURE__ */ Symbol("pipes");
+var BUFFERLENGTH = /* @__PURE__ */ Symbol("bufferLength");
+var BUFFERPUSH = /* @__PURE__ */ Symbol("bufferPush");
+var BUFFERSHIFT = /* @__PURE__ */ Symbol("bufferShift");
+var OBJECTMODE = /* @__PURE__ */ Symbol("objectMode");
+var DESTROYED = /* @__PURE__ */ Symbol("destroyed");
+var ERROR = /* @__PURE__ */ Symbol("error");
+var EMITDATA = /* @__PURE__ */ Symbol("emitData");
+var EMITEND = /* @__PURE__ */ Symbol("emitEnd");
+var EMITEND2 = /* @__PURE__ */ Symbol("emitEnd2");
+var ASYNC = /* @__PURE__ */ Symbol("async");
+var ABORT = /* @__PURE__ */ Symbol("abort");
+var ABORTED = /* @__PURE__ */ Symbol("aborted");
+var SIGNAL = /* @__PURE__ */ Symbol("signal");
+var DATALISTENERS = /* @__PURE__ */ Symbol("dataListeners");
+var DISCARDED = /* @__PURE__ */ Symbol("discarded");
+var defer = (fn) => Promise.resolve().then(fn);
+var nodefer = (fn) => fn();
+var isEndish = (ev) => ev === "end" || ev === "finish" || ev === "prefinish";
+var isArrayBufferLike = (b) => b instanceof ArrayBuffer || !!b && typeof b === "object" && b.constructor && b.constructor.name === "ArrayBuffer" && b.byteLength >= 0;
+var isArrayBufferView = (b) => !Buffer.isBuffer(b) && ArrayBuffer.isView(b);
+var Pipe = class {
+  src;
+  dest;
+  opts;
+  ondrain;
+  constructor(src, dest, opts) {
+    this.src = src;
+    this.dest = dest;
+    this.opts = opts;
+    this.ondrain = () => src[RESUME]();
+    this.dest.on("drain", this.ondrain);
+  }
+  unpipe() {
+    this.dest.removeListener("drain", this.ondrain);
+  }
+  // only here for the prototype
+  /* c8 ignore start */
+  proxyErrors(_er) {
+  }
+  /* c8 ignore stop */
+  end() {
+    this.unpipe();
+    if (this.opts.end)
+      this.dest.end();
+  }
+};
+var PipeProxyErrors = class extends Pipe {
+  unpipe() {
+    this.src.removeListener("error", this.proxyErrors);
+    super.unpipe();
+  }
+  constructor(src, dest, opts) {
+    super(src, dest, opts);
+    this.proxyErrors = (er) => dest.emit("error", er);
+    src.on("error", this.proxyErrors);
+  }
+};
+var isObjectModeOptions = (o) => !!o.objectMode;
+var isEncodingOptions = (o) => !o.objectMode && !!o.encoding && o.encoding !== "buffer";
+var Minipass = class extends import_node_events.EventEmitter {
+  [FLOWING] = false;
+  [PAUSED] = false;
+  [PIPES] = [];
+  [BUFFER] = [];
+  [OBJECTMODE];
+  [ENCODING];
+  [ASYNC];
+  [DECODER];
+  [EOF] = false;
+  [EMITTED_END] = false;
+  [EMITTING_END] = false;
+  [CLOSED] = false;
+  [EMITTED_ERROR] = null;
+  [BUFFERLENGTH] = 0;
+  [DESTROYED] = false;
+  [SIGNAL];
+  [ABORTED] = false;
+  [DATALISTENERS] = 0;
+  [DISCARDED] = false;
+  /**
+   * true if the stream can be written
+   */
+  writable = true;
+  /**
+   * true if the stream can be read
+   */
+  readable = true;
+  /**
+   * If `RType` is Buffer, then options do not need to be provided.
+   * Otherwise, an options object must be provided to specify either
+   * {@link Minipass.SharedOptions.objectMode} or
+   * {@link Minipass.SharedOptions.encoding}, as appropriate.
+   */
+  constructor(...args) {
+    const options = args[0] || {};
+    super();
+    if (options.objectMode && typeof options.encoding === "string") {
+      throw new TypeError("Encoding and objectMode may not be used together");
+    }
+    if (isObjectModeOptions(options)) {
+      this[OBJECTMODE] = true;
+      this[ENCODING] = null;
+    } else if (isEncodingOptions(options)) {
+      this[ENCODING] = options.encoding;
+      this[OBJECTMODE] = false;
+    } else {
+      this[OBJECTMODE] = false;
+      this[ENCODING] = null;
+    }
+    this[ASYNC] = !!options.async;
+    this[DECODER] = this[ENCODING] ? new import_node_string_decoder.StringDecoder(this[ENCODING]) : null;
+    if (options && options.debugExposeBuffer === true) {
+      Object.defineProperty(this, "buffer", { get: () => this[BUFFER] });
+    }
+    if (options && options.debugExposePipes === true) {
+      Object.defineProperty(this, "pipes", { get: () => this[PIPES] });
+    }
+    const { signal } = options;
+    if (signal) {
+      this[SIGNAL] = signal;
+      if (signal.aborted) {
+        this[ABORT]();
+      } else {
+        signal.addEventListener("abort", () => this[ABORT]());
+      }
+    }
+  }
+  /**
+   * The amount of data stored in the buffer waiting to be read.
+   *
+   * For Buffer strings, this will be the total byte length.
+   * For string encoding streams, this will be the string character length,
+   * according to JavaScript's `string.length` logic.
+   * For objectMode streams, this is a count of the items waiting to be
+   * emitted.
+   */
+  get bufferLength() {
+    return this[BUFFERLENGTH];
+  }
+  /**
+   * The `BufferEncoding` currently in use, or `null`
+   */
+  get encoding() {
+    return this[ENCODING];
+  }
+  /**
+   * @deprecated - This is a read only property
+   */
+  set encoding(_enc) {
+    throw new Error("Encoding must be set at instantiation time");
+  }
+  /**
+   * @deprecated - Encoding may only be set at instantiation time
+   */
+  setEncoding(_enc) {
+    throw new Error("Encoding must be set at instantiation time");
+  }
+  /**
+   * True if this is an objectMode stream
+   */
+  get objectMode() {
+    return this[OBJECTMODE];
+  }
+  /**
+   * @deprecated - This is a read-only property
+   */
+  set objectMode(_om) {
+    throw new Error("objectMode must be set at instantiation time");
+  }
+  /**
+   * true if this is an async stream
+   */
+  get ["async"]() {
+    return this[ASYNC];
+  }
+  /**
+   * Set to true to make this stream async.
+   *
+   * Once set, it cannot be unset, as this would potentially cause incorrect
+   * behavior.  Ie, a sync stream can be made async, but an async stream
+   * cannot be safely made sync.
+   */
+  set ["async"](a) {
+    this[ASYNC] = this[ASYNC] || !!a;
+  }
+  // drop everything and get out of the flow completely
+  [ABORT]() {
+    this[ABORTED] = true;
+    this.emit("abort", this[SIGNAL]?.reason);
+    this.destroy(this[SIGNAL]?.reason);
+  }
+  /**
+   * True if the stream has been aborted.
+   */
+  get aborted() {
+    return this[ABORTED];
+  }
+  /**
+   * No-op setter. Stream aborted status is set via the AbortSignal provided
+   * in the constructor options.
+   */
+  set aborted(_) {
+  }
+  write(chunk, encoding, cb) {
+    if (this[ABORTED])
+      return false;
+    if (this[EOF])
+      throw new Error("write after end");
+    if (this[DESTROYED]) {
+      this.emit("error", Object.assign(new Error("Cannot call write after a stream was destroyed"), { code: "ERR_STREAM_DESTROYED" }));
+      return true;
+    }
+    if (typeof encoding === "function") {
+      cb = encoding;
+      encoding = "utf8";
+    }
+    if (!encoding)
+      encoding = "utf8";
+    const fn = this[ASYNC] ? defer : nodefer;
+    if (!this[OBJECTMODE] && !Buffer.isBuffer(chunk)) {
+      if (isArrayBufferView(chunk)) {
+        chunk = Buffer.from(chunk.buffer, chunk.byteOffset, chunk.byteLength);
+      } else if (isArrayBufferLike(chunk)) {
+        chunk = Buffer.from(chunk);
+      } else if (typeof chunk !== "string") {
+        throw new Error("Non-contiguous data written to non-objectMode stream");
+      }
+    }
+    if (this[OBJECTMODE]) {
+      if (this[FLOWING] && this[BUFFERLENGTH] !== 0)
+        this[FLUSH](true);
+      if (this[FLOWING])
+        this.emit("data", chunk);
+      else
+        this[BUFFERPUSH](chunk);
+      if (this[BUFFERLENGTH] !== 0)
+        this.emit("readable");
+      if (cb)
+        fn(cb);
+      return this[FLOWING];
+    }
+    if (!chunk.length) {
+      if (this[BUFFERLENGTH] !== 0)
+        this.emit("readable");
+      if (cb)
+        fn(cb);
+      return this[FLOWING];
+    }
+    if (typeof chunk === "string" && // unless it is a string already ready for us to use
+    !(encoding === this[ENCODING] && !this[DECODER]?.lastNeed)) {
+      chunk = Buffer.from(chunk, encoding);
+    }
+    if (Buffer.isBuffer(chunk) && this[ENCODING]) {
+      chunk = this[DECODER].write(chunk);
+    }
+    if (this[FLOWING] && this[BUFFERLENGTH] !== 0)
+      this[FLUSH](true);
+    if (this[FLOWING])
+      this.emit("data", chunk);
+    else
+      this[BUFFERPUSH](chunk);
+    if (this[BUFFERLENGTH] !== 0)
+      this.emit("readable");
+    if (cb)
+      fn(cb);
+    return this[FLOWING];
+  }
+  /**
+   * Low-level explicit read method.
+   *
+   * In objectMode, the argument is ignored, and one item is returned if
+   * available.
+   *
+   * `n` is the number of bytes (or in the case of encoding streams,
+   * characters) to consume. If `n` is not provided, then the entire buffer
+   * is returned, or `null` is returned if no data is available.
+   *
+   * If `n` is greater that the amount of data in the internal buffer,
+   * then `null` is returned.
+   */
+  read(n) {
+    if (this[DESTROYED])
+      return null;
+    this[DISCARDED] = false;
+    if (this[BUFFERLENGTH] === 0 || n === 0 || n && n > this[BUFFERLENGTH]) {
+      this[MAYBE_EMIT_END]();
+      return null;
+    }
+    if (this[OBJECTMODE])
+      n = null;
+    if (this[BUFFER].length > 1 && !this[OBJECTMODE]) {
+      this[BUFFER] = [
+        this[ENCODING] ? this[BUFFER].join("") : Buffer.concat(this[BUFFER], this[BUFFERLENGTH])
+      ];
+    }
+    const ret2 = this[READ](n || null, this[BUFFER][0]);
+    this[MAYBE_EMIT_END]();
+    return ret2;
+  }
+  [READ](n, chunk) {
+    if (this[OBJECTMODE])
+      this[BUFFERSHIFT]();
+    else {
+      const c = chunk;
+      if (n === c.length || n === null)
+        this[BUFFERSHIFT]();
+      else if (typeof c === "string") {
+        this[BUFFER][0] = c.slice(n);
+        chunk = c.slice(0, n);
+        this[BUFFERLENGTH] -= n;
+      } else {
+        this[BUFFER][0] = c.subarray(n);
+        chunk = c.subarray(0, n);
+        this[BUFFERLENGTH] -= n;
+      }
+    }
+    this.emit("data", chunk);
+    if (!this[BUFFER].length && !this[EOF])
+      this.emit("drain");
+    return chunk;
+  }
+  end(chunk, encoding, cb) {
+    if (typeof chunk === "function") {
+      cb = chunk;
+      chunk = void 0;
+    }
+    if (typeof encoding === "function") {
+      cb = encoding;
+      encoding = "utf8";
+    }
+    if (chunk !== void 0)
+      this.write(chunk, encoding);
+    if (cb)
+      this.once("end", cb);
+    this[EOF] = true;
+    this.writable = false;
+    if (this[FLOWING] || !this[PAUSED])
+      this[MAYBE_EMIT_END]();
+    return this;
+  }
+  // don't let the internal resume be overwritten
+  [RESUME]() {
+    if (this[DESTROYED])
+      return;
+    if (!this[DATALISTENERS] && !this[PIPES].length) {
+      this[DISCARDED] = true;
+    }
+    this[PAUSED] = false;
+    this[FLOWING] = true;
+    this.emit("resume");
+    if (this[BUFFER].length)
+      this[FLUSH]();
+    else if (this[EOF])
+      this[MAYBE_EMIT_END]();
+    else
+      this.emit("drain");
+  }
+  /**
+   * Resume the stream if it is currently in a paused state
+   *
+   * If called when there are no pipe destinations or `data` event listeners,
+   * this will place the stream in a "discarded" state, where all data will
+   * be thrown away. The discarded state is removed if a pipe destination or
+   * data handler is added, if pause() is called, or if any synchronous or
+   * asynchronous iteration is started.
+   */
+  resume() {
+    return this[RESUME]();
+  }
+  /**
+   * Pause the stream
+   */
+  pause() {
+    this[FLOWING] = false;
+    this[PAUSED] = true;
+    this[DISCARDED] = false;
+  }
+  /**
+   * true if the stream has been forcibly destroyed
+   */
+  get destroyed() {
+    return this[DESTROYED];
+  }
+  /**
+   * true if the stream is currently in a flowing state, meaning that
+   * any writes will be immediately emitted.
+   */
+  get flowing() {
+    return this[FLOWING];
+  }
+  /**
+   * true if the stream is currently in a paused state
+   */
+  get paused() {
+    return this[PAUSED];
+  }
+  [BUFFERPUSH](chunk) {
+    if (this[OBJECTMODE])
+      this[BUFFERLENGTH] += 1;
+    else
+      this[BUFFERLENGTH] += chunk.length;
+    this[BUFFER].push(chunk);
+  }
+  [BUFFERSHIFT]() {
+    if (this[OBJECTMODE])
+      this[BUFFERLENGTH] -= 1;
+    else
+      this[BUFFERLENGTH] -= this[BUFFER][0].length;
+    return this[BUFFER].shift();
+  }
+  [FLUSH](noDrain = false) {
+    do {
+    } while (this[FLUSHCHUNK](this[BUFFERSHIFT]()) && this[BUFFER].length);
+    if (!noDrain && !this[BUFFER].length && !this[EOF])
+      this.emit("drain");
+  }
+  [FLUSHCHUNK](chunk) {
+    this.emit("data", chunk);
+    return this[FLOWING];
+  }
+  /**
+   * Pipe all data emitted by this stream into the destination provided.
+   *
+   * Triggers the flow of data.
+   */
+  pipe(dest, opts) {
+    if (this[DESTROYED])
+      return dest;
+    this[DISCARDED] = false;
+    const ended = this[EMITTED_END];
+    opts = opts || {};
+    if (dest === proc.stdout || dest === proc.stderr)
+      opts.end = false;
+    else
+      opts.end = opts.end !== false;
+    opts.proxyErrors = !!opts.proxyErrors;
+    if (ended) {
+      if (opts.end)
+        dest.end();
+    } else {
+      this[PIPES].push(!opts.proxyErrors ? new Pipe(this, dest, opts) : new PipeProxyErrors(this, dest, opts));
+      if (this[ASYNC])
+        defer(() => this[RESUME]());
+      else
+        this[RESUME]();
+    }
+    return dest;
+  }
+  /**
+   * Fully unhook a piped destination stream.
+   *
+   * If the destination stream was the only consumer of this stream (ie,
+   * there are no other piped destinations or `'data'` event listeners)
+   * then the flow of data will stop until there is another consumer or
+   * {@link Minipass#resume} is explicitly called.
+   */
+  unpipe(dest) {
+    const p = this[PIPES].find((p2) => p2.dest === dest);
+    if (p) {
+      if (this[PIPES].length === 1) {
+        if (this[FLOWING] && this[DATALISTENERS] === 0) {
+          this[FLOWING] = false;
+        }
+        this[PIPES] = [];
+      } else
+        this[PIPES].splice(this[PIPES].indexOf(p), 1);
+      p.unpipe();
+    }
+  }
+  /**
+   * Alias for {@link Minipass#on}
+   */
+  addListener(ev, handler) {
+    return this.on(ev, handler);
+  }
+  /**
+   * Mostly identical to `EventEmitter.on`, with the following
+   * behavior differences to prevent data loss and unnecessary hangs:
+   *
+   * - Adding a 'data' event handler will trigger the flow of data
+   *
+   * - Adding a 'readable' event handler when there is data waiting to be read
+   *   will cause 'readable' to be emitted immediately.
+   *
+   * - Adding an 'endish' event handler ('end', 'finish', etc.) which has
+   *   already passed will cause the event to be emitted immediately and all
+   *   handlers removed.
+   *
+   * - Adding an 'error' event handler after an error has been emitted will
+   *   cause the event to be re-emitted immediately with the error previously
+   *   raised.
+   */
+  on(ev, handler) {
+    const ret2 = super.on(ev, handler);
+    if (ev === "data") {
+      this[DISCARDED] = false;
+      this[DATALISTENERS]++;
+      if (!this[PIPES].length && !this[FLOWING]) {
+        this[RESUME]();
+      }
+    } else if (ev === "readable" && this[BUFFERLENGTH] !== 0) {
+      super.emit("readable");
+    } else if (isEndish(ev) && this[EMITTED_END]) {
+      super.emit(ev);
+      this.removeAllListeners(ev);
+    } else if (ev === "error" && this[EMITTED_ERROR]) {
+      const h = handler;
+      if (this[ASYNC])
+        defer(() => h.call(this, this[EMITTED_ERROR]));
+      else
+        h.call(this, this[EMITTED_ERROR]);
+    }
+    return ret2;
+  }
+  /**
+   * Alias for {@link Minipass#off}
+   */
+  removeListener(ev, handler) {
+    return this.off(ev, handler);
+  }
+  /**
+   * Mostly identical to `EventEmitter.off`
+   *
+   * If a 'data' event handler is removed, and it was the last consumer
+   * (ie, there are no pipe destinations or other 'data' event listeners),
+   * then the flow of data will stop until there is another consumer or
+   * {@link Minipass#resume} is explicitly called.
+   */
+  off(ev, handler) {
+    const ret2 = super.off(ev, handler);
+    if (ev === "data") {
+      this[DATALISTENERS] = this.listeners("data").length;
+      if (this[DATALISTENERS] === 0 && !this[DISCARDED] && !this[PIPES].length) {
+        this[FLOWING] = false;
+      }
+    }
+    return ret2;
+  }
+  /**
+   * Mostly identical to `EventEmitter.removeAllListeners`
+   *
+   * If all 'data' event handlers are removed, and they were the last consumer
+   * (ie, there are no pipe destinations), then the flow of data will stop
+   * until there is another consumer or {@link Minipass#resume} is explicitly
+   * called.
+   */
+  removeAllListeners(ev) {
+    const ret2 = super.removeAllListeners(ev);
+    if (ev === "data" || ev === void 0) {
+      this[DATALISTENERS] = 0;
+      if (!this[DISCARDED] && !this[PIPES].length) {
+        this[FLOWING] = false;
+      }
+    }
+    return ret2;
+  }
+  /**
+   * true if the 'end' event has been emitted
+   */
+  get emittedEnd() {
+    return this[EMITTED_END];
+  }
+  [MAYBE_EMIT_END]() {
+    if (!this[EMITTING_END] && !this[EMITTED_END] && !this[DESTROYED] && this[BUFFER].length === 0 && this[EOF]) {
+      this[EMITTING_END] = true;
+      this.emit("end");
+      this.emit("prefinish");
+      this.emit("finish");
+      if (this[CLOSED])
+        this.emit("close");
+      this[EMITTING_END] = false;
+    }
+  }
+  /**
+   * Mostly identical to `EventEmitter.emit`, with the following
+   * behavior differences to prevent data loss and unnecessary hangs:
+   *
+   * If the stream has been destroyed, and the event is something other
+   * than 'close' or 'error', then `false` is returned and no handlers
+   * are called.
+   *
+   * If the event is 'end', and has already been emitted, then the event
+   * is ignored. If the stream is in a paused or non-flowing state, then
+   * the event will be deferred until data flow resumes. If the stream is
+   * async, then handlers will be called on the next tick rather than
+   * immediately.
+   *
+   * If the event is 'close', and 'end' has not yet been emitted, then
+   * the event will be deferred until after 'end' is emitted.
+   *
+   * If the event is 'error', and an AbortSignal was provided for the stream,
+   * and there are no listeners, then the event is ignored, matching the
+   * behavior of node core streams in the presense of an AbortSignal.
+   *
+   * If the event is 'finish' or 'prefinish', then all listeners will be
+   * removed after emitting the event, to prevent double-firing.
+   */
+  emit(ev, ...args) {
+    const data = args[0];
+    if (ev !== "error" && ev !== "close" && ev !== DESTROYED && this[DESTROYED]) {
+      return false;
+    } else if (ev === "data") {
+      return !this[OBJECTMODE] && !data ? false : this[ASYNC] ? (defer(() => this[EMITDATA](data)), true) : this[EMITDATA](data);
+    } else if (ev === "end") {
+      return this[EMITEND]();
+    } else if (ev === "close") {
+      this[CLOSED] = true;
+      if (!this[EMITTED_END] && !this[DESTROYED])
+        return false;
+      const ret3 = super.emit("close");
+      this.removeAllListeners("close");
+      return ret3;
+    } else if (ev === "error") {
+      this[EMITTED_ERROR] = data;
+      super.emit(ERROR, data);
+      const ret3 = !this[SIGNAL] || this.listeners("error").length ? super.emit("error", data) : false;
+      this[MAYBE_EMIT_END]();
+      return ret3;
+    } else if (ev === "resume") {
+      const ret3 = super.emit("resume");
+      this[MAYBE_EMIT_END]();
+      return ret3;
+    } else if (ev === "finish" || ev === "prefinish") {
+      const ret3 = super.emit(ev);
+      this.removeAllListeners(ev);
+      return ret3;
+    }
+    const ret2 = super.emit(ev, ...args);
+    this[MAYBE_EMIT_END]();
+    return ret2;
+  }
+  [EMITDATA](data) {
+    for (const p of this[PIPES]) {
+      if (p.dest.write(data) === false)
+        this.pause();
+    }
+    const ret2 = this[DISCARDED] ? false : super.emit("data", data);
+    this[MAYBE_EMIT_END]();
+    return ret2;
+  }
+  [EMITEND]() {
+    if (this[EMITTED_END])
+      return false;
+    this[EMITTED_END] = true;
+    this.readable = false;
+    return this[ASYNC] ? (defer(() => this[EMITEND2]()), true) : this[EMITEND2]();
+  }
+  [EMITEND2]() {
+    if (this[DECODER]) {
+      const data = this[DECODER].end();
+      if (data) {
+        for (const p of this[PIPES]) {
+          p.dest.write(data);
+        }
+        if (!this[DISCARDED])
+          super.emit("data", data);
+      }
+    }
+    for (const p of this[PIPES]) {
+      p.end();
+    }
+    const ret2 = super.emit("end");
+    this.removeAllListeners("end");
+    return ret2;
+  }
+  /**
+   * Return a Promise that resolves to an array of all emitted data once
+   * the stream ends.
+   */
+  async collect() {
+    const buf = Object.assign([], {
+      dataLength: 0
+    });
+    if (!this[OBJECTMODE])
+      buf.dataLength = 0;
+    const p = this.promise();
+    this.on("data", (c) => {
+      buf.push(c);
+      if (!this[OBJECTMODE])
+        buf.dataLength += c.length;
+    });
+    await p;
+    return buf;
+  }
+  /**
+   * Return a Promise that resolves to the concatenation of all emitted data
+   * once the stream ends.
+   *
+   * Not allowed on objectMode streams.
+   */
+  async concat() {
+    if (this[OBJECTMODE]) {
+      throw new Error("cannot concat in objectMode");
+    }
+    const buf = await this.collect();
+    return this[ENCODING] ? buf.join("") : Buffer.concat(buf, buf.dataLength);
+  }
+  /**
+   * Return a void Promise that resolves once the stream ends.
+   */
+  async promise() {
+    return new Promise((resolve, reject) => {
+      this.on(DESTROYED, () => reject(new Error("stream destroyed")));
+      this.on("error", (er) => reject(er));
+      this.on("end", () => resolve());
+    });
+  }
+  /**
+   * Asynchronous `for await of` iteration.
+   *
+   * This will continue emitting all chunks until the stream terminates.
+   */
+  [Symbol.asyncIterator]() {
+    this[DISCARDED] = false;
+    let stopped = false;
+    const stop = async () => {
+      this.pause();
+      stopped = true;
+      return { value: void 0, done: true };
+    };
+    const next = () => {
+      if (stopped)
+        return stop();
+      const res = this.read();
+      if (res !== null)
+        return Promise.resolve({ done: false, value: res });
+      if (this[EOF])
+        return stop();
+      let resolve;
+      let reject;
+      const onerr = (er) => {
+        this.off("data", ondata);
+        this.off("end", onend);
+        this.off(DESTROYED, ondestroy);
+        stop();
+        reject(er);
+      };
+      const ondata = (value) => {
+        this.off("error", onerr);
+        this.off("end", onend);
+        this.off(DESTROYED, ondestroy);
+        this.pause();
+        resolve({ value, done: !!this[EOF] });
+      };
+      const onend = () => {
+        this.off("error", onerr);
+        this.off("data", ondata);
+        this.off(DESTROYED, ondestroy);
+        stop();
+        resolve({ done: true, value: void 0 });
+      };
+      const ondestroy = () => onerr(new Error("stream destroyed"));
+      return new Promise((res2, rej) => {
+        reject = rej;
+        resolve = res2;
+        this.once(DESTROYED, ondestroy);
+        this.once("error", onerr);
+        this.once("end", onend);
+        this.once("data", ondata);
+      });
+    };
+    return {
+      next,
+      throw: stop,
+      return: stop,
+      [Symbol.asyncIterator]() {
+        return this;
+      }
+    };
+  }
+  /**
+   * Synchronous `for of` iteration.
+   *
+   * The iteration will terminate when the internal buffer runs out, even
+   * if the stream has not yet terminated.
+   */
+  [Symbol.iterator]() {
+    this[DISCARDED] = false;
+    let stopped = false;
+    const stop = () => {
+      this.pause();
+      this.off(ERROR, stop);
+      this.off(DESTROYED, stop);
+      this.off("end", stop);
+      stopped = true;
+      return { done: true, value: void 0 };
+    };
+    const next = () => {
+      if (stopped)
+        return stop();
+      const value = this.read();
+      return value === null ? stop() : { done: false, value };
+    };
+    this.once("end", stop);
+    this.once(ERROR, stop);
+    this.once(DESTROYED, stop);
+    return {
+      next,
+      throw: stop,
+      return: stop,
+      [Symbol.iterator]() {
+        return this;
+      }
+    };
+  }
+  /**
+   * Destroy a stream, preventing it from being used for any further purpose.
+   *
+   * If the stream has a `close()` method, then it will be called on
+   * destruction.
+   *
+   * After destruction, any attempt to write data, read data, or emit most
+   * events will be ignored.
+   *
+   * If an error argument is provided, then it will be emitted in an
+   * 'error' event.
+   */
+  destroy(er) {
+    if (this[DESTROYED]) {
+      if (er)
+        this.emit("error", er);
+      else
+        this.emit(DESTROYED);
+      return this;
+    }
+    this[DESTROYED] = true;
+    this[DISCARDED] = true;
+    this[BUFFER].length = 0;
+    this[BUFFERLENGTH] = 0;
+    const wc = this;
+    if (typeof wc.close === "function" && !this[CLOSED])
+      wc.close();
+    if (er)
+      this.emit("error", er);
+    else
+      this.emit(DESTROYED);
+    return this;
+  }
+  /**
+   * Alias for {@link isStream}
+   *
+   * Former export location, maintained for backwards compatibility.
+   *
+   * @deprecated
+   */
+  static get isStream() {
+    return isStream;
+  }
+};
+
+// ../node_modules/path-scurry/dist/esm/index.js
+var realpathSync = import_fs2.realpathSync.native;
+var defaultFS = {
+  lstatSync: import_fs2.lstatSync,
+  readdir: import_fs2.readdir,
+  readdirSync: import_fs2.readdirSync,
+  readlinkSync: import_fs2.readlinkSync,
+  realpathSync,
+  promises: {
+    lstat: import_promises.lstat,
+    readdir: import_promises.readdir,
+    readlink: import_promises.readlink,
+    realpath: import_promises.realpath
+  }
+};
+var fsFromOption = (fsOption) => !fsOption || fsOption === defaultFS || fsOption === actualFS ? defaultFS : {
+  ...defaultFS,
+  ...fsOption,
+  promises: {
+    ...defaultFS.promises,
+    ...fsOption.promises || {}
+  }
+};
+var uncDriveRegexp = /^\\\\\?\\([a-z]:)\\?$/i;
+var uncToDrive = (rootPath) => rootPath.replace(/\//g, "\\").replace(uncDriveRegexp, "$1\\");
+var eitherSep = /[\\\/]/;
+var UNKNOWN = 0;
+var IFIFO = 1;
+var IFCHR = 2;
+var IFDIR = 4;
+var IFBLK = 6;
+var IFREG = 8;
+var IFLNK = 10;
+var IFSOCK = 12;
+var IFMT = 15;
+var IFMT_UNKNOWN = ~IFMT;
+var READDIR_CALLED = 16;
+var LSTAT_CALLED = 32;
+var ENOTDIR = 64;
+var ENOENT = 128;
+var ENOREADLINK = 256;
+var ENOREALPATH = 512;
+var ENOCHILD = ENOTDIR | ENOENT | ENOREALPATH;
+var TYPEMASK = 1023;
+var entToType = (s) => s.isFile() ? IFREG : s.isDirectory() ? IFDIR : s.isSymbolicLink() ? IFLNK : s.isCharacterDevice() ? IFCHR : s.isBlockDevice() ? IFBLK : s.isSocket() ? IFSOCK : s.isFIFO() ? IFIFO : UNKNOWN;
+var normalizeCache = /* @__PURE__ */ new Map();
+var normalize = (s) => {
+  const c = normalizeCache.get(s);
+  if (c)
+    return c;
+  const n = s.normalize("NFKD");
+  normalizeCache.set(s, n);
+  return n;
+};
+var normalizeNocaseCache = /* @__PURE__ */ new Map();
+var normalizeNocase = (s) => {
+  const c = normalizeNocaseCache.get(s);
+  if (c)
+    return c;
+  const n = normalize(s.toLowerCase());
+  normalizeNocaseCache.set(s, n);
+  return n;
+};
+var ResolveCache = class extends LRUCache {
+  constructor() {
+    super({ max: 256 });
+  }
+};
+var ChildrenCache = class extends LRUCache {
+  constructor(maxSize = 16 * 1024) {
+    super({
+      maxSize,
+      // parent + children
+      sizeCalculation: (a) => a.length + 1
+    });
+  }
+};
+var setAsCwd = /* @__PURE__ */ Symbol("PathScurry setAsCwd");
+var PathBase = class {
+  /**
+   * the basename of this path
+   *
+   * **Important**: *always* test the path name against any test string
+   * usingthe {@link isNamed} method, and not by directly comparing this
+   * string. Otherwise, unicode path strings that the system sees as identical
+   * will not be properly treated as the same path, leading to incorrect
+   * behavior and possible security issues.
+   */
+  name;
+  /**
+   * the Path entry corresponding to the path root.
+   *
+   * @internal
+   */
+  root;
+  /**
+   * All roots found within the current PathScurry family
+   *
+   * @internal
+   */
+  roots;
+  /**
+   * a reference to the parent path, or undefined in the case of root entries
+   *
+   * @internal
+   */
+  parent;
+  /**
+   * boolean indicating whether paths are compared case-insensitively
+   * @internal
+   */
+  nocase;
+  /**
+   * boolean indicating that this path is the current working directory
+   * of the PathScurry collection that contains it.
+   */
+  isCWD = false;
+  // potential default fs override
+  #fs;
+  // Stats fields
+  #dev;
+  get dev() {
+    return this.#dev;
+  }
+  #mode;
+  get mode() {
+    return this.#mode;
+  }
+  #nlink;
+  get nlink() {
+    return this.#nlink;
+  }
+  #uid;
+  get uid() {
+    return this.#uid;
+  }
+  #gid;
+  get gid() {
+    return this.#gid;
+  }
+  #rdev;
+  get rdev() {
+    return this.#rdev;
+  }
+  #blksize;
+  get blksize() {
+    return this.#blksize;
+  }
+  #ino;
+  get ino() {
+    return this.#ino;
+  }
+  #size;
+  get size() {
+    return this.#size;
+  }
+  #blocks;
+  get blocks() {
+    return this.#blocks;
+  }
+  #atimeMs;
+  get atimeMs() {
+    return this.#atimeMs;
+  }
+  #mtimeMs;
+  get mtimeMs() {
+    return this.#mtimeMs;
+  }
+  #ctimeMs;
+  get ctimeMs() {
+    return this.#ctimeMs;
+  }
+  #birthtimeMs;
+  get birthtimeMs() {
+    return this.#birthtimeMs;
+  }
+  #atime;
+  get atime() {
+    return this.#atime;
+  }
+  #mtime;
+  get mtime() {
+    return this.#mtime;
+  }
+  #ctime;
+  get ctime() {
+    return this.#ctime;
+  }
+  #birthtime;
+  get birthtime() {
+    return this.#birthtime;
+  }
+  #matchName;
+  #depth;
+  #fullpath;
+  #fullpathPosix;
+  #relative;
+  #relativePosix;
+  #type;
+  #children;
+  #linkTarget;
+  #realpath;
+  /**
+   * This property is for compatibility with the Dirent class as of
+   * Node v20, where Dirent['parentPath'] refers to the path of the
+   * directory that was passed to readdir. For root entries, it's the path
+   * to the entry itself.
+   */
+  get parentPath() {
+    return (this.parent || this).fullpath();
+  }
+  /**
+   * Deprecated alias for Dirent['parentPath'] Somewhat counterintuitively,
+   * this property refers to the *parent* path, not the path object itself.
+   *
+   * @deprecated
+   */
+  get path() {
+    return this.parentPath;
+  }
+  /**
+   * Do not create new Path objects directly.  They should always be accessed
+   * via the PathScurry class or other methods on the Path class.
+   *
+   * @internal
+   */
+  constructor(name, type = UNKNOWN, root, roots, nocase, children, opts) {
+    this.name = name;
+    this.#matchName = nocase ? normalizeNocase(name) : normalize(name);
+    this.#type = type & TYPEMASK;
+    this.nocase = nocase;
+    this.roots = roots;
+    this.root = root || this;
+    this.#children = children;
+    this.#fullpath = opts.fullpath;
+    this.#relative = opts.relative;
+    this.#relativePosix = opts.relativePosix;
+    this.parent = opts.parent;
+    if (this.parent) {
+      this.#fs = this.parent.#fs;
+    } else {
+      this.#fs = fsFromOption(opts.fs);
+    }
+  }
+  /**
+   * Returns the depth of the Path object from its root.
+   *
+   * For example, a path at `/foo/bar` would have a depth of 2.
+   */
+  depth() {
+    if (this.#depth !== void 0)
+      return this.#depth;
+    if (!this.parent)
+      return this.#depth = 0;
+    return this.#depth = this.parent.depth() + 1;
+  }
+  /**
+   * @internal
+   */
+  childrenCache() {
+    return this.#children;
+  }
+  /**
+   * Get the Path object referenced by the string path, resolved from this Path
+   */
+  resolve(path2) {
+    if (!path2) {
+      return this;
+    }
+    const rootPath = this.getRootString(path2);
+    const dir = path2.substring(rootPath.length);
+    const dirParts = dir.split(this.splitSep);
+    const result = rootPath ? this.getRoot(rootPath).#resolveParts(dirParts) : this.#resolveParts(dirParts);
+    return result;
+  }
+  #resolveParts(dirParts) {
+    let p = this;
+    for (const part of dirParts) {
+      p = p.child(part);
+    }
+    return p;
+  }
+  /**
+   * Returns the cached children Path objects, if still available.  If they
+   * have fallen out of the cache, then returns an empty array, and resets the
+   * READDIR_CALLED bit, so that future calls to readdir() will require an fs
+   * lookup.
+   *
+   * @internal
+   */
+  children() {
+    const cached = this.#children.get(this);
+    if (cached) {
+      return cached;
+    }
+    const children = Object.assign([], { provisional: 0 });
+    this.#children.set(this, children);
+    this.#type &= ~READDIR_CALLED;
+    return children;
+  }
+  /**
+   * Resolves a path portion and returns or creates the child Path.
+   *
+   * Returns `this` if pathPart is `''` or `'.'`, or `parent` if pathPart is
+   * `'..'`.
+   *
+   * This should not be called directly.  If `pathPart` contains any path
+   * separators, it will lead to unsafe undefined behavior.
+   *
+   * Use `Path.resolve()` instead.
+   *
+   * @internal
+   */
+  child(pathPart, opts) {
+    if (pathPart === "" || pathPart === ".") {
+      return this;
+    }
+    if (pathPart === "..") {
+      return this.parent || this;
+    }
+    const children = this.children();
+    const name = this.nocase ? normalizeNocase(pathPart) : normalize(pathPart);
+    for (const p of children) {
+      if (p.#matchName === name) {
+        return p;
+      }
+    }
+    const s = this.parent ? this.sep : "";
+    const fullpath = this.#fullpath ? this.#fullpath + s + pathPart : void 0;
+    const pchild = this.newChild(pathPart, UNKNOWN, {
+      ...opts,
+      parent: this,
+      fullpath
+    });
+    if (!this.canReaddir()) {
+      pchild.#type |= ENOENT;
+    }
+    children.push(pchild);
+    return pchild;
+  }
+  /**
+   * The relative path from the cwd. If it does not share an ancestor with
+   * the cwd, then this ends up being equivalent to the fullpath()
+   */
+  relative() {
+    if (this.isCWD)
+      return "";
+    if (this.#relative !== void 0) {
+      return this.#relative;
+    }
+    const name = this.name;
+    const p = this.parent;
+    if (!p) {
+      return this.#relative = this.name;
+    }
+    const pv = p.relative();
+    return pv + (!pv || !p.parent ? "" : this.sep) + name;
+  }
+  /**
+   * The relative path from the cwd, using / as the path separator.
+   * If it does not share an ancestor with
+   * the cwd, then this ends up being equivalent to the fullpathPosix()
+   * On posix systems, this is identical to relative().
+   */
+  relativePosix() {
+    if (this.sep === "/")
+      return this.relative();
+    if (this.isCWD)
+      return "";
+    if (this.#relativePosix !== void 0)
+      return this.#relativePosix;
+    const name = this.name;
+    const p = this.parent;
+    if (!p) {
+      return this.#relativePosix = this.fullpathPosix();
+    }
+    const pv = p.relativePosix();
+    return pv + (!pv || !p.parent ? "" : "/") + name;
+  }
+  /**
+   * The fully resolved path string for this Path entry
+   */
+  fullpath() {
+    if (this.#fullpath !== void 0) {
+      return this.#fullpath;
+    }
+    const name = this.name;
+    const p = this.parent;
+    if (!p) {
+      return this.#fullpath = this.name;
+    }
+    const pv = p.fullpath();
+    const fp = pv + (!p.parent ? "" : this.sep) + name;
+    return this.#fullpath = fp;
+  }
+  /**
+   * On platforms other than windows, this is identical to fullpath.
+   *
+   * On windows, this is overridden to return the forward-slash form of the
+   * full UNC path.
+   */
+  fullpathPosix() {
+    if (this.#fullpathPosix !== void 0)
+      return this.#fullpathPosix;
+    if (this.sep === "/")
+      return this.#fullpathPosix = this.fullpath();
+    if (!this.parent) {
+      const p2 = this.fullpath().replace(/\\/g, "/");
+      if (/^[a-z]:\//i.test(p2)) {
+        return this.#fullpathPosix = `//?/${p2}`;
+      } else {
+        return this.#fullpathPosix = p2;
+      }
+    }
+    const p = this.parent;
+    const pfpp = p.fullpathPosix();
+    const fpp = pfpp + (!pfpp || !p.parent ? "" : "/") + this.name;
+    return this.#fullpathPosix = fpp;
+  }
+  /**
+   * Is the Path of an unknown type?
+   *
+   * Note that we might know *something* about it if there has been a previous
+   * filesystem operation, for example that it does not exist, or is not a
+   * link, or whether it has child entries.
+   */
+  isUnknown() {
+    return (this.#type & IFMT) === UNKNOWN;
+  }
+  isType(type) {
+    return this[`is${type}`]();
+  }
+  getType() {
+    return this.isUnknown() ? "Unknown" : this.isDirectory() ? "Directory" : this.isFile() ? "File" : this.isSymbolicLink() ? "SymbolicLink" : this.isFIFO() ? "FIFO" : this.isCharacterDevice() ? "CharacterDevice" : this.isBlockDevice() ? "BlockDevice" : (
+      /* c8 ignore start */
+      this.isSocket() ? "Socket" : "Unknown"
+    );
+  }
+  /**
+   * Is the Path a regular file?
+   */
+  isFile() {
+    return (this.#type & IFMT) === IFREG;
+  }
+  /**
+   * Is the Path a directory?
+   */
+  isDirectory() {
+    return (this.#type & IFMT) === IFDIR;
+  }
+  /**
+   * Is the path a character device?
+   */
+  isCharacterDevice() {
+    return (this.#type & IFMT) === IFCHR;
+  }
+  /**
+   * Is the path a block device?
+   */
+  isBlockDevice() {
+    return (this.#type & IFMT) === IFBLK;
+  }
+  /**
+   * Is the path a FIFO pipe?
+   */
+  isFIFO() {
+    return (this.#type & IFMT) === IFIFO;
+  }
+  /**
+   * Is the path a socket?
+   */
+  isSocket() {
+    return (this.#type & IFMT) === IFSOCK;
+  }
+  /**
+   * Is the path a symbolic link?
+   */
+  isSymbolicLink() {
+    return (this.#type & IFLNK) === IFLNK;
+  }
+  /**
+   * Return the entry if it has been subject of a successful lstat, or
+   * undefined otherwise.
+   *
+   * Does not read the filesystem, so an undefined result *could* simply
+   * mean that we haven't called lstat on it.
+   */
+  lstatCached() {
+    return this.#type & LSTAT_CALLED ? this : void 0;
+  }
+  /**
+   * Return the cached link target if the entry has been the subject of a
+   * successful readlink, or undefined otherwise.
+   *
+   * Does not read the filesystem, so an undefined result *could* just mean we
+   * don't have any cached data. Only use it if you are very sure that a
+   * readlink() has been called at some point.
+   */
+  readlinkCached() {
+    return this.#linkTarget;
+  }
+  /**
+   * Returns the cached realpath target if the entry has been the subject
+   * of a successful realpath, or undefined otherwise.
+   *
+   * Does not read the filesystem, so an undefined result *could* just mean we
+   * don't have any cached data. Only use it if you are very sure that a
+   * realpath() has been called at some point.
+   */
+  realpathCached() {
+    return this.#realpath;
+  }
+  /**
+   * Returns the cached child Path entries array if the entry has been the
+   * subject of a successful readdir(), or [] otherwise.
+   *
+   * Does not read the filesystem, so an empty array *could* just mean we
+   * don't have any cached data. Only use it if you are very sure that a
+   * readdir() has been called recently enough to still be valid.
+   */
+  readdirCached() {
+    const children = this.children();
+    return children.slice(0, children.provisional);
+  }
+  /**
+   * Return true if it's worth trying to readlink.  Ie, we don't (yet) have
+   * any indication that readlink will definitely fail.
+   *
+   * Returns false if the path is known to not be a symlink, if a previous
+   * readlink failed, or if the entry does not exist.
+   */
+  canReadlink() {
+    if (this.#linkTarget)
+      return true;
+    if (!this.parent)
+      return false;
+    const ifmt = this.#type & IFMT;
+    return !(ifmt !== UNKNOWN && ifmt !== IFLNK || this.#type & ENOREADLINK || this.#type & ENOENT);
+  }
+  /**
+   * Return true if readdir has previously been successfully called on this
+   * path, indicating that cachedReaddir() is likely valid.
+   */
+  calledReaddir() {
+    return !!(this.#type & READDIR_CALLED);
+  }
+  /**
+   * Returns true if the path is known to not exist. That is, a previous lstat
+   * or readdir failed to verify its existence when that would have been
+   * expected, or a parent entry was marked either enoent or enotdir.
+   */
+  isENOENT() {
+    return !!(this.#type & ENOENT);
+  }
+  /**
+   * Return true if the path is a match for the given path name.  This handles
+   * case sensitivity and unicode normalization.
+   *
+   * Note: even on case-sensitive systems, it is **not** safe to test the
+   * equality of the `.name` property to determine whether a given pathname
+   * matches, due to unicode normalization mismatches.
+   *
+   * Always use this method instead of testing the `path.name` property
+   * directly.
+   */
+  isNamed(n) {
+    return !this.nocase ? this.#matchName === normalize(n) : this.#matchName === normalizeNocase(n);
+  }
+  /**
+   * Return the Path object corresponding to the target of a symbolic link.
+   *
+   * If the Path is not a symbolic link, or if the readlink call fails for any
+   * reason, `undefined` is returned.
+   *
+   * Result is cached, and thus may be outdated if the filesystem is mutated.
+   */
+  async readlink() {
+    const target = this.#linkTarget;
+    if (target) {
+      return target;
+    }
+    if (!this.canReadlink()) {
+      return void 0;
+    }
+    if (!this.parent) {
+      return void 0;
+    }
+    try {
+      const read = await this.#fs.promises.readlink(this.fullpath());
+      const linkTarget = (await this.parent.realpath())?.resolve(read);
+      if (linkTarget) {
+        return this.#linkTarget = linkTarget;
+      }
+    } catch (er) {
+      this.#readlinkFail(er.code);
+      return void 0;
+    }
+  }
+  /**
+   * Synchronous {@link PathBase.readlink}
+   */
+  readlinkSync() {
+    const target = this.#linkTarget;
+    if (target) {
+      return target;
+    }
+    if (!this.canReadlink()) {
+      return void 0;
+    }
+    if (!this.parent) {
+      return void 0;
+    }
+    try {
+      const read = this.#fs.readlinkSync(this.fullpath());
+      const linkTarget = this.parent.realpathSync()?.resolve(read);
+      if (linkTarget) {
+        return this.#linkTarget = linkTarget;
+      }
+    } catch (er) {
+      this.#readlinkFail(er.code);
+      return void 0;
+    }
+  }
+  #readdirSuccess(children) {
+    this.#type |= READDIR_CALLED;
+    for (let p = children.provisional; p < children.length; p++) {
+      const c = children[p];
+      if (c)
+        c.#markENOENT();
+    }
+  }
+  #markENOENT() {
+    if (this.#type & ENOENT)
+      return;
+    this.#type = (this.#type | ENOENT) & IFMT_UNKNOWN;
+    this.#markChildrenENOENT();
+  }
+  #markChildrenENOENT() {
+    const children = this.children();
+    children.provisional = 0;
+    for (const p of children) {
+      p.#markENOENT();
+    }
+  }
+  #markENOREALPATH() {
+    this.#type |= ENOREALPATH;
+    this.#markENOTDIR();
+  }
+  // save the information when we know the entry is not a dir
+  #markENOTDIR() {
+    if (this.#type & ENOTDIR)
+      return;
+    let t = this.#type;
+    if ((t & IFMT) === IFDIR)
+      t &= IFMT_UNKNOWN;
+    this.#type = t | ENOTDIR;
+    this.#markChildrenENOENT();
+  }
+  #readdirFail(code = "") {
+    if (code === "ENOTDIR" || code === "EPERM") {
+      this.#markENOTDIR();
+    } else if (code === "ENOENT") {
+      this.#markENOENT();
+    } else {
+      this.children().provisional = 0;
+    }
+  }
+  #lstatFail(code = "") {
+    if (code === "ENOTDIR") {
+      const p = this.parent;
+      p.#markENOTDIR();
+    } else if (code === "ENOENT") {
+      this.#markENOENT();
+    }
+  }
+  #readlinkFail(code = "") {
+    let ter = this.#type;
+    ter |= ENOREADLINK;
+    if (code === "ENOENT")
+      ter |= ENOENT;
+    if (code === "EINVAL" || code === "UNKNOWN") {
+      ter &= IFMT_UNKNOWN;
+    }
+    this.#type = ter;
+    if (code === "ENOTDIR" && this.parent) {
+      this.parent.#markENOTDIR();
+    }
+  }
+  #readdirAddChild(e, c) {
+    return this.#readdirMaybePromoteChild(e, c) || this.#readdirAddNewChild(e, c);
+  }
+  #readdirAddNewChild(e, c) {
+    const type = entToType(e);
+    const child = this.newChild(e.name, type, { parent: this });
+    const ifmt = child.#type & IFMT;
+    if (ifmt !== IFDIR && ifmt !== IFLNK && ifmt !== UNKNOWN) {
+      child.#type |= ENOTDIR;
+    }
+    c.unshift(child);
+    c.provisional++;
+    return child;
+  }
+  #readdirMaybePromoteChild(e, c) {
+    for (let p = c.provisional; p < c.length; p++) {
+      const pchild = c[p];
+      const name = this.nocase ? normalizeNocase(e.name) : normalize(e.name);
+      if (name !== pchild.#matchName) {
+        continue;
+      }
+      return this.#readdirPromoteChild(e, pchild, p, c);
+    }
+  }
+  #readdirPromoteChild(e, p, index, c) {
+    const v = p.name;
+    p.#type = p.#type & IFMT_UNKNOWN | entToType(e);
+    if (v !== e.name)
+      p.name = e.name;
+    if (index !== c.provisional) {
+      if (index === c.length - 1)
+        c.pop();
+      else
+        c.splice(index, 1);
+      c.unshift(p);
+    }
+    c.provisional++;
+    return p;
+  }
+  /**
+   * Call lstat() on this Path, and update all known information that can be
+   * determined.
+   *
+   * Note that unlike `fs.lstat()`, the returned value does not contain some
+   * information, such as `mode`, `dev`, `nlink`, and `ino`.  If that
+   * information is required, you will need to call `fs.lstat` yourself.
+   *
+   * If the Path refers to a nonexistent file, or if the lstat call fails for
+   * any reason, `undefined` is returned.  Otherwise the updated Path object is
+   * returned.
+   *
+   * Results are cached, and thus may be out of date if the filesystem is
+   * mutated.
+   */
+  async lstat() {
+    if ((this.#type & ENOENT) === 0) {
+      try {
+        this.#applyStat(await this.#fs.promises.lstat(this.fullpath()));
+        return this;
+      } catch (er) {
+        this.#lstatFail(er.code);
+      }
+    }
+  }
+  /**
+   * synchronous {@link PathBase.lstat}
+   */
+  lstatSync() {
+    if ((this.#type & ENOENT) === 0) {
+      try {
+        this.#applyStat(this.#fs.lstatSync(this.fullpath()));
+        return this;
+      } catch (er) {
+        this.#lstatFail(er.code);
+      }
+    }
+  }
+  #applyStat(st) {
+    const { atime, atimeMs, birthtime, birthtimeMs, blksize, blocks, ctime, ctimeMs, dev, gid, ino, mode, mtime, mtimeMs, nlink, rdev, size, uid } = st;
+    this.#atime = atime;
+    this.#atimeMs = atimeMs;
+    this.#birthtime = birthtime;
+    this.#birthtimeMs = birthtimeMs;
+    this.#blksize = blksize;
+    this.#blocks = blocks;
+    this.#ctime = ctime;
+    this.#ctimeMs = ctimeMs;
+    this.#dev = dev;
+    this.#gid = gid;
+    this.#ino = ino;
+    this.#mode = mode;
+    this.#mtime = mtime;
+    this.#mtimeMs = mtimeMs;
+    this.#nlink = nlink;
+    this.#rdev = rdev;
+    this.#size = size;
+    this.#uid = uid;
+    const ifmt = entToType(st);
+    this.#type = this.#type & IFMT_UNKNOWN | ifmt | LSTAT_CALLED;
+    if (ifmt !== UNKNOWN && ifmt !== IFDIR && ifmt !== IFLNK) {
+      this.#type |= ENOTDIR;
+    }
+  }
+  #onReaddirCB = [];
+  #readdirCBInFlight = false;
+  #callOnReaddirCB(children) {
+    this.#readdirCBInFlight = false;
+    const cbs = this.#onReaddirCB.slice();
+    this.#onReaddirCB.length = 0;
+    cbs.forEach((cb) => cb(null, children));
+  }
+  /**
+   * Standard node-style callback interface to get list of directory entries.
+   *
+   * If the Path cannot or does not contain any children, then an empty array
+   * is returned.
+   *
+   * Results are cached, and thus may be out of date if the filesystem is
+   * mutated.
+   *
+   * @param cb The callback called with (er, entries).  Note that the `er`
+   * param is somewhat extraneous, as all readdir() errors are handled and
+   * simply result in an empty set of entries being returned.
+   * @param allowZalgo Boolean indicating that immediately known results should
+   * *not* be deferred with `queueMicrotask`. Defaults to `false`. Release
+   * zalgo at your peril, the dark pony lord is devious and unforgiving.
+   */
+  readdirCB(cb, allowZalgo = false) {
+    if (!this.canReaddir()) {
+      if (allowZalgo)
+        cb(null, []);
+      else
+        queueMicrotask(() => cb(null, []));
+      return;
+    }
+    const children = this.children();
+    if (this.calledReaddir()) {
+      const c = children.slice(0, children.provisional);
+      if (allowZalgo)
+        cb(null, c);
+      else
+        queueMicrotask(() => cb(null, c));
+      return;
+    }
+    this.#onReaddirCB.push(cb);
+    if (this.#readdirCBInFlight) {
+      return;
+    }
+    this.#readdirCBInFlight = true;
+    const fullpath = this.fullpath();
+    this.#fs.readdir(fullpath, { withFileTypes: true }, (er, entries) => {
+      if (er) {
+        this.#readdirFail(er.code);
+        children.provisional = 0;
+      } else {
+        for (const e of entries) {
+          this.#readdirAddChild(e, children);
+        }
+        this.#readdirSuccess(children);
+      }
+      this.#callOnReaddirCB(children.slice(0, children.provisional));
+      return;
+    });
+  }
+  #asyncReaddirInFlight;
+  /**
+   * Return an array of known child entries.
+   *
+   * If the Path cannot or does not contain any children, then an empty array
+   * is returned.
+   *
+   * Results are cached, and thus may be out of date if the filesystem is
+   * mutated.
+   */
+  async readdir() {
+    if (!this.canReaddir()) {
+      return [];
+    }
+    const children = this.children();
+    if (this.calledReaddir()) {
+      return children.slice(0, children.provisional);
+    }
+    const fullpath = this.fullpath();
+    if (this.#asyncReaddirInFlight) {
+      await this.#asyncReaddirInFlight;
+    } else {
+      let resolve = () => {
+      };
+      this.#asyncReaddirInFlight = new Promise((res) => resolve = res);
+      try {
+        for (const e of await this.#fs.promises.readdir(fullpath, {
+          withFileTypes: true
+        })) {
+          this.#readdirAddChild(e, children);
+        }
+        this.#readdirSuccess(children);
+      } catch (er) {
+        this.#readdirFail(er.code);
+        children.provisional = 0;
+      }
+      this.#asyncReaddirInFlight = void 0;
+      resolve();
+    }
+    return children.slice(0, children.provisional);
+  }
+  /**
+   * synchronous {@link PathBase.readdir}
+   */
+  readdirSync() {
+    if (!this.canReaddir()) {
+      return [];
+    }
+    const children = this.children();
+    if (this.calledReaddir()) {
+      return children.slice(0, children.provisional);
+    }
+    const fullpath = this.fullpath();
+    try {
+      for (const e of this.#fs.readdirSync(fullpath, {
+        withFileTypes: true
+      })) {
+        this.#readdirAddChild(e, children);
+      }
+      this.#readdirSuccess(children);
+    } catch (er) {
+      this.#readdirFail(er.code);
+      children.provisional = 0;
+    }
+    return children.slice(0, children.provisional);
+  }
+  canReaddir() {
+    if (this.#type & ENOCHILD)
+      return false;
+    const ifmt = IFMT & this.#type;
+    if (!(ifmt === UNKNOWN || ifmt === IFDIR || ifmt === IFLNK)) {
+      return false;
+    }
+    return true;
+  }
+  shouldWalk(dirs, walkFilter) {
+    return (this.#type & IFDIR) === IFDIR && !(this.#type & ENOCHILD) && !dirs.has(this) && (!walkFilter || walkFilter(this));
+  }
+  /**
+   * Return the Path object corresponding to path as resolved
+   * by realpath(3).
+   *
+   * If the realpath call fails for any reason, `undefined` is returned.
+   *
+   * Result is cached, and thus may be outdated if the filesystem is mutated.
+   * On success, returns a Path object.
+   */
+  async realpath() {
+    if (this.#realpath)
+      return this.#realpath;
+    if ((ENOREALPATH | ENOREADLINK | ENOENT) & this.#type)
+      return void 0;
+    try {
+      const rp = await this.#fs.promises.realpath(this.fullpath());
+      return this.#realpath = this.resolve(rp);
+    } catch (_) {
+      this.#markENOREALPATH();
+    }
+  }
+  /**
+   * Synchronous {@link realpath}
+   */
+  realpathSync() {
+    if (this.#realpath)
+      return this.#realpath;
+    if ((ENOREALPATH | ENOREADLINK | ENOENT) & this.#type)
+      return void 0;
+    try {
+      const rp = this.#fs.realpathSync(this.fullpath());
+      return this.#realpath = this.resolve(rp);
+    } catch (_) {
+      this.#markENOREALPATH();
+    }
+  }
+  /**
+   * Internal method to mark this Path object as the scurry cwd,
+   * called by {@link PathScurry#chdir}
+   *
+   * @internal
+   */
+  [setAsCwd](oldCwd) {
+    if (oldCwd === this)
+      return;
+    oldCwd.isCWD = false;
+    this.isCWD = true;
+    const changed = /* @__PURE__ */ new Set([]);
+    let rp = [];
+    let p = this;
+    while (p && p.parent) {
+      changed.add(p);
+      p.#relative = rp.join(this.sep);
+      p.#relativePosix = rp.join("/");
+      p = p.parent;
+      rp.push("..");
+    }
+    p = oldCwd;
+    while (p && p.parent && !changed.has(p)) {
+      p.#relative = void 0;
+      p.#relativePosix = void 0;
+      p = p.parent;
+    }
+  }
+};
+var PathWin32 = class _PathWin32 extends PathBase {
+  /**
+   * Separator for generating path strings.
+   */
+  sep = "\\";
+  /**
+   * Separator for parsing path strings.
+   */
+  splitSep = eitherSep;
+  /**
+   * Do not create new Path objects directly.  They should always be accessed
+   * via the PathScurry class or other methods on the Path class.
+   *
+   * @internal
+   */
+  constructor(name, type = UNKNOWN, root, roots, nocase, children, opts) {
+    super(name, type, root, roots, nocase, children, opts);
+  }
+  /**
+   * @internal
+   */
+  newChild(name, type = UNKNOWN, opts = {}) {
+    return new _PathWin32(name, type, this.root, this.roots, this.nocase, this.childrenCache(), opts);
+  }
+  /**
+   * @internal
+   */
+  getRootString(path2) {
+    return import_node_path.win32.parse(path2).root;
+  }
+  /**
+   * @internal
+   */
+  getRoot(rootPath) {
+    rootPath = uncToDrive(rootPath.toUpperCase());
+    if (rootPath === this.root.name) {
+      return this.root;
+    }
+    for (const [compare, root] of Object.entries(this.roots)) {
+      if (this.sameRoot(rootPath, compare)) {
+        return this.roots[rootPath] = root;
+      }
+    }
+    return this.roots[rootPath] = new PathScurryWin32(rootPath, this).root;
+  }
+  /**
+   * @internal
+   */
+  sameRoot(rootPath, compare = this.root.name) {
+    rootPath = rootPath.toUpperCase().replace(/\//g, "\\").replace(uncDriveRegexp, "$1\\");
+    return rootPath === compare;
+  }
+};
+var PathPosix = class _PathPosix extends PathBase {
+  /**
+   * separator for parsing path strings
+   */
+  splitSep = "/";
+  /**
+   * separator for generating path strings
+   */
+  sep = "/";
+  /**
+   * Do not create new Path objects directly.  They should always be accessed
+   * via the PathScurry class or other methods on the Path class.
+   *
+   * @internal
+   */
+  constructor(name, type = UNKNOWN, root, roots, nocase, children, opts) {
+    super(name, type, root, roots, nocase, children, opts);
+  }
+  /**
+   * @internal
+   */
+  getRootString(path2) {
+    return path2.startsWith("/") ? "/" : "";
+  }
+  /**
+   * @internal
+   */
+  getRoot(_rootPath) {
+    return this.root;
+  }
+  /**
+   * @internal
+   */
+  newChild(name, type = UNKNOWN, opts = {}) {
+    return new _PathPosix(name, type, this.root, this.roots, this.nocase, this.childrenCache(), opts);
+  }
+};
+var PathScurryBase = class {
+  /**
+   * The root Path entry for the current working directory of this Scurry
+   */
+  root;
+  /**
+   * The string path for the root of this Scurry's current working directory
+   */
+  rootPath;
+  /**
+   * A collection of all roots encountered, referenced by rootPath
+   */
+  roots;
+  /**
+   * The Path entry corresponding to this PathScurry's current working directory.
+   */
+  cwd;
+  #resolveCache;
+  #resolvePosixCache;
+  #children;
+  /**
+   * Perform path comparisons case-insensitively.
+   *
+   * Defaults true on Darwin and Windows systems, false elsewhere.
+   */
+  nocase;
+  #fs;
+  /**
+   * This class should not be instantiated directly.
+   *
+   * Use PathScurryWin32, PathScurryDarwin, PathScurryPosix, or PathScurry
+   *
+   * @internal
+   */
+  constructor(cwd = process.cwd(), pathImpl, sep2, { nocase, childrenCacheSize = 16 * 1024, fs: fs2 = defaultFS } = {}) {
+    this.#fs = fsFromOption(fs2);
+    if (cwd instanceof URL || cwd.startsWith("file://")) {
+      cwd = (0, import_node_url.fileURLToPath)(cwd);
+    }
+    const cwdPath = pathImpl.resolve(cwd);
+    this.roots = /* @__PURE__ */ Object.create(null);
+    this.rootPath = this.parseRootPath(cwdPath);
+    this.#resolveCache = new ResolveCache();
+    this.#resolvePosixCache = new ResolveCache();
+    this.#children = new ChildrenCache(childrenCacheSize);
+    const split = cwdPath.substring(this.rootPath.length).split(sep2);
+    if (split.length === 1 && !split[0]) {
+      split.pop();
+    }
+    if (nocase === void 0) {
+      throw new TypeError("must provide nocase setting to PathScurryBase ctor");
+    }
+    this.nocase = nocase;
+    this.root = this.newRoot(this.#fs);
+    this.roots[this.rootPath] = this.root;
+    let prev = this.root;
+    let len = split.length - 1;
+    const joinSep = pathImpl.sep;
+    let abs = this.rootPath;
+    let sawFirst = false;
+    for (const part of split) {
+      const l = len--;
+      prev = prev.child(part, {
+        relative: new Array(l).fill("..").join(joinSep),
+        relativePosix: new Array(l).fill("..").join("/"),
+        fullpath: abs += (sawFirst ? "" : joinSep) + part
+      });
+      sawFirst = true;
+    }
+    this.cwd = prev;
+  }
+  /**
+   * Get the depth of a provided path, string, or the cwd
+   */
+  depth(path2 = this.cwd) {
+    if (typeof path2 === "string") {
+      path2 = this.cwd.resolve(path2);
+    }
+    return path2.depth();
+  }
+  /**
+   * Return the cache of child entries.  Exposed so subclasses can create
+   * child Path objects in a platform-specific way.
+   *
+   * @internal
+   */
+  childrenCache() {
+    return this.#children;
+  }
+  /**
+   * Resolve one or more path strings to a resolved string
+   *
+   * Same interface as require('path').resolve.
+   *
+   * Much faster than path.resolve() when called multiple times for the same
+   * path, because the resolved Path objects are cached.  Much slower
+   * otherwise.
+   */
+  resolve(...paths) {
+    let r = "";
+    for (let i = paths.length - 1; i >= 0; i--) {
+      const p = paths[i];
+      if (!p || p === ".")
+        continue;
+      r = r ? `${p}/${r}` : p;
+      if (this.isAbsolute(p)) {
+        break;
+      }
+    }
+    const cached = this.#resolveCache.get(r);
+    if (cached !== void 0) {
+      return cached;
+    }
+    const result = this.cwd.resolve(r).fullpath();
+    this.#resolveCache.set(r, result);
+    return result;
+  }
+  /**
+   * Resolve one or more path strings to a resolved string, returning
+   * the posix path.  Identical to .resolve() on posix systems, but on
+   * windows will return a forward-slash separated UNC path.
+   *
+   * Same interface as require('path').resolve.
+   *
+   * Much faster than path.resolve() when called multiple times for the same
+   * path, because the resolved Path objects are cached.  Much slower
+   * otherwise.
+   */
+  resolvePosix(...paths) {
+    let r = "";
+    for (let i = paths.length - 1; i >= 0; i--) {
+      const p = paths[i];
+      if (!p || p === ".")
+        continue;
+      r = r ? `${p}/${r}` : p;
+      if (this.isAbsolute(p)) {
+        break;
+      }
+    }
+    const cached = this.#resolvePosixCache.get(r);
+    if (cached !== void 0) {
+      return cached;
+    }
+    const result = this.cwd.resolve(r).fullpathPosix();
+    this.#resolvePosixCache.set(r, result);
+    return result;
+  }
+  /**
+   * find the relative path from the cwd to the supplied path string or entry
+   */
+  relative(entry = this.cwd) {
+    if (typeof entry === "string") {
+      entry = this.cwd.resolve(entry);
+    }
+    return entry.relative();
+  }
+  /**
+   * find the relative path from the cwd to the supplied path string or
+   * entry, using / as the path delimiter, even on Windows.
+   */
+  relativePosix(entry = this.cwd) {
+    if (typeof entry === "string") {
+      entry = this.cwd.resolve(entry);
+    }
+    return entry.relativePosix();
+  }
+  /**
+   * Return the basename for the provided string or Path object
+   */
+  basename(entry = this.cwd) {
+    if (typeof entry === "string") {
+      entry = this.cwd.resolve(entry);
+    }
+    return entry.name;
+  }
+  /**
+   * Return the dirname for the provided string or Path object
+   */
+  dirname(entry = this.cwd) {
+    if (typeof entry === "string") {
+      entry = this.cwd.resolve(entry);
+    }
+    return (entry.parent || entry).fullpath();
+  }
+  async readdir(entry = this.cwd, opts = {
+    withFileTypes: true
+  }) {
+    if (typeof entry === "string") {
+      entry = this.cwd.resolve(entry);
+    } else if (!(entry instanceof PathBase)) {
+      opts = entry;
+      entry = this.cwd;
+    }
+    const { withFileTypes } = opts;
+    if (!entry.canReaddir()) {
+      return [];
+    } else {
+      const p = await entry.readdir();
+      return withFileTypes ? p : p.map((e) => e.name);
+    }
+  }
+  readdirSync(entry = this.cwd, opts = {
+    withFileTypes: true
+  }) {
+    if (typeof entry === "string") {
+      entry = this.cwd.resolve(entry);
+    } else if (!(entry instanceof PathBase)) {
+      opts = entry;
+      entry = this.cwd;
+    }
+    const { withFileTypes = true } = opts;
+    if (!entry.canReaddir()) {
+      return [];
+    } else if (withFileTypes) {
+      return entry.readdirSync();
+    } else {
+      return entry.readdirSync().map((e) => e.name);
+    }
+  }
+  /**
+   * Call lstat() on the string or Path object, and update all known
+   * information that can be determined.
+   *
+   * Note that unlike `fs.lstat()`, the returned value does not contain some
+   * information, such as `mode`, `dev`, `nlink`, and `ino`.  If that
+   * information is required, you will need to call `fs.lstat` yourself.
+   *
+   * If the Path refers to a nonexistent file, or if the lstat call fails for
+   * any reason, `undefined` is returned.  Otherwise the updated Path object is
+   * returned.
+   *
+   * Results are cached, and thus may be out of date if the filesystem is
+   * mutated.
+   */
+  async lstat(entry = this.cwd) {
+    if (typeof entry === "string") {
+      entry = this.cwd.resolve(entry);
+    }
+    return entry.lstat();
+  }
+  /**
+   * synchronous {@link PathScurryBase.lstat}
+   */
+  lstatSync(entry = this.cwd) {
+    if (typeof entry === "string") {
+      entry = this.cwd.resolve(entry);
+    }
+    return entry.lstatSync();
+  }
+  async readlink(entry = this.cwd, { withFileTypes } = {
+    withFileTypes: false
+  }) {
+    if (typeof entry === "string") {
+      entry = this.cwd.resolve(entry);
+    } else if (!(entry instanceof PathBase)) {
+      withFileTypes = entry.withFileTypes;
+      entry = this.cwd;
+    }
+    const e = await entry.readlink();
+    return withFileTypes ? e : e?.fullpath();
+  }
+  readlinkSync(entry = this.cwd, { withFileTypes } = {
+    withFileTypes: false
+  }) {
+    if (typeof entry === "string") {
+      entry = this.cwd.resolve(entry);
+    } else if (!(entry instanceof PathBase)) {
+      withFileTypes = entry.withFileTypes;
+      entry = this.cwd;
+    }
+    const e = entry.readlinkSync();
+    return withFileTypes ? e : e?.fullpath();
+  }
+  async realpath(entry = this.cwd, { withFileTypes } = {
+    withFileTypes: false
+  }) {
+    if (typeof entry === "string") {
+      entry = this.cwd.resolve(entry);
+    } else if (!(entry instanceof PathBase)) {
+      withFileTypes = entry.withFileTypes;
+      entry = this.cwd;
+    }
+    const e = await entry.realpath();
+    return withFileTypes ? e : e?.fullpath();
+  }
+  realpathSync(entry = this.cwd, { withFileTypes } = {
+    withFileTypes: false
+  }) {
+    if (typeof entry === "string") {
+      entry = this.cwd.resolve(entry);
+    } else if (!(entry instanceof PathBase)) {
+      withFileTypes = entry.withFileTypes;
+      entry = this.cwd;
+    }
+    const e = entry.realpathSync();
+    return withFileTypes ? e : e?.fullpath();
+  }
+  async walk(entry = this.cwd, opts = {}) {
+    if (typeof entry === "string") {
+      entry = this.cwd.resolve(entry);
+    } else if (!(entry instanceof PathBase)) {
+      opts = entry;
+      entry = this.cwd;
+    }
+    const { withFileTypes = true, follow = false, filter: filter2, walkFilter } = opts;
+    const results = [];
+    if (!filter2 || filter2(entry)) {
+      results.push(withFileTypes ? entry : entry.fullpath());
+    }
+    const dirs = /* @__PURE__ */ new Set();
+    const walk = (dir, cb) => {
+      dirs.add(dir);
+      dir.readdirCB((er, entries) => {
+        if (er) {
+          return cb(er);
+        }
+        let len = entries.length;
+        if (!len)
+          return cb();
+        const next = () => {
+          if (--len === 0) {
+            cb();
+          }
+        };
+        for (const e of entries) {
+          if (!filter2 || filter2(e)) {
+            results.push(withFileTypes ? e : e.fullpath());
+          }
+          if (follow && e.isSymbolicLink()) {
+            e.realpath().then((r) => r?.isUnknown() ? r.lstat() : r).then((r) => r?.shouldWalk(dirs, walkFilter) ? walk(r, next) : next());
+          } else {
+            if (e.shouldWalk(dirs, walkFilter)) {
+              walk(e, next);
+            } else {
+              next();
+            }
+          }
+        }
+      }, true);
+    };
+    const start = entry;
+    return new Promise((res, rej) => {
+      walk(start, (er) => {
+        if (er)
+          return rej(er);
+        res(results);
+      });
+    });
+  }
+  walkSync(entry = this.cwd, opts = {}) {
+    if (typeof entry === "string") {
+      entry = this.cwd.resolve(entry);
+    } else if (!(entry instanceof PathBase)) {
+      opts = entry;
+      entry = this.cwd;
+    }
+    const { withFileTypes = true, follow = false, filter: filter2, walkFilter } = opts;
+    const results = [];
+    if (!filter2 || filter2(entry)) {
+      results.push(withFileTypes ? entry : entry.fullpath());
+    }
+    const dirs = /* @__PURE__ */ new Set([entry]);
+    for (const dir of dirs) {
+      const entries = dir.readdirSync();
+      for (const e of entries) {
+        if (!filter2 || filter2(e)) {
+          results.push(withFileTypes ? e : e.fullpath());
+        }
+        let r = e;
+        if (e.isSymbolicLink()) {
+          if (!(follow && (r = e.realpathSync())))
+            continue;
+          if (r.isUnknown())
+            r.lstatSync();
+        }
+        if (r.shouldWalk(dirs, walkFilter)) {
+          dirs.add(r);
+        }
+      }
+    }
+    return results;
+  }
+  /**
+   * Support for `for await`
+   *
+   * Alias for {@link PathScurryBase.iterate}
+   *
+   * Note: As of Node 19, this is very slow, compared to other methods of
+   * walking.  Consider using {@link PathScurryBase.stream} if memory overhead
+   * and backpressure are concerns, or {@link PathScurryBase.walk} if not.
+   */
+  [Symbol.asyncIterator]() {
+    return this.iterate();
+  }
+  iterate(entry = this.cwd, options = {}) {
+    if (typeof entry === "string") {
+      entry = this.cwd.resolve(entry);
+    } else if (!(entry instanceof PathBase)) {
+      options = entry;
+      entry = this.cwd;
+    }
+    return this.stream(entry, options)[Symbol.asyncIterator]();
+  }
+  /**
+   * Iterating over a PathScurry performs a synchronous walk.
+   *
+   * Alias for {@link PathScurryBase.iterateSync}
+   */
+  [Symbol.iterator]() {
+    return this.iterateSync();
+  }
+  *iterateSync(entry = this.cwd, opts = {}) {
+    if (typeof entry === "string") {
+      entry = this.cwd.resolve(entry);
+    } else if (!(entry instanceof PathBase)) {
+      opts = entry;
+      entry = this.cwd;
+    }
+    const { withFileTypes = true, follow = false, filter: filter2, walkFilter } = opts;
+    if (!filter2 || filter2(entry)) {
+      yield withFileTypes ? entry : entry.fullpath();
+    }
+    const dirs = /* @__PURE__ */ new Set([entry]);
+    for (const dir of dirs) {
+      const entries = dir.readdirSync();
+      for (const e of entries) {
+        if (!filter2 || filter2(e)) {
+          yield withFileTypes ? e : e.fullpath();
+        }
+        let r = e;
+        if (e.isSymbolicLink()) {
+          if (!(follow && (r = e.realpathSync())))
+            continue;
+          if (r.isUnknown())
+            r.lstatSync();
+        }
+        if (r.shouldWalk(dirs, walkFilter)) {
+          dirs.add(r);
+        }
+      }
+    }
+  }
+  stream(entry = this.cwd, opts = {}) {
+    if (typeof entry === "string") {
+      entry = this.cwd.resolve(entry);
+    } else if (!(entry instanceof PathBase)) {
+      opts = entry;
+      entry = this.cwd;
+    }
+    const { withFileTypes = true, follow = false, filter: filter2, walkFilter } = opts;
+    const results = new Minipass({ objectMode: true });
+    if (!filter2 || filter2(entry)) {
+      results.write(withFileTypes ? entry : entry.fullpath());
+    }
+    const dirs = /* @__PURE__ */ new Set();
+    const queue = [entry];
+    let processing = 0;
+    const process2 = () => {
+      let paused = false;
+      while (!paused) {
+        const dir = queue.shift();
+        if (!dir) {
+          if (processing === 0)
+            results.end();
+          return;
+        }
+        processing++;
+        dirs.add(dir);
+        const onReaddir = (er, entries, didRealpaths = false) => {
+          if (er)
+            return results.emit("error", er);
+          if (follow && !didRealpaths) {
+            const promises3 = [];
+            for (const e of entries) {
+              if (e.isSymbolicLink()) {
+                promises3.push(e.realpath().then((r) => r?.isUnknown() ? r.lstat() : r));
+              }
+            }
+            if (promises3.length) {
+              Promise.all(promises3).then(() => onReaddir(null, entries, true));
+              return;
+            }
+          }
+          for (const e of entries) {
+            if (e && (!filter2 || filter2(e))) {
+              if (!results.write(withFileTypes ? e : e.fullpath())) {
+                paused = true;
+              }
+            }
+          }
+          processing--;
+          for (const e of entries) {
+            const r = e.realpathCached() || e;
+            if (r.shouldWalk(dirs, walkFilter)) {
+              queue.push(r);
+            }
+          }
+          if (paused && !results.flowing) {
+            results.once("drain", process2);
+          } else if (!sync2) {
+            process2();
+          }
+        };
+        let sync2 = true;
+        dir.readdirCB(onReaddir, true);
+        sync2 = false;
+      }
+    };
+    process2();
+    return results;
+  }
+  streamSync(entry = this.cwd, opts = {}) {
+    if (typeof entry === "string") {
+      entry = this.cwd.resolve(entry);
+    } else if (!(entry instanceof PathBase)) {
+      opts = entry;
+      entry = this.cwd;
+    }
+    const { withFileTypes = true, follow = false, filter: filter2, walkFilter } = opts;
+    const results = new Minipass({ objectMode: true });
+    const dirs = /* @__PURE__ */ new Set();
+    if (!filter2 || filter2(entry)) {
+      results.write(withFileTypes ? entry : entry.fullpath());
+    }
+    const queue = [entry];
+    let processing = 0;
+    const process2 = () => {
+      let paused = false;
+      while (!paused) {
+        const dir = queue.shift();
+        if (!dir) {
+          if (processing === 0)
+            results.end();
+          return;
+        }
+        processing++;
+        dirs.add(dir);
+        const entries = dir.readdirSync();
+        for (const e of entries) {
+          if (!filter2 || filter2(e)) {
+            if (!results.write(withFileTypes ? e : e.fullpath())) {
+              paused = true;
+            }
+          }
+        }
+        processing--;
+        for (const e of entries) {
+          let r = e;
+          if (e.isSymbolicLink()) {
+            if (!(follow && (r = e.realpathSync())))
+              continue;
+            if (r.isUnknown())
+              r.lstatSync();
+          }
+          if (r.shouldWalk(dirs, walkFilter)) {
+            queue.push(r);
+          }
+        }
+      }
+      if (paused && !results.flowing)
+        results.once("drain", process2);
+    };
+    process2();
+    return results;
+  }
+  chdir(path2 = this.cwd) {
+    const oldCwd = this.cwd;
+    this.cwd = typeof path2 === "string" ? this.cwd.resolve(path2) : path2;
+    this.cwd[setAsCwd](oldCwd);
+  }
+};
+var PathScurryWin32 = class extends PathScurryBase {
+  /**
+   * separator for generating path strings
+   */
+  sep = "\\";
+  constructor(cwd = process.cwd(), opts = {}) {
+    const { nocase = true } = opts;
+    super(cwd, import_node_path.win32, "\\", { ...opts, nocase });
+    this.nocase = nocase;
+    for (let p = this.cwd; p; p = p.parent) {
+      p.nocase = this.nocase;
+    }
+  }
+  /**
+   * @internal
+   */
+  parseRootPath(dir) {
+    return import_node_path.win32.parse(dir).root.toUpperCase();
+  }
+  /**
+   * @internal
+   */
+  newRoot(fs2) {
+    return new PathWin32(this.rootPath, IFDIR, void 0, this.roots, this.nocase, this.childrenCache(), { fs: fs2 });
+  }
+  /**
+   * Return true if the provided path string is an absolute path
+   */
+  isAbsolute(p) {
+    return p.startsWith("/") || p.startsWith("\\") || /^[a-z]:(\/|\\)/i.test(p);
+  }
+};
+var PathScurryPosix = class extends PathScurryBase {
+  /**
+   * separator for generating path strings
+   */
+  sep = "/";
+  constructor(cwd = process.cwd(), opts = {}) {
+    const { nocase = false } = opts;
+    super(cwd, import_node_path.posix, "/", { ...opts, nocase });
+    this.nocase = nocase;
+  }
+  /**
+   * @internal
+   */
+  parseRootPath(_dir) {
+    return "/";
+  }
+  /**
+   * @internal
+   */
+  newRoot(fs2) {
+    return new PathPosix(this.rootPath, IFDIR, void 0, this.roots, this.nocase, this.childrenCache(), { fs: fs2 });
+  }
+  /**
+   * Return true if the provided path string is an absolute path
+   */
+  isAbsolute(p) {
+    return p.startsWith("/");
+  }
+};
+var PathScurryDarwin = class extends PathScurryPosix {
+  constructor(cwd = process.cwd(), opts = {}) {
+    const { nocase = true } = opts;
+    super(cwd, { ...opts, nocase });
+  }
+};
+var Path = process.platform === "win32" ? PathWin32 : PathPosix;
+var PathScurry = process.platform === "win32" ? PathScurryWin32 : process.platform === "darwin" ? PathScurryDarwin : PathScurryPosix;
+
+// ../node_modules/glob/dist/esm/pattern.js
+var isPatternList = (pl) => pl.length >= 1;
+var isGlobList = (gl) => gl.length >= 1;
+var Pattern = class _Pattern {
+  #patternList;
+  #globList;
+  #index;
+  length;
+  #platform;
+  #rest;
+  #globString;
+  #isDrive;
+  #isUNC;
+  #isAbsolute;
+  #followGlobstar = true;
+  constructor(patternList, globList, index, platform2) {
+    if (!isPatternList(patternList)) {
+      throw new TypeError("empty pattern list");
+    }
+    if (!isGlobList(globList)) {
+      throw new TypeError("empty glob list");
+    }
+    if (globList.length !== patternList.length) {
+      throw new TypeError("mismatched pattern list and glob list lengths");
+    }
+    this.length = patternList.length;
+    if (index < 0 || index >= this.length) {
+      throw new TypeError("index out of range");
+    }
+    this.#patternList = patternList;
+    this.#globList = globList;
+    this.#index = index;
+    this.#platform = platform2;
+    if (this.#index === 0) {
+      if (this.isUNC()) {
+        const [p0, p1, p2, p3, ...prest] = this.#patternList;
+        const [g0, g1, g2, g3, ...grest] = this.#globList;
+        if (prest[0] === "") {
+          prest.shift();
+          grest.shift();
+        }
+        const p = [p0, p1, p2, p3, ""].join("/");
+        const g = [g0, g1, g2, g3, ""].join("/");
+        this.#patternList = [p, ...prest];
+        this.#globList = [g, ...grest];
+        this.length = this.#patternList.length;
+      } else if (this.isDrive() || this.isAbsolute()) {
+        const [p1, ...prest] = this.#patternList;
+        const [g1, ...grest] = this.#globList;
+        if (prest[0] === "") {
+          prest.shift();
+          grest.shift();
+        }
+        const p = p1 + "/";
+        const g = g1 + "/";
+        this.#patternList = [p, ...prest];
+        this.#globList = [g, ...grest];
+        this.length = this.#patternList.length;
+      }
+    }
+  }
+  /**
+   * The first entry in the parsed list of patterns
+   */
+  pattern() {
+    return this.#patternList[this.#index];
+  }
+  /**
+   * true of if pattern() returns a string
+   */
+  isString() {
+    return typeof this.#patternList[this.#index] === "string";
+  }
+  /**
+   * true of if pattern() returns GLOBSTAR
+   */
+  isGlobstar() {
+    return this.#patternList[this.#index] === GLOBSTAR;
+  }
+  /**
+   * true if pattern() returns a regexp
+   */
+  isRegExp() {
+    return this.#patternList[this.#index] instanceof RegExp;
+  }
+  /**
+   * The /-joined set of glob parts that make up this pattern
+   */
+  globString() {
+    return this.#globString = this.#globString || (this.#index === 0 ? this.isAbsolute() ? this.#globList[0] + this.#globList.slice(1).join("/") : this.#globList.join("/") : this.#globList.slice(this.#index).join("/"));
+  }
+  /**
+   * true if there are more pattern parts after this one
+   */
+  hasMore() {
+    return this.length > this.#index + 1;
+  }
+  /**
+   * The rest of the pattern after this part, or null if this is the end
+   */
+  rest() {
+    if (this.#rest !== void 0)
+      return this.#rest;
+    if (!this.hasMore())
+      return this.#rest = null;
+    this.#rest = new _Pattern(this.#patternList, this.#globList, this.#index + 1, this.#platform);
+    this.#rest.#isAbsolute = this.#isAbsolute;
+    this.#rest.#isUNC = this.#isUNC;
+    this.#rest.#isDrive = this.#isDrive;
+    return this.#rest;
+  }
+  /**
+   * true if the pattern represents a //unc/path/ on windows
+   */
+  isUNC() {
+    const pl = this.#patternList;
+    return this.#isUNC !== void 0 ? this.#isUNC : this.#isUNC = this.#platform === "win32" && this.#index === 0 && pl[0] === "" && pl[1] === "" && typeof pl[2] === "string" && !!pl[2] && typeof pl[3] === "string" && !!pl[3];
+  }
+  // pattern like C:/...
+  // split = ['C:', ...]
+  // XXX: would be nice to handle patterns like `c:*` to test the cwd
+  // in c: for *, but I don't know of a way to even figure out what that
+  // cwd is without actually chdir'ing into it?
+  /**
+   * True if the pattern starts with a drive letter on Windows
+   */
+  isDrive() {
+    const pl = this.#patternList;
+    return this.#isDrive !== void 0 ? this.#isDrive : this.#isDrive = this.#platform === "win32" && this.#index === 0 && this.length > 1 && typeof pl[0] === "string" && /^[a-z]:$/i.test(pl[0]);
+  }
+  // pattern = '/' or '/...' or '/x/...'
+  // split = ['', ''] or ['', ...] or ['', 'x', ...]
+  // Drive and UNC both considered absolute on windows
+  /**
+   * True if the pattern is rooted on an absolute path
+   */
+  isAbsolute() {
+    const pl = this.#patternList;
+    return this.#isAbsolute !== void 0 ? this.#isAbsolute : this.#isAbsolute = pl[0] === "" && pl.length > 1 || this.isDrive() || this.isUNC();
+  }
+  /**
+   * consume the root of the pattern, and return it
+   */
+  root() {
+    const p = this.#patternList[0];
+    return typeof p === "string" && this.isAbsolute() && this.#index === 0 ? p : "";
+  }
+  /**
+   * Check to see if the current globstar pattern is allowed to follow
+   * a symbolic link.
+   */
+  checkFollowGlobstar() {
+    return !(this.#index === 0 || !this.isGlobstar() || !this.#followGlobstar);
+  }
+  /**
+   * Mark that the current globstar pattern is following a symbolic link
+   */
+  markFollowGlobstar() {
+    if (this.#index === 0 || !this.isGlobstar() || !this.#followGlobstar)
+      return false;
+    this.#followGlobstar = false;
+    return true;
+  }
+};
+
+// ../node_modules/glob/dist/esm/ignore.js
+var defaultPlatform2 = typeof process === "object" && process && typeof process.platform === "string" ? process.platform : "linux";
+var Ignore = class {
+  relative;
+  relativeChildren;
+  absolute;
+  absoluteChildren;
+  platform;
+  mmopts;
+  constructor(ignored, { nobrace, nocase, noext, noglobstar, platform: platform2 = defaultPlatform2 }) {
+    this.relative = [];
+    this.absolute = [];
+    this.relativeChildren = [];
+    this.absoluteChildren = [];
+    this.platform = platform2;
+    this.mmopts = {
+      dot: true,
+      nobrace,
+      nocase,
+      noext,
+      noglobstar,
+      optimizationLevel: 2,
+      platform: platform2,
+      nocomment: true,
+      nonegate: true
+    };
+    for (const ign of ignored)
+      this.add(ign);
+  }
+  add(ign) {
+    const mm = new Minimatch(ign, this.mmopts);
+    for (let i = 0; i < mm.set.length; i++) {
+      const parsed = mm.set[i];
+      const globParts = mm.globParts[i];
+      if (!parsed || !globParts) {
+        throw new Error("invalid pattern object");
+      }
+      while (parsed[0] === "." && globParts[0] === ".") {
+        parsed.shift();
+        globParts.shift();
+      }
+      const p = new Pattern(parsed, globParts, 0, this.platform);
+      const m = new Minimatch(p.globString(), this.mmopts);
+      const children = globParts[globParts.length - 1] === "**";
+      const absolute = p.isAbsolute();
+      if (absolute)
+        this.absolute.push(m);
+      else
+        this.relative.push(m);
+      if (children) {
+        if (absolute)
+          this.absoluteChildren.push(m);
+        else
+          this.relativeChildren.push(m);
+      }
+    }
+  }
+  ignored(p) {
+    const fullpath = p.fullpath();
+    const fullpaths = `${fullpath}/`;
+    const relative = p.relative() || ".";
+    const relatives = `${relative}/`;
+    for (const m of this.relative) {
+      if (m.match(relative) || m.match(relatives))
+        return true;
+    }
+    for (const m of this.absolute) {
+      if (m.match(fullpath) || m.match(fullpaths))
+        return true;
+    }
+    return false;
+  }
+  childrenIgnored(p) {
+    const fullpath = p.fullpath() + "/";
+    const relative = (p.relative() || ".") + "/";
+    for (const m of this.relativeChildren) {
+      if (m.match(relative))
+        return true;
+    }
+    for (const m of this.absoluteChildren) {
+      if (m.match(fullpath))
+        return true;
+    }
+    return false;
+  }
+};
+
+// ../node_modules/glob/dist/esm/processor.js
+var HasWalkedCache = class _HasWalkedCache {
+  store;
+  constructor(store = /* @__PURE__ */ new Map()) {
+    this.store = store;
+  }
+  copy() {
+    return new _HasWalkedCache(new Map(this.store));
+  }
+  hasWalked(target, pattern) {
+    return this.store.get(target.fullpath())?.has(pattern.globString());
+  }
+  storeWalked(target, pattern) {
+    const fullpath = target.fullpath();
+    const cached = this.store.get(fullpath);
+    if (cached)
+      cached.add(pattern.globString());
+    else
+      this.store.set(fullpath, /* @__PURE__ */ new Set([pattern.globString()]));
+  }
+};
+var MatchRecord = class {
+  store = /* @__PURE__ */ new Map();
+  add(target, absolute, ifDir) {
+    const n = (absolute ? 2 : 0) | (ifDir ? 1 : 0);
+    const current = this.store.get(target);
+    this.store.set(target, current === void 0 ? n : n & current);
+  }
+  // match, absolute, ifdir
+  entries() {
+    return [...this.store.entries()].map(([path2, n]) => [
+      path2,
+      !!(n & 2),
+      !!(n & 1)
+    ]);
+  }
+};
+var SubWalks = class {
+  store = /* @__PURE__ */ new Map();
+  add(target, pattern) {
+    if (!target.canReaddir()) {
+      return;
+    }
+    const subs = this.store.get(target);
+    if (subs) {
+      if (!subs.find((p) => p.globString() === pattern.globString())) {
+        subs.push(pattern);
+      }
+    } else
+      this.store.set(target, [pattern]);
+  }
+  get(target) {
+    const subs = this.store.get(target);
+    if (!subs) {
+      throw new Error("attempting to walk unknown path");
+    }
+    return subs;
+  }
+  entries() {
+    return this.keys().map((k) => [k, this.store.get(k)]);
+  }
+  keys() {
+    return [...this.store.keys()].filter((t) => t.canReaddir());
+  }
+};
+var Processor = class _Processor {
+  hasWalkedCache;
+  matches = new MatchRecord();
+  subwalks = new SubWalks();
+  patterns;
+  follow;
+  dot;
+  opts;
+  constructor(opts, hasWalkedCache) {
+    this.opts = opts;
+    this.follow = !!opts.follow;
+    this.dot = !!opts.dot;
+    this.hasWalkedCache = hasWalkedCache ? hasWalkedCache.copy() : new HasWalkedCache();
+  }
+  processPatterns(target, patterns) {
+    this.patterns = patterns;
+    const processingSet = patterns.map((p) => [target, p]);
+    for (let [t, pattern] of processingSet) {
+      this.hasWalkedCache.storeWalked(t, pattern);
+      const root = pattern.root();
+      const absolute = pattern.isAbsolute() && this.opts.absolute !== false;
+      if (root) {
+        t = t.resolve(root === "/" && this.opts.root !== void 0 ? this.opts.root : root);
+        const rest2 = pattern.rest();
+        if (!rest2) {
+          this.matches.add(t, true, false);
+          continue;
+        } else {
+          pattern = rest2;
+        }
+      }
+      if (t.isENOENT())
+        continue;
+      let p;
+      let rest;
+      let changed = false;
+      while (typeof (p = pattern.pattern()) === "string" && (rest = pattern.rest())) {
+        const c = t.resolve(p);
+        t = c;
+        pattern = rest;
+        changed = true;
+      }
+      p = pattern.pattern();
+      rest = pattern.rest();
+      if (changed) {
+        if (this.hasWalkedCache.hasWalked(t, pattern))
+          continue;
+        this.hasWalkedCache.storeWalked(t, pattern);
+      }
+      if (typeof p === "string") {
+        const ifDir = p === ".." || p === "" || p === ".";
+        this.matches.add(t.resolve(p), absolute, ifDir);
+        continue;
+      } else if (p === GLOBSTAR) {
+        if (!t.isSymbolicLink() || this.follow || pattern.checkFollowGlobstar()) {
+          this.subwalks.add(t, pattern);
+        }
+        const rp = rest?.pattern();
+        const rrest = rest?.rest();
+        if (!rest || (rp === "" || rp === ".") && !rrest) {
+          this.matches.add(t, absolute, rp === "" || rp === ".");
+        } else {
+          if (rp === "..") {
+            const tp = t.parent || t;
+            if (!rrest)
+              this.matches.add(tp, absolute, true);
+            else if (!this.hasWalkedCache.hasWalked(tp, rrest)) {
+              this.subwalks.add(tp, rrest);
+            }
+          }
+        }
+      } else if (p instanceof RegExp) {
+        this.subwalks.add(t, pattern);
+      }
+    }
+    return this;
+  }
+  subwalkTargets() {
+    return this.subwalks.keys();
+  }
+  child() {
+    return new _Processor(this.opts, this.hasWalkedCache);
+  }
+  // return a new Processor containing the subwalks for each
+  // child entry, and a set of matches, and
+  // a hasWalkedCache that's a copy of this one
+  // then we're going to call
+  filterEntries(parent, entries) {
+    const patterns = this.subwalks.get(parent);
+    const results = this.child();
+    for (const e of entries) {
+      for (const pattern of patterns) {
+        const absolute = pattern.isAbsolute();
+        const p = pattern.pattern();
+        const rest = pattern.rest();
+        if (p === GLOBSTAR) {
+          results.testGlobstar(e, pattern, rest, absolute);
+        } else if (p instanceof RegExp) {
+          results.testRegExp(e, p, rest, absolute);
+        } else {
+          results.testString(e, p, rest, absolute);
+        }
+      }
+    }
+    return results;
+  }
+  testGlobstar(e, pattern, rest, absolute) {
+    if (this.dot || !e.name.startsWith(".")) {
+      if (!pattern.hasMore()) {
+        this.matches.add(e, absolute, false);
+      }
+      if (e.canReaddir()) {
+        if (this.follow || !e.isSymbolicLink()) {
+          this.subwalks.add(e, pattern);
+        } else if (e.isSymbolicLink()) {
+          if (rest && pattern.checkFollowGlobstar()) {
+            this.subwalks.add(e, rest);
+          } else if (pattern.markFollowGlobstar()) {
+            this.subwalks.add(e, pattern);
+          }
+        }
+      }
+    }
+    if (rest) {
+      const rp = rest.pattern();
+      if (typeof rp === "string" && // dots and empty were handled already
+      rp !== ".." && rp !== "" && rp !== ".") {
+        this.testString(e, rp, rest.rest(), absolute);
+      } else if (rp === "..") {
+        const ep = e.parent || e;
+        this.subwalks.add(ep, rest);
+      } else if (rp instanceof RegExp) {
+        this.testRegExp(e, rp, rest.rest(), absolute);
+      }
+    }
+  }
+  testRegExp(e, p, rest, absolute) {
+    if (!p.test(e.name))
+      return;
+    if (!rest) {
+      this.matches.add(e, absolute, false);
+    } else {
+      this.subwalks.add(e, rest);
+    }
+  }
+  testString(e, p, rest, absolute) {
+    if (!e.isNamed(p))
+      return;
+    if (!rest) {
+      this.matches.add(e, absolute, false);
+    } else {
+      this.subwalks.add(e, rest);
+    }
+  }
+};
+
+// ../node_modules/glob/dist/esm/walker.js
+var makeIgnore = (ignore, opts) => typeof ignore === "string" ? new Ignore([ignore], opts) : Array.isArray(ignore) ? new Ignore(ignore, opts) : ignore;
+var GlobUtil = class {
+  path;
+  patterns;
+  opts;
+  seen = /* @__PURE__ */ new Set();
+  paused = false;
+  aborted = false;
+  #onResume = [];
+  #ignore;
+  #sep;
+  signal;
+  maxDepth;
+  includeChildMatches;
+  constructor(patterns, path2, opts) {
+    this.patterns = patterns;
+    this.path = path2;
+    this.opts = opts;
+    this.#sep = !opts.posix && opts.platform === "win32" ? "\\" : "/";
+    this.includeChildMatches = opts.includeChildMatches !== false;
+    if (opts.ignore || !this.includeChildMatches) {
+      this.#ignore = makeIgnore(opts.ignore ?? [], opts);
+      if (!this.includeChildMatches && typeof this.#ignore.add !== "function") {
+        const m = "cannot ignore child matches, ignore lacks add() method.";
+        throw new Error(m);
+      }
+    }
+    this.maxDepth = opts.maxDepth || Infinity;
+    if (opts.signal) {
+      this.signal = opts.signal;
+      this.signal.addEventListener("abort", () => {
+        this.#onResume.length = 0;
+      });
+    }
+  }
+  #ignored(path2) {
+    return this.seen.has(path2) || !!this.#ignore?.ignored?.(path2);
+  }
+  #childrenIgnored(path2) {
+    return !!this.#ignore?.childrenIgnored?.(path2);
+  }
+  // backpressure mechanism
+  pause() {
+    this.paused = true;
+  }
+  resume() {
+    if (this.signal?.aborted)
+      return;
+    this.paused = false;
+    let fn = void 0;
+    while (!this.paused && (fn = this.#onResume.shift())) {
+      fn();
+    }
+  }
+  onResume(fn) {
+    if (this.signal?.aborted)
+      return;
+    if (!this.paused) {
+      fn();
+    } else {
+      this.#onResume.push(fn);
+    }
+  }
+  // do the requisite realpath/stat checking, and return the path
+  // to add or undefined to filter it out.
+  async matchCheck(e, ifDir) {
+    if (ifDir && this.opts.nodir)
+      return void 0;
+    let rpc;
+    if (this.opts.realpath) {
+      rpc = e.realpathCached() || await e.realpath();
+      if (!rpc)
+        return void 0;
+      e = rpc;
+    }
+    const needStat = e.isUnknown() || this.opts.stat;
+    const s = needStat ? await e.lstat() : e;
+    if (this.opts.follow && this.opts.nodir && s?.isSymbolicLink()) {
+      const target = await s.realpath();
+      if (target && (target.isUnknown() || this.opts.stat)) {
+        await target.lstat();
+      }
+    }
+    return this.matchCheckTest(s, ifDir);
+  }
+  matchCheckTest(e, ifDir) {
+    return e && (this.maxDepth === Infinity || e.depth() <= this.maxDepth) && (!ifDir || e.canReaddir()) && (!this.opts.nodir || !e.isDirectory()) && (!this.opts.nodir || !this.opts.follow || !e.isSymbolicLink() || !e.realpathCached()?.isDirectory()) && !this.#ignored(e) ? e : void 0;
+  }
+  matchCheckSync(e, ifDir) {
+    if (ifDir && this.opts.nodir)
+      return void 0;
+    let rpc;
+    if (this.opts.realpath) {
+      rpc = e.realpathCached() || e.realpathSync();
+      if (!rpc)
+        return void 0;
+      e = rpc;
+    }
+    const needStat = e.isUnknown() || this.opts.stat;
+    const s = needStat ? e.lstatSync() : e;
+    if (this.opts.follow && this.opts.nodir && s?.isSymbolicLink()) {
+      const target = s.realpathSync();
+      if (target && (target?.isUnknown() || this.opts.stat)) {
+        target.lstatSync();
+      }
+    }
+    return this.matchCheckTest(s, ifDir);
+  }
+  matchFinish(e, absolute) {
+    if (this.#ignored(e))
+      return;
+    if (!this.includeChildMatches && this.#ignore?.add) {
+      const ign = `${e.relativePosix()}/**`;
+      this.#ignore.add(ign);
+    }
+    const abs = this.opts.absolute === void 0 ? absolute : this.opts.absolute;
+    this.seen.add(e);
+    const mark = this.opts.mark && e.isDirectory() ? this.#sep : "";
+    if (this.opts.withFileTypes) {
+      this.matchEmit(e);
+    } else if (abs) {
+      const abs2 = this.opts.posix ? e.fullpathPosix() : e.fullpath();
+      this.matchEmit(abs2 + mark);
+    } else {
+      const rel = this.opts.posix ? e.relativePosix() : e.relative();
+      const pre = this.opts.dotRelative && !rel.startsWith(".." + this.#sep) ? "." + this.#sep : "";
+      this.matchEmit(!rel ? "." + mark : pre + rel + mark);
+    }
+  }
+  async match(e, absolute, ifDir) {
+    const p = await this.matchCheck(e, ifDir);
+    if (p)
+      this.matchFinish(p, absolute);
+  }
+  matchSync(e, absolute, ifDir) {
+    const p = this.matchCheckSync(e, ifDir);
+    if (p)
+      this.matchFinish(p, absolute);
+  }
+  walkCB(target, patterns, cb) {
+    if (this.signal?.aborted)
+      cb();
+    this.walkCB2(target, patterns, new Processor(this.opts), cb);
+  }
+  walkCB2(target, patterns, processor, cb) {
+    if (this.#childrenIgnored(target))
+      return cb();
+    if (this.signal?.aborted)
+      cb();
+    if (this.paused) {
+      this.onResume(() => this.walkCB2(target, patterns, processor, cb));
+      return;
+    }
+    processor.processPatterns(target, patterns);
+    let tasks = 1;
+    const next = () => {
+      if (--tasks === 0)
+        cb();
+    };
+    for (const [m, absolute, ifDir] of processor.matches.entries()) {
+      if (this.#ignored(m))
+        continue;
+      tasks++;
+      this.match(m, absolute, ifDir).then(() => next());
+    }
+    for (const t of processor.subwalkTargets()) {
+      if (this.maxDepth !== Infinity && t.depth() >= this.maxDepth) {
+        continue;
+      }
+      tasks++;
+      const childrenCached = t.readdirCached();
+      if (t.calledReaddir())
+        this.walkCB3(t, childrenCached, processor, next);
+      else {
+        t.readdirCB((_, entries) => this.walkCB3(t, entries, processor, next), true);
+      }
+    }
+    next();
+  }
+  walkCB3(target, entries, processor, cb) {
+    processor = processor.filterEntries(target, entries);
+    let tasks = 1;
+    const next = () => {
+      if (--tasks === 0)
+        cb();
+    };
+    for (const [m, absolute, ifDir] of processor.matches.entries()) {
+      if (this.#ignored(m))
+        continue;
+      tasks++;
+      this.match(m, absolute, ifDir).then(() => next());
+    }
+    for (const [target2, patterns] of processor.subwalks.entries()) {
+      tasks++;
+      this.walkCB2(target2, patterns, processor.child(), next);
+    }
+    next();
+  }
+  walkCBSync(target, patterns, cb) {
+    if (this.signal?.aborted)
+      cb();
+    this.walkCB2Sync(target, patterns, new Processor(this.opts), cb);
+  }
+  walkCB2Sync(target, patterns, processor, cb) {
+    if (this.#childrenIgnored(target))
+      return cb();
+    if (this.signal?.aborted)
+      cb();
+    if (this.paused) {
+      this.onResume(() => this.walkCB2Sync(target, patterns, processor, cb));
+      return;
+    }
+    processor.processPatterns(target, patterns);
+    let tasks = 1;
+    const next = () => {
+      if (--tasks === 0)
+        cb();
+    };
+    for (const [m, absolute, ifDir] of processor.matches.entries()) {
+      if (this.#ignored(m))
+        continue;
+      this.matchSync(m, absolute, ifDir);
+    }
+    for (const t of processor.subwalkTargets()) {
+      if (this.maxDepth !== Infinity && t.depth() >= this.maxDepth) {
+        continue;
+      }
+      tasks++;
+      const children = t.readdirSync();
+      this.walkCB3Sync(t, children, processor, next);
+    }
+    next();
+  }
+  walkCB3Sync(target, entries, processor, cb) {
+    processor = processor.filterEntries(target, entries);
+    let tasks = 1;
+    const next = () => {
+      if (--tasks === 0)
+        cb();
+    };
+    for (const [m, absolute, ifDir] of processor.matches.entries()) {
+      if (this.#ignored(m))
+        continue;
+      this.matchSync(m, absolute, ifDir);
+    }
+    for (const [target2, patterns] of processor.subwalks.entries()) {
+      tasks++;
+      this.walkCB2Sync(target2, patterns, processor.child(), next);
+    }
+    next();
+  }
+};
+var GlobWalker = class extends GlobUtil {
+  matches = /* @__PURE__ */ new Set();
+  constructor(patterns, path2, opts) {
+    super(patterns, path2, opts);
+  }
+  matchEmit(e) {
+    this.matches.add(e);
+  }
+  async walk() {
+    if (this.signal?.aborted)
+      throw this.signal.reason;
+    if (this.path.isUnknown()) {
+      await this.path.lstat();
+    }
+    await new Promise((res, rej) => {
+      this.walkCB(this.path, this.patterns, () => {
+        if (this.signal?.aborted) {
+          rej(this.signal.reason);
+        } else {
+          res(this.matches);
+        }
+      });
+    });
+    return this.matches;
+  }
+  walkSync() {
+    if (this.signal?.aborted)
+      throw this.signal.reason;
+    if (this.path.isUnknown()) {
+      this.path.lstatSync();
+    }
+    this.walkCBSync(this.path, this.patterns, () => {
+      if (this.signal?.aborted)
+        throw this.signal.reason;
+    });
+    return this.matches;
+  }
+};
+var GlobStream = class extends GlobUtil {
+  results;
+  constructor(patterns, path2, opts) {
+    super(patterns, path2, opts);
+    this.results = new Minipass({
+      signal: this.signal,
+      objectMode: true
+    });
+    this.results.on("drain", () => this.resume());
+    this.results.on("resume", () => this.resume());
+  }
+  matchEmit(e) {
+    this.results.write(e);
+    if (!this.results.flowing)
+      this.pause();
+  }
+  stream() {
+    const target = this.path;
+    if (target.isUnknown()) {
+      target.lstat().then(() => {
+        this.walkCB(target, this.patterns, () => this.results.end());
+      });
+    } else {
+      this.walkCB(target, this.patterns, () => this.results.end());
+    }
+    return this.results;
+  }
+  streamSync() {
+    if (this.path.isUnknown()) {
+      this.path.lstatSync();
+    }
+    this.walkCBSync(this.path, this.patterns, () => this.results.end());
+    return this.results;
+  }
+};
+
+// ../node_modules/glob/dist/esm/glob.js
+var defaultPlatform3 = typeof process === "object" && process && typeof process.platform === "string" ? process.platform : "linux";
+var Glob = class {
+  absolute;
+  cwd;
+  root;
+  dot;
+  dotRelative;
+  follow;
+  ignore;
+  magicalBraces;
+  mark;
+  matchBase;
+  maxDepth;
+  nobrace;
+  nocase;
+  nodir;
+  noext;
+  noglobstar;
+  pattern;
+  platform;
+  realpath;
+  scurry;
+  stat;
+  signal;
+  windowsPathsNoEscape;
+  withFileTypes;
+  includeChildMatches;
+  /**
+   * The options provided to the constructor.
+   */
+  opts;
+  /**
+   * An array of parsed immutable {@link Pattern} objects.
+   */
+  patterns;
+  /**
+   * All options are stored as properties on the `Glob` object.
+   *
+   * See {@link GlobOptions} for full options descriptions.
+   *
+   * Note that a previous `Glob` object can be passed as the
+   * `GlobOptions` to another `Glob` instantiation to re-use settings
+   * and caches with a new pattern.
+   *
+   * Traversal functions can be called multiple times to run the walk
+   * again.
+   */
+  constructor(pattern, opts) {
+    if (!opts)
+      throw new TypeError("glob options required");
+    this.withFileTypes = !!opts.withFileTypes;
+    this.signal = opts.signal;
+    this.follow = !!opts.follow;
+    this.dot = !!opts.dot;
+    this.dotRelative = !!opts.dotRelative;
+    this.nodir = !!opts.nodir;
+    this.mark = !!opts.mark;
+    if (!opts.cwd) {
+      this.cwd = "";
+    } else if (opts.cwd instanceof URL || opts.cwd.startsWith("file://")) {
+      opts.cwd = (0, import_node_url2.fileURLToPath)(opts.cwd);
+    }
+    this.cwd = opts.cwd || "";
+    this.root = opts.root;
+    this.magicalBraces = !!opts.magicalBraces;
+    this.nobrace = !!opts.nobrace;
+    this.noext = !!opts.noext;
+    this.realpath = !!opts.realpath;
+    this.absolute = opts.absolute;
+    this.includeChildMatches = opts.includeChildMatches !== false;
+    this.noglobstar = !!opts.noglobstar;
+    this.matchBase = !!opts.matchBase;
+    this.maxDepth = typeof opts.maxDepth === "number" ? opts.maxDepth : Infinity;
+    this.stat = !!opts.stat;
+    this.ignore = opts.ignore;
+    if (this.withFileTypes && this.absolute !== void 0) {
+      throw new Error("cannot set absolute and withFileTypes:true");
+    }
+    if (typeof pattern === "string") {
+      pattern = [pattern];
+    }
+    this.windowsPathsNoEscape = !!opts.windowsPathsNoEscape || opts.allowWindowsEscape === false;
+    if (this.windowsPathsNoEscape) {
+      pattern = pattern.map((p) => p.replace(/\\/g, "/"));
+    }
+    if (this.matchBase) {
+      if (opts.noglobstar) {
+        throw new TypeError("base matching requires globstar");
+      }
+      pattern = pattern.map((p) => p.includes("/") ? p : `./**/${p}`);
+    }
+    this.pattern = pattern;
+    this.platform = opts.platform || defaultPlatform3;
+    this.opts = { ...opts, platform: this.platform };
+    if (opts.scurry) {
+      this.scurry = opts.scurry;
+      if (opts.nocase !== void 0 && opts.nocase !== opts.scurry.nocase) {
+        throw new Error("nocase option contradicts provided scurry option");
+      }
+    } else {
+      const Scurry = opts.platform === "win32" ? PathScurryWin32 : opts.platform === "darwin" ? PathScurryDarwin : opts.platform ? PathScurryPosix : PathScurry;
+      this.scurry = new Scurry(this.cwd, {
+        nocase: opts.nocase,
+        fs: opts.fs
+      });
+    }
+    this.nocase = this.scurry.nocase;
+    const nocaseMagicOnly = this.platform === "darwin" || this.platform === "win32";
+    const mmo = {
+      // default nocase based on platform
+      ...opts,
+      dot: this.dot,
+      matchBase: this.matchBase,
+      nobrace: this.nobrace,
+      nocase: this.nocase,
+      nocaseMagicOnly,
+      nocomment: true,
+      noext: this.noext,
+      nonegate: true,
+      optimizationLevel: 2,
+      platform: this.platform,
+      windowsPathsNoEscape: this.windowsPathsNoEscape,
+      debug: !!this.opts.debug
+    };
+    const mms = this.pattern.map((p) => new Minimatch(p, mmo));
+    const [matchSet, globParts] = mms.reduce((set, m) => {
+      set[0].push(...m.set);
+      set[1].push(...m.globParts);
+      return set;
+    }, [[], []]);
+    this.patterns = matchSet.map((set, i) => {
+      const g = globParts[i];
+      if (!g)
+        throw new Error("invalid pattern object");
+      return new Pattern(set, g, 0, this.platform);
+    });
+  }
+  async walk() {
+    return [
+      ...await new GlobWalker(this.patterns, this.scurry.cwd, {
+        ...this.opts,
+        maxDepth: this.maxDepth !== Infinity ? this.maxDepth + this.scurry.cwd.depth() : Infinity,
+        platform: this.platform,
+        nocase: this.nocase,
+        includeChildMatches: this.includeChildMatches
+      }).walk()
+    ];
+  }
+  walkSync() {
+    return [
+      ...new GlobWalker(this.patterns, this.scurry.cwd, {
+        ...this.opts,
+        maxDepth: this.maxDepth !== Infinity ? this.maxDepth + this.scurry.cwd.depth() : Infinity,
+        platform: this.platform,
+        nocase: this.nocase,
+        includeChildMatches: this.includeChildMatches
+      }).walkSync()
+    ];
+  }
+  stream() {
+    return new GlobStream(this.patterns, this.scurry.cwd, {
+      ...this.opts,
+      maxDepth: this.maxDepth !== Infinity ? this.maxDepth + this.scurry.cwd.depth() : Infinity,
+      platform: this.platform,
+      nocase: this.nocase,
+      includeChildMatches: this.includeChildMatches
+    }).stream();
+  }
+  streamSync() {
+    return new GlobStream(this.patterns, this.scurry.cwd, {
+      ...this.opts,
+      maxDepth: this.maxDepth !== Infinity ? this.maxDepth + this.scurry.cwd.depth() : Infinity,
+      platform: this.platform,
+      nocase: this.nocase,
+      includeChildMatches: this.includeChildMatches
+    }).streamSync();
+  }
+  /**
+   * Default sync iteration function. Returns a Generator that
+   * iterates over the results.
+   */
+  iterateSync() {
+    return this.streamSync()[Symbol.iterator]();
+  }
+  [Symbol.iterator]() {
+    return this.iterateSync();
+  }
+  /**
+   * Default async iteration function. Returns an AsyncGenerator that
+   * iterates over the results.
+   */
+  iterate() {
+    return this.stream()[Symbol.asyncIterator]();
+  }
+  [Symbol.asyncIterator]() {
+    return this.iterate();
+  }
+};
+
+// ../node_modules/glob/dist/esm/has-magic.js
+var hasMagic = (pattern, options = {}) => {
+  if (!Array.isArray(pattern)) {
+    pattern = [pattern];
+  }
+  for (const p of pattern) {
+    if (new Minimatch(p, options).hasMagic())
+      return true;
+  }
+  return false;
+};
+
+// ../node_modules/glob/dist/esm/index.js
+function globStreamSync(pattern, options = {}) {
+  return new Glob(pattern, options).streamSync();
+}
+function globStream(pattern, options = {}) {
+  return new Glob(pattern, options).stream();
+}
+function globSync(pattern, options = {}) {
+  return new Glob(pattern, options).walkSync();
+}
+async function glob_(pattern, options = {}) {
+  return new Glob(pattern, options).walk();
+}
+function globIterateSync(pattern, options = {}) {
+  return new Glob(pattern, options).iterateSync();
+}
+function globIterate(pattern, options = {}) {
+  return new Glob(pattern, options).iterate();
+}
+var streamSync = globStreamSync;
+var stream = Object.assign(globStream, { sync: globStreamSync });
+var iterateSync = globIterateSync;
+var iterate = Object.assign(globIterate, {
+  sync: globIterateSync
+});
+var sync = Object.assign(globSync, {
+  stream: globStreamSync,
+  iterate: globIterateSync
+});
+var glob = Object.assign(glob_, {
+  glob: glob_,
+  globSync,
+  sync,
+  globStream,
+  stream,
+  globStreamSync,
+  streamSync,
+  globIterate,
+  iterate,
+  globIterateSync,
+  iterateSync,
+  Glob,
+  hasMagic,
+  escape,
+  unescape
+});
+glob.glob = glob;
+
+// src/post.ts
+var import_bluebird = __toESM(require_bluebird());
 var post = async () => {
-  info("Cleaning up screenshots directory...");
+  info("Cleaning up PNG files in screenshots directory...");
   const screenshotsDirectory = getInput("screenshots-directory");
   try {
-    await (0, import_promises.rm)(screenshotsDirectory, { recursive: true, force: true });
+    const pngFiles = sync(`${screenshotsDirectory}/**/*.png`);
+    await (0, import_bluebird.map)(pngFiles, (file) => (0, import_promises2.rm)(file, { force: true }));
+    info(
+      `Removed ${pngFiles.length} PNG file(s) from ${screenshotsDirectory}`
+    );
   } catch (error) {
-    info(`Could not remove directory: ${error}`);
+    info(`Could not clean up PNG files: ${error}`);
   }
   info("Cleanup complete!");
 };
