@@ -36,7 +36,7 @@ async function resizeImageIfNeeded(buffer: Buffer): Promise<Buffer> {
 
   const image = await Jimp.read(buffer);
   if (width && height) {
-    image.resize({ w: width, h: height });
+    image.contain({ w: width, h: height });
   } else if (width) {
     image.resize({ w: width });
   } else if (height) {
