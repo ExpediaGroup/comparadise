@@ -121,7 +121,7 @@ export const MainPage = ({
           >
             <ArrowBackIcon disabled={backButtonDisabled} />
           </button>
-          <h1 className="text-center text-4xl font-medium">
+          <h1 className="max-w-4xl text-center text-4xl font-medium break-words">
             {data?.title || 'Loading images...'}
           </h1>
           <button
