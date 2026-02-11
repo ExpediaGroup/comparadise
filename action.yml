@@ -35,6 +35,12 @@ inputs:
     description: 'The GitHub access token'
     required: false
     default: ${{ github.token }}
+  resize-width:
+    description: 'Optional maximum width to resize images before upload'
+    required: false
+  resize-height:
+    description: 'Optional maximum height to resize images before upload'
+    required: false
 runs:
   using: 'node20'
   main: 'action/dist/main.js'
