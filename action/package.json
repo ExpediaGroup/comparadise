@@ -7,7 +7,8 @@
     "@actions/github": "9.0.0",
     "@aws-sdk/client-s3": "3.975.0",
     "bluebird": "3.7.2",
-    "glob": "13.0.0"
+    "glob": "13.0.0",
+    "jimp": "1.6.0"
   },
   "devDependencies": {
     "@types/bluebird": "3.5.42",

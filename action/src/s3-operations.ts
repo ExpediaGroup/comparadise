@@ -17,8 +17,34 @@ import * as fs from 'fs';
 import { promises as fsPromises } from 'fs';
 import { glob } from 'glob';
 import { Readable } from 'stream';
+import { Jimp } from 'jimp';
 
 const s3Client = new S3Client();
+
+async function resizeImageIfNeeded(buffer: Buffer): Promise<Buffer> {
+  const resizeWidth = getInput('resize-width');
+  const resizeHeight = getInput('resize-height');
+
+  if (!resizeWidth && !resizeHeight) {
+    return buffer;
+  }
+  const width = resizeWidth ? Number(resizeWidth) : undefined;
+  const height = resizeHeight ? Number(resizeHeight) : undefined;
+  if ((width && isNaN(width)) || (height && isNaN(height))) {
+    throw new Error('resize-width and resize-height must be valid numbers');
+  }
+
+  const image = await Jimp.read(buffer);
+  if (width && height) {
+    image.contain({ w: width, h: height });
+  } else if (width) {
+    image.resize({ w: width });
+  } else if (height) {
+    image.resize({ h: height });
+  }
+
+  return image.getBuffer('image/png');
+}
 
 async function checkS3PrefixExists(
   bucketName: string,
@@ -107,12 +133,13 @@ async function uploadLocalDirectory(
     const localFilePath = path.join(localDir, file);
     const s3Key = path.join(s3Prefix, file);
 
-    const fileContent = await fsPromises.readFile(localFilePath);
+    const fileBuffer = await fsPromises.readFile(localFilePath);
+    const resizedBuffer = await resizeImageIfNeeded(fileBuffer);
 
     const command = new PutObjectCommand({
       Bucket: bucketName,
       Key: s3Key,
-      Body: fileContent
+      Body: resizedBuffer
     });
 
     await s3Client.send(command);
@@ -128,11 +155,12 @@ async function uploadSingleFile(
   s3Key: string
 ): Promise<void> {
   const bucketName = getInput('bucket-name', { required: true });
-  const fileContent = await fsPromises.readFile(localFilePath);
+  const fileBuffer = await fsPromises.readFile(localFilePath);
+  const resizedBuffer = await resizeImageIfNeeded(fileBuffer);
   const command = new PutObjectCommand({
     Bucket: bucketName,
     Key: s3Key,
-    Body: fileContent
+    Body: resizedBuffer
   });
 
   await s3Client.send(command);
