@@ -61529,10 +61529,15 @@ async function uploadLocalDirectory(localDir, bucketName, s3Prefix) {
     nodir: true,
     absolute: false
   });
-  info(
-    `Uploading ${files.length} file(s) from ${localDir} to s3://${bucketName}/${s3Prefix}`
+  const filesFromFailingTests = files.filter(
+    (file) => files.some(
+      (other) => path5.dirname(other) === path5.dirname(file) && path5.basename(other) === "new.png"
+    )
   );
-  await (0, import_bluebird.map)(files, async (file) => {
+  info(
+    `Uploading ${filesFromFailingTests.length} file(s) from ${localDir} to s3://${bucketName}/${s3Prefix}`
+  );
+  await (0, import_bluebird.map)(filesFromFailingTests, async (file) => {
     const localFilePath = path5.join(localDir, file);
     const s3Key = path5.join(s3Prefix, file);
     const fileContent = await import_fs5.promises.readFile(localFilePath);
@@ -61543,9 +61548,12 @@ async function uploadLocalDirectory(localDir, bucketName, s3Prefix) {
     });
     await s3Client.send(command);
   });
-  info(`Uploaded ${files.length} file(s) to s3://${bucketName}/${s3Prefix}`);
+  info(
+    `Uploaded ${filesFromFailingTests.length} file(s) to s3://${bucketName}/${s3Prefix}`
+  );
 }
-async function uploadSingleFile(localFilePath, bucketName, s3Key) {
+async function uploadSingleFile(localFilePath, s3Key) {
+  const bucketName = getInput("bucket-name", { required: true });
   const fileContent = await import_fs5.promises.readFile(localFilePath);
   const command = new PutObjectCommand({
     Bucket: bucketName,
@@ -61608,11 +61616,10 @@ var uploadAllImages = async (hash) => {
   );
 };
 var uploadBaseImages = async (newFilePaths) => {
-  const bucketName = getInput("bucket-name", { required: true });
   info(`Uploading ${newFilePaths.length} base image(s)`);
   return (0, import_bluebird.map)(
     newFilePaths,
-    (newFilePath) => uploadSingleFile(newFilePath, bucketName, buildBaseImagePath(newFilePath))
+    (newFilePath) => uploadSingleFile(newFilePath, buildBaseImagePath(newFilePath))
   );
 };
 function buildBaseImagePath(newFilePath) {
