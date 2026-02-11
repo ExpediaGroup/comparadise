@@ -91,11 +91,19 @@ async function uploadLocalDirectory(
     absolute: false
   });
 
-  info(
-    `Uploading ${files.length} file(s) from ${localDir} to s3://${bucketName}/${s3Prefix}`
+  const filesFromFailingTests = files.filter(file =>
+    files.some(
+      other =>
+        path.dirname(other) === path.dirname(file) &&
+        path.basename(other) === 'new.png'
+    )
   );
 
-  await map(files, async file => {
+  info(
+    `Uploading ${filesFromFailingTests.length} file(s) from ${localDir} to s3://${bucketName}/${s3Prefix}`
+  );
+
+  await map(filesFromFailingTests, async file => {
     const localFilePath = path.join(localDir, file);
     const s3Key = path.join(s3Prefix, file);
 
@@ -110,16 +118,17 @@ async function uploadLocalDirectory(
     await s3Client.send(command);
   });
 
-  info(`Uploaded ${files.length} file(s) to s3://${bucketName}/${s3Prefix}`);
+  info(
+    `Uploaded ${filesFromFailingTests.length} file(s) to s3://${bucketName}/${s3Prefix}`
+  );
 }
 
 async function uploadSingleFile(
   localFilePath: string,
-  bucketName: string,
   s3Key: string
 ): Promise<void> {
+  const bucketName = getInput('bucket-name', { required: true });
   const fileContent = await fsPromises.readFile(localFilePath);
-
   const command = new PutObjectCommand({
     Bucket: bucketName,
     Key: s3Key,
@@ -190,10 +199,9 @@ export const uploadAllImages = async (hash: string) => {
 };
 
 export const uploadBaseImages = async (newFilePaths: string[]) => {
-  const bucketName = getInput('bucket-name', { required: true });
   info(`Uploading ${newFilePaths.length} base image(s)`);
   return map(newFilePaths, newFilePath =>
-    uploadSingleFile(newFilePath, bucketName, buildBaseImagePath(newFilePath))
+    uploadSingleFile(newFilePath, buildBaseImagePath(newFilePath))
   );
 };
 
