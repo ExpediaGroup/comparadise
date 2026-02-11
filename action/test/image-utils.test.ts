@@ -15,8 +15,8 @@ mock.module('@actions/core', () => ({
 
 const imageUtils = await import('../src/image-utils');
 const resizeImageIfNeeded = imageUtils.resizeImageIfNeeded;
-const DEFAULT_MAX_WIDTH = imageUtils.DEFAULT_MAX_WIDTH;
-const DEFAULT_MAX_HEIGHT = imageUtils.DEFAULT_MAX_HEIGHT;
+const MAX_WIDTH = 1500;
+const MAX_HEIGHT = 1500;
 
 const TEST_DIR = join(import.meta.dir, 'temp-test-images');
 
@@ -46,11 +46,7 @@ describe('image-utils', () => {
 
     const originalMetadata = await sharp(testImagePath).metadata();
 
-    await resizeImageIfNeeded(
-      testImagePath,
-      DEFAULT_MAX_WIDTH,
-      DEFAULT_MAX_HEIGHT
-    );
+    await resizeImageIfNeeded(testImagePath, MAX_WIDTH, MAX_HEIGHT);
 
     const newMetadata = await sharp(testImagePath).metadata();
 
@@ -73,16 +69,12 @@ describe('image-utils', () => {
       .png()
       .toFile(testImagePath);
 
-    await resizeImageIfNeeded(
-      testImagePath,
-      DEFAULT_MAX_WIDTH,
-      DEFAULT_MAX_HEIGHT
-    );
+    await resizeImageIfNeeded(testImagePath, MAX_WIDTH, MAX_HEIGHT);
 
     const metadata = await sharp(testImagePath).metadata();
 
-    expect(metadata.width).toBeLessThanOrEqual(DEFAULT_MAX_WIDTH);
-    expect(metadata.height).toBeLessThanOrEqual(DEFAULT_MAX_HEIGHT);
+    expect(metadata.width).toBeLessThanOrEqual(MAX_WIDTH);
+    expect(metadata.height).toBeLessThanOrEqual(MAX_HEIGHT);
 
     // Check aspect ratio is maintained
     const aspectRatio = 3000 / 1000;
@@ -105,16 +97,12 @@ describe('image-utils', () => {
       .png()
       .toFile(testImagePath);
 
-    await resizeImageIfNeeded(
-      testImagePath,
-      DEFAULT_MAX_WIDTH,
-      DEFAULT_MAX_HEIGHT
-    );
+    await resizeImageIfNeeded(testImagePath, MAX_WIDTH, MAX_HEIGHT);
 
     const metadata = await sharp(testImagePath).metadata();
 
-    expect(metadata.width).toBeLessThanOrEqual(DEFAULT_MAX_WIDTH);
-    expect(metadata.height).toBeLessThanOrEqual(DEFAULT_MAX_HEIGHT);
+    expect(metadata.width).toBeLessThanOrEqual(MAX_WIDTH);
+    expect(metadata.height).toBeLessThanOrEqual(MAX_HEIGHT);
 
     // Check aspect ratio is maintained
     const aspectRatio = 1000 / 3000;
@@ -137,18 +125,14 @@ describe('image-utils', () => {
       .png()
       .toFile(testImagePath);
 
-    await resizeImageIfNeeded(
-      testImagePath,
-      DEFAULT_MAX_WIDTH,
-      DEFAULT_MAX_HEIGHT
-    );
+    await resizeImageIfNeeded(testImagePath, MAX_WIDTH, MAX_HEIGHT);
 
     const metadata = await sharp(testImagePath).metadata();
 
-    expect(metadata.width).toBeLessThanOrEqual(DEFAULT_MAX_WIDTH);
-    expect(metadata.height).toBeLessThanOrEqual(DEFAULT_MAX_HEIGHT);
-    expect(metadata.width).toBe(DEFAULT_MAX_WIDTH);
-    expect(metadata.height).toBe(DEFAULT_MAX_HEIGHT);
+    expect(metadata.width).toBeLessThanOrEqual(MAX_WIDTH);
+    expect(metadata.height).toBeLessThanOrEqual(MAX_HEIGHT);
+    expect(metadata.width).toBe(MAX_WIDTH);
+    expect(metadata.height).toBe(MAX_HEIGHT);
   });
 
   it('should handle custom max dimensions', async () => {

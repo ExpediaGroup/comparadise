@@ -68046,8 +68046,6 @@ var import_stream10 = require("stream");
 var import_sharp = __toESM(require_lib());
 var path5 = __toESM(require("path"));
 var import_promises5 = require("fs/promises");
-var DEFAULT_MAX_WIDTH = 1500;
-var DEFAULT_MAX_HEIGHT = 1500;
 function getMaxDimensions() {
   const widthInput = getInput("max-image-width");
   const heightInput = getInput("max-image-height");
@@ -68056,9 +68054,14 @@ function getMaxDimensions() {
   }
   const width = Number(widthInput);
   const height = Number(heightInput);
+  if (isNaN(width) || isNaN(height)) {
+    throw new Error(
+      `Invalid max dimensions provided (width: ${widthInput}, height: ${heightInput})`
+    );
+  }
   return {
-    width: isNaN(width) ? DEFAULT_MAX_WIDTH : width,
-    height: isNaN(height) ? DEFAULT_MAX_HEIGHT : height
+    width,
+    height
   };
 }
 async function resizeImageIfNeeded(filePath, maxWidth, maxHeight) {
@@ -68082,8 +68085,8 @@ async function resizeImageIfNeeded(filePath, maxWidth, maxHeight) {
     }).toBuffer();
     await (0, import_promises5.writeFile)(filePath, resizedBuffer);
   } catch (error2) {
-    info(
-      `Warning: Could not resize ${path5.basename(filePath)}: ${error2}. Using original.`
+    warning(
+      `Could not resize ${path5.basename(filePath)}: ${error2}. Using original.`
     );
   }
 }

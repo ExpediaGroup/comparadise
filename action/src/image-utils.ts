@@ -1,10 +1,7 @@
-import { info, getInput } from '@actions/core';
+import { info, getInput, warning } from '@actions/core';
 import sharp from 'sharp';
 import * as path from 'path';
 import { writeFile } from 'fs/promises';
-
-export const DEFAULT_MAX_WIDTH = 1500;
-export const DEFAULT_MAX_HEIGHT = 1500;
 
 /**
  * Get max dimensions from GitHub Action inputs
@@ -22,9 +19,15 @@ function getMaxDimensions(): { width: number; height: number } | undefined {
   const width = Number(widthInput);
   const height = Number(heightInput);
 
+  if (isNaN(width) || isNaN(height)) {
+    throw new Error(
+      `Invalid max dimensions provided (width: ${widthInput}, height: ${heightInput})`
+    );
+  }
+
   return {
-    width: isNaN(width) ? DEFAULT_MAX_WIDTH : width,
-    height: isNaN(height) ? DEFAULT_MAX_HEIGHT : height
+    width,
+    height
   };
 }
 
@@ -62,8 +65,8 @@ export async function resizeImageIfNeeded(
     // Write buffer directly back to original file path (in-place)
     await writeFile(filePath, resizedBuffer);
   } catch (error) {
-    info(
-      `Warning: Could not resize ${path.basename(filePath)}: ${error}. Using original.`
+    warning(
+      `Could not resize ${path.basename(filePath)}: ${error}. Using original.`
     );
   }
 }
@@ -73,8 +76,6 @@ export async function resizeImageIfNeeded(
  */
 export async function resizeImages(filePaths: string[]) {
   const dimensions = getMaxDimensions();
-
-  // If no max dimensions configured, skip resizing
   if (!dimensions) {
     info('Image resizing disabled (no max dimensions configured)');
     return;
