@@ -18,14 +18,42 @@ const getInputMock = mock();
 const getBooleanInputMock = mock();
 const getMultilineInputMock = mock();
 const setFailedMock = mock();
-mock.module('@actions/core', () => ({
-  info: mock(),
-  getInput: getInputMock,
-  getBooleanInput: getBooleanInputMock,
-  getMultilineInput: getMultilineInputMock,
-  setFailed: setFailedMock,
-  warning: mock()
-}));
+const infoMock = mock();
+const warningMock = mock();
+
+// Create a comprehensive mock for @actions/core to handle ES module exports
+mock.module('@actions/core', () => {
+  return {
+    info: infoMock,
+    getInput: getInputMock,
+    getBooleanInput: getBooleanInputMock,
+    getMultilineInput: getMultilineInputMock,
+    setFailed: setFailedMock,
+    warning: warningMock,
+    // Add other exports that might be imported
+    debug: mock(),
+    error: mock(),
+    setOutput: mock(),
+    setSecret: mock(),
+    addPath: mock(),
+    exportVariable: mock(),
+    setCommandEcho: mock(),
+    saveState: mock(),
+    getState: mock(),
+    group: mock(),
+    startGroup: mock(),
+    endGroup: mock(),
+    // ES module default export
+    default: {
+      info: infoMock,
+      getInput: getInputMock,
+      getBooleanInput: getBooleanInputMock,
+      getMultilineInput: getMultilineInputMock,
+      setFailed: setFailedMock,
+      warning: warningMock
+    }
+  };
+});
 
 const execMock = mock();
 mock.module('@actions/exec', () => ({
