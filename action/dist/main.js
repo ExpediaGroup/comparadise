@@ -61548,7 +61548,9 @@ async function uploadLocalDirectory(localDir, bucketName, s3Prefix) {
     });
     await s3Client.send(command);
   });
-  info(`Uploaded ${filesFromFailingTests.length} file(s) to s3://${bucketName}/${s3Prefix}`);
+  info(
+    `Uploaded ${filesFromFailingTests.length} file(s) to s3://${bucketName}/${s3Prefix}`
+  );
 }
 async function uploadSingleFile(localFilePath, s3Key) {
   const bucketName = getInput("bucket-name", { required: true });
