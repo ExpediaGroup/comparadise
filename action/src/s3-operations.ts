@@ -184,8 +184,8 @@ export const downloadBaseImages = async () => {
     return;
   }
 
-  const packagePaths = getInput('package-paths')?.split(',');
-  if (packagePaths) {
+  const packagePaths = getInput('package-paths')?.split(',').filter(Boolean);
+  if (packagePaths?.length) {
     return Promise.all(
       packagePaths.map(packagePath =>
         downloadS3Directory(
@@ -207,9 +207,9 @@ export const downloadBaseImages = async () => {
 export const uploadAllImages = async (hash: string) => {
   const bucketName = getInput('bucket-name', { required: true });
   const screenshotsDirectory = getInput('screenshots-directory');
-  const packagePaths = getInput('package-paths')?.split(',');
+  const packagePaths = getInput('package-paths')?.split(',').filter(Boolean);
 
-  if (packagePaths) {
+  if (packagePaths?.length) {
     return map(packagePaths, packagePath =>
       uploadLocalDirectory(
         path.join(screenshotsDirectory, packagePath),
