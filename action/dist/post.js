@@ -25562,7 +25562,7 @@ var te = class extends Mt {
     this.src.removeListener("error", this.proxyErrors), super.unpipe();
   }
   constructor(t, e, s) {
-    super(t, e, s), this.proxyErrors = (i) => e.emit("error", i), t.on("error", this.proxyErrors);
+    super(t, e, s), this.proxyErrors = (i) => this.dest.emit("error", i), t.on("error", this.proxyErrors);
   }
 };
 var di = (n7) => !!n7.objectMode;
@@ -25814,6 +25814,7 @@ var V = class extends import_node_events.EventEmitter {
       });
     }, throw: e, return: e, [Symbol.asyncIterator]() {
       return this;
+    }, [Symbol.asyncDispose]: async () => {
     } };
   }
   [Symbol.iterator]() {
@@ -25825,6 +25826,7 @@ var V = class extends import_node_events.EventEmitter {
     };
     return this.once("end", e), this.once(Xt, e), this.once(x, e), { next: s, throw: e, return: e, [Symbol.iterator]() {
       return this;
+    }, [Symbol.dispose]: () => {
     } };
   }
   destroy(t) {

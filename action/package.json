@@ -5,9 +5,9 @@
   "dependencies": {
     "@actions/core": "3.0.0",
     "@actions/github": "9.0.0",
-    "@aws-sdk/client-s3": "3.992.0",
+    "@aws-sdk/client-s3": "3.995.0",
     "bluebird": "3.7.2",
-    "glob": "13.0.5",
+    "glob": "13.0.6",
     "jimp": "1.6.0"
   },
   "devDependencies": {
