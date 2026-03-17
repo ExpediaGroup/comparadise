@@ -41,8 +41,8 @@ inputs:
   resize-height:
     description: 'Optional maximum height to resize images before upload'
     required: false
-  fail-on-visual-diff:
-    description: 'Whether to fail the job when visual diffs are detected'
+  visual-test-isolation:
+    description: 'Whether the provided visual test command is running visual tests only'
     required: false
     default: 'true'
 runs:
