@@ -2,9 +2,14 @@ import {
   filterNewImages,
   updateBaseImages,
   getBaseImagePaths,
+  getBaseImagePathsFromOriginal,
   acceptVisualChanges
 } from '../src/acceptVisualChanges';
-import { BASE_IMAGES_DIRECTORY, NEW_IMAGES_DIRECTORY } from 'shared';
+import {
+  BASE_IMAGES_DIRECTORY,
+  NEW_IMAGES_DIRECTORY,
+  ORIGINAL_NEW_IMAGES_DIRECTORY
+} from 'shared';
 import { afterEach, describe, expect, it, mock } from 'bun:test';
 
 const copyObjectMock = mock();
@@ -42,6 +47,7 @@ mock.module('@octokit/rest', () => ({
 }));
 
 const pathPrefix = `${NEW_IMAGES_DIRECTORY}/030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5`;
+const originalPathPrefix = `${ORIGINAL_NEW_IMAGES_DIRECTORY}/030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5`;
 describe('acceptVisualChanges', () => {
   afterEach(() => {
     mock.clearAllMocks();
@@ -155,6 +161,80 @@ describe('acceptVisualChanges', () => {
       expect(listObjectsV2Mock).not.toHaveBeenCalled();
       expect(copyObjectMock).not.toHaveBeenCalled();
       expect(updateCommitStatusMock).toHaveBeenCalled();
+    });
+
+    it('should copy from original-new-images when originals are present', async () => {
+      const expectedBucket = 'expected-bucket-name';
+      listObjectsV2Mock
+        .mockImplementationOnce(() => ({
+          Contents: [
+            { Key: `${pathPrefix}/SMALL/pdpPage/new.png` },
+            { Key: `${pathPrefix}/SMALL/pdpPage/diff.png` }
+          ]
+        }))
+        .mockImplementationOnce(() => ({
+          Contents: [{ Key: `${originalPathPrefix}/SMALL/pdpPage/new.png` }]
+        }));
+
+      await acceptVisualChanges({
+        commitHash: '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5',
+        bucket: expectedBucket,
+        useBaseImages: true,
+        repo: 'repo',
+        owner: 'owner'
+      });
+
+      expect(copyObjectMock).toHaveBeenCalledTimes(1);
+      expect(copyObjectMock).toHaveBeenCalledWith({
+        Bucket: expectedBucket,
+        CopySource: `${expectedBucket}/${originalPathPrefix}/SMALL/pdpPage/new.png`,
+        Key: `${BASE_IMAGES_DIRECTORY}/SMALL/pdpPage/base.png`,
+        ACL: 'bucket-owner-full-control'
+      });
+    });
+
+    it('should fall back to new-images when no originals are present', async () => {
+      const expectedBucket = 'expected-bucket-name';
+      listObjectsV2Mock
+        .mockImplementationOnce(() => ({
+          Contents: [
+            { Key: `${pathPrefix}/SMALL/pdpPage/new.png` },
+            { Key: `${pathPrefix}/SMALL/pdpPage/diff.png` }
+          ]
+        }))
+        .mockImplementationOnce(() => ({
+          Contents: []
+        }));
+
+      await acceptVisualChanges({
+        commitHash: '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5',
+        bucket: expectedBucket,
+        useBaseImages: true,
+        repo: 'repo',
+        owner: 'owner'
+      });
+
+      expect(copyObjectMock).toHaveBeenCalledTimes(1);
+      expect(copyObjectMock).toHaveBeenCalledWith({
+        Bucket: expectedBucket,
+        CopySource: `${expectedBucket}/${pathPrefix}/SMALL/pdpPage/new.png`,
+        Key: `${BASE_IMAGES_DIRECTORY}/SMALL/pdpPage/base.png`,
+        ACL: 'bucket-owner-full-control'
+      });
+    });
+  });
+
+  describe('getBaseImagePathsFromOriginal', () => {
+    it('should convert original-new-images paths to base-images paths', () => {
+      const paths = [
+        `${originalPathPrefix}/SMALL/pdpPage/new.png`,
+        `${originalPathPrefix}/LARGE/srpPage/new.png`
+      ];
+      const result = getBaseImagePathsFromOriginal(paths);
+      expect(result).toEqual([
+        `${BASE_IMAGES_DIRECTORY}/SMALL/pdpPage/base.png`,
+        `${BASE_IMAGES_DIRECTORY}/LARGE/srpPage/base.png`
+      ]);
     });
   });
 });

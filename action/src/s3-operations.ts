@@ -9,7 +9,8 @@ import {
   BASE_IMAGE_NAME,
   BASE_IMAGES_DIRECTORY,
   NEW_IMAGES_DIRECTORY,
-  NEW_IMAGE_NAME
+  NEW_IMAGE_NAME,
+  ORIGINAL_NEW_IMAGES_DIRECTORY
 } from 'shared';
 import { map } from 'bluebird';
 import * as path from 'path';
@@ -106,7 +107,7 @@ async function downloadS3Directory(
   info(`Downloaded ${baseObjects.length} base image(s) to ${localDir}`);
 }
 
-async function uploadLocalDirectory(
+async function uploadLocalDirectoryWithResize(
   localDir: string,
   bucketName: string,
   s3Prefix: string
@@ -211,7 +212,7 @@ export const uploadAllImages = async (hash: string) => {
 
   if (packagePaths?.length) {
     return map(packagePaths, packagePath =>
-      uploadLocalDirectory(
+      uploadLocalDirectoryWithResize(
         path.join(screenshotsDirectory, packagePath),
         bucketName,
         `${NEW_IMAGES_DIRECTORY}/${hash}/${packagePath}/`
@@ -219,10 +220,74 @@ export const uploadAllImages = async (hash: string) => {
     );
   }
 
-  return uploadLocalDirectory(
+  return uploadLocalDirectoryWithResize(
     screenshotsDirectory,
     bucketName,
     `${NEW_IMAGES_DIRECTORY}/${hash}/`
+  );
+};
+
+async function uploadOriginalNewPngs(
+  localDir: string,
+  bucketName: string,
+  s3Prefix: string
+): Promise<void> {
+  const files = await glob('**/new.png', {
+    cwd: localDir,
+    nodir: true,
+    absolute: false
+  });
+
+  info(
+    `Uploading ${files.length} original new.png file(s) from ${localDir} to s3://${bucketName}/${s3Prefix}`
+  );
+
+  await map(files, async file => {
+    const localFilePath = path.join(localDir, file);
+    const s3Key = path.join(s3Prefix, file);
+
+    const fileBuffer = await fsPromises.readFile(localFilePath);
+
+    const command = new PutObjectCommand({
+      Bucket: bucketName,
+      Key: s3Key,
+      Body: fileBuffer
+    });
+
+    await s3Client.send(command);
+  });
+
+  info(
+    `Uploaded ${files.length} original new.png file(s) to s3://${bucketName}/${s3Prefix}`
+  );
+}
+
+export const uploadOriginalNewImages = async (hash: string) => {
+  const resizeWidth = getInput('resize-width');
+  const resizeHeight = getInput('resize-height');
+
+  if (!resizeWidth && !resizeHeight) {
+    return;
+  }
+
+  const bucketName = getInput('bucket-name', { required: true });
+  const screenshotsDirectory = getInput('screenshots-directory');
+  const packagePaths = getInput('package-paths')?.split(',').filter(Boolean);
+
+  if (packagePaths?.length) {
+    return map(packagePaths, packagePath =>
+      uploadOriginalNewPngs(
+        path.join(screenshotsDirectory, packagePath),
+        bucketName,
+        `${ORIGINAL_NEW_IMAGES_DIRECTORY}/${hash}/${packagePath}/`
+      )
+    );
+  }
+
+  return uploadOriginalNewPngs(
+    screenshotsDirectory,
+    bucketName,
+    `${ORIGINAL_NEW_IMAGES_DIRECTORY}/${hash}/`
   );
 };
 

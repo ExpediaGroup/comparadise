@@ -9,7 +9,8 @@ import {
 import {
   downloadBaseImages,
   uploadBaseImages,
-  uploadAllImages
+  uploadAllImages,
+  uploadOriginalNewImages
 } from './s3-operations';
 import { exec } from '@actions/exec';
 import { octokit } from './octokit';
@@ -160,7 +161,7 @@ export const run = async () => {
     });
   }
 
-  await uploadAllImages(hash);
+  await Promise.all([uploadAllImages(hash), uploadOriginalNewImages(hash)]);
   if (!commitHash) return;
   await octokit.rest.repos.createCommitStatus({
     sha: commitHash,
