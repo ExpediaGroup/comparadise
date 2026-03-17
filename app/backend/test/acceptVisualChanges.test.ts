@@ -165,16 +165,9 @@ describe('acceptVisualChanges', () => {
 
     it('should copy from original-new-images when originals are present', async () => {
       const expectedBucket = 'expected-bucket-name';
-      listObjectsV2Mock
-        .mockImplementationOnce(() => ({
-          Contents: [
-            { Key: `${pathPrefix}/SMALL/pdpPage/new.png` },
-            { Key: `${pathPrefix}/SMALL/pdpPage/diff.png` }
-          ]
-        }))
-        .mockImplementationOnce(() => ({
-          Contents: [{ Key: `${originalPathPrefix}/SMALL/pdpPage/new.png` }]
-        }));
+      listObjectsV2Mock.mockImplementationOnce(() => ({
+        Contents: [{ Key: `${originalPathPrefix}/SMALL/pdpPage/new.png` }]
+      }));
 
       await acceptVisualChanges({
         commitHash: '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5',
@@ -196,14 +189,12 @@ describe('acceptVisualChanges', () => {
     it('should fall back to new-images when no originals are present', async () => {
       const expectedBucket = 'expected-bucket-name';
       listObjectsV2Mock
+        .mockImplementationOnce(() => ({ Contents: [] }))
         .mockImplementationOnce(() => ({
           Contents: [
             { Key: `${pathPrefix}/SMALL/pdpPage/new.png` },
             { Key: `${pathPrefix}/SMALL/pdpPage/diff.png` }
           ]
-        }))
-        .mockImplementationOnce(() => ({
-          Contents: []
         }));
 
       await acceptVisualChanges({

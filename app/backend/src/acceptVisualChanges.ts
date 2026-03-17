@@ -38,7 +38,6 @@ export const acceptVisualChanges = async ({
   }
 
   if (useBaseImages) {
-    const s3Paths = await getKeysFromS3(NEW_IMAGES_DIRECTORY, hash, bucket);
     const originalNewImagePaths = await getKeysFromS3(
       ORIGINAL_NEW_IMAGES_DIRECTORY,
       hash,
@@ -47,6 +46,7 @@ export const acceptVisualChanges = async ({
     if (originalNewImagePaths.length > 0) {
       await updateBaseImagesFromOriginal(originalNewImagePaths, bucket);
     } else {
+      const s3Paths = await getKeysFromS3(NEW_IMAGES_DIRECTORY, hash, bucket);
       await updateBaseImages(s3Paths, bucket);
     }
   }
