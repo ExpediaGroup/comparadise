@@ -19,7 +19,7 @@ mock.module('../src/s3Client', () => ({
 
 describe('listAllS3PathsForHash', () => {
   it('returns the response we want', async () => {
-    const paths = await getKeysFromS3('hash', 'bucket');
+    const paths = await getKeysFromS3('new-images', 'hash', 'bucket');
     expect(paths).toEqual(['a/normal/key']);
   });
 });

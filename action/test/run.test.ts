@@ -69,6 +69,9 @@ mock.module('../src/s3-operations', () => ({
   uploadBaseImages: (...args: unknown[]) => {
     s3OperationCalls.push({ operation: 'uploadBaseImages', args });
     return uploadBaseImagesMock(...args);
+  },
+  uploadOriginalNewImages: (...args: unknown[]) => {
+    s3OperationCalls.push({ operation: 'uploadOriginalNewImages', args });
   }
 }));
 const createCommitStatusMock = mock();

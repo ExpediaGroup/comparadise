@@ -5,7 +5,7 @@ import { NEW_IMAGE_NAME, NEW_IMAGES_DIRECTORY } from 'shared';
 import { getKeysFromS3 } from './getKeysFromS3';
 
 export const getGroupedKeys = async (hash: string, bucket: string) => {
-  const keys = await getKeysFromS3(hash, bucket);
+  const keys = await getKeysFromS3(NEW_IMAGES_DIRECTORY, hash, bucket);
   if (!keys.length) {
     throw new TRPCError({
       code: 'NOT_FOUND',
