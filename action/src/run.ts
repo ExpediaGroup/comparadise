@@ -173,5 +173,11 @@ export const run = async () => {
   });
   await createGithubComment();
 
-  setFailed('A visual regression was detected. Check Comparadise!');
+  const shouldFailOnVisualDiff = getBooleanInput('fail-on-visual-diff');
+  const diffMessage = 'A visual regression was detected. Check Comparadise!';
+  if (shouldFailOnVisualDiff) {
+    setFailed(diffMessage);
+  } else {
+    warning(diffMessage);
+  }
 };
