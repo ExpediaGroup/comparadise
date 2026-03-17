@@ -18,13 +18,14 @@ const getInputMock = mock();
 const getBooleanInputMock = mock();
 const getMultilineInputMock = mock();
 const setFailedMock = mock();
+const warningMock = mock();
 mock.module('@actions/core', () => ({
   info: mock(),
   getInput: getInputMock,
   getBooleanInput: getBooleanInputMock,
   getMultilineInput: getMultilineInputMock,
   setFailed: setFailedMock,
-  warning: mock()
+  warning: warningMock
 }));
 
 const execMock = mock();
@@ -148,6 +149,10 @@ describe('main', () => {
     githubContext.runAttempt = 1;
 
     getInputMock.mockImplementation(name => inputMap[name]);
+
+    getBooleanInputMock.mockImplementation(name =>
+      name === 'fail-on-visual-diff' ? true : undefined
+    );
 
     const multiLineInputMap: Record<string, string[]> = {
       'visual-test-command': ['run my visual tests']
@@ -658,5 +663,41 @@ describe('main', () => {
     await runAction();
     expect(disableAutoMergeMock).not.toHaveBeenCalled();
     expect(createCommitStatusMock).toHaveBeenCalled();
+  });
+
+  it('should call setFailed with the diff message when fail-on-visual-diff is true', async () => {
+    execMock.mockResolvedValue(0);
+    getBooleanInputMock.mockImplementation(name =>
+      name === 'fail-on-visual-diff' ? true : undefined
+    );
+    globMock.mockResolvedValue([
+      'path/to/screenshots/diff.png',
+      'path/to/screenshots/new.png'
+    ]);
+    await runAction();
+    expect(setFailedMock).toHaveBeenCalledWith(
+      'A visual regression was detected. Check Comparadise!'
+    );
+    expect(warningMock).not.toHaveBeenCalledWith(
+      'A visual regression was detected. Check Comparadise!'
+    );
+  });
+
+  it('should call warning instead of setFailed when fail-on-visual-diff is false', async () => {
+    execMock.mockResolvedValue(0);
+    getBooleanInputMock.mockImplementation(name =>
+      name === 'fail-on-visual-diff' ? false : undefined
+    );
+    globMock.mockResolvedValue([
+      'path/to/screenshots/diff.png',
+      'path/to/screenshots/new.png'
+    ]);
+    await runAction();
+    expect(setFailedMock).not.toHaveBeenCalledWith(
+      'A visual regression was detected. Check Comparadise!'
+    );
+    expect(warningMock).toHaveBeenCalledWith(
+      'A visual regression was detected. Check Comparadise!'
+    );
   });
 });
