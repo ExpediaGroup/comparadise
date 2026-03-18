@@ -26,5 +26,12 @@ export const LazyImage: React.FC<LazyImageExtendedProps> = props => {
     }
   }, [props.src]);
 
-  return <img key={currentSRC} {...derivedProps} src={currentSRC} />;
+  return (
+    <img
+      key={currentSRC}
+      {...derivedProps}
+      src={currentSRC}
+      className={`${derivedProps.className ? derivedProps.className : ''}border border-gray-300`}
+    />
+  );
 };
