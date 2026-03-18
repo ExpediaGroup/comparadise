@@ -151,7 +151,7 @@ describe('main', () => {
     getInputMock.mockImplementation(name => inputMap[name]);
 
     getBooleanInputMock.mockImplementation(name =>
-      name === 'fail-on-visual-diff' ? true : undefined
+      name === 'visual-tests-isolated' ? true : undefined
     );
 
     const multiLineInputMap: Record<string, string[]> = {
@@ -665,10 +665,10 @@ describe('main', () => {
     expect(createCommitStatusMock).toHaveBeenCalled();
   });
 
-  it('should call setFailed with the diff message when fail-on-visual-diff is true', async () => {
+  it('should call setFailed with the diff message when visual-tests-isolated is true', async () => {
     execMock.mockResolvedValue(0);
     getBooleanInputMock.mockImplementation(name =>
-      name === 'fail-on-visual-diff' ? true : undefined
+      name === 'visual-tests-isolated' ? true : undefined
     );
     globMock.mockResolvedValue([
       'path/to/screenshots/diff.png',
@@ -683,10 +683,10 @@ describe('main', () => {
     );
   });
 
-  it('should call warning instead of setFailed when fail-on-visual-diff is false', async () => {
+  it('should call warning instead of setFailed when visual-tests-isolated is false', async () => {
     execMock.mockResolvedValue(0);
     getBooleanInputMock.mockImplementation(name =>
-      name === 'fail-on-visual-diff' ? false : undefined
+      name === 'visual-tests-isolated' ? false : undefined
     );
     globMock.mockResolvedValue([
       'path/to/screenshots/diff.png',
@@ -698,6 +698,19 @@ describe('main', () => {
     );
     expect(warningMock).toHaveBeenCalledWith(
       'A visual regression was detected. Check Comparadise!'
+    );
+  });
+
+  it('should call warning instead of setFailed when visual tests fail for non-diff reason and visual-tests-isolated is false', async () => {
+    execMock.mockResolvedValue(1);
+    getBooleanInputMock.mockImplementation(name =>
+      name === 'visual-tests-isolated' ? false : undefined
+    );
+    globMock.mockResolvedValue([]);
+    await runAction();
+    expect(setFailedMock).not.toHaveBeenCalled();
+    expect(warningMock).toHaveBeenCalledWith(
+      'The job failed, but this might not be due to visual tests.'
     );
   });
 });

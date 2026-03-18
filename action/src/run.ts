@@ -46,10 +46,10 @@ export const run = async () => {
     await downloadBaseImages();
   }
 
-  const visualTestExitCode = await Promise.all(
+  const visualTestExitCodes = await Promise.all(
     visualTestCommands.map(cmd => exec(cmd, [], { ignoreReturnCode: true }))
   );
-  const numVisualTestFailures = visualTestExitCode.filter(
+  const numVisualTestFailures = visualTestExitCodes.filter(
     code => code !== 0
   ).length;
 
@@ -84,18 +84,26 @@ export const run = async () => {
 
   const newFileCount = newFilePaths.length;
 
-  if (numVisualTestFailures > diffFileCount) {
-    setFailed(
-      'Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?'
-    );
-    if (!commitHash) return;
-    return octokit.rest.repos.createCommitStatus({
-      sha: commitHash,
-      context: VISUAL_REGRESSION_CONTEXT,
-      state: 'failure',
-      description: VISUAL_TESTS_FAILED_TO_EXECUTE,
-      ...context.repo
-    });
+  const visualTestsIsolated = getBooleanInput('visual-tests-isolated');
+
+  const visualTestsFailedForReasonOtherThanDiff =
+    numVisualTestFailures > diffFileCount;
+  if (visualTestsFailedForReasonOtherThanDiff) {
+    if (visualTestsIsolated) {
+      setFailed(
+        'Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?'
+      );
+      if (!commitHash) return;
+      return octokit.rest.repos.createCommitStatus({
+        sha: commitHash,
+        context: VISUAL_REGRESSION_CONTEXT,
+        state: 'failure',
+        description: VISUAL_TESTS_FAILED_TO_EXECUTE,
+        ...context.repo
+      });
+    } else {
+      warning('The job failed, but this might not be due to visual tests.');
+    }
   }
 
   const latestVisualRegressionStatus = commitHash
@@ -173,9 +181,8 @@ export const run = async () => {
   });
   await createGithubComment();
 
-  const shouldFailOnVisualDiff = getBooleanInput('fail-on-visual-diff');
   const diffMessage = 'A visual regression was detected. Check Comparadise!';
-  if (shouldFailOnVisualDiff) {
+  if (visualTestsIsolated) {
     setFailed(diffMessage);
   } else {
     warning(diffMessage);
