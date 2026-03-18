@@ -69,7 +69,8 @@ mock.module('../src/s3-client', () => ({
 }));
 
 const jimpImageMock = {
-  cover: mock(),
+  width: 400,
+  height: 300,
   resize: mock(),
   getBuffer: mock()
 };
@@ -178,7 +179,6 @@ describe('main', () => {
     readFileMock.mockResolvedValue(Buffer.from('image-data'));
     createWriteStreamMock.mockReturnValue(new EventEmitter());
     jimpReadMock.mockResolvedValue(jimpImageMock);
-    jimpImageMock.cover.mockReturnValue(jimpImageMock);
     jimpImageMock.resize.mockReturnValue(jimpImageMock);
     jimpImageMock.getBuffer.mockResolvedValue(Buffer.from('resized-image'));
 
@@ -789,7 +789,6 @@ describe('s3-operations', () => {
     createWriteStreamMock.mockReturnValue(new EventEmitter());
 
     jimpReadMock.mockResolvedValue(jimpImageMock);
-    jimpImageMock.cover.mockReturnValue(jimpImageMock);
     jimpImageMock.resize.mockReturnValue(jimpImageMock);
     jimpImageMock.getBuffer.mockResolvedValue(Buffer.from('resized-image'));
   });
@@ -987,7 +986,6 @@ describe('s3-operations', () => {
 
       expect(jimpReadMock).toHaveBeenCalled();
       expect(jimpImageMock.resize).toHaveBeenCalledWith({ w: 200 });
-      expect(jimpImageMock.cover).not.toHaveBeenCalled();
       expect(putObjectMock).toHaveBeenCalledWith(
         expect.objectContaining({ Body: Buffer.from('resized-image') })
       );
@@ -1001,10 +999,9 @@ describe('s3-operations', () => {
       await uploadAllImages('abc123');
 
       expect(jimpImageMock.resize).toHaveBeenCalledWith({ h: 150 });
-      expect(jimpImageMock.cover).not.toHaveBeenCalled();
     });
 
-    it('should resize using cover when both resize-width and resize-height are set', async () => {
+    it('should resize to fit within bounds when both resize-width and resize-height are set', async () => {
       s3InputMap['resize-width'] = '200';
       s3InputMap['resize-height'] = '150';
       globMock.mockResolvedValue(['component/new.png']);
@@ -1012,8 +1009,8 @@ describe('s3-operations', () => {
       const { uploadAllImages } = await getS3Operations();
       await uploadAllImages('abc123');
 
-      expect(jimpImageMock.cover).toHaveBeenCalledWith({ w: 200, h: 150 });
-      expect(jimpImageMock.resize).not.toHaveBeenCalled();
+      // mock image is 400x300; scale = min(200/400, 150/300, 1) = 0.5
+      expect(jimpImageMock.resize).toHaveBeenCalledWith({ w: 200, h: 150 });
     });
   });
 
