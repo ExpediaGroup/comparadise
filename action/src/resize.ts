@@ -16,7 +16,11 @@ export async function resizeImageIfNeeded(buffer: Buffer): Promise<Buffer> {
 
   const image = await Jimp.read(buffer);
   if (width && height) {
-    image.cover({ w: width, h: height });
+    const scale = Math.min(width / image.width, height / image.height, 1);
+    image.resize({
+      w: Math.round(image.width * scale),
+      h: Math.round(image.height * scale)
+    });
   } else if (width) {
     image.resize({ w: width });
   } else if (height) {
