@@ -1,10 +1,5 @@
 import { getInput, info } from '@actions/core';
-import {
-  S3Client,
-  ListObjectsV2Command,
-  GetObjectCommand,
-  PutObjectCommand
-} from '@aws-sdk/client-s3';
+import { listObjects, getObject, putObject } from './s3-client';
 import {
   BASE_IMAGE_NAME,
   BASE_IMAGES_DIRECTORY,
@@ -18,46 +13,18 @@ import * as fs from 'fs';
 import { promises as fsPromises } from 'fs';
 import { glob } from 'glob';
 import { Readable } from 'stream';
-import { Jimp } from 'jimp';
-
-const s3Client = new S3Client();
-
-async function resizeImageIfNeeded(buffer: Buffer): Promise<Buffer> {
-  const resizeWidth = getInput('resize-width');
-  const resizeHeight = getInput('resize-height');
-
-  if (!resizeWidth && !resizeHeight) {
-    return buffer;
-  }
-  const width = resizeWidth ? Number(resizeWidth) : undefined;
-  const height = resizeHeight ? Number(resizeHeight) : undefined;
-  if ((width && isNaN(width)) || (height && isNaN(height))) {
-    throw new Error('resize-width and resize-height must be valid numbers');
-  }
-
-  const image = await Jimp.read(buffer);
-  if (width && height) {
-    image.cover({ w: width, h: height });
-  } else if (width) {
-    image.resize({ w: width });
-  } else if (height) {
-    image.resize({ h: height });
-  }
-
-  return image.getBuffer('image/png');
-}
+import { resizeImageIfNeeded } from './resize';
 
 async function checkS3PrefixExists(
   bucketName: string,
   prefix: string
 ): Promise<boolean> {
   try {
-    const command = new ListObjectsV2Command({
+    const response = await listObjects({
       Bucket: bucketName,
       Prefix: prefix,
       MaxKeys: 1
     });
-    const response = await s3Client.send(command);
     return (response.Contents?.length ?? 0) > 0;
   } catch {
     return false;
@@ -71,12 +38,10 @@ async function downloadS3Directory(
 ): Promise<void> {
   info(`Downloading base images from s3://${bucketName}/${s3Prefix}`);
 
-  const command = new ListObjectsV2Command({
+  const response = await listObjects({
     Bucket: bucketName,
     Prefix: s3Prefix
   });
-
-  const response = await s3Client.send(command);
   const allObjects = response.Contents ?? [];
   const baseObjects = allObjects.filter(obj => obj.Key?.endsWith('base.png'));
 
@@ -90,12 +55,10 @@ async function downloadS3Directory(
 
     await fsPromises.mkdir(path.dirname(localFilePath), { recursive: true });
 
-    const getCommand = new GetObjectCommand({
+    const { Body } = await getObject({
       Bucket: bucketName,
       Key
     });
-
-    const { Body } = await s3Client.send(getCommand);
     if (Body instanceof Readable) {
       const writeStream = fs.createWriteStream(localFilePath);
       await new Promise((resolve, reject) => {
@@ -137,13 +100,11 @@ async function uploadLocalDirectoryWithResize(
     const fileBuffer = await fsPromises.readFile(localFilePath);
     const resizedBuffer = await resizeImageIfNeeded(fileBuffer);
 
-    const command = new PutObjectCommand({
+    await putObject({
       Bucket: bucketName,
       Key: s3Key,
       Body: resizedBuffer
     });
-
-    await s3Client.send(command);
   });
 
   info(
@@ -158,13 +119,11 @@ async function uploadSingleFile(
   const bucketName = getInput('bucket-name', { required: true });
   const fileBuffer = await fsPromises.readFile(localFilePath);
   const resizedBuffer = await resizeImageIfNeeded(fileBuffer);
-  const command = new PutObjectCommand({
+  await putObject({
     Bucket: bucketName,
     Key: s3Key,
     Body: resizedBuffer
   });
-
-  await s3Client.send(command);
   info(`Uploaded ${localFilePath} to s3://${bucketName}/${s3Key}`);
 }
 
@@ -248,13 +207,11 @@ async function uploadOriginalNewPngs(
 
     const fileBuffer = await fsPromises.readFile(localFilePath);
 
-    const command = new PutObjectCommand({
+    await putObject({
       Bucket: bucketName,
       Key: s3Key,
       Body: fileBuffer
     });
-
-    await s3Client.send(command);
   });
 
   info(
