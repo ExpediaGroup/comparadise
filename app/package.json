@@ -29,7 +29,7 @@
   },
   "scripts": {
     "dev": "bun --hot ./server.ts",
-    "start": "bun ./server.ts",
+    "start": "NODE_ENV=production bun ./server.ts",
     "test": "nx docker comparadise && nx test:e2e frontend"
   }
 }
