@@ -11,10 +11,12 @@ import { Dialog, Transition } from '@headlessui/react';
 import { PrimaryButton, TertiaryButton } from './buttons';
 import { useSearchParams } from 'react-router-dom';
 
-export const UpdateImagesButton: React.FC<{ disabled: boolean }> = ({
-  disabled
-}) => {
+export const UpdateImagesButton: React.FC<{
+  disabled: boolean;
+  hasViewedAllPages: boolean;
+}> = ({ disabled, hasViewedAllPages }) => {
   const [dialogIsOpen, setDialogIsOpen] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const { acceptVisualChangesState, setAcceptVisualChangesState } = useContext(
     AcceptVisualChangesStateContext
   );
@@ -125,14 +127,31 @@ export const UpdateImagesButton: React.FC<{ disabled: boolean }> = ({
   const shouldDisableAcceptVisualChangesButton =
     acceptVisualChangesState !== AcceptVisualChangesTexts.NOT_ACCEPTED;
 
+  const showReviewPopover =
+    isHovered &&
+    !hasViewedAllPages &&
+    acceptVisualChangesState === AcceptVisualChangesTexts.NOT_ACCEPTED;
+
   return (
     <>
-      <PrimaryButton
-        disabled={disabled || shouldDisableAcceptVisualChangesButton}
-        onClick={handleDialogOpen}
+      <div
+        className="relative inline-block"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
       >
-        {acceptVisualChangesState}
-      </PrimaryButton>
+        <PrimaryButton
+          disabled={disabled || shouldDisableAcceptVisualChangesButton}
+          onClick={handleDialogOpen}
+        >
+          {acceptVisualChangesState}
+        </PrimaryButton>
+        {showReviewPopover && (
+          <div className="pointer-events-none absolute top-1/2 left-full ml-3 -translate-y-1/2 rounded-lg bg-slate-700 px-3 py-2 text-sm whitespace-nowrap text-white">
+            <div className="absolute top-1/2 right-full translate-x-px -translate-y-1/2 border-8 border-transparent border-r-slate-700" />
+            You must review all changes before accepting
+          </div>
+        )}
+      </div>
       <Transition appear show={dialogIsOpen}>
         <Dialog as="div" className="relative z-10" onClose={handleDialogClose}>
           <Transition.Child

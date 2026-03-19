@@ -95,11 +95,22 @@ describe('App', () => {
       cy.findByRole('button', { name: /side-by-side/i }).should('be.enabled');
     });
 
+    it('should disable accept visual changes button until all pages have been viewed', () => {
+      cy.findByRole('button', { name: 'Accept visual changes' }).should(
+        'be.disabled'
+      );
+      cy.findByRole('button', { name: /forward-arrow/ }).click();
+      cy.findByRole('button', { name: 'Accept visual changes' }).should(
+        'be.enabled'
+      );
+    });
+
     it('should display loader while updating base images', () => {
       cy.intercept('/trpc/acceptVisualChanges*', {
         body: mutationResponse,
         delay: 5000
       }).as('accept-visual-changes');
+      cy.findByRole('button', { name: /forward-arrow/ }).click();
       cy.findByRole('button', { name: 'Accept visual changes' }).click();
       cy.findByText(/Are you sure/i);
       cy.findByRole('button', { name: 'Accept' }).click();
@@ -108,6 +119,7 @@ describe('App', () => {
     });
 
     it('should accept visual changes', () => {
+      cy.findByRole('button', { name: /forward-arrow/ }).click();
       cy.findByRole('button', { name: 'Accept visual changes' }).click();
       cy.findByText(/Are you sure/i);
       cy.findByRole('button', { name: 'Accept' }).click();
@@ -116,6 +128,7 @@ describe('App', () => {
     });
 
     it('should do nothing if user cancels', () => {
+      cy.findByRole('button', { name: /forward-arrow/ }).click();
       cy.findByRole('button', { name: 'Accept visual changes' }).click();
       cy.findByText(/Are you sure/i);
       cy.findByRole('button', { name: /cancel/i }).click();
@@ -125,6 +138,8 @@ describe('App', () => {
     });
 
     it('should be able to accept visual changes and disable accept visual changes button after navigating between specs', () => {
+      cy.findByRole('button', { name: /forward-arrow/ }).click();
+      cy.findByRole('heading', { name: 'small/example' });
       cy.findByRole('button', { name: 'Accept visual changes' }).click();
       cy.findByText(/Are you sure/i);
       cy.findByRole('button', { name: 'Accept' }).click();
@@ -132,13 +147,13 @@ describe('App', () => {
       cy.findByRole('button', { name: /Visual changes accepted/i }).should(
         'be.disabled'
       );
-      cy.findByRole('button', { name: /forward-arrow/ }).click();
-      cy.findByRole('heading', { name: 'small/example' });
+      cy.findByRole('button', { name: /back-arrow/ }).click();
+      cy.findByRole('heading', { name: 'large/example' });
       cy.findByRole('button', { name: /Visual changes accepted/i }).should(
         'be.disabled'
       );
-      cy.findByRole('button', { name: /back-arrow/ }).click();
-      cy.findByRole('heading', { name: 'large/example' });
+      cy.findByRole('button', { name: /forward-arrow/ }).click();
+      cy.findByRole('heading', { name: 'small/example' });
       cy.findByRole('button', { name: /Visual changes accepted/i }).should(
         'be.disabled'
       );
@@ -149,6 +164,7 @@ describe('App', () => {
         statusCode: 403,
         body: acceptVisualChangesRejection
       }).as('accept-visual-changes');
+      cy.findByRole('button', { name: /forward-arrow/ }).click();
       cy.findByRole('button', { name: 'Accept visual changes' }).click();
       cy.findByText(/Are you sure/i);
       cy.findByRole('button', { name: 'Accept' }).click();
@@ -298,6 +314,7 @@ describe('App', () => {
     });
 
     it('should accept visual changes with use-base-images set to false', () => {
+      cy.findByRole('button', { name: /forward-arrow/ }).click();
       cy.findByRole('button', { name: 'Accept visual changes' }).click();
       cy.findByText(/Are you sure/i);
       cy.findByRole('button', { name: 'Accept' }).click();
