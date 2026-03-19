@@ -44,6 +44,10 @@ export const MainPage = ({
   const [viewType, setViewType] = React.useState<ImageView>();
   const [availableView, setAvailableView] = React.useState<AvailableView>();
   const [isNextPageReady, setIsNextPageReady] = React.useState(false);
+  const [visitedPages, setVisitedPages] = React.useState<Set<number>>(
+    new Set()
+  );
+  const [hasViewedAllPages, setHasViewedAllPages] = React.useState(false);
 
   const [searchParams] = useSearchParams();
   const params: Record<string, string | undefined> = Object.fromEntries(
@@ -68,6 +72,16 @@ export const MainPage = ({
   if (nextPageExists) {
     utils.fetchCurrentPage.prefetch({ hash, bucket, page: page + 1 });
   }
+
+  React.useEffect(() => {
+    if (data) {
+      const newVisitedPages = new Set([...visitedPages, page]);
+      setVisitedPages(newVisitedPages);
+      if (!data.nextPage && newVisitedPages.size >= page) {
+        setHasViewedAllPages(true);
+      }
+    }
+  }, [data, page]);
 
   React.useEffect(() => {
     preloadNextPage(data?.images).then(newViewType => {
@@ -134,7 +148,10 @@ export const MainPage = ({
         </div>
 
         <div className="mt-8">
-          <UpdateImagesButton disabled={isFetching} />
+          <UpdateImagesButton
+            disabled={isFetching || !hasViewedAllPages}
+            hasViewedAllPages={hasViewedAllPages}
+          />
         </div>
         <div className="mt-5">
           <ViewToggle
