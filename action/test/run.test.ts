@@ -430,6 +430,27 @@ describe('main', () => {
     expect(createCommentMock).not.toHaveBeenCalled();
   });
 
+  it('should not set successful commit status if latest Visual Regression status is failure and only new images were created', async () => {
+    execMock.mockResolvedValue(0);
+    globMock.mockResolvedValue([
+      'path/to/screenshots/newTest1/new.png',
+      'path/to/screenshots/newTest2/new.png'
+    ]);
+    listCommitStatusesForRefMock.mockImplementationOnce(() => ({
+      data: [
+        {
+          context: VISUAL_REGRESSION_CONTEXT,
+          created_at: '2023-05-21T16:51:29Z',
+          state: 'failure',
+          description: 'A visual regression was detected!'
+        }
+      ]
+    }));
+    await runAction();
+    expect(putObjectMock).toHaveBeenCalled();
+    expect(createCommitStatusMock).not.toHaveBeenCalled();
+  });
+
   it('should pass and upload base images if visual tests pass and only new images were created  with diff-id input', async () => {
     getInputMock.mockImplementation(name => diffIdInputMap[name]);
     execMock.mockResolvedValue(0);
