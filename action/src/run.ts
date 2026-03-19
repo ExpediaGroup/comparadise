@@ -159,7 +159,8 @@ export const run = async () => {
       `New visual tests found! ${newFileCount} images will be uploaded as new base images.`
     );
     await uploadBaseImages(newFilePaths);
-    if (!commitHash) return;
+    if (!commitHash || latestVisualRegressionStatus?.state === 'failure')
+      return;
     return octokit.rest.repos.createCommitStatus({
       sha: commitHash,
       context: VISUAL_REGRESSION_CONTEXT,
