@@ -276,6 +276,42 @@ describe('App', () => {
     });
   });
 
+  describe('forceUpdate param case', () => {
+    beforeEach(() => {
+      cy.intercept('/trpc/fetchCurrentPage*', req => {
+        const page = getPageFromRequest(req);
+        const body = page === 2 ? secondPage : firstPage;
+        req.reply(body);
+      });
+      cy.intercept('/trpc/acceptVisualChanges*', { body: mutationResponse }).as(
+        'accept-visual-changes'
+      );
+      cy.mount(
+        <MemoryRouter
+          initialEntries={[
+            '/?commitHash=123&bucket=bucket&repo=repo&owner=owner&forceUpdate=true'
+          ]}
+        >
+          <App />
+        </MemoryRouter>
+      );
+    });
+
+    it('should enable accept visual changes button without viewing all pages', () => {
+      cy.findByRole('button', { name: 'Accept visual changes' }).should(
+        'be.enabled'
+      );
+    });
+
+    it('should allow accepting visual changes without viewing all pages', () => {
+      cy.findByRole('button', { name: 'Accept visual changes' }).click();
+      cy.findByText(/Are you sure/i);
+      cy.findByRole('button', { name: 'Accept' }).click();
+      cy.wait('@accept-visual-changes');
+      cy.findByRole('button', { name: /Visual changes accepted/i });
+    });
+  });
+
   describe('diffId param case', () => {
     beforeEach(() => {
       cy.intercept('/trpc/fetchCurrentPage*', req => {
