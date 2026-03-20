@@ -53,7 +53,7 @@ export const MainPage = ({
   const params: Record<string, string | undefined> = Object.fromEntries(
     searchParams.entries()
   );
-  const { page: pageParam } = params;
+  const { page: pageParam, forceUpdate } = params;
 
   const page = Number(pageParam ?? 1);
   const { isLoading, data, isFetching, error } = trpc.fetchCurrentPage.useQuery(
@@ -154,7 +154,9 @@ export const MainPage = ({
         )}
         <div className="mt-8">
           <UpdateImagesButton
-            disabled={isFetching || !hasViewedAllPages}
+            disabled={
+              isFetching || (!hasViewedAllPages && forceUpdate !== 'true')
+            }
             hasViewedAllPages={hasViewedAllPages}
           />
         </div>
