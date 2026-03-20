@@ -73,6 +73,10 @@ function toBaseImagePaths(paths: string[], sourceDirectory: string) {
 export const getBaseImagePaths = (newImagePaths: string[]) =>
   toBaseImagePaths(newImagePaths, NEW_IMAGES_DIRECTORY);
 
+function encodeS3CopySource(bucket: string, key: string) {
+  return `${bucket}/${key.split('/').map(encodeURIComponent).join('/')}`;
+}
+
 async function copyImages(
   sourcePaths: string[],
   destPaths: string[],
@@ -86,7 +90,7 @@ async function copyImages(
       }
       await S3Client.copyObject({
         Bucket: bucket,
-        CopySource: `${bucket}/${copySource}`,
+        CopySource: encodeS3CopySource(bucket, copySource),
         Key: path,
         ACL: 'bucket-owner-full-control'
       });

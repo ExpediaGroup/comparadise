@@ -116,6 +116,18 @@ describe('acceptVisualChanges', () => {
       });
     });
 
+    it('should percent-encode special characters in CopySource key', async () => {
+      const expectedBucket = 'expected-bucket-name';
+      const keyWithPlus = `${pathPrefix}/SMALL/contacthostmodallayoutquery_+_traveller_qa_393x1200/new.png`;
+      await updateBaseImages([keyWithPlus], expectedBucket);
+      expect(copyObjectMock).toHaveBeenCalledWith({
+        Bucket: expectedBucket,
+        CopySource: `${expectedBucket}/${pathPrefix}/SMALL/contacthostmodallayoutquery_%2B_traveller_qa_393x1200/new.png`,
+        Key: `${BASE_IMAGES_DIRECTORY}/SMALL/contacthostmodallayoutquery_+_traveller_qa_393x1200/base.png`,
+        ACL: 'bucket-owner-full-control'
+      });
+    });
+
     it('should throw error if other required checks have not yet passed', async () => {
       listCommitStatusesForRefMock.mockImplementationOnce(() => ({
         data: [
