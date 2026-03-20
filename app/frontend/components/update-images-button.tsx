@@ -124,9 +124,9 @@ export const UpdateImagesButton: React.FC<{
     }
   };
 
-  const forceEnable = params.forceUpdate === 'true';
+  const forceUpdate = params.forceUpdate === 'true';
   const shouldDisableAcceptVisualChangesButton =
-    !forceEnable &&
+    !forceUpdate &&
     acceptVisualChangesState !== AcceptVisualChangesTexts.NOT_ACCEPTED;
 
   const showReviewPopover =
