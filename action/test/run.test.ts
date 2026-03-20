@@ -768,17 +768,37 @@ describe('main', () => {
     );
   });
 
-  it('should call warning instead of setFailed when visual tests fail for non-diff reason and visual-tests-isolated is false', async () => {
+  it('should call setFailed without setting commit status when visual tests fail for non-diff reason and visual-tests-isolated is false', async () => {
     execMock.mockResolvedValue(1);
     getBooleanInputMock.mockImplementation(name =>
       name === 'visual-tests-isolated' ? false : undefined
     );
     globMock.mockResolvedValue([]);
     await runAction();
-    expect(setFailedMock).not.toHaveBeenCalled();
-    expect(warningMock).toHaveBeenCalledWith(
+    expect(setFailedMock).toHaveBeenCalledWith(
       'The job failed, but this might not be due to visual tests.'
     );
+    expect(createCommitStatusMock).not.toHaveBeenCalled();
+  });
+
+  it('should call setFailed without setting commit status when visual-tests-isolated is false and 1 failure with multiple diffs', async () => {
+    execMock.mockResolvedValue(1);
+    getBooleanInputMock.mockImplementation(name =>
+      name === 'visual-tests-isolated' ? false : undefined
+    );
+    globMock.mockResolvedValue([
+      'path/to/screenshots/diff1.png',
+      'path/to/screenshots/new1.png',
+      'path/to/screenshots/diff2.png',
+      'path/to/screenshots/new2.png',
+      'path/to/screenshots/diff3.png',
+      'path/to/screenshots/new3.png'
+    ]);
+    await runAction();
+    expect(setFailedMock).toHaveBeenCalledWith(
+      'The job failed, but this might not be due to visual tests.'
+    );
+    expect(createCommitStatusMock).not.toHaveBeenCalled();
   });
 });
 

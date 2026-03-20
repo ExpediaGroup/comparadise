@@ -86,24 +86,23 @@ export const run = async () => {
 
   const visualTestsIsolated = getBooleanInput('visual-tests-isolated');
 
-  const visualTestsFailedForReasonOtherThanDiff =
-    numVisualTestFailures > diffFileCount;
-  if (visualTestsFailedForReasonOtherThanDiff) {
-    if (visualTestsIsolated) {
-      setFailed(
-        'Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?'
-      );
-      if (!commitHash) return;
-      return octokit.rest.repos.createCommitStatus({
-        sha: commitHash,
-        context: VISUAL_REGRESSION_CONTEXT,
-        state: 'failure',
-        description: VISUAL_TESTS_FAILED_TO_EXECUTE,
-        ...context.repo
-      });
-    } else {
-      warning('The job failed, but this might not be due to visual tests.');
-    }
+  if (visualTestsIsolated && numVisualTestFailures > diffFileCount) {
+    setFailed(
+      'Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?'
+    );
+    if (!commitHash) return;
+    return octokit.rest.repos.createCommitStatus({
+      sha: commitHash,
+      context: VISUAL_REGRESSION_CONTEXT,
+      state: 'failure',
+      description: VISUAL_TESTS_FAILED_TO_EXECUTE,
+      ...context.repo
+    });
+  }
+
+  if (!visualTestsIsolated && numVisualTestFailures > 0) {
+    setFailed('The job failed, but this might not be due to visual tests.');
+    return;
   }
 
   const latestVisualRegressionStatus = commitHash
