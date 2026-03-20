@@ -95,6 +95,12 @@ describe('App', () => {
       cy.findByRole('button', { name: /side-by-side/i }).should('be.enabled');
     });
 
+    it('should display the current page and total pages', () => {
+      cy.findByText('Change 1 of 2').should('be.visible');
+      cy.findByRole('button', { name: /forward-arrow/ }).click();
+      cy.findByText('Change 2 of 2').should('be.visible');
+    });
+
     it('should disable accept visual changes button until all pages have been viewed', () => {
       cy.findByRole('button', { name: 'Accept visual changes' }).should(
         'be.disabled'

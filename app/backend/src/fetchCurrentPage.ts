@@ -38,6 +38,7 @@ export const fetchCurrentPage = async ({
   return {
     title,
     images,
-    nextPage
+    nextPage,
+    totalPages: paginatedKeys.length
   };
 };

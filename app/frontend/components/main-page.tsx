@@ -147,6 +147,11 @@ export const MainPage = ({
           </button>
         </div>
 
+        {data?.totalPages && (
+          <p className="mt-4 text-xl font-semibold text-gray-500">
+            Change {page} of {data.totalPages}
+          </p>
+        )}
         <div className="mt-8">
           <UpdateImagesButton
             disabled={isFetching || !hasViewedAllPages}
