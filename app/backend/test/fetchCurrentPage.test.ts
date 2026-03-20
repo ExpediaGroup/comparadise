@@ -45,7 +45,8 @@ describe('fetchCurrentPage', () => {
           url: 'url'
         }
       ],
-      nextPage: 2
+      nextPage: 2,
+      totalPages: 3
     });
   });
 
@@ -63,7 +64,8 @@ describe('fetchCurrentPage', () => {
           url: 'url'
         }
       ],
-      nextPage: 3
+      nextPage: 3,
+      totalPages: 3
     });
   });
 
