@@ -89,10 +89,6 @@ async function uploadLocalDirectoryWithResize(
     )
   );
 
-  info(
-    `Uploading ${filesFromFailingTests.length} file(s) from ${localDir} to s3://${bucketName}/${s3Prefix}`
-  );
-
   await map(filesFromFailingTests, async file => {
     const localFilePath = path.join(localDir, file);
     const s3Key = path.join(s3Prefix, file);
@@ -107,9 +103,11 @@ async function uploadLocalDirectoryWithResize(
     });
   });
 
-  info(
-    `Uploaded ${filesFromFailingTests.length} file(s) to s3://${bucketName}/${s3Prefix}`
-  );
+  if (filesFromFailingTests.length) {
+    info(
+      `Uploaded ${filesFromFailingTests.length} file(s) to s3://${bucketName}/${s3Prefix}`
+    );
+  }
 }
 
 async function uploadSingleFile(
@@ -196,11 +194,6 @@ async function uploadOriginalNewPngs(
     nodir: true,
     absolute: false
   });
-
-  info(
-    `Uploading ${files.length} original new.png file(s) from ${localDir} to s3://${bucketName}/${s3Prefix}`
-  );
-
   await map(files, async file => {
     const localFilePath = path.join(localDir, file);
     const s3Key = path.join(s3Prefix, file);
