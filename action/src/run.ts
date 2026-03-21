@@ -152,10 +152,9 @@ export const run = async () => {
     `${diffFileCount} visual differences found, and ${newFileCount} new images found.`
   );
 
-  const pendingDescription =
-    diffFileCount > 0
-      ? 'A visual regression was detected. Check Comparadise!'
-      : 'New visual tests created. Check Comparadise!';
+  const newFileSuffix =
+    newFileCount > 0 ? ` and ${newFileCount} visual tests created` : '';
+  const pendingDescription = `${diffFileCount} diffs found${newFileSuffix}. Check Comparadise!`;
 
   await Promise.all([uploadAllImages(hash), uploadOriginalNewImages(hash)]);
   if (!commitHash) return;
@@ -167,7 +166,7 @@ export const run = async () => {
     target_url: buildComparadiseUrl(),
     ...context.repo
   });
-  await createGithubComment(diffFileCount);
+  await createGithubComment(pendingDescription);
 
   if (visualTestsIsolated && diffFileCount > 0) {
     setFailed(pendingDescription);

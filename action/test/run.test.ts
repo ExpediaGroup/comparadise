@@ -303,7 +303,8 @@ describe('main', () => {
       sha: 'sha',
       context: VISUAL_REGRESSION_CONTEXT,
       state: 'pending',
-      description: 'A visual regression was detected. Check Comparadise!',
+      description:
+        '1 diffs found and 1 visual tests created. Check Comparadise!',
       target_url:
         'https://comparadise.app/?commitHash=sha&owner=owner&repo=repo&bucket=some-bucket&useBaseImages=true'
     });
@@ -410,7 +411,7 @@ describe('main', () => {
     await runAction();
     expect(setFailedMock).not.toHaveBeenCalled();
     expect(warningMock).toHaveBeenCalledWith(
-      'New visual tests created. Check Comparadise!'
+      '0 diffs found and 2 visual tests created. Check Comparadise!'
     );
     expect(putObjectMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -423,7 +424,7 @@ describe('main', () => {
       sha: 'sha',
       context: VISUAL_REGRESSION_CONTEXT,
       state: 'pending',
-      description: 'New visual tests created. Check Comparadise!',
+      description: '0 diffs found and 2 visual tests created. Check Comparadise!',
       target_url:
         'https://comparadise.app/?commitHash=sha&owner=owner&repo=repo&bucket=some-bucket&useBaseImages=true'
     });
@@ -527,7 +528,7 @@ describe('main', () => {
       sha: 'sha',
       context: VISUAL_REGRESSION_CONTEXT,
       state: 'pending',
-      description: 'A visual regression was detected. Check Comparadise!',
+      description: '1 diffs found and 1 visual tests created. Check Comparadise!',
       target_url:
         'https://comparadise.app/?commitHash=sha&owner=owner&repo=repo&bucket=some-bucket&useBaseImages=false'
     });
@@ -717,10 +718,10 @@ describe('main', () => {
     ]);
     await runAction();
     expect(setFailedMock).toHaveBeenCalledWith(
-      'A visual regression was detected. Check Comparadise!'
+      '1 diffs found and 1 visual tests created. Check Comparadise!'
     );
     expect(warningMock).not.toHaveBeenCalledWith(
-      'A visual regression was detected. Check Comparadise!'
+      '1 diffs found and 1 visual tests created. Check Comparadise!'
     );
   });
 
@@ -735,10 +736,10 @@ describe('main', () => {
     ]);
     await runAction();
     expect(setFailedMock).not.toHaveBeenCalledWith(
-      'A visual regression was detected. Check Comparadise!'
+      '1 diffs found and 1 visual tests created. Check Comparadise!'
     );
     expect(warningMock).toHaveBeenCalledWith(
-      'A visual regression was detected. Check Comparadise!'
+      '1 diffs found and 1 visual tests created. Check Comparadise!'
     );
   });
 

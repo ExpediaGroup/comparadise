@@ -3,17 +3,14 @@ import { context } from '@actions/github';
 import { getInput, info } from '@actions/core';
 import { buildComparadiseUrl } from './build-comparadise-url';
 
-export const createGithubComment = async (diffFileCount: number) => {
+export const createGithubComment = async (pendingDescription: string) => {
   const commitHash = getInput('commit-hash', { required: true });
   const comparadiseHost = getInput('comparadise-host');
   const comparadiseUrl = buildComparadiseUrl();
   const comparadiseLink = comparadiseHost
     ? `[Comparadise](${comparadiseUrl})`
     : 'Comparadise';
-  const comparadiseBaseComment =
-    diffFileCount > 0
-      ? `**Visual tests failed!**\nCheck out the diffs in ${comparadiseLink}! :palm_tree:`
-      : `**New visual tests created!**\nCheck out the images in ${comparadiseLink}! :palm_tree:`;
+  const comparadiseBaseComment = `**${pendingDescription}**\nCheck out Comparadise: ${comparadiseLink} :palm_tree:`;
   const comparadiseCommentDetails = getInput('comment-details');
   const comparadiseComment = comparadiseCommentDetails
     ? `${comparadiseBaseComment}\n${comparadiseCommentDetails}`
