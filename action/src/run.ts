@@ -148,14 +148,11 @@ export const run = async () => {
     return;
   }
 
-  info(
-    `${diffFileCount} visual differences found, and ${newFileCount} new images found.`
-  );
-
   const newFileSuffix =
     newFileCount > 0 ? ` and ${newFileCount} visual tests created` : '';
   const pendingDescription = `${diffFileCount} diffs found${newFileSuffix}. Check Comparadise!`;
 
+  info(`${diffFileCount} visual differences found.`);
   await Promise.all([uploadAllImages(hash), uploadOriginalNewImages(hash)]);
   if (!commitHash) return;
   await octokit.rest.repos.createCommitStatus({
