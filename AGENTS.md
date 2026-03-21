@@ -18,7 +18,7 @@ This is an **Nx monorepo**. Run cross-package tasks with `nx` or `bunx nx`.
 - **Unit tests (action):** `bunx nx test action`
 - **Unit tests (backend):** `bunx nx test backend`
 - **Unit tests (comparadise-utils):** `bunx nx test comparadise-utils`
-- **Component (frontend):** Cypress — `bunx nx test frontend`
+- **Cypress component tests (frontend):** `bunx nx test frontend`
 
 Run only the tests relevant to your changes. Do not run E2E tests or start the app.
 
