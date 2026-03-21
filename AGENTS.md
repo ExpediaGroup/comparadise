@@ -13,11 +13,6 @@ Use **`bun`** exclusively. Never use `npm` or `yarn`.
 
 This is an **Nx monorepo**. Run cross-package tasks with `nx` or `bunx nx`.
 
-```bash
-bun install           # install all dependencies
-bunx nx affected --target=build,test   # build and test affected packages
-```
-
 ## Testing
 
 - **Unit tests (action):** `bunx nx test action`
