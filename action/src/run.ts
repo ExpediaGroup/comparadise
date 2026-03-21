@@ -149,10 +149,6 @@ export const run = async () => {
     return;
   }
 
-  info(
-    `${diffFileCount} visual differences found, and ${newFileCount} new images found.`
-  );
-
   if (diffFileCount === 0 && newFileCount > 0) {
     info(
       `New visual tests found! ${newFileCount} images will be uploaded as new base images.`
@@ -169,6 +165,7 @@ export const run = async () => {
     });
   }
 
+  info(`${diffFileCount} visual differences found.`);
   await Promise.all([uploadAllImages(hash), uploadOriginalNewImages(hash)]);
   if (!commitHash) return;
   await octokit.rest.repos.createCommitStatus({
