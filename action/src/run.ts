@@ -84,9 +84,9 @@ export const run = async () => {
 
   const newFileCount = newFilePaths.length;
 
-  const visualTestsIsolated = getBooleanInput('visual-tests-isolated');
+  const failOnVisualDiff = getBooleanInput('fail-on-visual-diff');
 
-  if (visualTestsIsolated && numVisualTestFailures > diffFileCount) {
+  if (failOnVisualDiff && numVisualTestFailures > diffFileCount) {
     setFailed(
       'Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?'
     );
@@ -100,8 +100,8 @@ export const run = async () => {
     });
   }
 
-  if (!visualTestsIsolated && numVisualTestFailures > 0) {
-    setFailed('The job failed, but this might not be due to visual tests.');
+  if (!failOnVisualDiff && numVisualTestFailures > 0) {
+    setFailed('The job failed, and this is not due to visual tests.');
     return;
   }
 
@@ -182,7 +182,7 @@ export const run = async () => {
   await createGithubComment();
 
   const diffMessage = 'A visual regression was detected. Check Comparadise!';
-  if (visualTestsIsolated) {
+  if (failOnVisualDiff) {
     setFailed(diffMessage);
   } else {
     warning(diffMessage);
