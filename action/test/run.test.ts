@@ -424,7 +424,8 @@ describe('main', () => {
       sha: 'sha',
       context: VISUAL_REGRESSION_CONTEXT,
       state: 'pending',
-      description: '0 diffs found and 2 visual tests created. Check Comparadise!',
+      description:
+        '0 diffs found and 2 visual tests created. Check Comparadise!',
       target_url:
         'https://comparadise.app/?commitHash=sha&owner=owner&repo=repo&bucket=some-bucket&useBaseImages=true'
     });
@@ -528,7 +529,8 @@ describe('main', () => {
       sha: 'sha',
       context: VISUAL_REGRESSION_CONTEXT,
       state: 'pending',
-      description: '1 diffs found and 1 visual tests created. Check Comparadise!',
+      description:
+        '1 diffs found and 1 visual tests created. Check Comparadise!',
       target_url:
         'https://comparadise.app/?commitHash=sha&owner=owner&repo=repo&bucket=some-bucket&useBaseImages=false'
     });
