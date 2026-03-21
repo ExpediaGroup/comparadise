@@ -84,9 +84,9 @@ export const run = async () => {
 
   const newFileCount = newFilePaths.length;
 
-  const failOnVisualDiff = getBooleanInput('fail-on-visual-diff');
+  const visualTestCommandFailsOnDiff = getBooleanInput('visual-test-command-fails-on-diff');
 
-  if (failOnVisualDiff && numVisualTestFailures > diffFileCount) {
+  if (visualTestCommandFailsOnDiff && numVisualTestFailures > diffFileCount) {
     setFailed(
       'Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?'
     );
@@ -100,7 +100,7 @@ export const run = async () => {
     });
   }
 
-  if (!failOnVisualDiff && numVisualTestFailures > 0) {
+  if (!visualTestCommandFailsOnDiff && numVisualTestFailures > 0) {
     setFailed('The job failed, and this is not due to visual tests.');
     return;
   }
@@ -182,7 +182,7 @@ export const run = async () => {
   await createGithubComment();
 
   const diffMessage = 'A visual regression was detected. Check Comparadise!';
-  if (failOnVisualDiff) {
+  if (visualTestCommandFailsOnDiff) {
     setFailed(diffMessage);
   } else {
     warning(diffMessage);

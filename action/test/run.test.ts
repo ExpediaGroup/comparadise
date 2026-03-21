@@ -164,7 +164,7 @@ describe('main', () => {
     getInputMock.mockImplementation(name => inputMap[name]);
 
     getBooleanInputMock.mockImplementation(name =>
-      name === 'fail-on-visual-diff' ? true : undefined
+      name === 'visual-test-command-fails-on-diff' ? true : undefined
     );
 
     const multiLineInputMap: Record<string, string[]> = {
@@ -732,10 +732,10 @@ describe('main', () => {
     expect(createCommitStatusMock).toHaveBeenCalled();
   });
 
-  it('should call setFailed with the diff message when fail-on-visual-diff is true', async () => {
+  it('should call setFailed with the diff message when visual-test-command-fails-on-diff is true', async () => {
     execMock.mockResolvedValue(0);
     getBooleanInputMock.mockImplementation(name =>
-      name === 'fail-on-visual-diff' ? true : undefined
+      name === 'visual-test-command-fails-on-diff' ? true : undefined
     );
     globMock.mockResolvedValue([
       'path/to/screenshots/diff.png',
@@ -750,10 +750,10 @@ describe('main', () => {
     );
   });
 
-  it('should call warning instead of setFailed when fail-on-visual-diff is false', async () => {
+  it('should call warning instead of setFailed when visual-test-command-fails-on-diff is false', async () => {
     execMock.mockResolvedValue(0);
     getBooleanInputMock.mockImplementation(name =>
-      name === 'fail-on-visual-diff' ? false : undefined
+      name === 'visual-test-command-fails-on-diff' ? false : undefined
     );
     globMock.mockResolvedValue([
       'path/to/screenshots/diff.png',
@@ -768,10 +768,10 @@ describe('main', () => {
     );
   });
 
-  it('should call setFailed without setting commit status when visual tests fail for non-diff reason and fail-on-visual-diff is false', async () => {
+  it('should call setFailed without setting commit status when visual tests fail for non-diff reason and visual-test-command-fails-on-diff is false', async () => {
     execMock.mockResolvedValue(1);
     getBooleanInputMock.mockImplementation(name =>
-      name === 'fail-on-visual-diff' ? false : undefined
+      name === 'visual-test-command-fails-on-diff' ? false : undefined
     );
     globMock.mockResolvedValue([]);
     await runAction();
@@ -781,10 +781,10 @@ describe('main', () => {
     expect(createCommitStatusMock).not.toHaveBeenCalled();
   });
 
-  it('should call setFailed without setting commit status when fail-on-visual-diff is false and 1 failure with multiple diffs', async () => {
+  it('should call setFailed without setting commit status when visual-test-command-fails-on-diff is false and 1 failure with multiple diffs', async () => {
     execMock.mockResolvedValue(1);
     getBooleanInputMock.mockImplementation(name =>
-      name === 'fail-on-visual-diff' ? false : undefined
+      name === 'visual-test-command-fails-on-diff' ? false : undefined
     );
     globMock.mockResolvedValue([
       'path/to/screenshots/diff1.png',
