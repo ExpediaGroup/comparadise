@@ -10,7 +10,7 @@ export const createGithubComment = async (pendingDescription: string) => {
   const comparadiseLink = comparadiseHost
     ? `[Comparadise](${comparadiseUrl})`
     : 'Comparadise';
-  const comparadiseBaseComment = `**${pendingDescription}**\nCheck out Comparadise: ${comparadiseLink} :palm_tree:`;
+  const comparadiseBaseComment = `**${pendingDescription}**\nCheck out ${comparadiseLink}! :palm_tree:`;
   const comparadiseCommentDetails = getInput('comment-details');
   const comparadiseComment = comparadiseCommentDetails
     ? `${comparadiseBaseComment}\n${comparadiseCommentDetails}`
