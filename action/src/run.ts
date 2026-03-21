@@ -149,8 +149,10 @@ export const run = async () => {
   }
 
   const newFileSuffix =
-    newFileCount > 0 ? ` and ${newFileCount} visual tests created` : '';
-  const pendingDescription = `${diffFileCount} diffs found${newFileSuffix}. Check Comparadise!`;
+    newFileCount > 0
+      ? ` and ${newFileCount} visual ${newFileCount === 1 ? 'test' : 'tests'} created`
+      : '';
+  const pendingDescription = `${diffFileCount} visual ${diffFileCount === 1 ? 'diff' : 'diffs'} found${newFileSuffix}.`;
 
   info(`${diffFileCount} visual differences found.`);
   await Promise.all([uploadAllImages(hash), uploadOriginalNewImages(hash)]);
