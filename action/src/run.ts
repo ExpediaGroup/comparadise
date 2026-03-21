@@ -160,7 +160,7 @@ export const run = async () => {
       sha: commitHash,
       context: VISUAL_REGRESSION_CONTEXT,
       state: 'success',
-      description: 'New base images were created, and no visual diffs found.',
+      description: 'New base images were created!',
       ...context.repo
     });
   }
