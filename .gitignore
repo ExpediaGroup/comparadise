@@ -33,5 +33,5 @@ app/frontend/cypress/videos
 
 .nx/
 
-# Claude Code worktrees
-.claude/worktrees/
+# Claude Code worktrees                                                                                                                                                                                                        
+.claude/worktrees/  
