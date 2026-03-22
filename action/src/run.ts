@@ -84,7 +84,9 @@ export const run = async () => {
 
   const newFileCount = newFilePaths.length;
 
-  const visualTestCommandFailsOnDiff = getBooleanInput('visual-test-command-fails-on-diff');
+  const visualTestCommandFailsOnDiff = getBooleanInput(
+    'visual-test-command-fails-on-diff'
+  );
 
   if (visualTestCommandFailsOnDiff && numVisualTestFailures > diffFileCount) {
     setFailed(
