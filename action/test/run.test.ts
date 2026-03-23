@@ -62,8 +62,24 @@ mock.module('fs/promises', () => ({
 const listObjectsMock = mock();
 const getObjectMock = mock();
 const putObjectMock = mock();
+const listAllObjects = async (
+  input: { Bucket: string; Prefix: string },
+  continuationToken?: string
+): Promise<{ Key?: string }[]> => {
+  const response = await listObjectsMock({
+    ...input,
+    ...(continuationToken && { ContinuationToken: continuationToken })
+  });
+  const contents = response.Contents ?? [];
+  if (!response.IsTruncated) return contents;
+  return [
+    ...contents,
+    ...(await listAllObjects(input, response.NextContinuationToken))
+  ];
+};
 mock.module('../src/s3-client', () => ({
   listObjects: listObjectsMock,
+  listAllObjects,
   getObject: getObjectMock,
   putObject: putObjectMock
 }));
@@ -875,6 +891,41 @@ describe('s3-operations', () => {
       await downloadBaseImages();
 
       expect(createWriteStreamMock).not.toHaveBeenCalled();
+    });
+
+    it('should download all base images across multiple pages when results are truncated', async () => {
+      // checkS3PrefixExists → prefix exists
+      listObjectsMock.mockResolvedValueOnce({
+        Contents: [{ Key: 'base-images/component/base.png' }]
+      });
+      // downloadS3Directory → first page (truncated)
+      listObjectsMock.mockResolvedValueOnce({
+        Contents: [{ Key: 'base-images/component1/base.png' }],
+        IsTruncated: true,
+        NextContinuationToken: 'token-1'
+      });
+      // downloadS3Directory → second page (last)
+      listObjectsMock.mockResolvedValueOnce({
+        Contents: [{ Key: 'base-images/component2/base.png' }],
+        IsTruncated: false
+      });
+      getObjectMock.mockResolvedValue({ Body: new MockReadable() });
+
+      const { downloadBaseImages } = await getS3Operations();
+      await downloadBaseImages();
+
+      expect(listObjectsMock).toHaveBeenCalledWith(
+        expect.objectContaining({ ContinuationToken: 'token-1' })
+      );
+      expect(getObjectMock).toHaveBeenCalledTimes(2);
+      expect(getObjectMock).toHaveBeenCalledWith({
+        Bucket: 'test-bucket',
+        Key: 'base-images/component1/base.png'
+      });
+      expect(getObjectMock).toHaveBeenCalledWith({
+        Bucket: 'test-bucket',
+        Key: 'base-images/component2/base.png'
+      });
     });
 
     it('should download from each package path subdirectory when package-paths is set', async () => {
