@@ -19,10 +19,11 @@ mock.module('../src/build-comparadise-url', () => ({
   buildComparadiseUrl: buildComparadiseUrlMock
 }));
 
-const listPullRequestsAssociatedWithCommitMock = mock(() => ({
-  data: [{ number: 123 }]
-}));
-const listCommentsMock = mock(() => ({ data: [] }));
+const listPullRequestsAssociatedWithCommitMock = mock<
+  () => Promise<{ data: Array<{ number: number }> }>
+>(() => Promise.resolve({ data: [{ number: 123 }] }));
+const listCommentsMock =
+  mock<() => Promise<{ data: Array<{ id: number; body: string | null }> }>>();
 const createCommentMock = mock();
 const updateCommentMock = mock();
 const deleteCommentMock = mock();
