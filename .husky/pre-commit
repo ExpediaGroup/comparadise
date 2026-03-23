@@ -1,2 +1,3 @@
-bun format && git add .
+bun format
 nx build action
+git add .

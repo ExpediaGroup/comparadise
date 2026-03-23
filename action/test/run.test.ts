@@ -319,7 +319,7 @@ describe('main', () => {
       sha: 'sha',
       context: VISUAL_REGRESSION_CONTEXT,
       state: 'pending',
-      description: '1 visual diff found and 1 visual test created.',
+      description: '1 visual diff found.',
       target_url:
         'https://comparadise.app/?commitHash=sha&owner=owner&repo=repo&bucket=some-bucket&useBaseImages=true'
     });
@@ -543,7 +543,7 @@ describe('main', () => {
       sha: 'sha',
       context: VISUAL_REGRESSION_CONTEXT,
       state: 'pending',
-      description: '1 visual diff found and 1 visual test created.',
+      description: '1 visual diff found.',
       target_url:
         'https://comparadise.app/?commitHash=sha&owner=owner&repo=repo&bucket=some-bucket&useBaseImages=false'
     });
@@ -732,12 +732,8 @@ describe('main', () => {
       'path/to/screenshots/new.png'
     ]);
     await runAction();
-    expect(setFailedMock).toHaveBeenCalledWith(
-      '1 visual diff found and 1 visual test created.'
-    );
-    expect(warningMock).not.toHaveBeenCalledWith(
-      '1 visual diff found and 1 visual test created.'
-    );
+    expect(setFailedMock).toHaveBeenCalledWith('1 visual diff found.');
+    expect(warningMock).not.toHaveBeenCalledWith('1 visual diff found.');
   });
 
   it('should call warning instead of setFailed when visual-test-command-fails-on-diff is false', async () => {
@@ -750,12 +746,8 @@ describe('main', () => {
       'path/to/screenshots/new.png'
     ]);
     await runAction();
-    expect(setFailedMock).not.toHaveBeenCalledWith(
-      '1 visual diff found and 1 visual test created.'
-    );
-    expect(warningMock).toHaveBeenCalledWith(
-      '1 visual diff found and 1 visual test created.'
-    );
+    expect(setFailedMock).not.toHaveBeenCalledWith('1 visual diff found.');
+    expect(warningMock).toHaveBeenCalledWith('1 visual diff found.');
   });
 
   it('should call setFailed without setting commit status when visual tests fail for non-diff reason and visual-test-command-fails-on-diff is false', async () => {

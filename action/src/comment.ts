@@ -10,7 +10,8 @@ export const createGithubComment = async (pendingDescription: string) => {
   const comparadiseLink = comparadiseHost
     ? `[Comparadise](${comparadiseUrl})`
     : 'Comparadise';
-  const comparadiseBaseComment = `**${pendingDescription}**\nCheck ${comparadiseLink}! :palm_tree:`;
+  const packagePaths = getInput('package-paths')?.split(',').filter(Boolean);
+  const comparadiseBaseComment = `##Package paths: ${packagePaths}\n\n**${pendingDescription}**\n\nCheck ${comparadiseLink}! :palm_tree:`;
   const comparadiseCommentDetails = getInput('comment-details');
   const comparadiseComment = comparadiseCommentDetails
     ? `${comparadiseBaseComment}\n${comparadiseCommentDetails}`
@@ -31,11 +32,18 @@ export const createGithubComment = async (pendingDescription: string) => {
     issue_number: prNumber,
     ...context.repo
   });
-  const githubActionsCommentBodies = comments.map(comment => comment.body);
-  const comparadiseCommentExists = githubActionsCommentBodies.some(body =>
-    body?.includes(comparadiseBaseComment)
+
+  const existingComment = comments.find(comment =>
+    comment.body?.includes(comparadiseBaseComment)
   );
-  if (!comparadiseCommentExists) {
+
+  if (existingComment) {
+    await octokit.rest.issues.updateComment({
+      comment_id: existingComment.id,
+      body: comparadiseComment,
+      ...context.repo
+    });
+  } else {
     await octokit.rest.issues.createComment({
       body: comparadiseComment,
       issue_number: prNumber,
