@@ -8,7 +8,6 @@ import {
 } from '@actions/core';
 import {
   downloadBaseImages,
-  uploadBaseImages,
   uploadAllImages,
   uploadOriginalNewImages
 } from './s3-operations';
@@ -149,21 +148,11 @@ export const run = async () => {
     return;
   }
 
-  if (diffFileCount === 0 && newFileCount > 0) {
-    info(
-      `New visual tests found! ${newFileCount} images will be uploaded as new base images.`
-    );
-    await uploadBaseImages(newFilePaths);
-    if (!commitHash || latestVisualRegressionStatus?.state === 'failure')
-      return;
-    return octokit.rest.repos.createCommitStatus({
-      sha: commitHash,
-      context: VISUAL_REGRESSION_CONTEXT,
-      state: 'success',
-      description: 'New base images were created!',
-      ...context.repo
-    });
-  }
+  const newFileSuffix =
+    newFileCount > 0
+      ? ` and ${newFileCount} visual ${newFileCount === 1 ? 'test' : 'tests'} created`
+      : '';
+  const pendingDescription = `${diffFileCount} visual ${diffFileCount === 1 ? 'diff' : 'diffs'} found${newFileSuffix}.`;
 
   info(`${diffFileCount} visual differences found.`);
   await Promise.all([uploadAllImages(hash), uploadOriginalNewImages(hash)]);
@@ -172,16 +161,15 @@ export const run = async () => {
     sha: commitHash,
     context: VISUAL_REGRESSION_CONTEXT,
     state: 'pending',
-    description: 'A visual regression was detected. Check Comparadise!',
+    description: pendingDescription,
     target_url: buildComparadiseUrl(),
     ...context.repo
   });
-  await createGithubComment();
+  await createGithubComment(pendingDescription);
 
-  const diffMessage = 'A visual regression was detected. Check Comparadise!';
-  if (visualTestsIsolated) {
-    setFailed(diffMessage);
+  if (visualTestsIsolated && diffFileCount > 0) {
+    setFailed(pendingDescription);
   } else {
-    warning(diffMessage);
+    warning(pendingDescription);
   }
 };
