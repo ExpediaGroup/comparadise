@@ -33,25 +33,6 @@ export const createGithubComment = async (pendingDescription: string) => {
     ...context.repo
   });
 
-  if (comparadiseHost) {
-    const staleComments = comments.filter(comment => {
-      const body = comment.body ?? '';
-      return (
-        body.includes(comparadiseHost) &&
-        body.includes('commitHash=') &&
-        !body.includes(`commitHash=${commitHash}`)
-      );
-    });
-    await Promise.all(
-      staleComments.map(comment =>
-        octokit.rest.issues.deleteComment({
-          comment_id: comment.id,
-          ...context.repo
-        })
-      )
-    );
-  }
-
   const existingComment = comments.find(comment =>
     comment.body?.includes(comparadiseBaseComment)
   );
