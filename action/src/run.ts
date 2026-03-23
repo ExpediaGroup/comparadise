@@ -150,9 +150,10 @@ export const run = async () => {
     return;
   }
 
+  const newVisualTestCount = newFileCount - diffFileCount;
   const newFileSuffix =
-    newFileCount > 0
-      ? ` and ${newFileCount} visual ${newFileCount === 1 ? 'test' : 'tests'} created`
+    newVisualTestCount > 0
+      ? ` and ${newVisualTestCount} visual ${newVisualTestCount === 1 ? 'test' : 'tests'} created`
       : '';
   const pendingDescription = `${diffFileCount} visual ${diffFileCount === 1 ? 'diff' : 'diffs'} found${newFileSuffix}.`;
 
