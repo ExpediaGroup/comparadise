@@ -162,7 +162,7 @@ export const run = async () => {
   const packageResults: PackageResult[] =
     packagePaths.length > 0
       ? packagePaths.map(pkg => {
-          const prefix = path.join(screenshotsPath, pkg);
+          const prefix = path.join(screenshotsDirectory, pkg);
           const pkgDiffCount = diffFilePaths.filter(f =>
             f.startsWith(prefix)
           ).length;
