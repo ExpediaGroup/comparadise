@@ -7,7 +7,7 @@ COPY --chown=admin . .
 USER admin
 
 RUN bun install --production --filter app
-RUN bun --filter app run build
+RUN bun --filter app build
 
 ENV PORT=8080
 CMD [ "bun", "--filter", "app", "start" ]
