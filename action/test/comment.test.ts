@@ -197,6 +197,23 @@ describe('createGithubComment', () => {
       expect(body).toContain('| packages/mobile | 0 | 3 |');
     });
 
+    it('should exclude rows where both visual diffs and new visual test counts are zero', async () => {
+      listCommentsMock.mockResolvedValue({ data: [] });
+
+      const packagesWithZeroRow: PackageResult[] = [
+        { packagePath: 'packages/web', diffCount: 2, newTestCount: 1 },
+        { packagePath: 'packages/mobile', diffCount: 0, newTestCount: 0 }
+      ];
+      await runCreateGithubComment(
+        '2 visual diffs found.',
+        packagesWithZeroRow
+      );
+
+      const body: string = createCommentMock.mock.calls[0]![0].body;
+      expect(body).toContain('| packages/web | 2 | 1 |');
+      expect(body).not.toContain('| packages/mobile | 0 | 0 |');
+    });
+
     it('should include pendingDescription as text after the heading', async () => {
       listCommentsMock.mockResolvedValue({ data: [] });
 

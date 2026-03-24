@@ -21,17 +21,20 @@ const buildHashMarker = (commitHash: string) =>
 
 const buildTable = (packageResults: PackageResult[]): string => {
   const hasPackages = packageResults.some(r => r.packagePath !== '');
+  const filteredResults = packageResults.filter(
+    r => r.diffCount !== 0 || r.newTestCount !== 0
+  );
   if (hasPackages) {
     const header =
       '| Package | Visual Diffs | New Visual Tests |\n|---------|-------------|-----------------|';
-    const rows = packageResults
+    const rows = filteredResults
       .map(r => `| ${r.packagePath} | ${r.diffCount} | ${r.newTestCount} |`)
       .join('\n');
     return `${header}\n${rows}`;
   }
   const header =
     '| Visual Diffs | New Visual Tests |\n|-------------|-----------------|';
-  const result = packageResults[0];
+  const result = filteredResults[0];
   const row = result ? `| ${result.diffCount} | ${result.newTestCount} |` : '';
   return `${header}\n${row}`;
 };
