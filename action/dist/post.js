@@ -24846,7 +24846,7 @@ var te = class extends Mt {
     this.src.removeListener("error", this.proxyErrors), super.unpipe();
   }
   constructor(t, e, s) {
-    super(t, e, s), this.proxyErrors = (i) => e.emit("error", i), t.on("error", this.proxyErrors);
+    super(t, e, s), this.proxyErrors = (i) => this.dest.emit("error", i), t.on("error", this.proxyErrors);
   }
 };
 var di = (n2) => !!n2.objectMode;
@@ -25122,7 +25122,7 @@ var V = class extends ee {
       });
     }, throw: e, return: e, [Symbol.asyncIterator]() {
       return this;
-    } };
+    }, [Symbol.asyncDispose]: async () => {} };
   }
   [Symbol.iterator]() {
     this[M] = false;
@@ -25134,7 +25134,7 @@ var V = class extends ee {
     };
     return this.once("end", e), this.once(Xt, e), this.once(x, e), { next: s, throw: e, return: e, [Symbol.iterator]() {
       return this;
-    } };
+    }, [Symbol.dispose]: () => {} };
   }
   destroy(t) {
     if (this[x])
@@ -26619,5 +26619,5 @@ post().catch((error2) => {
   console.error("Post step failed:", error2);
 });
 
-//# debugId=A945C779994A7D1D64756E2164756E21
+//# debugId=74E3E3EAF6D19C4B64756E2164756E21
 //# sourceMappingURL=post.js.map
