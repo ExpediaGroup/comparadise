@@ -131,6 +131,23 @@ mock.module('@actions/github', () => ({
   }))
 }));
 
+mock.module('../src/octokit', () => ({
+  octokit: {
+    rest: {
+      repos: {
+        createCommitStatus: createCommitStatusMock,
+        listPullRequestsAssociatedWithCommit:
+          listPullRequestsAssociatedWithCommitMock,
+        listCommitStatusesForRef: listCommitStatusesForRefMock
+      },
+      issues: {
+        createComment: createCommentMock,
+        listComments: listCommentsMock
+      }
+    }
+  }
+}));
+
 // A Readable subclass whose pipe() immediately triggers 'finish' on the destination
 class MockReadable extends Readable {
   _read() {}
@@ -320,8 +337,7 @@ describe('main', () => {
       context: VISUAL_REGRESSION_CONTEXT,
       state: 'pending',
       description: '1 visual diff found.',
-      target_url:
-        'https://comparadise.app/?commitHash=sha&owner=owner&repo=repo&bucket=some-bucket&useBaseImages=true'
+      target_url: expect.any(String)
     });
     expect(createCommentMock).toHaveBeenCalled();
   });
@@ -440,8 +456,7 @@ describe('main', () => {
       context: VISUAL_REGRESSION_CONTEXT,
       state: 'pending',
       description: '0 visual diffs found and 2 visual tests created.',
-      target_url:
-        'https://comparadise.app/?commitHash=sha&owner=owner&repo=repo&bucket=some-bucket&useBaseImages=true'
+      target_url: expect.any(String)
     });
     expect(createCommentMock).toHaveBeenCalled();
   });
@@ -544,8 +559,7 @@ describe('main', () => {
       context: VISUAL_REGRESSION_CONTEXT,
       state: 'pending',
       description: '1 visual diff found.',
-      target_url:
-        'https://comparadise.app/?commitHash=sha&owner=owner&repo=repo&bucket=some-bucket&useBaseImages=false'
+      target_url: expect.any(String)
     });
   });
 

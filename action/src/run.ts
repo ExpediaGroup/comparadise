@@ -17,7 +17,7 @@ import { context } from '@actions/github';
 import * as path from 'path';
 import { glob } from 'glob';
 import { unlinkSync } from 'fs';
-import { createGithubComment } from './comment';
+import { createGithubComment, PackageResult } from './comment';
 import { getLatestVisualRegressionStatus } from './get-latest-visual-regression-status';
 import {
   VISUAL_REGRESSION_CONTEXT,
@@ -157,6 +157,32 @@ export const run = async () => {
       : '';
   const pendingDescription = `${diffFileCount} visual ${diffFileCount === 1 ? 'diff' : 'diffs'} found${newFileSuffix}.`;
 
+  const packagePaths =
+    getInput('package-paths')?.split(',').filter(Boolean) ?? [];
+  const packageResults: PackageResult[] =
+    packagePaths.length > 0
+      ? packagePaths.map(pkg => {
+          const prefix = path.join(screenshotsPath, pkg);
+          const pkgDiffCount = diffFilePaths.filter(f =>
+            f.startsWith(prefix)
+          ).length;
+          const pkgNewCount = newFilePaths.filter(f =>
+            f.startsWith(prefix)
+          ).length;
+          return {
+            packagePath: pkg,
+            diffCount: pkgDiffCount,
+            newTestCount: pkgNewCount - pkgDiffCount
+          };
+        })
+      : [
+          {
+            packagePath: '',
+            diffCount: diffFileCount,
+            newTestCount: newVisualTestCount
+          }
+        ];
+
   info(`${diffFileCount} visual differences found.`);
   await Promise.all([uploadAllImages(hash), uploadOriginalNewImages(hash)]);
   if (!commitHash) return;
@@ -168,7 +194,7 @@ export const run = async () => {
     target_url: buildComparadiseUrl(),
     ...context.repo
   });
-  await createGithubComment(pendingDescription);
+  await createGithubComment(pendingDescription, packageResults);
 
   if (visualTestCommandFailsOnDiff && diffFileCount > 0) {
     setFailed(pendingDescription);

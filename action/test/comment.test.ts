@@ -1,8 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
+import type { PackageResult } from '../src/comment';
 
 const getInputMock = mock();
 mock.module('@actions/core', () => ({
   info: mock(),
+  warning: mock(),
+  setFailed: mock(),
+  getBooleanInput: mock(),
+  getMultilineInput: mock(),
   getInput: getInputMock
 }));
 
@@ -49,13 +54,23 @@ const currentUrl = `${HOST}/?commitHash=${CURRENT_SHA}&owner=owner&repo=repo&buc
 const inputMap: Record<string, string> = {
   'commit-hash': CURRENT_SHA,
   'comparadise-host': HOST,
-  'package-paths': '',
   'comment-details': ''
 };
 
-async function runCreateGithubComment(pendingDescription = 'Review pending') {
+const NO_PACKAGES: PackageResult[] = [
+  { packagePath: '', diffCount: 2, newTestCount: 1 }
+];
+const WITH_PACKAGES: PackageResult[] = [
+  { packagePath: 'packages/web', diffCount: 2, newTestCount: 1 },
+  { packagePath: 'packages/mobile', diffCount: 0, newTestCount: 3 }
+];
+
+async function runCreateGithubComment(
+  pendingDescription = 'Review pending',
+  packageResults: PackageResult[] = NO_PACKAGES
+) {
   const { createGithubComment } = await import('../src/comment');
-  await createGithubComment(pendingDescription);
+  await createGithubComment(pendingDescription, packageResults);
 }
 
 describe('createGithubComment', () => {
@@ -73,39 +88,71 @@ describe('createGithubComment', () => {
     it('should create a new comment when no existing comment is found', async () => {
       listCommentsMock.mockResolvedValue({ data: [] });
 
-      await runCreateGithubComment('Review pending');
+      await runCreateGithubComment();
 
       expect(createCommentMock).toHaveBeenCalledTimes(1);
       expect(updateCommentMock).not.toHaveBeenCalled();
     });
 
-    it('should update an existing comment when the base comment text matches', async () => {
-      const existingBody = `## Package paths: \n\n**Review pending**\n\nCheck [Comparadise](${currentUrl})! :palm_tree:`;
+    it('should append rows to existing comment when commit hash matches', async () => {
+      const existingBody = [
+        '<!-- comparadise -->',
+        `<!-- comparadise-hash:${CURRENT_SHA} -->`,
+        '## Visual Test Results',
+        'Review pending',
+        '',
+        '| Visual Diffs | New Visual Tests |',
+        '|-------------|-----------------|',
+        '| 1 | 0 |',
+        '<!-- comparadise-table-end -->',
+        '',
+        `Check [Comparadise](${currentUrl})! :palm_tree:`
+      ].join('\n');
+
       listCommentsMock.mockResolvedValue({
         data: [{ id: 42, body: existingBody }]
       });
 
-      await runCreateGithubComment('Review pending');
+      await runCreateGithubComment('Review pending', [
+        { packagePath: '', diffCount: 2, newTestCount: 1 }
+      ]);
 
-      expect(updateCommentMock).toHaveBeenCalledWith({
-        comment_id: 42,
-        body: existingBody,
-        owner: 'owner',
-        repo: 'repo'
-      });
+      expect(updateCommentMock).toHaveBeenCalledTimes(1);
       expect(createCommentMock).not.toHaveBeenCalled();
+      const updatedBody: string = updateCommentMock.mock.calls[0]![0].body;
+      expect(updatedBody).toContain('| 1 | 0 |');
+      expect(updatedBody).toContain('| 2 | 1 |');
+      expect(updatedBody).toContain('<!-- comparadise-table-end -->');
     });
 
-    it('should create rather than update when the description has changed', async () => {
-      const existingBody = `## Package paths: \n\n**1 diff found**\n\nCheck [Comparadise](${currentUrl})! :palm_tree:`;
+    it('should replace existing comment when commit hash differs', async () => {
+      const existingBody = [
+        '<!-- comparadise -->',
+        '<!-- comparadise-hash:oldhash -->',
+        '## Visual Test Results',
+        'Old description',
+        '',
+        '| Visual Diffs | New Visual Tests |',
+        '|-------------|-----------------|',
+        '| 5 | 0 |',
+        '<!-- comparadise-table-end -->',
+        '',
+        `Check [Comparadise](${currentUrl})! :palm_tree:`
+      ].join('\n');
+
       listCommentsMock.mockResolvedValue({
-        data: [{ id: 7, body: existingBody }]
+        data: [{ id: 99, body: existingBody }]
       });
 
-      await runCreateGithubComment('2 diffs found');
+      await runCreateGithubComment('New description');
 
-      expect(createCommentMock).toHaveBeenCalledTimes(1);
-      expect(updateCommentMock).not.toHaveBeenCalled();
+      expect(updateCommentMock).toHaveBeenCalledTimes(1);
+      expect(createCommentMock).not.toHaveBeenCalled();
+      const updatedBody: string = updateCommentMock.mock.calls[0]![0].body;
+      expect(updatedBody).toContain(`<!-- comparadise-hash:${CURRENT_SHA} -->`);
+      expect(updatedBody).not.toContain('<!-- comparadise-hash:oldhash -->');
+      expect(updatedBody).toContain('New description');
+      expect(updatedBody).not.toContain('| 5 | 0 |');
     });
 
     it('should skip all comment operations when no PR number is found', async () => {
@@ -119,6 +166,60 @@ describe('createGithubComment', () => {
       expect(listCommentsMock).not.toHaveBeenCalled();
       expect(createCommentMock).not.toHaveBeenCalled();
       expect(updateCommentMock).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('table format', () => {
+    it('should render a 2-column table when no package paths are given', async () => {
+      listCommentsMock.mockResolvedValue({ data: [] });
+
+      await runCreateGithubComment('2 visual diffs found.', NO_PACKAGES);
+
+      const body: string = createCommentMock.mock.calls[0]![0].body;
+      expect(body).toContain('| Visual Diffs | New Visual Tests |');
+      expect(body).not.toContain('| Package |');
+      expect(body).toContain('| 2 | 1 |');
+    });
+
+    it('should render a 3-column table with one row per package', async () => {
+      listCommentsMock.mockResolvedValue({ data: [] });
+
+      await runCreateGithubComment('2 visual diffs found.', WITH_PACKAGES);
+
+      const body: string = createCommentMock.mock.calls[0]![0].body;
+      expect(body).toContain('| Package | Visual Diffs | New Visual Tests |');
+      expect(body).toContain('| packages/web | 2 | 1 |');
+      expect(body).toContain('| packages/mobile | 0 | 3 |');
+    });
+
+    it('should include pendingDescription as text after the heading', async () => {
+      listCommentsMock.mockResolvedValue({ data: [] });
+
+      await runCreateGithubComment('3 visual diffs found.');
+
+      const body: string = createCommentMock.mock.calls[0]![0].body;
+      expect(body).toContain('## Visual Test Results\n3 visual diffs found.');
+    });
+
+    it('should include the Comparadise link when a host is configured', async () => {
+      listCommentsMock.mockResolvedValue({ data: [] });
+
+      await runCreateGithubComment();
+
+      const body: string = createCommentMock.mock.calls[0]![0].body;
+      expect(body).toContain(`[Comparadise](${currentUrl})`);
+    });
+
+    it('should append comment-details when provided', async () => {
+      getInputMock.mockImplementation((name: string) =>
+        name === 'comment-details' ? 'Extra info' : (inputMap[name] ?? '')
+      );
+      listCommentsMock.mockResolvedValue({ data: [] });
+
+      await runCreateGithubComment();
+
+      const body: string = createCommentMock.mock.calls[0]![0].body;
+      expect(body).toContain('Extra info');
     });
   });
 });
