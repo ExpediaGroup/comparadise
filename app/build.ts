@@ -1,4 +1,7 @@
 import tailwindPlugin from 'bun-plugin-tailwind';
+import { rmSync } from 'fs';
+
+rmSync('./dist', { recursive: true, force: true });
 
 const result = await Bun.build({
   entrypoints: ['./public/index.html'],
