@@ -11,6 +11,10 @@ export interface PackageResult {
 
 const COMPARADISE_MARKER = '<!-- comparadise -->';
 const TABLE_END_MARKER = '<!-- comparadise-table-end -->';
+const TIMESTAMP_MARKER = '<!-- comparadise-updated -->';
+
+const buildTimestampLine = (): string =>
+  `_Last updated: ${new Date().toUTCString()}_ ${TIMESTAMP_MARKER}`;
 
 const buildHashMarker = (commitHash: string) =>
   `<!-- comparadise-hash:${commitHash} -->`;
@@ -40,7 +44,7 @@ const buildCommentBody = (
   commentDetails: string
 ): string => {
   const table = buildTable(packageResults);
-  const base = `${COMPARADISE_MARKER}\n${buildHashMarker(commitHash)}\n## Visual Test Results\n${pendingDescription}\n\n${table}\n${TABLE_END_MARKER}\n\nCheck ${comparadiseLink}! :palm_tree:`;
+  const base = `${COMPARADISE_MARKER}\n${buildHashMarker(commitHash)}\n## Visual Test Results\n${pendingDescription}\n\n${table}\n${TABLE_END_MARKER}\n\nCheck ${comparadiseLink}! :palm_tree:\n${buildTimestampLine()}`;
   return commentDetails ? `${base}\n${commentDetails}` : base;
 };
 
@@ -76,7 +80,7 @@ export const createGithubComment = async (
     comment.body?.includes(COMPARADISE_MARKER)
   );
 
-  if (!existingComment) {
+  if (!existingComment?.body) {
     await octokit.rest.issues.createComment({
       body: buildCommentBody(
         commitHash,
@@ -91,16 +95,15 @@ export const createGithubComment = async (
     return;
   }
 
-  const isSameCommit = existingComment.body?.includes(
+  const isSameCommit = existingComment.body.includes(
     buildHashMarker(commitHash)
   );
 
   if (isSameCommit) {
     const newRows = buildTable(packageResults).split('\n').slice(2).join('\n');
-    const updatedBody = existingComment.body!.replace(
-      TABLE_END_MARKER,
-      `${newRows}\n${TABLE_END_MARKER}`
-    );
+    const updatedBody = existingComment.body
+      .replace(TABLE_END_MARKER, `${newRows}\n${TABLE_END_MARKER}`)
+      .replace(new RegExp(`.*${TIMESTAMP_MARKER}`), buildTimestampLine());
     await octokit.rest.issues.updateComment({
       comment_id: existingComment.id,
       body: updatedBody,
