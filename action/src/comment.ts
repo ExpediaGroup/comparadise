@@ -11,7 +11,7 @@ export const createGithubComment = async (pendingDescription: string) => {
     ? `[Comparadise](${comparadiseUrl})`
     : 'Comparadise';
   const packagePaths = getInput('package-paths')?.split(',').filter(Boolean);
-  const comparadiseBaseComment = `##Package paths: ${packagePaths}\n\n**${pendingDescription}**\n\nCheck ${comparadiseLink}! :palm_tree:`;
+  const comparadiseBaseComment = `## Package paths: ${packagePaths}\n\n**${pendingDescription}** Check ${comparadiseLink}! :palm_tree:`;
   const comparadiseCommentDetails = getInput('comment-details');
   const comparadiseComment = comparadiseCommentDetails
     ? `${comparadiseBaseComment}\n${comparadiseCommentDetails}`

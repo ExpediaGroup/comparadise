@@ -80,7 +80,7 @@ describe('createGithubComment', () => {
     });
 
     it('should update an existing comment when the base comment text matches', async () => {
-      const existingBody = `##Package paths: \n\n**Review pending**\n\nCheck [Comparadise](${currentUrl})! :palm_tree:`;
+      const existingBody = `## Package paths: \n\n**Review pending**\n\nCheck [Comparadise](${currentUrl})! :palm_tree:`;
       listCommentsMock.mockResolvedValue({
         data: [{ id: 42, body: existingBody }]
       });
@@ -97,7 +97,7 @@ describe('createGithubComment', () => {
     });
 
     it('should create rather than update when the description has changed', async () => {
-      const existingBody = `##Package paths: \n\n**1 diff found**\n\nCheck [Comparadise](${currentUrl})! :palm_tree:`;
+      const existingBody = `## Package paths: \n\n**1 diff found**\n\nCheck [Comparadise](${currentUrl})! :palm_tree:`;
       listCommentsMock.mockResolvedValue({
         data: [{ id: 7, body: existingBody }]
       });
