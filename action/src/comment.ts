@@ -80,7 +80,7 @@ export const createGithubComment = async (
     comment.body?.includes(COMPARADISE_MARKER)
   );
 
-  if (!existingComment) {
+  if (!existingComment?.body) {
     await octokit.rest.issues.createComment({
       body: buildCommentBody(
         commitHash,
@@ -95,14 +95,14 @@ export const createGithubComment = async (
     return;
   }
 
-  const isSameCommit = existingComment.body?.includes(
+  const isSameCommit = existingComment.body.includes(
     buildHashMarker(commitHash)
   );
 
   if (isSameCommit) {
     const newRows = buildTable(packageResults).split('\n').slice(2).join('\n');
-    const updatedBody = existingComment
-      .body!.replace(TABLE_END_MARKER, `${newRows}\n${TABLE_END_MARKER}`)
+    const updatedBody = existingComment.body
+      .replace(TABLE_END_MARKER, `${newRows}\n${TABLE_END_MARKER}`)
       .replace(new RegExp(`.*${TIMESTAMP_MARKER}`), buildTimestampLine());
     await octokit.rest.issues.updateComment({
       comment_id: existingComment.id,
