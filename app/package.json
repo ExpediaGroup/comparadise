@@ -28,6 +28,7 @@
     "vite": "7.3.1"
   },
   "scripts": {
+    "build": "bun build ./public/index.html --outdir ./dist --public-path / --minify",
     "dev": "bun --hot ./server.ts",
     "start": "NODE_ENV=production bun ./server.ts",
     "test": "nx docker comparadise && nx test:e2e frontend"

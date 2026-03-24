@@ -106,7 +106,8 @@ describe('createGithubComment', () => {
         '| 1 | 0 |',
         '<!-- comparadise-table-end -->',
         '',
-        `Check [Comparadise](${currentUrl})! :palm_tree:`
+        `Check [Comparadise](${currentUrl})! :palm_tree:`,
+        '_Last updated: Mon, 01 Jan 2024 00:00:00 GMT_ <!-- comparadise-updated -->'
       ].join('\n');
 
       listCommentsMock.mockResolvedValue({
@@ -123,6 +124,8 @@ describe('createGithubComment', () => {
       expect(updatedBody).toContain('| 1 | 0 |');
       expect(updatedBody).toContain('| 2 | 1 |');
       expect(updatedBody).toContain('<!-- comparadise-table-end -->');
+      expect(updatedBody).toContain('<!-- comparadise-updated -->');
+      expect(updatedBody).not.toContain('Mon, 01 Jan 2024 00:00:00 GMT');
     });
 
     it('should replace existing comment when commit hash differs', async () => {
@@ -137,7 +140,8 @@ describe('createGithubComment', () => {
         '| 5 | 0 |',
         '<!-- comparadise-table-end -->',
         '',
-        `Check [Comparadise](${currentUrl})! :palm_tree:`
+        `Check [Comparadise](${currentUrl})! :palm_tree:`,
+        '_Last updated: Mon, 01 Jan 2024 00:00:00 GMT_ <!-- comparadise-updated -->'
       ].join('\n');
 
       listCommentsMock.mockResolvedValue({
@@ -153,6 +157,7 @@ describe('createGithubComment', () => {
       expect(updatedBody).not.toContain('<!-- comparadise-hash:oldhash -->');
       expect(updatedBody).toContain('New description');
       expect(updatedBody).not.toContain('| 5 | 0 |');
+      expect(updatedBody).toContain('<!-- comparadise-updated -->');
     });
 
     it('should skip all comment operations when no PR number is found', async () => {
@@ -208,6 +213,16 @@ describe('createGithubComment', () => {
 
       const body: string = createCommentMock.mock.calls[0]![0].body;
       expect(body).toContain(`[Comparadise](${currentUrl})`);
+    });
+
+    it('should include a last updated timestamp', async () => {
+      listCommentsMock.mockResolvedValue({ data: [] });
+
+      await runCreateGithubComment();
+
+      const body: string = createCommentMock.mock.calls[0]![0].body;
+      expect(body).toContain('_Last updated:');
+      expect(body).toContain('<!-- comparadise-updated -->');
     });
 
     it('should append comment-details when provided', async () => {
