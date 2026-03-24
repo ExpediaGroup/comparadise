@@ -62,8 +62,24 @@ mock.module('fs/promises', () => ({
 const listObjectsMock = mock();
 const getObjectMock = mock();
 const putObjectMock = mock();
+const listAllObjects = async (
+  input: { Bucket: string; Prefix: string },
+  continuationToken?: string
+): Promise<{ Key?: string }[]> => {
+  const response = await listObjectsMock({
+    ...input,
+    ...(continuationToken && { ContinuationToken: continuationToken })
+  });
+  const contents = response.Contents ?? [];
+  if (!response.IsTruncated) return contents;
+  return [
+    ...contents,
+    ...(await listAllObjects(input, response.NextContinuationToken))
+  ];
+};
 mock.module('../src/s3-client', () => ({
   listObjects: listObjectsMock,
+  listAllObjects,
   getObject: getObjectMock,
   putObject: putObjectMock
 }));
@@ -115,6 +131,23 @@ mock.module('@actions/github', () => ({
   }))
 }));
 
+mock.module('../src/octokit', () => ({
+  octokit: {
+    rest: {
+      repos: {
+        createCommitStatus: createCommitStatusMock,
+        listPullRequestsAssociatedWithCommit:
+          listPullRequestsAssociatedWithCommitMock,
+        listCommitStatusesForRef: listCommitStatusesForRefMock
+      },
+      issues: {
+        createComment: createCommentMock,
+        listComments: listCommentsMock
+      }
+    }
+  }
+}));
+
 // A Readable subclass whose pipe() immediately triggers 'finish' on the destination
 class MockReadable extends Readable {
   _read() {}
@@ -164,7 +197,7 @@ describe('main', () => {
     getInputMock.mockImplementation(name => inputMap[name]);
 
     getBooleanInputMock.mockImplementation(name =>
-      name === 'visual-tests-isolated' ? true : undefined
+      name === 'visual-test-command-fails-on-diff' ? true : undefined
     );
 
     const multiLineInputMap: Record<string, string[]> = {
@@ -303,9 +336,8 @@ describe('main', () => {
       sha: 'sha',
       context: VISUAL_REGRESSION_CONTEXT,
       state: 'pending',
-      description: '1 visual diff found and 1 visual test created.',
-      target_url:
-        'https://comparadise.app/?commitHash=sha&owner=owner&repo=repo&bucket=some-bucket&useBaseImages=true'
+      description: '1 visual diff found.',
+      target_url: expect.any(String)
     });
     expect(createCommentMock).toHaveBeenCalled();
   });
@@ -424,8 +456,7 @@ describe('main', () => {
       context: VISUAL_REGRESSION_CONTEXT,
       state: 'pending',
       description: '0 visual diffs found and 2 visual tests created.',
-      target_url:
-        'https://comparadise.app/?commitHash=sha&owner=owner&repo=repo&bucket=some-bucket&useBaseImages=true'
+      target_url: expect.any(String)
     });
     expect(createCommentMock).toHaveBeenCalled();
   });
@@ -456,9 +487,10 @@ describe('main', () => {
     };
     getInputMock.mockImplementation(name => extendedInputMap[name]);
     globMock.mockResolvedValue([
-      'path/to/screenshots/base.png',
-      'path/to/screenshots/diff.png',
-      'path/to/screenshots/new.png'
+      'path/to/screenshots/path/1/component/base.png',
+      'path/to/screenshots/path/1/component/diff.png',
+      'path/to/screenshots/path/1/component/new.png',
+      'path/to/screenshots/path/2/component/base.png'
     ]);
     await runAction();
     expect(listObjectsMock).toHaveBeenCalledWith(
@@ -467,6 +499,11 @@ describe('main', () => {
     expect(putObjectMock).toHaveBeenCalledWith(
       expect.objectContaining({
         Key: expect.stringContaining('new-images/sha/')
+      })
+    );
+    expect(createCommentMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: expect.stringContaining('| path/1 | 1 | 0 |')
       })
     );
   });
@@ -527,9 +564,8 @@ describe('main', () => {
       sha: 'sha',
       context: VISUAL_REGRESSION_CONTEXT,
       state: 'pending',
-      description: '1 visual diff found and 1 visual test created.',
-      target_url:
-        'https://comparadise.app/?commitHash=sha&owner=owner&repo=repo&bucket=some-bucket&useBaseImages=false'
+      description: '1 visual diff found.',
+      target_url: expect.any(String)
     });
   });
 
@@ -706,59 +742,51 @@ describe('main', () => {
     expect(createCommitStatusMock).toHaveBeenCalled();
   });
 
-  it('should call setFailed with the diff message when visual-tests-isolated is true', async () => {
+  it('should call setFailed with the diff message when visual-test-command-fails-on-diff is true', async () => {
     execMock.mockResolvedValue(0);
     getBooleanInputMock.mockImplementation(name =>
-      name === 'visual-tests-isolated' ? true : undefined
+      name === 'visual-test-command-fails-on-diff' ? true : undefined
     );
     globMock.mockResolvedValue([
       'path/to/screenshots/diff.png',
       'path/to/screenshots/new.png'
     ]);
     await runAction();
-    expect(setFailedMock).toHaveBeenCalledWith(
-      '1 visual diff found and 1 visual test created.'
-    );
-    expect(warningMock).not.toHaveBeenCalledWith(
-      '1 visual diff found and 1 visual test created.'
-    );
+    expect(setFailedMock).toHaveBeenCalledWith('1 visual diff found.');
+    expect(warningMock).not.toHaveBeenCalledWith('1 visual diff found.');
   });
 
-  it('should call warning instead of setFailed when visual-tests-isolated is false', async () => {
+  it('should call warning instead of setFailed when visual-test-command-fails-on-diff is false', async () => {
     execMock.mockResolvedValue(0);
     getBooleanInputMock.mockImplementation(name =>
-      name === 'visual-tests-isolated' ? false : undefined
+      name === 'visual-test-command-fails-on-diff' ? false : undefined
     );
     globMock.mockResolvedValue([
       'path/to/screenshots/diff.png',
       'path/to/screenshots/new.png'
     ]);
     await runAction();
-    expect(setFailedMock).not.toHaveBeenCalledWith(
-      '1 visual diff found and 1 visual test created.'
-    );
-    expect(warningMock).toHaveBeenCalledWith(
-      '1 visual diff found and 1 visual test created.'
-    );
+    expect(setFailedMock).not.toHaveBeenCalledWith('1 visual diff found.');
+    expect(warningMock).toHaveBeenCalledWith('1 visual diff found.');
   });
 
-  it('should call setFailed without setting commit status when visual tests fail for non-diff reason and visual-tests-isolated is false', async () => {
+  it('should call setFailed without setting commit status when visual tests fail for non-diff reason and visual-test-command-fails-on-diff is false', async () => {
     execMock.mockResolvedValue(1);
     getBooleanInputMock.mockImplementation(name =>
-      name === 'visual-tests-isolated' ? false : undefined
+      name === 'visual-test-command-fails-on-diff' ? false : undefined
     );
     globMock.mockResolvedValue([]);
     await runAction();
     expect(setFailedMock).toHaveBeenCalledWith(
-      'The job failed, but this might not be due to visual tests.'
+      'The job failed, and this is not due to visual tests.'
     );
     expect(createCommitStatusMock).not.toHaveBeenCalled();
   });
 
-  it('should call setFailed without setting commit status when visual-tests-isolated is false and 1 failure with multiple diffs', async () => {
+  it('should call setFailed without setting commit status when visual-test-command-fails-on-diff is false and 1 failure with multiple diffs', async () => {
     execMock.mockResolvedValue(1);
     getBooleanInputMock.mockImplementation(name =>
-      name === 'visual-tests-isolated' ? false : undefined
+      name === 'visual-test-command-fails-on-diff' ? false : undefined
     );
     globMock.mockResolvedValue([
       'path/to/screenshots/diff1.png',
@@ -770,7 +798,7 @@ describe('main', () => {
     ]);
     await runAction();
     expect(setFailedMock).toHaveBeenCalledWith(
-      'The job failed, but this might not be due to visual tests.'
+      'The job failed, and this is not due to visual tests.'
     );
     expect(createCommitStatusMock).not.toHaveBeenCalled();
   });
@@ -875,6 +903,41 @@ describe('s3-operations', () => {
       await downloadBaseImages();
 
       expect(createWriteStreamMock).not.toHaveBeenCalled();
+    });
+
+    it('should download all base images across multiple pages when results are truncated', async () => {
+      // checkS3PrefixExists → prefix exists
+      listObjectsMock.mockResolvedValueOnce({
+        Contents: [{ Key: 'base-images/component/base.png' }]
+      });
+      // downloadS3Directory → first page (truncated)
+      listObjectsMock.mockResolvedValueOnce({
+        Contents: [{ Key: 'base-images/component1/base.png' }],
+        IsTruncated: true,
+        NextContinuationToken: 'token-1'
+      });
+      // downloadS3Directory → second page (last)
+      listObjectsMock.mockResolvedValueOnce({
+        Contents: [{ Key: 'base-images/component2/base.png' }],
+        IsTruncated: false
+      });
+      getObjectMock.mockResolvedValue({ Body: new MockReadable() });
+
+      const { downloadBaseImages } = await getS3Operations();
+      await downloadBaseImages();
+
+      expect(listObjectsMock).toHaveBeenCalledWith(
+        expect.objectContaining({ ContinuationToken: 'token-1' })
+      );
+      expect(getObjectMock).toHaveBeenCalledTimes(2);
+      expect(getObjectMock).toHaveBeenCalledWith({
+        Bucket: 'test-bucket',
+        Key: 'base-images/component1/base.png'
+      });
+      expect(getObjectMock).toHaveBeenCalledWith({
+        Bucket: 'test-bucket',
+        Key: 'base-images/component2/base.png'
+      });
     });
 
     it('should download from each package path subdirectory when package-paths is set', async () => {

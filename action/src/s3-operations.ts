@@ -1,5 +1,5 @@
 import { getInput, info } from '@actions/core';
-import { listObjects, getObject, putObject } from './s3-client';
+import { listObjects, listAllObjects, getObject, putObject } from './s3-client';
 import {
   BASE_IMAGE_NAME,
   BASE_IMAGES_DIRECTORY,
@@ -38,11 +38,10 @@ async function downloadS3Directory(
 ): Promise<void> {
   info(`Downloading base images from s3://${bucketName}/${s3Prefix}`);
 
-  const response = await listObjects({
+  const allObjects = await listAllObjects({
     Bucket: bucketName,
     Prefix: s3Prefix
   });
-  const allObjects = response.Contents ?? [];
   const baseObjects = allObjects.filter(obj => obj.Key?.endsWith('base.png'));
 
   info(`Found ${baseObjects.length} base image(s) to download`);

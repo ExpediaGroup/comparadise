@@ -17,7 +17,7 @@ import { context } from '@actions/github';
 import * as path from 'path';
 import { glob } from 'glob';
 import { unlinkSync } from 'fs';
-import { createGithubComment } from './comment';
+import { createGithubComment, PackageResult } from './comment';
 import { getLatestVisualRegressionStatus } from './get-latest-visual-regression-status';
 import {
   VISUAL_REGRESSION_CONTEXT,
@@ -83,9 +83,11 @@ export const run = async () => {
 
   const newFileCount = newFilePaths.length;
 
-  const visualTestsIsolated = getBooleanInput('visual-tests-isolated');
+  const visualTestCommandFailsOnDiff = getBooleanInput(
+    'visual-test-command-fails-on-diff'
+  );
 
-  if (visualTestsIsolated && numVisualTestFailures > diffFileCount) {
+  if (visualTestCommandFailsOnDiff && numVisualTestFailures > diffFileCount) {
     setFailed(
       'Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?'
     );
@@ -99,8 +101,8 @@ export const run = async () => {
     });
   }
 
-  if (!visualTestsIsolated && numVisualTestFailures > 0) {
-    setFailed('The job failed, but this might not be due to visual tests.');
+  if (!visualTestCommandFailsOnDiff && numVisualTestFailures > 0) {
+    setFailed('The job failed, and this is not due to visual tests.');
     return;
   }
 
@@ -148,11 +150,38 @@ export const run = async () => {
     return;
   }
 
+  const newVisualTestCount = newFileCount - diffFileCount;
   const newFileSuffix =
-    newFileCount > 0
-      ? ` and ${newFileCount} visual ${newFileCount === 1 ? 'test' : 'tests'} created`
+    newVisualTestCount > 0
+      ? ` and ${newVisualTestCount} visual ${newVisualTestCount === 1 ? 'test' : 'tests'} created`
       : '';
   const pendingDescription = `${diffFileCount} visual ${diffFileCount === 1 ? 'diff' : 'diffs'} found${newFileSuffix}.`;
+
+  const packagePaths =
+    getInput('package-paths')?.split(',').filter(Boolean) ?? [];
+  const packageResults: PackageResult[] =
+    packagePaths.length > 0
+      ? packagePaths.map(pkg => {
+          const prefix = path.join(screenshotsDirectory, pkg);
+          const pkgDiffCount = diffFilePaths.filter(f =>
+            f.startsWith(prefix)
+          ).length;
+          const pkgNewCount = newFilePaths.filter(f =>
+            f.startsWith(prefix)
+          ).length;
+          return {
+            packagePath: pkg,
+            diffCount: pkgDiffCount,
+            newTestCount: pkgNewCount - pkgDiffCount
+          };
+        })
+      : [
+          {
+            packagePath: '',
+            diffCount: diffFileCount,
+            newTestCount: newVisualTestCount
+          }
+        ];
 
   info(`${diffFileCount} visual differences found.`);
   await Promise.all([uploadAllImages(hash), uploadOriginalNewImages(hash)]);
@@ -165,9 +194,9 @@ export const run = async () => {
     target_url: buildComparadiseUrl(),
     ...context.repo
   });
-  await createGithubComment(pendingDescription);
+  await createGithubComment(pendingDescription, packageResults);
 
-  if (visualTestsIsolated && diffFileCount > 0) {
+  if (visualTestCommandFailsOnDiff && diffFileCount > 0) {
     setFailed(pendingDescription);
   } else {
     warning(pendingDescription);
