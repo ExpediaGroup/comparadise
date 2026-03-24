@@ -207,7 +207,9 @@ describe('createGithubComment', () => {
       await runCreateGithubComment();
 
       const body: string = createCommentMock.mock.calls[0]![0].body;
-      expect(body).toContain(`[Comparadise](${currentUrl})`);
+      expect(body).toContain(
+        `<a href="${currentUrl}" target="_blank">Comparadise</a>`
+      );
     });
 
     it('should append comment-details when provided', async () => {

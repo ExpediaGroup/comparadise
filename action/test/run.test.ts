@@ -487,9 +487,10 @@ describe('main', () => {
     };
     getInputMock.mockImplementation(name => extendedInputMap[name]);
     globMock.mockResolvedValue([
-      'path/to/screenshots/base.png',
-      'path/to/screenshots/diff.png',
-      'path/to/screenshots/new.png'
+      'path/to/screenshots/path/1/component/base.png',
+      'path/to/screenshots/path/1/component/diff.png',
+      'path/to/screenshots/path/1/component/new.png',
+      'path/to/screenshots/path/2/component/base.png'
     ]);
     await runAction();
     expect(listObjectsMock).toHaveBeenCalledWith(
@@ -498,6 +499,11 @@ describe('main', () => {
     expect(putObjectMock).toHaveBeenCalledWith(
       expect.objectContaining({
         Key: expect.stringContaining('new-images/sha/')
+      })
+    );
+    expect(createCommentMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: expect.stringContaining('| path/1 | 1 | 0 |')
       })
     );
   });

@@ -52,7 +52,7 @@ export const createGithubComment = async (
   const comparadiseHost = getInput('comparadise-host');
   const comparadiseUrl = buildComparadiseUrl();
   const comparadiseLink = comparadiseHost
-    ? `[Comparadise](${comparadiseUrl})`
+    ? `<a href="${comparadiseUrl}" target="_blank">Comparadise</a>`
     : 'Comparadise';
   const commentDetails = getInput('comment-details');
 
