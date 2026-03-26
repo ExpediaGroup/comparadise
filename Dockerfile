@@ -1,5 +1,5 @@
 FROM oven/bun:1.3.11
-WORKDIR /app
+WORKDIR /workspace
 
 RUN useradd -ms /bin/sh admin
 RUN chown -R admin .
@@ -7,7 +7,9 @@ COPY --chown=admin . .
 USER admin
 
 RUN bun install --production --filter app
-RUN bun --filter app build
+
+WORKDIR /workspace/app
+RUN bun run build
 
 ENV PORT=8080
-CMD [ "bun", "--filter", "app", "start" ]
+CMD [ "bun", "start" ]

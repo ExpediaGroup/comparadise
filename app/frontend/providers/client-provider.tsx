@@ -10,7 +10,8 @@ export const ClientProvider = ({ children }: React.PropsWithChildren) => {
         defaultOptions: {
           queries: {
             refetchOnWindowFocus: false,
-            staleTime: Infinity
+            staleTime: Infinity,
+            retry: false
           }
         }
       })
