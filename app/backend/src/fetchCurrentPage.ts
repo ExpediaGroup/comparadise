@@ -15,7 +15,7 @@ export const fetchCurrentPage = async ({
     throw new TRPCError({
       code: 'NOT_FOUND',
       message: `Page ${page} does not exist. Only ${paginatedKeys.length} pages were found.`,
-      cause: 'PAGE_NOT_FOUND'
+      cause: { event: 'PAGE_NOT_FOUND' }
     });
   }
   const { keys, title } = currentPage;
@@ -26,7 +26,7 @@ export const fetchCurrentPage = async ({
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message: `Invalid file name: ${key}. ${result.error.message}`,
-          cause: 'INVALID_FILE_NAME'
+          cause: { event: 'INVALID_FILE_NAME' }
         });
       }
 

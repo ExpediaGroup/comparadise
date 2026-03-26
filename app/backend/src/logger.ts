@@ -1,6 +1,6 @@
 export const logEvent = (
   level: 'INFO' | 'WARN' | 'ERROR',
-  payload: Record<string, unknown>
+  payload: { event: string } & Record<string, unknown>
 ) => {
   // eslint-disable-next-line no-console
   console.log(

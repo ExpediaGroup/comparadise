@@ -11,7 +11,7 @@ export const getGroupedKeys = async (hash: string, bucket: string) => {
       code: 'NOT_FOUND',
       message:
         'The commit hash was not associated with any visual regression test failures.',
-      cause: 'COMMIT_HASH_NOT_FOUND'
+      cause: { event: 'COMMIT_HASH_NOT_FOUND' }
     });
   }
 
@@ -36,7 +36,7 @@ export const getGroupedKeys = async (hash: string, bucket: string) => {
       code: 'NOT_FOUND',
       message:
         'There was no new or diff images associated with the commit hash.\nThis might be because the tests failed before a screenshot could be taken and it could be compared to the base.',
-      cause: 'NO_NEW_OR_DIFF_IMAGES'
+      cause: { event: 'NO_NEW_OR_DIFF_IMAGES' }
     });
   }
 
