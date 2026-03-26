@@ -13,8 +13,11 @@ const COMPARADISE_MARKER = '<!-- comparadise -->';
 const TABLE_END_MARKER = '<!-- comparadise-table-end -->';
 const TIMESTAMP_MARKER = '<!-- comparadise-updated -->';
 
-const buildTimestampLine = (): string =>
-  `_Last updated: ${new Date().toUTCString()}_ ${TIMESTAMP_MARKER}`;
+const buildTimestampLine = (): string => {
+  const utcString = new Date().toUTCString().replace('GMT', 'UTC');
+  const jobUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+  return `_Last updated: ${utcString}_ | [GitHub Actions run](${jobUrl}) ${TIMESTAMP_MARKER}`;
+};
 
 const buildHashMarker = (commitHash: string) =>
   `<!-- comparadise-hash:${commitHash} -->`;

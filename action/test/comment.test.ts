@@ -13,7 +13,9 @@ mock.module('@actions/core', () => ({
 
 const githubContext = {
   repo: { repo: 'repo', owner: 'owner' },
-  issue: { number: 0 }
+  issue: { number: 0 },
+  serverUrl: 'https://github.com',
+  runId: 456
 };
 mock.module('@actions/github', () => ({
   context: githubContext
@@ -107,7 +109,7 @@ describe('createGithubComment', () => {
         '<!-- comparadise-table-end -->',
         '',
         `Check [Comparadise](${currentUrl})! :palm_tree:`,
-        '_Last updated: Mon, 01 Jan 2024 00:00:00 GMT_ <!-- comparadise-updated -->'
+        '_Last updated: Mon, 01 Jan 2024 00:00:00 UTC_ <!-- comparadise-updated -->'
       ].join('\n');
 
       listCommentsMock.mockResolvedValue({
@@ -125,7 +127,7 @@ describe('createGithubComment', () => {
       expect(updatedBody).toContain('| 2 | 1 |');
       expect(updatedBody).toContain('<!-- comparadise-table-end -->');
       expect(updatedBody).toContain('<!-- comparadise-updated -->');
-      expect(updatedBody).not.toContain('Mon, 01 Jan 2024 00:00:00 GMT');
+      expect(updatedBody).not.toContain('Mon, 01 Jan 2024 00:00:00 UTC');
     });
 
     it('should replace existing comment when commit hash differs', async () => {
@@ -141,7 +143,7 @@ describe('createGithubComment', () => {
         '<!-- comparadise-table-end -->',
         '',
         `Check [Comparadise](${currentUrl})! :palm_tree:`,
-        '_Last updated: Mon, 01 Jan 2024 00:00:00 GMT_ <!-- comparadise-updated -->'
+        '_Last updated: Mon, 01 Jan 2024 00:00:00 UTC_ <!-- comparadise-updated -->'
       ].join('\n');
 
       listCommentsMock.mockResolvedValue({
@@ -232,13 +234,18 @@ describe('createGithubComment', () => {
       expect(body).toContain(`[Comparadise](${currentUrl})`);
     });
 
-    it('should include a last updated timestamp', async () => {
+    it('should include a last updated timestamp with UTC and job link', async () => {
       listCommentsMock.mockResolvedValue({ data: [] });
 
       await runCreateGithubComment();
 
       const body: string = createCommentMock.mock.calls[0]![0].body;
       expect(body).toContain('_Last updated:');
+      expect(body).toMatch(/_Last updated: \w+, \d+ \w+ \d+ \d+:\d+:\d+ UTC_/);
+      expect(body).not.toContain('GMT');
+      expect(body).toContain(
+        '[GitHub Actions run](https://github.com/owner/repo/actions/runs/456)'
+      );
       expect(body).toContain('<!-- comparadise-updated -->');
     });
 
