@@ -43,4 +43,7 @@ const server = serve({
   }
 });
 
-logEvent('INFO', { event: 'STARTUP', message: `Server running at ${server.url}` });
+logEvent('INFO', {
+  event: 'STARTUP',
+  message: `Server running at ${server.url}`
+});
