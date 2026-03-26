@@ -24,6 +24,12 @@ export default [
     }
   },
   {
+    files: ['app/**/*.ts', 'app/**/*.tsx'],
+    rules: {
+      'no-console': ['error']
+    }
+  },
+  {
     ignores: [
       '**/.tsup',
       '**/dist',

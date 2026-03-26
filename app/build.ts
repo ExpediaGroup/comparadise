@@ -12,6 +12,7 @@ const result = await Bun.build({
 });
 
 if (!result.success) {
+  // eslint-disable-next-line no-console
   result.logs.forEach(log => console.error(log));
   process.exit(1);
 }

@@ -21,7 +21,14 @@ export const updateCommitStatus = async ({
     .catch(error => {
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: `Failed to update GitHub commit status: ${error}`
+        message: `Failed to update GitHub commit status: ${error}`,
+        cause: {
+          event: 'COMMIT_STATUS_UPDATE_FAILED',
+          owner,
+          repo,
+          commitHash,
+          error
+        }
       });
     });
 };
