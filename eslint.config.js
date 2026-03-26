@@ -24,6 +24,13 @@ export default [
     }
   },
   {
+    files: ['app/**/*.ts', 'app/**/*.tsx'],
+    ignores: ['app/build.ts'],
+    rules: {
+      'no-console': ['error']
+    }
+  },
+  {
     ignores: [
       '**/.tsup',
       '**/dist',

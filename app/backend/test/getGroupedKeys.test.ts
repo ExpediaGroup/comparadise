@@ -102,7 +102,7 @@ describe('getGroupedKeys', () => {
       ]
     }));
     expect(getGroupedKeys('hash', 'bucket')).rejects.toThrow(
-      'There was no new or diff images associated with the commit hash.\nThis might be because the tests failed before a picture could be taken and it could be compared to the base.'
+      'There was no new or diff images associated with the commit hash.\nThis might be because the tests failed before a screenshot could be taken and it could be compared to the base.'
     );
   });
 });

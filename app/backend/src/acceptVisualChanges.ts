@@ -1,3 +1,4 @@
+import { logEvent } from './logger';
 import { S3Client } from './s3Client';
 import {
   BASE_IMAGE_NAME,
@@ -26,14 +27,21 @@ export const acceptVisualChanges = async ({
   if (reasonToPreventUpdate) {
     throw new TRPCError({
       code: 'FORBIDDEN',
-      message: reasonToPreventUpdate
+      message: reasonToPreventUpdate,
+      cause: {
+        event: 'VISUAL_CHANGE_ACCEPTANCE_BLOCKED',
+        owner,
+        repo,
+        commitHash
+      }
     });
   }
   const hash = commitHash ?? diffId;
   if (!hash) {
     throw new TRPCError({
       code: 'BAD_REQUEST',
-      message: 'Please provide either a commitHash or a diffId.'
+      message: 'Please provide either a commitHash or a diffId.',
+      cause: { event: 'MISSING_IDENTIFIER', owner, repo }
     });
   }
 
@@ -53,6 +61,13 @@ export const acceptVisualChanges = async ({
   if (commitHash) {
     await updateCommitStatus({ owner, repo, commitHash });
   }
+  logEvent('INFO', {
+    event: 'VISUAL_CHANGES_ACCEPTED',
+    owner,
+    repo,
+    hash,
+    baseImagesUpdated: useBaseImages
+  });
 };
 
 export const filterNewImages = (s3Paths: string[]) => {
