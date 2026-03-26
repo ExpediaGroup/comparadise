@@ -10,17 +10,21 @@ import {
 import { findReasonToPreventVisualChangeAcceptance } from './findReasonToPreventVisualChangeAcceptance';
 import { TRPCError } from '@trpc/server';
 import { AcceptVisualChangesInput } from './schema';
+import type { Context } from './context';
 import { getKeysFromS3 } from './getKeysFromS3';
 import { updateCommitStatus } from './updateCommitStatus';
 
-export const acceptVisualChanges = async ({
-  commitHash,
-  diffId,
-  useBaseImages,
-  bucket,
-  owner,
-  repo
-}: AcceptVisualChangesInput) => {
+export const acceptVisualChanges = async (
+  {
+    commitHash,
+    diffId,
+    useBaseImages,
+    bucket,
+    owner,
+    repo
+  }: AcceptVisualChangesInput,
+  ctx: Context
+) => {
   const reasonToPreventUpdate =
     commitHash &&
     (await findReasonToPreventVisualChangeAcceptance(owner, repo, commitHash));
@@ -58,10 +62,7 @@ export const acceptVisualChanges = async ({
   }
   logEvent('INFO', {
     event: 'VISUAL_CHANGES_ACCEPTED',
-    owner,
-    repo,
-    hash,
-    baseImagesUpdated: useBaseImages
+    ...ctx.urlParams
   });
 };
 

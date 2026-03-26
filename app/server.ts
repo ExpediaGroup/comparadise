@@ -1,5 +1,6 @@
 import { router } from './backend/src/router';
 import { logEvent } from './backend/src/logger';
+import { createContext } from './backend/src/context';
 import { createBunHttpHandler } from 'trpc-bun-adapter';
 import { serve, file } from 'bun';
 import { join } from 'path';
@@ -11,12 +12,9 @@ const DIST_DIR = join(import.meta.dir, 'dist');
 const trpcHandler = createBunHttpHandler({
   router,
   endpoint: '/trpc',
-  onError: ({ error: { code, message, cause }, path, req }) => {
-    const referer = req.headers.get('referer');
-    const urlParams = referer
-      ? Object.fromEntries(new URL(referer).searchParams)
-      : {};
-    logEvent('ERROR', { path, code, message, cause, ...urlParams });
+  createContext,
+  onError: ({ error: { code, message, cause }, path, ctx }) => {
+    logEvent('ERROR', { path, code, message, cause, ...ctx?.urlParams });
   }
 });
 
