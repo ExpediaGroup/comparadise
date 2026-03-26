@@ -5,8 +5,9 @@ import {
 } from './schema';
 import { fetchCurrentPage } from './fetchCurrentPage';
 import { acceptVisualChanges } from './acceptVisualChanges';
+import type { Context } from './context';
 
-const t = initTRPC.create();
+const t = initTRPC.context<Context>().create();
 
 export const router = t.router({
   fetchCurrentPage: t.procedure
@@ -14,7 +15,7 @@ export const router = t.router({
     .query(({ input }) => fetchCurrentPage(input)),
   acceptVisualChanges: t.procedure
     .input(acceptVisualChangesInputSchema)
-    .mutation(({ input }) => acceptVisualChanges(input))
+    .mutation(({ input, ctx }) => acceptVisualChanges(input, ctx))
 });
 
 export type AppRouter = typeof router;

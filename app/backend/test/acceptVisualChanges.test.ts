@@ -146,13 +146,16 @@ describe('acceptVisualChanges', () => {
 
       const expectedBucket = 'expected-bucket-name';
       expect(
-        acceptVisualChanges({
-          commitHash: '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5',
-          bucket: expectedBucket,
-          useBaseImages: true,
-          repo: 'repo',
-          owner: 'owner'
-        })
+        acceptVisualChanges(
+          {
+            commitHash: '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5',
+            bucket: expectedBucket,
+            useBaseImages: true,
+            repo: 'repo',
+            owner: 'owner'
+          },
+          { urlParams: {} }
+        )
       ).rejects.toThrow();
 
       expect(listObjectsV2Mock).not.toHaveBeenCalled();
@@ -162,13 +165,16 @@ describe('acceptVisualChanges', () => {
 
     it('should update commit status but not base images if useBaseImages is false', async () => {
       const expectedBucket = 'expected-bucket-name';
-      await acceptVisualChanges({
-        commitHash: '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5',
-        bucket: expectedBucket,
-        useBaseImages: false,
-        repo: 'repo',
-        owner: 'owner'
-      });
+      await acceptVisualChanges(
+        {
+          commitHash: '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5',
+          bucket: expectedBucket,
+          useBaseImages: false,
+          repo: 'repo',
+          owner: 'owner'
+        },
+        { urlParams: {} }
+      );
 
       expect(listObjectsV2Mock).not.toHaveBeenCalled();
       expect(copyObjectMock).not.toHaveBeenCalled();
@@ -181,13 +187,16 @@ describe('acceptVisualChanges', () => {
         Contents: [{ Key: `${originalPathPrefix}/SMALL/pdpPage/new.png` }]
       }));
 
-      await acceptVisualChanges({
-        commitHash: '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5',
-        bucket: expectedBucket,
-        useBaseImages: true,
-        repo: 'repo',
-        owner: 'owner'
-      });
+      await acceptVisualChanges(
+        {
+          commitHash: '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5',
+          bucket: expectedBucket,
+          useBaseImages: true,
+          repo: 'repo',
+          owner: 'owner'
+        },
+        { urlParams: {} }
+      );
 
       expect(copyObjectMock).toHaveBeenCalledTimes(1);
       expect(copyObjectMock).toHaveBeenCalledWith({
@@ -209,13 +218,16 @@ describe('acceptVisualChanges', () => {
           ]
         }));
 
-      await acceptVisualChanges({
-        commitHash: '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5',
-        bucket: expectedBucket,
-        useBaseImages: true,
-        repo: 'repo',
-        owner: 'owner'
-      });
+      await acceptVisualChanges(
+        {
+          commitHash: '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5',
+          bucket: expectedBucket,
+          useBaseImages: true,
+          repo: 'repo',
+          owner: 'owner'
+        },
+        { urlParams: {} }
+      );
 
       expect(copyObjectMock).toHaveBeenCalledTimes(1);
       expect(copyObjectMock).toHaveBeenCalledWith({
