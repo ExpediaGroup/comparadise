@@ -14,7 +14,7 @@ const trpcHandler = createBunHttpHandler({
   endpoint: '/trpc',
   createContext,
   onError: ({ error: { code, message, cause }, path, ctx }) => {
-    logEvent('ERROR', { path, code, message, cause, ...ctx?.urlParams });
+    logEvent('ERROR', { path, code, message, ...cause, ...ctx?.urlParams });
   }
 });
 

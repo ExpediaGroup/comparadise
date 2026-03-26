@@ -9,7 +9,7 @@ export const getOctokit = (owner: string, repo: string) => {
     throw new TRPCError({
       code: 'UNAUTHORIZED',
       message: 'Missing secrets.json file',
-      cause: 'MISSING_SECRETS_FILE'
+      cause: { event: 'MISSING_SECRETS_FILE' }
     });
   }
   const parsedJson = JSON.parse(readFileSync(secretsFilePath).toString());
@@ -18,7 +18,7 @@ export const getOctokit = (owner: string, repo: string) => {
     throw new TRPCError({
       code: 'INTERNAL_SERVER_ERROR',
       message: `Failed to parse secrets.json: ${result.error}`,
-      cause: 'SECRETS_PARSE_ERROR'
+      cause: { event: 'SECRETS_PARSE_ERROR' }
     });
   }
   const repoSecrets = result.data[`${owner}/${repo}`];
@@ -27,7 +27,7 @@ export const getOctokit = (owner: string, repo: string) => {
     throw new TRPCError({
       code: 'UNAUTHORIZED',
       message: `Missing githubToken for repo ${owner}/${repo}`,
-      cause: 'MISSING_GITHUB_TOKEN'
+      cause: { event: 'MISSING_GITHUB_TOKEN' }
     });
   }
   return new Octokit({
