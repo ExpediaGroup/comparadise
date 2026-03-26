@@ -28,12 +28,7 @@ export const acceptVisualChanges = async ({
     throw new TRPCError({
       code: 'FORBIDDEN',
       message: reasonToPreventUpdate,
-      cause: {
-        event: 'VISUAL_CHANGE_ACCEPTANCE_BLOCKED',
-        owner,
-        repo,
-        commitHash
-      }
+      cause: 'VISUAL_CHANGE_ACCEPTANCE_BLOCKED'
     });
   }
   const hash = commitHash ?? diffId;
@@ -41,7 +36,7 @@ export const acceptVisualChanges = async ({
     throw new TRPCError({
       code: 'BAD_REQUEST',
       message: 'Please provide either a commitHash or a diffId.',
-      cause: { event: 'MISSING_IDENTIFIER', owner, repo }
+      cause: 'MISSING_IDENTIFIER'
     });
   }
 

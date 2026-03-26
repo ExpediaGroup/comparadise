@@ -11,16 +11,12 @@ const DIST_DIR = join(import.meta.dir, 'dist');
 const trpcHandler = createBunHttpHandler({
   router,
   endpoint: '/trpc',
-  onError: ({ error: { code, message, cause }, path }) => {
-    const event =
-      cause && 'event' in cause && typeof cause.event === 'string'
-        ? cause.event
-        : 'UNKNOWN';
-    const causeWithEvent = {
-      ...cause,
-      event
-    };
-    logEvent('ERROR', { path, code, message, cause: causeWithEvent });
+  onError: ({ error: { code, message, cause }, path, req }) => {
+    const referer = req.headers.get('referer');
+    const urlParams = referer
+      ? Object.fromEntries(new URL(referer).searchParams)
+      : {};
+    logEvent('ERROR', { path, code, message, cause, ...urlParams });
   }
 });
 
