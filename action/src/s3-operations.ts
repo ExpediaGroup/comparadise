@@ -206,9 +206,11 @@ async function uploadOriginalNewPngs(
     });
   });
 
-  info(
-    `Uploaded ${files.length} original new.png file(s) to s3://${bucketName}/${s3Prefix}`
-  );
+  if (files.length) {
+    info(
+      `Uploaded ${files.length} original new.png file(s) to s3://${bucketName}/${s3Prefix}`
+    );
+  }
 }
 
 export const uploadOriginalNewImages = async (hash: string) => {
