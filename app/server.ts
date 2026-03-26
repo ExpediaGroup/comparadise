@@ -14,7 +14,11 @@ const trpcHandler = createBunHttpHandler({
   endpoint: '/trpc',
   createContext,
   onError: ({ error: { code, message, cause }, path, ctx }) => {
-    logEvent('ERROR', { path, code, message, ...cause, ...ctx?.urlParams });
+    const causeInfo =
+      cause && 'event' in cause && typeof cause.event === 'string'
+        ? { event: cause.event }
+        : { event: 'UNKNOWN', cause: cause?.message };
+    logEvent('ERROR', { path, code, message, ...causeInfo, ...ctx?.urlParams });
   }
 });
 
@@ -39,4 +43,4 @@ const server = serve({
   }
 });
 
-logEvent('INFO', { message: `Server running at ${server.url}` });
+logEvent('INFO', { event: 'STARTUP', message: `Server running at ${server.url}` });
