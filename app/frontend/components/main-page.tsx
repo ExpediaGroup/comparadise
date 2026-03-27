@@ -159,18 +159,19 @@ export const MainPage = ({
             Change {page} of {data.totalPages}
           </p>
         )}
-        {isAlreadyUpdated && (
-          <div className="mt-8 rounded-lg bg-green-100 px-4 py-3 text-sm text-green-800">
-            Base images have already been updated for these diffs.
-          </div>
-        )}
         <div className="mt-8">
-          <UpdateImagesButton
-            disabled={
-              isFetching || (!hasViewedAllPages && forceUpdate !== 'true')
-            }
-            hasViewedAllPages={hasViewedAllPages}
-          />
+          {isAlreadyUpdated ? (
+            <div className="rounded-lg bg-green-100 px-4 py-3 text-sm text-green-800">
+              Base images have already been updated for these diffs.
+            </div>
+          ) : (
+            <UpdateImagesButton
+              disabled={
+                isFetching || (!hasViewedAllPages && forceUpdate !== 'true')
+              }
+              hasViewedAllPages={hasViewedAllPages}
+            />
+          )}
         </div>
         <div className="mt-5">
           <ViewToggle

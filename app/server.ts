@@ -6,7 +6,7 @@ import { serve, file } from 'bun';
 import { join } from 'path';
 import index from './public/index.html';
 
-const IS_PROD = process.env.NODE_ENV === 'production';
+export const IS_PROD = process.env.NODE_ENV === 'production';
 const DIST_DIR = join(import.meta.dir, 'dist');
 
 const trpcHandler = createBunHttpHandler({
