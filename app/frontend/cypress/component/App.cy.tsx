@@ -352,9 +352,9 @@ describe('App', () => {
     });
 
     it('should replace the accept button with an already updated notice', () => {
-      cy.findByText('Base images have already been updated for these diffs.').should(
-        'be.visible'
-      );
+      cy.findByText(
+        'Base images have already been updated for these diffs.'
+      ).should('be.visible');
       cy.findByRole('button', { name: 'Accept visual changes' }).should(
         'not.exist'
       );
