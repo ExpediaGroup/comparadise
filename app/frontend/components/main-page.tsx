@@ -53,9 +53,16 @@ export const MainPage = ({
   const params: Record<string, string | undefined> = Object.fromEntries(
     searchParams.entries()
   );
-  const { page: pageParam, forceUpdate } = params;
+  const { page: pageParam, forceUpdate, commitHash, owner, repo } = params;
 
   const page = Number(pageParam ?? 1);
+  const { data: visualRegressionStatusData } =
+    trpc.getVisualRegressionStatus.useQuery(
+      { commitHash: commitHash ?? '', owner: owner ?? '', repo: repo ?? '' },
+      { enabled: Boolean(commitHash && owner && repo) }
+    );
+  const isAlreadyUpdated = visualRegressionStatusData?.isAlreadyUpdated;
+
   const { isLoading, data, isFetching, error } = trpc.fetchCurrentPage.useQuery(
     { hash, bucket, page }
   );
@@ -153,12 +160,18 @@ export const MainPage = ({
           </p>
         )}
         <div className="mt-8">
-          <UpdateImagesButton
-            disabled={
-              isFetching || (!hasViewedAllPages && forceUpdate !== 'true')
-            }
-            hasViewedAllPages={hasViewedAllPages}
-          />
+          {isAlreadyUpdated ? (
+            <div className="rounded-lg bg-green-100 px-4 py-3 text-sm text-green-800">
+              Base images have already been updated for these diffs.
+            </div>
+          ) : (
+            <UpdateImagesButton
+              disabled={
+                isFetching || (!hasViewedAllPages && forceUpdate !== 'true')
+              }
+              hasViewedAllPages={hasViewedAllPages}
+            />
+          )}
         </div>
         <div className="mt-5">
           <ViewToggle

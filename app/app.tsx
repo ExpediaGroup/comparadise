@@ -4,11 +4,14 @@ import { ClientProvider } from './frontend/providers/client-provider';
 import { AcceptVisualChangesStateProvider } from './frontend/providers/accept-visual-changes-state-provider';
 import { LandingPage } from './frontend/components/landing-page';
 import { useSearchParams } from 'react-router-dom';
+import { TRPCLink } from '@trpc/client';
+import { AppRouter } from './backend/src/router';
 
 export function App(props: {
   bucket?: string;
   commitHash?: string;
   diffId?: string;
+  trpcLinks?: TRPCLink<AppRouter>[];
 }) {
   const [searchParams] = useSearchParams();
   const params: Record<string, string | undefined> = Object.fromEntries(
@@ -20,7 +23,7 @@ export function App(props: {
   const hash = commitHash ?? diffId;
 
   return (
-    <ClientProvider>
+    <ClientProvider links={props.trpcLinks}>
       <AcceptVisualChangesStateProvider>
         {bucket && hash ? (
           <MainPage bucket={bucket} hash={hash} />

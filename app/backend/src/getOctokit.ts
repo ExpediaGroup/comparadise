@@ -2,8 +2,14 @@ import { existsSync, readFileSync } from 'fs';
 import { TRPCError } from '@trpc/server';
 import { Octokit } from '@octokit/rest';
 import { secretsJsonSchema } from './schema';
+import { IS_PROD } from '../../server';
 
 export const getOctokit = (owner: string, repo: string) => {
+  if (!IS_PROD) {
+    return new Octokit({
+      auth: process.env.GITHUB_TOKEN
+    });
+  }
   const secretsFilePath = '/vault/secrets/secrets.json';
   if (!existsSync(secretsFilePath)) {
     throw new TRPCError({

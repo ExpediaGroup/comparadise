@@ -14,11 +14,14 @@ import {
 } from '../mocks/accept-visual-changes-rejection';
 import { mutationResponse } from '../mocks/mutation';
 import { MemoryRouter } from 'react-router-dom';
+import { httpLink } from '@trpc/client';
+
+const trpcLinks = [httpLink({ url: '/trpc' })];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getPageFromRequest(req: any) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (JSON.parse(req.query.input as string) as any)['0'].page;
+  return (JSON.parse(req.query.input as string) as any).page;
 }
 
 describe('App', () => {
@@ -26,7 +29,7 @@ describe('App', () => {
     it('should redirect to homepage when parameters are omitted', () => {
       cy.mount(
         <MemoryRouter initialEntries={['/']}>
-          <App />
+          <App trpcLinks={trpcLinks} />
         </MemoryRouter>
       );
       cy.findByText(/Welcome to Comparadise/);
@@ -43,13 +46,16 @@ describe('App', () => {
       cy.intercept('/trpc/acceptVisualChanges*', { body: mutationResponse }).as(
         'accept-visual-changes'
       );
+      cy.intercept('/trpc/getVisualRegressionStatus*', {
+        body: { result: { data: { isAlreadyUpdated: false } } }
+      });
       cy.mount(
         <MemoryRouter
           initialEntries={[
             '/?commitHash=123&bucket=bucket&repo=repo&owner=owner'
           ]}
         >
-          <App />
+          <App trpcLinks={trpcLinks} />
         </MemoryRouter>
       );
     });
@@ -191,13 +197,16 @@ describe('App', () => {
           page === 2 ? onlyNewImagesSecondPage : onlyNewImagesFirstPage;
         req.reply(body);
       });
+      cy.intercept('/trpc/getVisualRegressionStatus*', {
+        body: { result: { data: { isAlreadyUpdated: false } } }
+      });
       cy.mount(
         <MemoryRouter
           initialEntries={[
             '?commitHash=123&bucket=bucket&repo=repo&owner=owner'
           ]}
         >
-          <App />
+          <App trpcLinks={trpcLinks} />
         </MemoryRouter>
       );
     });
@@ -223,13 +232,16 @@ describe('App', () => {
         const body = page === 2 ? noNewImagesPage : firstPage;
         req.reply(body);
       });
+      cy.intercept('/trpc/getVisualRegressionStatus*', {
+        body: { result: { data: { isAlreadyUpdated: false } } }
+      });
       cy.mount(
         <MemoryRouter
           initialEntries={[
             '?commitHash=123&bucket=bucket&repo=repo&owner=owner'
           ]}
         >
-          <App />
+          <App trpcLinks={trpcLinks} />
         </MemoryRouter>
       );
     });
@@ -248,13 +260,16 @@ describe('App', () => {
       cy.intercept('/trpc/fetchCurrentPage*', req => {
         req.reply(noDiffImagePage);
       });
+      cy.intercept('/trpc/getVisualRegressionStatus*', {
+        body: { result: { data: { isAlreadyUpdated: false } } }
+      });
       cy.mount(
         <MemoryRouter
           initialEntries={[
             '?commitHash=123&bucket=bucket&repo=repo&owner=owner'
           ]}
         >
-          <App />
+          <App trpcLinks={trpcLinks} />
         </MemoryRouter>
       );
     });
@@ -286,13 +301,16 @@ describe('App', () => {
       cy.intercept('/trpc/acceptVisualChanges*', { body: mutationResponse }).as(
         'accept-visual-changes'
       );
+      cy.intercept('/trpc/getVisualRegressionStatus*', {
+        body: { result: { data: { isAlreadyUpdated: false } } }
+      });
       cy.mount(
         <MemoryRouter
           initialEntries={[
             '/?commitHash=123&bucket=bucket&repo=repo&owner=owner&forceUpdate=true'
           ]}
         >
-          <App />
+          <App trpcLinks={trpcLinks} />
         </MemoryRouter>
       );
     });
@@ -312,6 +330,37 @@ describe('App', () => {
     });
   });
 
+  describe('base images already updated case', () => {
+    beforeEach(() => {
+      cy.intercept('/trpc/fetchCurrentPage*', req => {
+        const page = getPageFromRequest(req);
+        const body = page === 2 ? secondPage : firstPage;
+        req.reply(body);
+      });
+      cy.intercept('/trpc/getVisualRegressionStatus*', {
+        body: { result: { data: { isAlreadyUpdated: true } } }
+      });
+      cy.mount(
+        <MemoryRouter
+          initialEntries={[
+            '/?commitHash=123&bucket=bucket&repo=repo&owner=owner'
+          ]}
+        >
+          <App trpcLinks={trpcLinks} />
+        </MemoryRouter>
+      );
+    });
+
+    it('should replace the accept button with an already updated notice', () => {
+      cy.findByText(
+        'Base images have already been updated for these diffs.'
+      ).should('be.visible');
+      cy.findByRole('button', { name: 'Accept visual changes' }).should(
+        'not.exist'
+      );
+    });
+  });
+
   describe('diffId param case', () => {
     beforeEach(() => {
       cy.intercept('/trpc/fetchCurrentPage*', req => {
@@ -323,7 +372,7 @@ describe('App', () => {
         <MemoryRouter
           initialEntries={['?diffId=123&bucket=bucket&repo=repo&owner=owner']}
         >
-          <App />
+          <App trpcLinks={trpcLinks} />
         </MemoryRouter>
       );
     });
@@ -350,7 +399,7 @@ describe('App', () => {
             '?diffId=123&bucket=bucket&repo=repo&owner=owner&useBaseImages=false'
           ]}
         >
-          <App />
+          <App trpcLinks={trpcLinks} />
         </MemoryRouter>
       );
     });
