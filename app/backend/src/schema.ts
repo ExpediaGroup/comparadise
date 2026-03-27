@@ -31,6 +31,14 @@ export type AcceptVisualChangesInput = z.infer<
   typeof acceptVisualChangesInputSchema
 >;
 export type UpdateGitStatus = z.infer<typeof updateGitStatusSchema>;
+export const getVisualRegressionStatusInputSchema = z.object({
+  owner: z.string().min(1),
+  repo: z.string().min(1),
+  commitHash: z.string().min(1)
+});
+export type GetVisualRegressionStatusInput = z.infer<
+  typeof getVisualRegressionStatusInputSchema
+>;
 export const fileNameSchema = z.enum([
   BASE_IMAGE_NAME,
   DIFF_IMAGE_NAME,
