@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { trpc } from '../utils/trpc';
-import { httpBatchLink } from '@trpc/client';
+import { httpBatchLink, TRPCLink } from '@trpc/client';
+import { AppRouter } from '../../backend/src/router';
 
-export const ClientProvider = ({ children }: React.PropsWithChildren) => {
+export const ClientProvider = ({
+  children,
+  links
+}: React.PropsWithChildren<{ links?: TRPCLink<AppRouter>[] }>) => {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -18,7 +22,7 @@ export const ClientProvider = ({ children }: React.PropsWithChildren) => {
   );
   const [trpcClient] = useState(() =>
     trpc.createClient({
-      links: [
+      links: links ?? [
         httpBatchLink({
           url: '/trpc'
         })
