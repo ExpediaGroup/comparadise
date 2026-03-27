@@ -67,12 +67,14 @@ export const run = async () => {
     file.endsWith('new.png')
   );
 
+  const validDiffFilePaths: string[] = [];
   const diffFileCount = diffFilePaths.reduce((count, diffPath) => {
     if (
       newFilePaths.some(
         newPath => path.dirname(newPath) === path.dirname(diffPath)
       )
     ) {
+      validDiffFilePaths.push(diffPath);
       return count + 1;
     }
     // Delete orphaned diff files (no corresponding new file)
@@ -163,7 +165,7 @@ export const run = async () => {
     packagePaths.length > 0
       ? packagePaths.map(pkg => {
           const prefix = path.join(screenshotsDirectory, pkg);
-          const pkgDiffCount = diffFilePaths.filter(f =>
+          const pkgDiffCount = validDiffFilePaths.filter(f =>
             f.startsWith(prefix)
           ).length;
           const pkgNewCount = newFilePaths.filter(f =>
