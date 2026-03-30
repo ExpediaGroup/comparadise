@@ -1,3 +1,4 @@
+bun tsc
+bun lint
 bun format
-nx build action
 git add .

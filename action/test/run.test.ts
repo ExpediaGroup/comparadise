@@ -1,7 +1,7 @@
 import {
   VISUAL_REGRESSION_CONTEXT,
   VISUAL_TESTS_FAILED_TO_EXECUTE
-} from 'shared';
+} from 'shared/constants';
 import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
 import { EventEmitter } from 'events';
 import { Readable } from 'stream';
@@ -62,10 +62,10 @@ mock.module('fs/promises', () => ({
 const listObjectsMock = mock();
 const getObjectMock = mock();
 const putObjectMock = mock();
-const listAllObjects = async (
+async function listAllObjects(
   input: { Bucket: string; Prefix: string },
   continuationToken?: string
-): Promise<{ Key?: string }[]> => {
+): Promise<{ Key?: string }[]> {
   const response = await listObjectsMock({
     ...input,
     ...(continuationToken && { ContinuationToken: continuationToken })
@@ -76,12 +76,16 @@ const listAllObjects = async (
     ...contents,
     ...(await listAllObjects(input, response.NextContinuationToken))
   ];
-};
-mock.module('../src/s3-client', () => ({
+}
+mock.module('shared/s3', () => ({
+  s3Client: {},
   listObjects: listObjectsMock,
   listAllObjects,
+  getKeysFromS3: mock(),
+  updateBaseImages: mock(),
   getObject: getObjectMock,
-  putObject: putObjectMock
+  putObject: putObjectMock,
+  copyObject: mock()
 }));
 
 const jimpImageMock = {

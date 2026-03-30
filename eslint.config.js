@@ -36,7 +36,8 @@ export default [
       '**/dist',
       'docs',
       '**/public',
-      'comparadise-utils/**/*.js'
+      'comparadise-utils/**/*.js',
+      '.nx/**'
     ]
   }
 ];

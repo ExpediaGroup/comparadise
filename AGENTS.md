@@ -37,7 +37,7 @@ bun tsc               # TypeScript type check
 - TypeScript everywhere; strict mode is on via `typescript-eslint`
 - React components live in `app/frontend/`
 - Backend tRPC routes live in `app/backend/src/`
-- Shared constants (S3 directory names, image names, etc.) go in `shared/index.ts`
+- Shared constants (S3 directory names, image names, etc.) go in `shared/constants.ts`
 - Tailwind for all styling — class ordering is enforced by `prettier-plugin-tailwindcss`
 
 ## Action Build

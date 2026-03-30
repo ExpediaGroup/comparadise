@@ -1,12 +1,12 @@
 import { getInput, info } from '@actions/core';
-import { listObjects, listAllObjects, getObject, putObject } from './s3-client';
 import {
   BASE_IMAGE_NAME,
   BASE_IMAGES_DIRECTORY,
   NEW_IMAGES_DIRECTORY,
   NEW_IMAGE_NAME,
   ORIGINAL_NEW_IMAGES_DIRECTORY
-} from 'shared';
+} from 'shared/constants';
+import { getObject, listAllObjects, listObjects, putObject } from 'shared/s3';
 import { map } from 'bluebird';
 import * as path from 'path';
 import * as fs from 'fs';

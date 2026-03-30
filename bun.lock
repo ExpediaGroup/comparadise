@@ -102,6 +102,9 @@
     },
     "shared": {
       "name": "shared",
+      "dependencies": {
+        "@aws-sdk/client-s3": "3.1015.0",
+      },
     },
   },
   "packages": {
