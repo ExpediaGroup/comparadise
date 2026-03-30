@@ -2,14 +2,11 @@ import { getInput, info } from '@actions/core';
 import {
   BASE_IMAGE_NAME,
   BASE_IMAGES_DIRECTORY,
-  getObject,
-  listAllObjects,
-  listObjects,
   NEW_IMAGES_DIRECTORY,
   NEW_IMAGE_NAME,
-  ORIGINAL_NEW_IMAGES_DIRECTORY,
-  putObject
-} from 'shared';
+  ORIGINAL_NEW_IMAGES_DIRECTORY
+} from 'shared/constants';
+import { getObject, listAllObjects, listObjects, putObject } from 'shared/s3';
 import { map } from 'bluebird';
 import * as path from 'path';
 import * as fs from 'fs';

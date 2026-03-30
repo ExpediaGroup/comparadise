@@ -1,5 +1,9 @@
 import { z } from 'zod';
-import { BASE_IMAGE_NAME, DIFF_IMAGE_NAME, NEW_IMAGE_NAME } from 'shared';
+import {
+  BASE_IMAGE_NAME,
+  DIFF_IMAGE_NAME,
+  NEW_IMAGE_NAME
+} from 'shared/constants';
 
 export const fetchCurrentPageInputSchema = z.object({
   bucket: z.string().min(1),

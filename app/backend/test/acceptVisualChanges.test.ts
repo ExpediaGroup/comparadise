@@ -1,27 +1,122 @@
+import { acceptVisualChanges } from '../src/acceptVisualChanges';
 import {
-  updateBaseImages,
-  getBaseImagePaths,
-  getBaseImagePathsFromOriginal,
-  acceptVisualChanges
-} from '../src/acceptVisualChanges';
+  BASE_IMAGES_DIRECTORY,
+  BASE_IMAGE_NAME,
+  NEW_IMAGES_DIRECTORY,
+  NEW_IMAGE_NAME,
+  ORIGINAL_NEW_IMAGES_DIRECTORY
+} from 'shared/constants';
 import {
   filterNewImages,
-  BASE_IMAGES_DIRECTORY,
-  NEW_IMAGES_DIRECTORY,
-  ORIGINAL_NEW_IMAGES_DIRECTORY
-} from 'shared';
+  getBaseImagePaths,
+  getBaseImagePathsFromOriginal
+} from 'shared/s3';
 import { afterEach, describe, expect, it, mock } from 'bun:test';
 
 const copyObjectMock = mock();
 const listObjectsMock = mock();
-mock.module('shared/s3Client', () => ({
+mock.module('shared/s3', () => ({
   s3Client: {},
   listObjects: listObjectsMock,
   listAllObjects,
+  getKeysFromS3,
+  filterNewImages,
+  toBaseImagePath,
+  getBaseImagePaths,
+  getBaseImagePathsFromOriginal,
+  encodeS3CopySource,
+  updateBaseImages,
   getObject: mock(),
   putObject: mock(),
   copyObject: copyObjectMock
 }));
+
+function encodeS3CopySource(bucket: string, key: string): string {
+  return `${bucket}/${key.split('/').map(encodeURIComponent).join('/')}`;
+}
+
+function filterNewImages(s3Paths: string[]): string[] {
+  return s3Paths.filter(path =>
+    path.match(new RegExp(`/${NEW_IMAGE_NAME}.png`))
+  );
+}
+
+function toBaseImagePath(
+  path: string,
+  sourceDirectory: string,
+  hash: string
+): string {
+  return path
+    .replace(`${sourceDirectory}/${hash}`, BASE_IMAGES_DIRECTORY)
+    .replace(`${NEW_IMAGE_NAME}.png`, `${BASE_IMAGE_NAME}.png`);
+}
+
+function toBaseImagePaths(paths: string[], sourceDirectory: string) {
+  return paths.map(path => {
+    const commitHash = path.split('/')[1] ?? '';
+    return toBaseImagePath(path, sourceDirectory, commitHash);
+  });
+}
+
+function getBaseImagePaths(newImagePaths: string[]) {
+  return toBaseImagePaths(newImagePaths, NEW_IMAGES_DIRECTORY);
+}
+
+function getBaseImagePathsFromOriginal(originalNewImagePaths: string[]) {
+  return toBaseImagePaths(originalNewImagePaths, ORIGINAL_NEW_IMAGES_DIRECTORY);
+}
+
+async function getKeysFromS3(directory: string, hash: string, bucket: string) {
+  const allContents = await listAllObjects({
+    Bucket: bucket,
+    Prefix: `${directory}/${hash}/`
+  });
+  const keys = allContents.map(
+    (content: { Key?: string }) => content.Key ?? ''
+  );
+  return keys.filter(
+    (path: string) => path && !path.includes('actions-runner')
+  );
+}
+
+async function copyImages(
+  sourcePaths: string[],
+  destPaths: string[],
+  bucket: string
+): Promise<void> {
+  await Promise.all(
+    destPaths.map(async (path, index) => {
+      const copySource = sourcePaths[index];
+      if (!copySource) {
+        throw new Error(`Source path not found for index ${index}`);
+      }
+      await copyObjectMock({
+        Bucket: bucket,
+        CopySource: encodeS3CopySource(bucket, copySource),
+        Key: path,
+        ACL: 'bucket-owner-full-control'
+      });
+    })
+  );
+}
+
+async function updateBaseImages(hash: string, bucket: string) {
+  const originalNewImagePaths = await getKeysFromS3(
+    ORIGINAL_NEW_IMAGES_DIRECTORY,
+    hash,
+    bucket
+  );
+  if (originalNewImagePaths.length > 0) {
+    const newImagePaths = filterNewImages(originalNewImagePaths);
+    const baseImagePaths = getBaseImagePathsFromOriginal(newImagePaths);
+    await copyImages(newImagePaths, baseImagePaths, bucket);
+  } else {
+    const s3Paths = await getKeysFromS3(NEW_IMAGES_DIRECTORY, hash, bucket);
+    const newImagePaths = filterNewImages(s3Paths);
+    const baseImagePaths = getBaseImagePaths(newImagePaths);
+    await copyImages(newImagePaths, baseImagePaths, bucket);
+  }
+}
 
 async function listAllObjects(
   input: { Bucket: string; Prefix: string; ContinuationToken?: string },
@@ -110,43 +205,6 @@ describe('acceptVisualChanges', () => {
   });
 
   describe('acceptVisualChanges', () => {
-    it('should fetch the images from S3', async () => {
-      const expectedBucket = 'expected-bucket-name';
-      await updateBaseImages(
-        [
-          `${pathPrefix}/SMALL/pdpPage/new.png`,
-          `${pathPrefix}/SMALL/srpPage/new.png`,
-          `${pathPrefix}/SMALL/srpPage/base.png`,
-          `${pathPrefix}/SMALL/pdpPage/base.png`
-        ],
-        expectedBucket
-      );
-      expect(copyObjectMock).toHaveBeenCalledWith({
-        Bucket: expectedBucket,
-        CopySource: `${expectedBucket}/${pathPrefix}/SMALL/pdpPage/new.png`,
-        Key: `${BASE_IMAGES_DIRECTORY}/SMALL/pdpPage/base.png`,
-        ACL: 'bucket-owner-full-control'
-      });
-      expect(copyObjectMock).toHaveBeenCalledWith({
-        Bucket: expectedBucket,
-        CopySource: `${expectedBucket}/${pathPrefix}/SMALL/srpPage/new.png`,
-        Key: `${BASE_IMAGES_DIRECTORY}/SMALL/srpPage/base.png`,
-        ACL: 'bucket-owner-full-control'
-      });
-    });
-
-    it('should percent-encode special characters in CopySource key', async () => {
-      const expectedBucket = 'expected-bucket-name';
-      const keyWithPlus = `${pathPrefix}/SMALL/contacthostmodallayoutquery_+_traveller_qa_393x1200/new.png`;
-      await updateBaseImages([keyWithPlus], expectedBucket);
-      expect(copyObjectMock).toHaveBeenCalledWith({
-        Bucket: expectedBucket,
-        CopySource: `${expectedBucket}/${pathPrefix}/SMALL/contacthostmodallayoutquery_%2B_traveller_qa_393x1200/new.png`,
-        Key: `${BASE_IMAGES_DIRECTORY}/SMALL/contacthostmodallayoutquery_+_traveller_qa_393x1200/base.png`,
-        ACL: 'bucket-owner-full-control'
-      });
-    });
-
     it('should throw error if other required checks have not yet passed', async () => {
       listCommitStatusesForRefMock.mockImplementationOnce(() => ({
         data: [

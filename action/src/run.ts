@@ -22,7 +22,7 @@ import { getLatestVisualRegressionStatus } from './get-latest-visual-regression-
 import {
   VISUAL_REGRESSION_CONTEXT,
   VISUAL_TESTS_FAILED_TO_EXECUTE
-} from 'shared';
+} from 'shared/constants';
 import { buildComparadiseUrl } from './build-comparadise-url';
 import { disableAutoMerge } from './disable-auto-merge';
 

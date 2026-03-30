@@ -1,16 +1,36 @@
-import { NEW_IMAGES_DIRECTORY } from 'shared';
+import { NEW_IMAGES_DIRECTORY } from 'shared/constants';
 import { getGroupedKeys } from '../src/getGroupedKeys';
 import { describe, expect, it, mock } from 'bun:test';
 
 const listObjectsMock = mock();
-mock.module('shared/s3Client', () => ({
+mock.module('shared/s3', () => ({
   s3Client: {},
   listObjects: listObjectsMock,
   listAllObjects,
+  getKeysFromS3,
+  filterNewImages: mock(),
+  toBaseImagePath: mock(),
+  getBaseImagePaths: mock(),
+  getBaseImagePathsFromOriginal: mock(),
+  encodeS3CopySource: mock(),
+  updateBaseImages: mock(),
   getObject: mock(),
   putObject: mock(),
   copyObject: mock()
 }));
+
+async function getKeysFromS3(directory: string, hash: string, bucket: string) {
+  const allContents = await listAllObjects({
+    Bucket: bucket,
+    Prefix: `${directory}/${hash}/`
+  });
+  const keys = allContents.map(
+    (content: { Key?: string }) => content.Key ?? ''
+  );
+  return keys.filter(
+    (path: string) => path && !path.includes('actions-runner')
+  );
+}
 
 async function listAllObjects(
   input: { Bucket: string; Prefix: string; ContinuationToken?: string },
