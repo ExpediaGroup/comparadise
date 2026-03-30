@@ -834,7 +834,11 @@ describe('main', () => {
 
     it('should call updateBaseImages with correct args', async () => {
       await runAction();
-      expect(updateBaseImagesMock).toHaveBeenCalledWith('sha', 'some-bucket');
+      expect(updateBaseImagesMock).toHaveBeenCalledWith(
+        'sha',
+        'some-bucket',
+        expect.any(Function)
+      );
       expect(execMock).not.toHaveBeenCalled();
       expect(createCommitStatusMock).not.toHaveBeenCalled();
       expect(setFailedMock).not.toHaveBeenCalled();
