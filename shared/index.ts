@@ -1,6 +1,3 @@
-import type { ObjectCannedACL } from '@aws-sdk/client-s3';
-import { listAllObjects, copyObject } from './s3Client';
-
 export {
   s3Client,
   listObjects,
@@ -38,62 +35,4 @@ export function toBaseImagePath(
   return path
     .replace(`${sourceDirectory}/${hash}`, BASE_IMAGES_DIRECTORY)
     .replace(`${NEW_IMAGE_NAME}.png`, `${BASE_IMAGE_NAME}.png`);
-}
-
-export async function listNewImageKeys(
-  bucket: string,
-  prefix: string
-): Promise<string[]> {
-  const objects = await listAllObjects({ Bucket: bucket, Prefix: prefix });
-  return objects.map(obj => obj.Key).filter((key): key is string => !!key);
-}
-
-export async function copyS3Object(
-  bucket: string,
-  sourceKey: string,
-  destKey: string,
-  acl?: ObjectCannedACL
-): Promise<void> {
-  await copyObject({
-    Bucket: bucket,
-    CopySource: encodeS3CopySource(bucket, sourceKey),
-    Key: destKey,
-    ...(acl && { ACL: acl })
-  });
-}
-
-export async function copyNewImagesToBase(
-  hash: string,
-  bucket: string,
-  acl?: ObjectCannedACL
-): Promise<void> {
-  const originalKeys = filterNewImages(
-    await listNewImageKeys(bucket, `${ORIGINAL_NEW_IMAGES_DIRECTORY}/${hash}/`)
-  );
-  if (originalKeys.length > 0) {
-    await Promise.all(
-      originalKeys.map(key =>
-        copyS3Object(
-          bucket,
-          key,
-          toBaseImagePath(key, ORIGINAL_NEW_IMAGES_DIRECTORY, hash),
-          acl
-        )
-      )
-    );
-    return;
-  }
-  const newKeys = filterNewImages(
-    await listNewImageKeys(bucket, `${NEW_IMAGES_DIRECTORY}/${hash}/`)
-  );
-  await Promise.all(
-    newKeys.map(key =>
-      copyS3Object(
-        bucket,
-        key,
-        toBaseImagePath(key, NEW_IMAGES_DIRECTORY, hash),
-        acl
-      )
-    )
-  );
 }
