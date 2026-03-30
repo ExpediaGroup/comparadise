@@ -77,11 +77,13 @@ const listAllObjects = async (
     ...(await listAllObjects(input, response.NextContinuationToken))
   ];
 };
-mock.module('../src/s3-client', () => ({
+mock.module('shared/s3Client', () => ({
+  s3Client: {},
   listObjects: listObjectsMock,
   listAllObjects,
   getObject: getObjectMock,
-  putObject: putObjectMock
+  putObject: putObjectMock,
+  copyObject: mock()
 }));
 
 const jimpImageMock = {

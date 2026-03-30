@@ -1,4 +1,4 @@
-import { listAllObjects } from './s3Client';
+import { listAllObjects } from 'shared';
 
 // Info on working with nested object path prefixes: https://realguess.net/2014/05/24/amazon-s3-delimiter-and-prefix/#Prefix
 export async function getKeysFromS3(

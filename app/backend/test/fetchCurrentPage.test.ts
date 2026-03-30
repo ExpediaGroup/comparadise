@@ -6,7 +6,7 @@ mock.module('../src/getTemporaryObjectUrl', () => ({
   getTemporaryObjectUrl: mock(() => 'url')
 }));
 const pathPrefix = `${NEW_IMAGES_DIRECTORY}/hash`;
-const listObjectsV2Mock = mock(() => ({
+const listObjectsMock = mock(() => ({
   Contents: [
     { Key: `${pathPrefix}/SMALL/srpPage/base.png` },
     { Key: `${pathPrefix}/SMALL/srpPage/diff.png` },
@@ -16,11 +16,30 @@ const listObjectsV2Mock = mock(() => ({
     { Key: `${pathPrefix}/LARGE/invalidPage/new.png` }
   ]
 }));
-mock.module('../src/s3Client', () => ({
-  S3Client: {
-    listObjectsV2: listObjectsV2Mock
-  }
+mock.module('shared/s3Client', () => ({
+  s3Client: {},
+  listObjects: listObjectsMock,
+  listAllObjects,
+  getObject: mock(),
+  putObject: mock(),
+  copyObject: mock()
 }));
+
+async function listAllObjects(
+  input: { Bucket: string; Prefix: string; ContinuationToken?: string },
+  continuationToken?: string
+) {
+  const response = await listObjectsMock({
+    ...input,
+    ...(continuationToken && { ContinuationToken: continuationToken })
+  });
+  const contents = response.Contents ?? [];
+  if (!response.IsTruncated) return contents;
+  return [
+    ...contents,
+    ...(await listAllObjects(input, response.NextContinuationToken))
+  ];
+}
 
 describe('fetchCurrentPage', () => {
   it('should get first page of images', async () => {

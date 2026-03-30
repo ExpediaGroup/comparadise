@@ -8,10 +8,13 @@ import {
   GetObjectCommandOutput,
   PutObjectCommand,
   PutObjectCommandInput,
-  PutObjectCommandOutput
+  PutObjectCommandOutput,
+  CopyObjectCommand,
+  CopyObjectCommandInput,
+  CopyObjectCommandOutput
 } from '@aws-sdk/client-s3';
 
-const s3Client = new S3Client();
+export const s3Client = new S3Client();
 
 export const listObjects = (
   input: ListObjectsV2CommandInput
@@ -41,3 +44,8 @@ export const putObject = (
   input: PutObjectCommandInput
 ): Promise<PutObjectCommandOutput> =>
   s3Client.send(new PutObjectCommand(input));
+
+export const copyObject = (
+  input: CopyObjectCommandInput
+): Promise<CopyObjectCommandOutput> =>
+  s3Client.send(new CopyObjectCommand(input));

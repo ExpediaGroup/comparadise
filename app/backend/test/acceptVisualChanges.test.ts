@@ -13,13 +13,32 @@ import {
 import { afterEach, describe, expect, it, mock } from 'bun:test';
 
 const copyObjectMock = mock();
-const listObjectsV2Mock = mock();
-mock.module('../src/s3Client', () => ({
-  S3Client: {
-    copyObject: copyObjectMock,
-    listObjectsV2: listObjectsV2Mock
-  }
+const listObjectsMock = mock();
+mock.module('shared/s3Client', () => ({
+  s3Client: {},
+  listObjects: listObjectsMock,
+  listAllObjects,
+  getObject: mock(),
+  putObject: mock(),
+  copyObject: copyObjectMock
 }));
+
+async function listAllObjects(
+  input: { Bucket: string; Prefix: string; ContinuationToken?: string },
+  continuationToken?: string
+) {
+  const response = await listObjectsMock({
+    ...input,
+    ...(continuationToken && { ContinuationToken: continuationToken })
+  });
+  const contents = response.Contents ?? [];
+  if (!response.IsTruncated) return contents;
+  return [
+    ...contents,
+    ...(await listAllObjects(input, response.NextContinuationToken))
+  ];
+}
+
 const listCommitStatusesForRefMock = mock(() => ({
   data: [
     {
@@ -158,7 +177,7 @@ describe('acceptVisualChanges', () => {
         )
       ).rejects.toThrow();
 
-      expect(listObjectsV2Mock).not.toHaveBeenCalled();
+      expect(listObjectsMock).not.toHaveBeenCalled();
       expect(copyObjectMock).not.toHaveBeenCalled();
       expect(updateCommitStatusMock).not.toHaveBeenCalled();
     });
@@ -176,14 +195,14 @@ describe('acceptVisualChanges', () => {
         { urlParams: {} }
       );
 
-      expect(listObjectsV2Mock).not.toHaveBeenCalled();
+      expect(listObjectsMock).not.toHaveBeenCalled();
       expect(copyObjectMock).not.toHaveBeenCalled();
       expect(updateCommitStatusMock).toHaveBeenCalled();
     });
 
     it('should copy from original-new-images when originals are present', async () => {
       const expectedBucket = 'expected-bucket-name';
-      listObjectsV2Mock.mockImplementationOnce(() => ({
+      listObjectsMock.mockImplementationOnce(() => ({
         Contents: [{ Key: `${originalPathPrefix}/SMALL/pdpPage/new.png` }]
       }));
 
@@ -209,7 +228,7 @@ describe('acceptVisualChanges', () => {
 
     it('should fall back to new-images when no originals are present', async () => {
       const expectedBucket = 'expected-bucket-name';
-      listObjectsV2Mock
+      listObjectsMock
         .mockImplementationOnce(() => ({ Contents: [] }))
         .mockImplementationOnce(() => ({
           Contents: [

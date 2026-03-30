@@ -1,9 +1,10 @@
 import { logEvent } from './logger';
-import { S3Client } from './s3Client';
 import {
-  BASE_IMAGE_NAME,
+  copyObject,
+  encodeS3CopySource,
+  filterNewImages,
+  toBaseImagePath,
   BASE_IMAGES_DIRECTORY,
-  NEW_IMAGE_NAME,
   NEW_IMAGES_DIRECTORY,
   ORIGINAL_NEW_IMAGES_DIRECTORY
 } from 'shared';
@@ -66,27 +67,17 @@ export const acceptVisualChanges = async (
   });
 };
 
-export const filterNewImages = (s3Paths: string[]) => {
-  return s3Paths.filter(path =>
-    path.match(new RegExp(`/${NEW_IMAGE_NAME}.png`))
-  );
-};
+export { filterNewImages };
 
 function toBaseImagePaths(paths: string[], sourceDirectory: string) {
   return paths.map(path => {
     const commitHash = path.split('/')[1] ?? '';
-    return path
-      .replace(`${sourceDirectory}/${commitHash}`, BASE_IMAGES_DIRECTORY)
-      .replace(`${NEW_IMAGE_NAME}.png`, `${BASE_IMAGE_NAME}.png`);
+    return toBaseImagePath(path, sourceDirectory, commitHash);
   });
 }
 
 export const getBaseImagePaths = (newImagePaths: string[]) =>
   toBaseImagePaths(newImagePaths, NEW_IMAGES_DIRECTORY);
-
-function encodeS3CopySource(bucket: string, key: string) {
-  return `${bucket}/${key.split('/').map(encodeURIComponent).join('/')}`;
-}
 
 async function copyImages(
   sourcePaths: string[],
@@ -99,7 +90,7 @@ async function copyImages(
       if (!copySource) {
         throw new Error(`Source path not found for index ${index}`);
       }
-      await S3Client.copyObject({
+      await copyObject({
         Bucket: bucket,
         CopySource: encodeS3CopySource(bucket, copySource),
         Key: path,
