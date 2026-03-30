@@ -9,7 +9,7 @@ import {
 import {
   downloadBaseImages,
   uploadAllImages,
-  uploadOriginalNewImages,
+  uploadOriginalNewImages
 } from './s3-operations';
 import { updateBaseImages } from 'shared/s3';
 import { exec } from '@actions/exec';

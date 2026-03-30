@@ -62,6 +62,8 @@ mock.module('fs/promises', () => ({
 const listObjectsMock = mock();
 const getObjectMock = mock();
 const putObjectMock = mock();
+const copyObjectMock = mock();
+const updateBaseImagesMock = mock();
 async function listAllObjects(
   input: { Bucket: string; Prefix: string },
   continuationToken?: string
@@ -82,10 +84,10 @@ mock.module('shared/s3', () => ({
   listObjects: listObjectsMock,
   listAllObjects,
   getKeysFromS3: mock(),
-  updateBaseImages: mock(),
+  updateBaseImages: updateBaseImagesMock,
   getObject: getObjectMock,
   putObject: putObjectMock,
-  copyObject: mock()
+  copyObject: copyObjectMock
 }));
 
 const jimpImageMock = {
@@ -213,6 +215,7 @@ describe('main', () => {
     getObjectMock.mockResolvedValue({ Body: null });
     putObjectMock.mockResolvedValue({});
     copyObjectMock.mockResolvedValue({});
+    updateBaseImagesMock.mockResolvedValue(undefined);
     mkdirMock.mockResolvedValue(undefined);
     readFileMock.mockResolvedValue(Buffer.from('image-data'));
     createWriteStreamMock.mockReturnValue(new EventEmitter());
@@ -829,43 +832,11 @@ describe('main', () => {
       );
     });
 
-    it('should update base images from original-new-images when originals exist', async () => {
-      listObjectsMock.mockResolvedValueOnce({
-        Contents: [{ Key: 'original-new-images/sha/component/new.png' }]
-      });
+    it('should call updateBaseImages with correct args', async () => {
       await runAction();
+      expect(updateBaseImagesMock).toHaveBeenCalledWith('sha', 'some-bucket');
       expect(execMock).not.toHaveBeenCalled();
       expect(createCommitStatusMock).not.toHaveBeenCalled();
-      expect(copyObjectMock).toHaveBeenCalledWith({
-        Bucket: 'some-bucket',
-        CopySource: 'some-bucket/original-new-images/sha/component/new.png',
-        Key: 'base-images/component/base.png'
-      });
-    });
-
-    it('should fall back to new-images when no originals exist', async () => {
-      listObjectsMock
-        .mockResolvedValueOnce({ Contents: [] })
-        .mockResolvedValueOnce({
-          Contents: [{ Key: 'new-images/sha/component/new.png' }]
-        });
-      await runAction();
-      expect(execMock).not.toHaveBeenCalled();
-      expect(createCommitStatusMock).not.toHaveBeenCalled();
-      expect(copyObjectMock).toHaveBeenCalledWith({
-        Bucket: 'some-bucket',
-        CopySource: 'some-bucket/new-images/sha/component/new.png',
-        Key: 'base-images/component/base.png'
-      });
-    });
-
-    it('should not run visual tests or set commit status', async () => {
-      listObjectsMock.mockResolvedValueOnce({ Contents: [] });
-      listObjectsMock.mockResolvedValueOnce({ Contents: [] });
-      await runAction();
-      expect(execMock).not.toHaveBeenCalled();
-      expect(createCommitStatusMock).not.toHaveBeenCalled();
-      expect(putObjectMock).not.toHaveBeenCalled();
       expect(setFailedMock).not.toHaveBeenCalled();
     });
   });
@@ -1218,79 +1189,6 @@ describe('s3-operations', () => {
           cwd: path.join('path/to/screenshots', 'pkg2')
         })
       );
-    });
-  });
-
-  describe('updateBaseImagesInS3', () => {
-    it('should copy from original-new-images when originals exist', async () => {
-      listObjectsMock.mockResolvedValueOnce({
-        Contents: [{ Key: 'original-new-images/abc123/component/new.png' }]
-      });
-
-      const { updateBaseImagesInS3 } = await getS3Operations();
-      await updateBaseImagesInS3('abc123');
-
-      expect(copyObjectMock).toHaveBeenCalledTimes(1);
-      expect(copyObjectMock).toHaveBeenCalledWith({
-        Bucket: 'test-bucket',
-        CopySource: 'test-bucket/original-new-images/abc123/component/new.png',
-        Key: 'base-images/component/base.png'
-      });
-    });
-
-    it('should fall back to new-images when no originals exist', async () => {
-      listObjectsMock
-        .mockResolvedValueOnce({ Contents: [] })
-        .mockResolvedValueOnce({
-          Contents: [{ Key: 'new-images/abc123/component/new.png' }]
-        });
-
-      const { updateBaseImagesInS3 } = await getS3Operations();
-      await updateBaseImagesInS3('abc123');
-
-      expect(copyObjectMock).toHaveBeenCalledTimes(1);
-      expect(copyObjectMock).toHaveBeenCalledWith({
-        Bucket: 'test-bucket',
-        CopySource: 'test-bucket/new-images/abc123/component/new.png',
-        Key: 'base-images/component/base.png'
-      });
-    });
-
-    it('should only copy new.png files, not diff or base', async () => {
-      listObjectsMock.mockResolvedValueOnce({ Contents: [] });
-      listObjectsMock.mockResolvedValueOnce({
-        Contents: [
-          { Key: 'new-images/abc123/component/new.png' },
-          { Key: 'new-images/abc123/component/diff.png' },
-          { Key: 'new-images/abc123/component/base.png' }
-        ]
-      });
-
-      const { updateBaseImagesInS3 } = await getS3Operations();
-      await updateBaseImagesInS3('abc123');
-
-      expect(copyObjectMock).toHaveBeenCalledTimes(1);
-      expect(copyObjectMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          Key: 'base-images/component/base.png'
-        })
-      );
-    });
-
-    it('should percent-encode special characters in CopySource', async () => {
-      listObjectsMock.mockResolvedValueOnce({ Contents: [] });
-      listObjectsMock.mockResolvedValueOnce({
-        Contents: [{ Key: 'new-images/abc123/component+name/new.png' }]
-      });
-
-      const { updateBaseImagesInS3 } = await getS3Operations();
-      await updateBaseImagesInS3('abc123');
-
-      expect(copyObjectMock).toHaveBeenCalledWith({
-        Bucket: 'test-bucket',
-        CopySource: 'test-bucket/new-images/abc123/component%2Bname/new.png',
-        Key: 'base-images/component+name/base.png'
-      });
     });
   });
 
