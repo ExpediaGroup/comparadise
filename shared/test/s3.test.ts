@@ -5,7 +5,8 @@ import {
   ORIGINAL_NEW_IMAGES_DIRECTORY
 } from 'shared/constants';
 
-const listObjectsMock = mock(() => ({
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const listObjectsMock = mock((command?: unknown) => ({
   Contents: [
     {
       Key: 'ome/actions-runner/something'
@@ -15,23 +16,36 @@ const listObjectsMock = mock(() => ({
     }
   ]
 }));
+const copyObjectMock = mock();
+
+class ListObjectsV2Command {
+  constructor(public input: unknown) {}
+}
+class CopyObjectCommand {
+  constructor(public input: unknown) {}
+}
+
 mock.module('@aws-sdk/client-s3', () => ({
   S3Client: class {
-    send = listObjectsMock;
+    send = mock((command: unknown) => {
+      if (command instanceof CopyObjectCommand) {
+        return copyObjectMock(command.input);
+      }
+      return listObjectsMock(command);
+    });
   },
-  ListObjectsV2Command: class {
-    constructor(public input: unknown) {}
-  },
+  ListObjectsV2Command,
   GetObjectCommand: class {},
   PutObjectCommand: class {},
-  CopyObjectCommand: class {}
+  CopyObjectCommand
 }));
 
 const {
   filterNewImages,
   getBaseImagePaths,
   getBaseImagePathsFromOriginal,
-  getKeysFromS3
+  getKeysFromS3,
+  updateBaseImages
 } = await import('shared/s3');
 
 const pathPrefix = `${NEW_IMAGES_DIRECTORY}/030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5`;
@@ -117,5 +131,98 @@ describe('getKeysFromS3', () => {
       'new-images/hash/page1/new.png',
       'new-images/hash/page2/new.png'
     ]);
+  });
+});
+
+describe('updateBaseImages', () => {
+  const hash = '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5';
+  const bucket = 'expected-bucket-name';
+
+  afterEach(() => {
+    listObjectsMock.mockClear();
+    copyObjectMock.mockClear();
+  });
+
+  it('should copy from original-new-images when originals exist', async () => {
+    listObjectsMock.mockImplementationOnce(() => ({
+      Contents: [{ Key: `${originalPathPrefix}/SMALL/pdpPage/new.png` }]
+    }));
+
+    await updateBaseImages(hash, bucket);
+
+    expect(copyObjectMock).toHaveBeenCalledTimes(1);
+    expect(copyObjectMock).toHaveBeenCalledWith({
+      Bucket: bucket,
+      CopySource: `${bucket}/${originalPathPrefix}/SMALL/pdpPage/new.png`,
+      Key: `${BASE_IMAGES_DIRECTORY}/SMALL/pdpPage/base.png`,
+      ACL: 'bucket-owner-full-control'
+    });
+  });
+
+  it('should fall back to new-images when no originals exist', async () => {
+    listObjectsMock
+      .mockImplementationOnce(() => ({ Contents: [] }))
+      .mockImplementationOnce(() => ({
+        Contents: [
+          { Key: `${pathPrefix}/SMALL/pdpPage/new.png` },
+          { Key: `${pathPrefix}/SMALL/pdpPage/diff.png` }
+        ]
+      }));
+
+    await updateBaseImages(hash, bucket);
+
+    expect(copyObjectMock).toHaveBeenCalledTimes(1);
+    expect(copyObjectMock).toHaveBeenCalledWith({
+      Bucket: bucket,
+      CopySource: `${bucket}/${pathPrefix}/SMALL/pdpPage/new.png`,
+      Key: `${BASE_IMAGES_DIRECTORY}/SMALL/pdpPage/base.png`,
+      ACL: 'bucket-owner-full-control'
+    });
+  });
+
+  it('should copy multiple new images to base', async () => {
+    listObjectsMock
+      .mockImplementationOnce(() => ({ Contents: [] }))
+      .mockImplementationOnce(() => ({
+        Contents: [
+          { Key: `${pathPrefix}/SMALL/pdpPage/new.png` },
+          { Key: `${pathPrefix}/SMALL/srpPage/new.png` },
+          { Key: `${pathPrefix}/SMALL/srpPage/base.png` },
+          { Key: `${pathPrefix}/SMALL/pdpPage/base.png` }
+        ]
+      }));
+
+    await updateBaseImages(hash, bucket);
+
+    expect(copyObjectMock).toHaveBeenCalledWith({
+      Bucket: bucket,
+      CopySource: `${bucket}/${pathPrefix}/SMALL/pdpPage/new.png`,
+      Key: `${BASE_IMAGES_DIRECTORY}/SMALL/pdpPage/base.png`,
+      ACL: 'bucket-owner-full-control'
+    });
+    expect(copyObjectMock).toHaveBeenCalledWith({
+      Bucket: bucket,
+      CopySource: `${bucket}/${pathPrefix}/SMALL/srpPage/new.png`,
+      Key: `${BASE_IMAGES_DIRECTORY}/SMALL/srpPage/base.png`,
+      ACL: 'bucket-owner-full-control'
+    });
+  });
+
+  it('should percent-encode special characters in CopySource key', async () => {
+    const keyWithPlus = `${pathPrefix}/SMALL/contacthostmodallayoutquery_+_traveller_qa_393x1200/new.png`;
+    listObjectsMock
+      .mockImplementationOnce(() => ({ Contents: [] }))
+      .mockImplementationOnce(() => ({
+        Contents: [{ Key: keyWithPlus }]
+      }));
+
+    await updateBaseImages(hash, bucket);
+
+    expect(copyObjectMock).toHaveBeenCalledWith({
+      Bucket: bucket,
+      CopySource: `${bucket}/${pathPrefix}/SMALL/contacthostmodallayoutquery_%2B_traveller_qa_393x1200/new.png`,
+      Key: `${BASE_IMAGES_DIRECTORY}/SMALL/contacthostmodallayoutquery_+_traveller_qa_393x1200/base.png`,
+      ACL: 'bucket-owner-full-control'
+    });
   });
 });

@@ -62,6 +62,8 @@ mock.module('fs/promises', () => ({
 const listObjectsMock = mock();
 const getObjectMock = mock();
 const putObjectMock = mock();
+const copyObjectMock = mock();
+const updateBaseImagesMock = mock();
 async function listAllObjects(
   input: { Bucket: string; Prefix: string },
   continuationToken?: string
@@ -82,10 +84,10 @@ mock.module('shared/s3', () => ({
   listObjects: listObjectsMock,
   listAllObjects,
   getKeysFromS3: mock(),
-  updateBaseImages: mock(),
+  updateBaseImages: updateBaseImagesMock,
   getObject: getObjectMock,
   putObject: putObjectMock,
-  copyObject: mock()
+  copyObject: copyObjectMock
 }));
 
 const jimpImageMock = {
@@ -212,6 +214,8 @@ describe('main', () => {
     listObjectsMock.mockResolvedValue({ Contents: [] });
     getObjectMock.mockResolvedValue({ Body: null });
     putObjectMock.mockResolvedValue({});
+    copyObjectMock.mockResolvedValue({});
+    updateBaseImagesMock.mockResolvedValue(undefined);
     mkdirMock.mockResolvedValue(undefined);
     readFileMock.mockResolvedValue(Buffer.from('image-data'));
     createWriteStreamMock.mockReturnValue(new EventEmitter());
@@ -806,6 +810,36 @@ describe('main', () => {
     );
     expect(createCommitStatusMock).not.toHaveBeenCalled();
   });
+
+  it('should fail when workflow is pr and visual-test-command is not provided', async () => {
+    getMultilineInputMock.mockImplementation(() => []);
+    execMock.mockResolvedValue(0);
+    await runAction();
+    expect(setFailedMock).toHaveBeenCalledWith(
+      'visual-test-command is required when workflow is pr.'
+    );
+  });
+
+  describe('merge workflow', () => {
+    const mergeInputMap: Record<string, string> = {
+      ...inputMap,
+      workflow: 'merge'
+    };
+
+    beforeEach(() => {
+      getInputMock.mockImplementation(
+        (name: string) => mergeInputMap[name] ?? ''
+      );
+    });
+
+    it('should call updateBaseImages with correct args', async () => {
+      await runAction();
+      expect(updateBaseImagesMock).toHaveBeenCalledWith('sha', 'some-bucket');
+      expect(execMock).not.toHaveBeenCalled();
+      expect(createCommitStatusMock).not.toHaveBeenCalled();
+      expect(setFailedMock).not.toHaveBeenCalled();
+    });
+  });
 });
 
 describe('s3-operations', () => {
@@ -830,6 +864,7 @@ describe('s3-operations', () => {
     listObjectsMock.mockResolvedValue({ Contents: [] });
     getObjectMock.mockResolvedValue({ Body: null });
     putObjectMock.mockResolvedValue({});
+    copyObjectMock.mockResolvedValue({});
     globMock.mockResolvedValue([]);
     mkdirMock.mockResolvedValue(undefined);
     readFileMock.mockResolvedValue(Buffer.from('image-data'));
