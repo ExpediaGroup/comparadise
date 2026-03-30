@@ -113,7 +113,8 @@ export function getBaseImagePathsFromOriginal(originalNewImagePaths: string[]) {
 async function copyImages(
   sourcePaths: string[],
   destPaths: string[],
-  bucket: string
+  bucket: string,
+  log?: (message: string) => void
 ): Promise<void> {
   await Promise.all(
     destPaths.map(async (path, index) => {
@@ -121,6 +122,7 @@ async function copyImages(
       if (!copySource) {
         throw new Error(`Source path not found for index ${index}`);
       }
+      log?.(`Copying ${copySource} to ${path}`);
       await copyObject({
         Bucket: bucket,
         CopySource: encodeS3CopySource(bucket, copySource),
@@ -131,31 +133,40 @@ async function copyImages(
   );
 }
 
-async function copyNewImagesToBase(s3Paths: string[], bucket: string) {
+async function copyNewImagesToBase(
+  s3Paths: string[],
+  bucket: string,
+  log?: (message: string) => void
+) {
   const newImagePaths = filterNewImages(s3Paths);
   const baseImagePaths = getBaseImagePaths(newImagePaths);
-  return copyImages(newImagePaths, baseImagePaths, bucket);
+  return copyImages(newImagePaths, baseImagePaths, bucket, log);
 }
 
 async function copyOriginalImagesToBase(
   originalPaths: string[],
-  bucket: string
+  bucket: string,
+  log?: (message: string) => void
 ) {
   const newImagePaths = filterNewImages(originalPaths);
   const baseImagePaths = getBaseImagePathsFromOriginal(newImagePaths);
-  return copyImages(newImagePaths, baseImagePaths, bucket);
+  return copyImages(newImagePaths, baseImagePaths, bucket, log);
 }
 
-export async function updateBaseImages(hash: string, bucket: string) {
+export async function updateBaseImages(
+  hash: string,
+  bucket: string,
+  log?: (message: string) => void
+) {
   const originalNewImagePaths = await getKeysFromS3(
     ORIGINAL_NEW_IMAGES_DIRECTORY,
     hash,
     bucket
   );
   if (originalNewImagePaths.length > 0) {
-    await copyOriginalImagesToBase(originalNewImagePaths, bucket);
+    await copyOriginalImagesToBase(originalNewImagePaths, bucket, log);
   } else {
     const s3Paths = await getKeysFromS3(NEW_IMAGES_DIRECTORY, hash, bucket);
-    await copyNewImagesToBase(s3Paths, bucket);
+    await copyNewImagesToBase(s3Paths, bucket, log);
   }
 }

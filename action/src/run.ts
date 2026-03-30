@@ -42,7 +42,7 @@ export const run = async () => {
   if (workflow === 'merge') {
     info('Running in merge workflow mode — updating base images in S3.');
     const bucket = getInput('bucket-name', { required: true });
-    await updateBaseImages(hash, bucket);
+    await updateBaseImages(hash, bucket, info);
     info('Base images updated successfully.');
     return;
   }
