@@ -1,8 +1,8 @@
 import { TRPCError } from '@trpc/server';
 import { join, parse } from 'path';
 import { groupBy } from 'lodash';
-import { NEW_IMAGE_NAME, NEW_IMAGES_DIRECTORY } from 'shared';
-import { getKeysFromS3 } from './getKeysFromS3';
+import { NEW_IMAGE_NAME, NEW_IMAGES_DIRECTORY } from 'shared/constants';
+import { getKeysFromS3 } from 'shared/s3';
 
 export const getGroupedKeys = async (hash: string, bucket: string) => {
   const keys = await getKeysFromS3(NEW_IMAGES_DIRECTORY, hash, bucket);

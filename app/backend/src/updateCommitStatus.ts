@@ -1,7 +1,7 @@
 import { TRPCError } from '@trpc/server';
 import { UpdateGitStatus } from './schema';
 import { getOctokit } from './getOctokit';
-import { VISUAL_REGRESSION_CONTEXT } from 'shared';
+import { VISUAL_REGRESSION_CONTEXT } from 'shared/constants';
 
 export const updateCommitStatus = async ({
   owner,

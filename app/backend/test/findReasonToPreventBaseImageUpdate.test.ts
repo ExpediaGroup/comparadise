@@ -2,7 +2,7 @@ import { findReasonToPreventVisualChangeAcceptance } from '../src/findReasonToPr
 import {
   VISUAL_REGRESSION_CONTEXT,
   VISUAL_TESTS_FAILED_TO_EXECUTE
-} from 'shared';
+} from 'shared/constants';
 import { describe, expect, it, mock } from 'bun:test';
 
 const listCommitStatusesForRefMock = mock();

@@ -3,7 +3,7 @@ import { groupBy, isEqual, sortBy } from 'lodash';
 import {
   VISUAL_REGRESSION_CONTEXT,
   VISUAL_TESTS_FAILED_TO_EXECUTE
-} from 'shared';
+} from 'shared/constants';
 
 export const findReasonToPreventVisualChangeAcceptance = async (
   owner: string,

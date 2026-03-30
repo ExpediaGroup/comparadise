@@ -2,7 +2,7 @@ import React from 'react';
 import { PrimaryButton, SecondaryButton } from '../buttons';
 import { LazyImage } from './lazy-image';
 import { Image, Images } from '../types';
-import { DIFF_IMAGE_NAME } from 'shared';
+import { DIFF_IMAGE_NAME } from 'shared/constants';
 
 export const getImageButtonStyles = (images: Images, imageIndex: number) => {
   if (images.length === 1) {

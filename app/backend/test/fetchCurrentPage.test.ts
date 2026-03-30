@@ -1,45 +1,30 @@
 import { fetchCurrentPage } from '../src/fetchCurrentPage';
 import { describe, expect, it, mock } from 'bun:test';
-import { NEW_IMAGES_DIRECTORY } from 'shared';
+import { NEW_IMAGES_DIRECTORY } from 'shared/constants';
 
 mock.module('../src/getTemporaryObjectUrl', () => ({
   getTemporaryObjectUrl: mock(() => 'url')
 }));
+
 const pathPrefix = `${NEW_IMAGES_DIRECTORY}/hash`;
-const listObjectsMock = mock(() => ({
-  Contents: [
-    { Key: `${pathPrefix}/SMALL/srpPage/base.png` },
-    { Key: `${pathPrefix}/SMALL/srpPage/diff.png` },
-    { Key: `${pathPrefix}/SMALL/srpPage/new.png` },
-    { Key: `${pathPrefix}/EXTRA_LARGE/pdpPage/new.png }` },
-    { Key: `${pathPrefix}/LARGE/invalidPage/invalid.png` },
-    { Key: `${pathPrefix}/LARGE/invalidPage/new.png` }
-  ]
-}));
-mock.module('shared/s3Client', () => ({
+const getKeysFromS3Mock = mock(() => [
+  `${pathPrefix}/SMALL/srpPage/base.png`,
+  `${pathPrefix}/SMALL/srpPage/diff.png`,
+  `${pathPrefix}/SMALL/srpPage/new.png`,
+  `${pathPrefix}/EXTRA_LARGE/pdpPage/new.png }`,
+  `${pathPrefix}/LARGE/invalidPage/invalid.png`,
+  `${pathPrefix}/LARGE/invalidPage/new.png`
+]);
+mock.module('shared/s3', () => ({
   s3Client: {},
-  listObjects: listObjectsMock,
-  listAllObjects,
+  listObjects: mock(),
+  listAllObjects: mock(),
+  getKeysFromS3: getKeysFromS3Mock,
+  updateBaseImages: mock(),
   getObject: mock(),
   putObject: mock(),
   copyObject: mock()
 }));
-
-async function listAllObjects(
-  input: { Bucket: string; Prefix: string; ContinuationToken?: string },
-  continuationToken?: string
-) {
-  const response = await listObjectsMock({
-    ...input,
-    ...(continuationToken && { ContinuationToken: continuationToken })
-  });
-  const contents = response.Contents ?? [];
-  if (!response.IsTruncated) return contents;
-  return [
-    ...contents,
-    ...(await listAllObjects(input, response.NextContinuationToken))
-  ];
-}
 
 describe('fetchCurrentPage', () => {
   it('should get first page of images', async () => {

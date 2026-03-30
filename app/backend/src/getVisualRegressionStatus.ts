@@ -1,5 +1,5 @@
 import { getOctokit } from './getOctokit';
-import { VISUAL_REGRESSION_CONTEXT } from 'shared';
+import { VISUAL_REGRESSION_CONTEXT } from 'shared/constants';
 import { GetVisualRegressionStatusInput } from './schema';
 
 export const getVisualRegressionStatus = async ({

@@ -10,8 +10,8 @@ import {
   downloadBaseImages,
   uploadAllImages,
   uploadOriginalNewImages,
-  updateBaseImagesInS3
 } from './s3-operations';
+import { updateBaseImages } from 'shared/s3';
 import { exec } from '@actions/exec';
 import { octokit } from './octokit';
 import { context } from '@actions/github';
@@ -23,7 +23,7 @@ import { getLatestVisualRegressionStatus } from './get-latest-visual-regression-
 import {
   VISUAL_REGRESSION_CONTEXT,
   VISUAL_TESTS_FAILED_TO_EXECUTE
-} from 'shared';
+} from 'shared/constants';
 import { buildComparadiseUrl } from './build-comparadise-url';
 import { disableAutoMerge } from './disable-auto-merge';
 
@@ -41,7 +41,8 @@ export const run = async () => {
 
   if (workflow === 'merge') {
     info('Running in merge workflow mode — updating base images in S3.');
-    await updateBaseImagesInS3(hash);
+    const bucket = getInput('bucket-name', { required: true });
+    await updateBaseImages(hash, bucket);
     info('Base images updated successfully.');
     return;
   }
