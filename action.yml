@@ -50,7 +50,7 @@ inputs:
     required: false
     default: 'true'
   update-base-images-on-accept:
-    description: 'Whether clicking Accept in the UI also updates base images in S3. Set to false if using a merge workflow.'
+    description: 'Whether accepting visual changes in the web app should update base images in S3.'
     required: false
     default: 'true'
 runs:

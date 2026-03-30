@@ -9,10 +9,12 @@ export const buildComparadiseUrl = () => {
   const hashParam = commitHash
     ? `commitHash=${commitHash}`
     : `diffId=${diffId}`;
-  const useBaseImages = getBooleanInput('use-base-images') ?? true;
-  const updateBaseImagesOnAccept =
-    getBooleanInput('update-base-images-on-accept') ?? true;
+  const updateBaseImagesOnAccept = getBooleanInput(
+    'update-base-images-on-accept'
+  );
+  const useBaseImages =
+    updateBaseImagesOnAccept && getBooleanInput('use-base-images');
   const { owner, repo } = context.repo;
 
-  return `${comparadiseHost}/?${hashParam}&owner=${owner}&repo=${repo}&bucket=${bucketName}&useBaseImages=${useBaseImages}&updateBaseImagesOnAccept=${updateBaseImagesOnAccept}`;
+  return `${comparadiseHost}/?${hashParam}&owner=${owner}&repo=${repo}&bucket=${bucketName}&useBaseImages=${useBaseImages}`;
 };
