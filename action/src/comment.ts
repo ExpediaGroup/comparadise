@@ -44,20 +44,26 @@ const buildTable = (packageResults: PackageResult[]): string => {
 
 const buildCommentBody = (
   commitHash: string,
-  pendingDescription: string,
   packageResults: PackageResult[],
   comparadiseLink: string,
   commentDetails: string
 ): string => {
   const table = buildTable(packageResults);
-  const base = `${COMPARADISE_MARKER}\n${buildHashMarker(commitHash)}\n## Visual Test Results\n${pendingDescription}\n\n${table}\n${TABLE_END_MARKER}\n\nCheck ${comparadiseLink}! :palm_tree:\n${buildTimestampLine()}`;
+  const totalDiffs = packageResults.reduce((sum, r) => sum + r.diffCount, 0);
+  const totalNewTests = packageResults.reduce(
+    (sum, r) => sum + r.newTestCount,
+    0
+  );
+  const newTestsSuffix =
+    totalNewTests > 0
+      ? `, ${totalNewTests} new visual ${totalNewTests === 1 ? 'test' : 'tests'}`
+      : '';
+  const heading = `${totalDiffs} visual ${totalDiffs === 1 ? 'diff' : 'diffs'}${newTestsSuffix}`;
+  const base = `${COMPARADISE_MARKER}\n${buildHashMarker(commitHash)}\n## Visual Test Results\n${heading}\n\n${table}\n${TABLE_END_MARKER}\n\nCheck ${comparadiseLink}! :palm_tree:\n\n${buildTimestampLine()}`;
   return commentDetails ? `${base}\n${commentDetails}` : base;
 };
 
-export const createGithubComment = async (
-  pendingDescription: string,
-  packageResults: PackageResult[]
-) => {
+export const createGithubComment = async (packageResults: PackageResult[]) => {
   const commitHash = getInput('commit-hash', { required: true });
   const comparadiseHost = getInput('comparadise-host');
   const comparadiseUrl = buildComparadiseUrl();
@@ -90,7 +96,6 @@ export const createGithubComment = async (
     await octokit.rest.issues.createComment({
       body: buildCommentBody(
         commitHash,
-        pendingDescription,
         packageResults,
         comparadiseLink,
         commentDetails
@@ -120,7 +125,6 @@ export const createGithubComment = async (
       comment_id: existingComment.id,
       body: buildCommentBody(
         commitHash,
-        pendingDescription,
         packageResults,
         comparadiseLink,
         commentDetails
