@@ -68,11 +68,10 @@ const WITH_PACKAGES: PackageResult[] = [
 ];
 
 async function runCreateGithubComment(
-  pendingDescription = 'Review pending',
   packageResults: PackageResult[] = NO_PACKAGES
 ) {
   const { createGithubComment } = await import('../src/comment');
-  await createGithubComment(pendingDescription, packageResults);
+  await createGithubComment(packageResults);
 }
 
 describe('createGithubComment', () => {
@@ -116,7 +115,7 @@ describe('createGithubComment', () => {
         data: [{ id: 42, body: existingBody }]
       });
 
-      await runCreateGithubComment('Review pending', [
+      await runCreateGithubComment([
         { packagePath: '', diffCount: 2, newTestCount: 1 }
       ]);
 
@@ -150,14 +149,16 @@ describe('createGithubComment', () => {
         data: [{ id: 99, body: existingBody }]
       });
 
-      await runCreateGithubComment('New description');
+      await runCreateGithubComment();
 
       expect(updateCommentMock).toHaveBeenCalledTimes(1);
       expect(createCommentMock).not.toHaveBeenCalled();
       const updatedBody: string = updateCommentMock.mock.calls[0]![0].body;
       expect(updatedBody).toContain(`<!-- comparadise-hash:${CURRENT_SHA} -->`);
       expect(updatedBody).not.toContain('<!-- comparadise-hash:oldhash -->');
-      expect(updatedBody).toContain('New description');
+      expect(updatedBody).toContain(
+        '## Visual Test Results\n2 visual diffs, 1 new visual test'
+      );
       expect(updatedBody).not.toContain('| 5 | 0 |');
       expect(updatedBody).toContain('<!-- comparadise-updated -->');
     });
@@ -180,7 +181,7 @@ describe('createGithubComment', () => {
     it('should render a 2-column table when no package paths are given', async () => {
       listCommentsMock.mockResolvedValue({ data: [] });
 
-      await runCreateGithubComment('2 visual diffs found.', NO_PACKAGES);
+      await runCreateGithubComment(NO_PACKAGES);
 
       const body: string = createCommentMock.mock.calls[0]![0].body;
       expect(body).toContain('| Visual Diffs | New Visual Tests |');
@@ -191,7 +192,7 @@ describe('createGithubComment', () => {
     it('should render a 3-column table with one row per package', async () => {
       listCommentsMock.mockResolvedValue({ data: [] });
 
-      await runCreateGithubComment('2 visual diffs found.', WITH_PACKAGES);
+      await runCreateGithubComment(WITH_PACKAGES);
 
       const body: string = createCommentMock.mock.calls[0]![0].body;
       expect(body).toContain('| Package | Visual Diffs | New Visual Tests |');
@@ -206,23 +207,24 @@ describe('createGithubComment', () => {
         { packagePath: 'packages/web', diffCount: 2, newTestCount: 1 },
         { packagePath: 'packages/mobile', diffCount: 0, newTestCount: 0 }
       ];
-      await runCreateGithubComment(
-        '2 visual diffs found.',
-        packagesWithZeroRow
-      );
+      await runCreateGithubComment(packagesWithZeroRow);
 
       const body: string = createCommentMock.mock.calls[0]![0].body;
       expect(body).toContain('| packages/web | 2 | 1 |');
       expect(body).not.toContain('| packages/mobile | 0 | 0 |');
     });
 
-    it('should include pendingDescription as text after the heading', async () => {
+    it('should include diff and new test counts in the heading', async () => {
       listCommentsMock.mockResolvedValue({ data: [] });
 
-      await runCreateGithubComment('3 visual diffs found.');
+      await runCreateGithubComment([
+        { packagePath: '', diffCount: 3, newTestCount: 2 }
+      ]);
 
       const body: string = createCommentMock.mock.calls[0]![0].body;
-      expect(body).toContain('## Visual Test Results\n3 visual diffs found.');
+      expect(body).toContain(
+        '## Visual Test Results\n3 visual diffs, 2 new visual tests'
+      );
     });
 
     it('should include the Comparadise link when a host is configured', async () => {

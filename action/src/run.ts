@@ -154,10 +154,8 @@ export const run = async () => {
 
   const newVisualTestCount = newFileCount - diffFileCount;
   const newFileSuffix =
-    newVisualTestCount > 0
-      ? ` and ${newVisualTestCount} visual ${newVisualTestCount === 1 ? 'test' : 'tests'} created`
-      : '';
-  const pendingDescription = `${diffFileCount} visual ${diffFileCount === 1 ? 'diff' : 'diffs'} found${newFileSuffix}.`;
+    newVisualTestCount > 0 ? ' and new visual tests created' : '';
+  const pendingDescription = `Visual diffs found${newFileSuffix}.`;
 
   const packagePaths =
     getInput('package-paths')?.split(',').filter(Boolean) ?? [];
@@ -196,7 +194,7 @@ export const run = async () => {
     target_url: buildComparadiseUrl(),
     ...context.repo
   });
-  await createGithubComment(pendingDescription, packageResults);
+  await createGithubComment(packageResults);
 
   if (visualTestCommandFailsOnDiff && diffFileCount > 0) {
     setFailed(pendingDescription);
