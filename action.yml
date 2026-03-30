@@ -2,9 +2,13 @@ name: 'comparadise'
 description: 'A Github Action for using Comparadise with visual regression tests'
 author: 'Dan Adajian'
 inputs:
+  workflow:
+    description: 'The workflow to run. pr (default) runs visual tests and sets commit status. merge updates base images in S3.'
+    required: false
+    default: 'pr'
   visual-test-command:
-    description: 'The command that runs your visual tests. Can be multiple lines!'
-    required: true
+    description: 'The command that runs your visual tests. Can be multiple lines! Required when workflow is pr.'
+    required: false
   bucket-name:
     description: 'The S3 bucket name'
     required: true
@@ -43,6 +47,10 @@ inputs:
     required: false
   visual-test-command-fails-on-diff:
     description: 'Whether the visual-test-command fails if visual diffs are detected'
+    required: false
+    default: 'true'
+  update-base-images-on-accept:
+    description: 'Whether clicking Accept in the UI also updates base images in S3. Set to false if using a merge workflow.'
     required: false
     default: 'true'
 runs:

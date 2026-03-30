@@ -9,7 +9,8 @@ import {
 import {
   downloadBaseImages,
   uploadAllImages,
-  uploadOriginalNewImages
+  uploadOriginalNewImages,
+  updateBaseImagesInS3
 } from './s3-operations';
 import { exec } from '@actions/exec';
 import { octokit } from './octokit';
@@ -27,9 +28,7 @@ import { buildComparadiseUrl } from './build-comparadise-url';
 import { disableAutoMerge } from './disable-auto-merge';
 
 export const run = async () => {
-  const visualTestCommands = getMultilineInput('visual-test-command', {
-    required: true
-  });
+  const workflow = getInput('workflow') || 'pr';
   const commitHash = getInput('commit-hash');
   const diffId = getInput('diff-id');
 
@@ -39,6 +38,19 @@ export const run = async () => {
   }
 
   const hash = commitHash || diffId;
+
+  if (workflow === 'merge') {
+    info('Running in merge workflow mode — updating base images in S3.');
+    await updateBaseImagesInS3(hash);
+    info('Base images updated successfully.');
+    return;
+  }
+
+  const visualTestCommands = getMultilineInput('visual-test-command');
+  if (!visualTestCommands.length) {
+    setFailed('visual-test-command is required when workflow is pr.');
+    return;
+  }
 
   const useBaseImages = getBooleanInput('use-base-images') ?? true;
   if (useBaseImages) {

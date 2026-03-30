@@ -2,6 +2,7 @@ import { getInput, info } from '@actions/core';
 import {
   BASE_IMAGE_NAME,
   BASE_IMAGES_DIRECTORY,
+  copyNewImagesToBase,
   getObject,
   listAllObjects,
   listObjects,
@@ -261,3 +262,8 @@ function buildBaseImagePath(newFilePath: string) {
       .replace(`${NEW_IMAGE_NAME}.png`, `${BASE_IMAGE_NAME}.png`)
   );
 }
+
+export const updateBaseImagesInS3 = async (hash: string) => {
+  const bucketName = getInput('bucket-name', { required: true });
+  await copyNewImagesToBase(hash, bucketName);
+};
