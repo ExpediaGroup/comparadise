@@ -336,7 +336,7 @@ describe('main', () => {
       sha: 'sha',
       context: VISUAL_REGRESSION_CONTEXT,
       state: 'pending',
-      description: '1 visual diff found.',
+      description: 'Visual diffs found.',
       target_url: expect.any(String)
     });
     expect(createCommentMock).toHaveBeenCalled();
@@ -442,7 +442,7 @@ describe('main', () => {
     await runAction();
     expect(setFailedMock).not.toHaveBeenCalled();
     expect(warningMock).toHaveBeenCalledWith(
-      '0 visual diffs found and 2 visual tests created.'
+      'Visual diffs found and new visual tests created.'
     );
     expect(putObjectMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -455,7 +455,7 @@ describe('main', () => {
       sha: 'sha',
       context: VISUAL_REGRESSION_CONTEXT,
       state: 'pending',
-      description: '0 visual diffs found and 2 visual tests created.',
+      description: 'Visual diffs found and new visual tests created.',
       target_url: expect.any(String)
     });
     expect(createCommentMock).toHaveBeenCalled();
@@ -564,7 +564,7 @@ describe('main', () => {
       sha: 'sha',
       context: VISUAL_REGRESSION_CONTEXT,
       state: 'pending',
-      description: '1 visual diff found.',
+      description: 'Visual diffs found.',
       target_url: expect.any(String)
     });
   });
@@ -752,8 +752,8 @@ describe('main', () => {
       'path/to/screenshots/new.png'
     ]);
     await runAction();
-    expect(setFailedMock).toHaveBeenCalledWith('1 visual diff found.');
-    expect(warningMock).not.toHaveBeenCalledWith('1 visual diff found.');
+    expect(setFailedMock).toHaveBeenCalledWith('Visual diffs found.');
+    expect(warningMock).not.toHaveBeenCalledWith('Visual diffs found.');
   });
 
   it('should call warning instead of setFailed when visual-test-command-fails-on-diff is false', async () => {
@@ -766,8 +766,8 @@ describe('main', () => {
       'path/to/screenshots/new.png'
     ]);
     await runAction();
-    expect(setFailedMock).not.toHaveBeenCalledWith('1 visual diff found.');
-    expect(warningMock).toHaveBeenCalledWith('1 visual diff found.');
+    expect(setFailedMock).not.toHaveBeenCalledWith('Visual diffs found.');
+    expect(warningMock).toHaveBeenCalledWith('Visual diffs found.');
   });
 
   it('should call setFailed without setting commit status when visual tests fail for non-diff reason and visual-test-command-fails-on-diff is false', async () => {

@@ -157,7 +157,7 @@ describe('createGithubComment', () => {
       expect(updatedBody).toContain(`<!-- comparadise-hash:${CURRENT_SHA} -->`);
       expect(updatedBody).not.toContain('<!-- comparadise-hash:oldhash -->');
       expect(updatedBody).toContain(
-        '## Visual Test Results: 2 visual diffs, 1 new visual test'
+        '## Visual Test Results\n2 visual diffs, 1 new visual test'
       );
       expect(updatedBody).not.toContain('| 5 | 0 |');
       expect(updatedBody).toContain('<!-- comparadise-updated -->');
@@ -223,7 +223,7 @@ describe('createGithubComment', () => {
 
       const body: string = createCommentMock.mock.calls[0]![0].body;
       expect(body).toContain(
-        '## Visual Test Results: 3 visual diffs, 2 new visual tests'
+        '## Visual Test Results\n3 visual diffs, 2 new visual tests'
       );
     });
 
