@@ -4,7 +4,6 @@ import {
   encodeS3CopySource,
   filterNewImages,
   toBaseImagePath,
-  BASE_IMAGES_DIRECTORY,
   NEW_IMAGES_DIRECTORY,
   ORIGINAL_NEW_IMAGES_DIRECTORY
 } from 'shared';
@@ -66,8 +65,6 @@ export const acceptVisualChanges = async (
     ...ctx.urlParams
   });
 };
-
-export { filterNewImages };
 
 function toBaseImagePaths(paths: string[], sourceDirectory: string) {
   return paths.map(path => {

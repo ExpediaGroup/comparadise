@@ -49,3 +49,27 @@ export const copyObject = (
   input: CopyObjectCommandInput
 ): Promise<CopyObjectCommandOutput> =>
   s3Client.send(new CopyObjectCommand(input));
+
+export const BASE_IMAGES_DIRECTORY = 'base-images';
+export const BASE_IMAGE_NAME = 'base';
+export const NEW_IMAGE_NAME = 'new';
+
+export function encodeS3CopySource(bucket: string, key: string): string {
+  return `${bucket}/${key.split('/').map(encodeURIComponent).join('/')}`;
+}
+
+export function filterNewImages(s3Paths: string[]): string[] {
+  return s3Paths.filter(path =>
+    path.match(new RegExp(`/${NEW_IMAGE_NAME}.png`))
+  );
+}
+
+export function toBaseImagePath(
+  path: string,
+  sourceDirectory: string,
+  hash: string
+): string {
+  return path
+    .replace(`${sourceDirectory}/${hash}`, BASE_IMAGES_DIRECTORY)
+    .replace(`${NEW_IMAGE_NAME}.png`, `${BASE_IMAGE_NAME}.png`);
+}

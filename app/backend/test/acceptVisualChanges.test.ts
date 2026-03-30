@@ -1,11 +1,11 @@
 import {
-  filterNewImages,
   updateBaseImages,
   getBaseImagePaths,
   getBaseImagePathsFromOriginal,
   acceptVisualChanges
 } from '../src/acceptVisualChanges';
 import {
+  filterNewImages,
   BASE_IMAGES_DIRECTORY,
   NEW_IMAGES_DIRECTORY,
   ORIGINAL_NEW_IMAGES_DIRECTORY
