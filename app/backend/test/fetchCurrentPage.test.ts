@@ -48,11 +48,21 @@ async function getKeysFromS3(directory: string, hash: string, bucket: string) {
 async function listAllObjects(
   input: { Bucket: string; Prefix: string; ContinuationToken?: string },
   continuationToken?: string
-) {
-  const response = await listObjectsMock({
+): Promise<{ Key?: string }[]> {
+  const response = (await (
+    listObjectsMock as (...args: unknown[]) => {
+      Contents?: { Key?: string }[];
+      IsTruncated?: boolean;
+      NextContinuationToken?: string;
+    }
+  )({
     ...input,
     ...(continuationToken && { ContinuationToken: continuationToken })
-  });
+  })) as {
+    Contents?: { Key?: string }[];
+    IsTruncated?: boolean;
+    NextContinuationToken?: string;
+  };
   const contents = response.Contents ?? [];
   if (!response.IsTruncated) return contents;
   return [

@@ -6,11 +6,7 @@ import {
   NEW_IMAGE_NAME,
   ORIGINAL_NEW_IMAGES_DIRECTORY
 } from 'shared/constants';
-import {
-  filterNewImages,
-  getBaseImagePaths,
-  getBaseImagePathsFromOriginal
-} from 'shared/s3';
+
 import { afterEach, describe, expect, it, mock } from 'bun:test';
 
 const copyObjectMock = mock();
@@ -121,7 +117,7 @@ async function updateBaseImages(hash: string, bucket: string) {
 async function listAllObjects(
   input: { Bucket: string; Prefix: string; ContinuationToken?: string },
   continuationToken?: string
-) {
+): Promise<{ Key?: string }[]> {
   const response = await listObjectsMock({
     ...input,
     ...(continuationToken && { ContinuationToken: continuationToken })

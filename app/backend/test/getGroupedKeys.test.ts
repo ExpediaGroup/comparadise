@@ -35,7 +35,7 @@ async function getKeysFromS3(directory: string, hash: string, bucket: string) {
 async function listAllObjects(
   input: { Bucket: string; Prefix: string; ContinuationToken?: string },
   continuationToken?: string
-) {
+): Promise<{ Key?: string }[]> {
   const response = await listObjectsMock({
     ...input,
     ...(continuationToken && { ContinuationToken: continuationToken })
