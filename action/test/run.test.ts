@@ -62,10 +62,10 @@ mock.module('fs/promises', () => ({
 const listObjectsMock = mock();
 const getObjectMock = mock();
 const putObjectMock = mock();
-const listAllObjects = async (
+async function listAllObjects(
   input: { Bucket: string; Prefix: string },
   continuationToken?: string
-): Promise<{ Key?: string }[]> => {
+): Promise<{ Key?: string }[]> {
   const response = await listObjectsMock({
     ...input,
     ...(continuationToken && { ContinuationToken: continuationToken })
@@ -76,29 +76,12 @@ const listAllObjects = async (
     ...contents,
     ...(await listAllObjects(input, response.NextContinuationToken))
   ];
-};
-async function getKeysFromS3(directory: string, hash: string, bucket: string) {
-  const allContents = await listAllObjects({
-    Bucket: bucket,
-    Prefix: `${directory}/${hash}/`
-  });
-  const keys = allContents.map(
-    (content: { Key?: string }) => content.Key ?? ''
-  );
-  return keys.filter(
-    (path: string) => path && !path.includes('actions-runner')
-  );
 }
 mock.module('shared/s3', () => ({
   s3Client: {},
   listObjects: listObjectsMock,
   listAllObjects,
-  getKeysFromS3,
-  filterNewImages: mock(),
-  toBaseImagePath: mock(),
-  getBaseImagePaths: mock(),
-  getBaseImagePathsFromOriginal: mock(),
-  encodeS3CopySource: mock(),
+  getKeysFromS3: mock(),
   updateBaseImages: mock(),
   getObject: getObjectMock,
   putObject: putObjectMock,

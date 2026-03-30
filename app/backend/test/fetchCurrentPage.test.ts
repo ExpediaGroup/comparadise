@@ -5,71 +5,26 @@ import { NEW_IMAGES_DIRECTORY } from 'shared/constants';
 mock.module('../src/getTemporaryObjectUrl', () => ({
   getTemporaryObjectUrl: mock(() => 'url')
 }));
+
 const pathPrefix = `${NEW_IMAGES_DIRECTORY}/hash`;
-const listObjectsMock = mock(() => ({
-  Contents: [
-    { Key: `${pathPrefix}/SMALL/srpPage/base.png` },
-    { Key: `${pathPrefix}/SMALL/srpPage/diff.png` },
-    { Key: `${pathPrefix}/SMALL/srpPage/new.png` },
-    { Key: `${pathPrefix}/EXTRA_LARGE/pdpPage/new.png }` },
-    { Key: `${pathPrefix}/LARGE/invalidPage/invalid.png` },
-    { Key: `${pathPrefix}/LARGE/invalidPage/new.png` }
-  ]
-}));
+const getKeysFromS3Mock = mock(() => [
+  `${pathPrefix}/SMALL/srpPage/base.png`,
+  `${pathPrefix}/SMALL/srpPage/diff.png`,
+  `${pathPrefix}/SMALL/srpPage/new.png`,
+  `${pathPrefix}/EXTRA_LARGE/pdpPage/new.png }`,
+  `${pathPrefix}/LARGE/invalidPage/invalid.png`,
+  `${pathPrefix}/LARGE/invalidPage/new.png`
+]);
 mock.module('shared/s3', () => ({
   s3Client: {},
-  listObjects: listObjectsMock,
-  listAllObjects,
-  getKeysFromS3,
-  filterNewImages: mock(),
-  toBaseImagePath: mock(),
-  getBaseImagePaths: mock(),
-  getBaseImagePathsFromOriginal: mock(),
-  encodeS3CopySource: mock(),
+  listObjects: mock(),
+  listAllObjects: mock(),
+  getKeysFromS3: getKeysFromS3Mock,
   updateBaseImages: mock(),
   getObject: mock(),
   putObject: mock(),
   copyObject: mock()
 }));
-
-async function getKeysFromS3(directory: string, hash: string, bucket: string) {
-  const allContents = await listAllObjects({
-    Bucket: bucket,
-    Prefix: `${directory}/${hash}/`
-  });
-  const keys = allContents.map(
-    (content: { Key?: string }) => content.Key ?? ''
-  );
-  return keys.filter(
-    (path: string) => path && !path.includes('actions-runner')
-  );
-}
-
-async function listAllObjects(
-  input: { Bucket: string; Prefix: string; ContinuationToken?: string },
-  continuationToken?: string
-): Promise<{ Key?: string }[]> {
-  const response = (await (
-    listObjectsMock as (...args: unknown[]) => {
-      Contents?: { Key?: string }[];
-      IsTruncated?: boolean;
-      NextContinuationToken?: string;
-    }
-  )({
-    ...input,
-    ...(continuationToken && { ContinuationToken: continuationToken })
-  })) as {
-    Contents?: { Key?: string }[];
-    IsTruncated?: boolean;
-    NextContinuationToken?: string;
-  };
-  const contents = response.Contents ?? [];
-  if (!response.IsTruncated) return contents;
-  return [
-    ...contents,
-    ...(await listAllObjects(input, response.NextContinuationToken))
-  ];
-}
 
 describe('fetchCurrentPage', () => {
   it('should get first page of images', async () => {

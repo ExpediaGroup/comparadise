@@ -23,15 +23,16 @@ import {
 
 export const s3Client = new S3Client();
 
-export const listObjects = (
+export function listObjects(
   input: ListObjectsV2CommandInput
-): Promise<ListObjectsV2CommandOutput> =>
-  s3Client.send(new ListObjectsV2Command(input));
+): Promise<ListObjectsV2CommandOutput> {
+  return s3Client.send(new ListObjectsV2Command(input));
+}
 
-export const listAllObjects = async (
+export async function listAllObjects(
   input: Omit<ListObjectsV2CommandInput, 'ContinuationToken'>,
   continuationToken?: string
-): Promise<NonNullable<ListObjectsV2CommandOutput['Contents']>> => {
+): Promise<NonNullable<ListObjectsV2CommandOutput['Contents']>> {
   const response = await listObjects({
     ...input,
     ...(continuationToken && { ContinuationToken: continuationToken })
@@ -40,24 +41,27 @@ export const listAllObjects = async (
   if (!response.IsTruncated) return contents;
   const remaining = await listAllObjects(input, response.NextContinuationToken);
   return [...contents, ...remaining];
-};
+}
 
-export const getObject = (
+export function getObject(
   input: GetObjectCommandInput
-): Promise<GetObjectCommandOutput> =>
-  s3Client.send(new GetObjectCommand(input));
+): Promise<GetObjectCommandOutput> {
+  return s3Client.send(new GetObjectCommand(input));
+}
 
-export const putObject = (
+export function putObject(
   input: PutObjectCommandInput
-): Promise<PutObjectCommandOutput> =>
-  s3Client.send(new PutObjectCommand(input));
+): Promise<PutObjectCommandOutput> {
+  return s3Client.send(new PutObjectCommand(input));
+}
 
-export const copyObject = (
+export function copyObject(
   input: CopyObjectCommandInput
-): Promise<CopyObjectCommandOutput> =>
-  s3Client.send(new CopyObjectCommand(input));
+): Promise<CopyObjectCommandOutput> {
+  return s3Client.send(new CopyObjectCommand(input));
+}
 
-export function encodeS3CopySource(bucket: string, key: string): string {
+function encodeS3CopySource(bucket: string, key: string): string {
   return `${bucket}/${key.split('/').map(encodeURIComponent).join('/')}`;
 }
 
@@ -67,7 +71,7 @@ export function filterNewImages(s3Paths: string[]): string[] {
   );
 }
 
-export function toBaseImagePath(
+function toBaseImagePath(
   path: string,
   sourceDirectory: string,
   hash: string
@@ -98,12 +102,13 @@ function toBaseImagePaths(paths: string[], sourceDirectory: string) {
   });
 }
 
-export const getBaseImagePaths = (newImagePaths: string[]) =>
-  toBaseImagePaths(newImagePaths, NEW_IMAGES_DIRECTORY);
+export function getBaseImagePaths(newImagePaths: string[]) {
+  return toBaseImagePaths(newImagePaths, NEW_IMAGES_DIRECTORY);
+}
 
-export const getBaseImagePathsFromOriginal = (
-  originalNewImagePaths: string[]
-) => toBaseImagePaths(originalNewImagePaths, ORIGINAL_NEW_IMAGES_DIRECTORY);
+export function getBaseImagePathsFromOriginal(originalNewImagePaths: string[]) {
+  return toBaseImagePaths(originalNewImagePaths, ORIGINAL_NEW_IMAGES_DIRECTORY);
+}
 
 async function copyImages(
   sourcePaths: string[],
