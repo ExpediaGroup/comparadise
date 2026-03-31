@@ -37,7 +37,8 @@ mock.module('@aws-sdk/client-s3', () => ({
   ListObjectsV2Command,
   GetObjectCommand: class {},
   PutObjectCommand: class {},
-  CopyObjectCommand
+  CopyObjectCommand,
+  DeleteObjectsCommand: class {}
 }));
 
 const {

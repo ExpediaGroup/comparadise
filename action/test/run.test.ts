@@ -63,6 +63,8 @@ const listObjectsMock = mock();
 const getObjectMock = mock();
 const putObjectMock = mock();
 const copyObjectMock = mock();
+const deleteObjectsMock = mock();
+const getKeysFromS3Mock = mock();
 const updateBaseImagesMock = mock();
 async function listAllObjects(
   input: { Bucket: string; Prefix: string },
@@ -83,11 +85,12 @@ mock.module('shared/s3', () => ({
   s3Client: {},
   listObjects: listObjectsMock,
   listAllObjects,
-  getKeysFromS3: mock(),
+  getKeysFromS3: getKeysFromS3Mock,
   updateBaseImages: updateBaseImagesMock,
   getObject: getObjectMock,
   putObject: putObjectMock,
-  copyObject: copyObjectMock
+  copyObject: copyObjectMock,
+  deleteObjects: deleteObjectsMock
 }));
 
 const jimpImageMock = {
@@ -215,6 +218,8 @@ describe('main', () => {
     getObjectMock.mockResolvedValue({ Body: null });
     putObjectMock.mockResolvedValue({});
     copyObjectMock.mockResolvedValue({});
+    deleteObjectsMock.mockResolvedValue({});
+    getKeysFromS3Mock.mockResolvedValue([]);
     updateBaseImagesMock.mockResolvedValue(undefined);
     mkdirMock.mockResolvedValue(undefined);
     readFileMock.mockResolvedValue(Buffer.from('image-data'));
@@ -748,6 +753,59 @@ describe('main', () => {
     await runAction();
     expect(disableAutoMergeMock).not.toHaveBeenCalled();
     expect(createCommitStatusMock).toHaveBeenCalled();
+  });
+
+  it('should delete S3 images for hash when tests pass on retry', async () => {
+    githubContext.runAttempt = 2;
+    execMock.mockResolvedValue(0);
+    globMock.mockResolvedValue(['path/to/screenshots/base.png']);
+    getKeysFromS3Mock.mockResolvedValueOnce([
+      'new-images/sha/component/new.png'
+    ]);
+    getKeysFromS3Mock.mockResolvedValueOnce([]);
+    await runAction();
+    expect(deleteObjectsMock).toHaveBeenCalledWith({
+      Bucket: 'some-bucket',
+      Delete: {
+        Objects: [{ Key: 'new-images/sha/component/new.png' }],
+        Quiet: true
+      }
+    });
+  });
+
+  it('should delete S3 images for hash when tests pass on retry with diff-id input', async () => {
+    githubContext.runAttempt = 2;
+    getInputMock.mockImplementation(name => diffIdInputMap[name]);
+    execMock.mockResolvedValue(0);
+    globMock.mockResolvedValue(['path/to/screenshots/base.png']);
+    getKeysFromS3Mock.mockResolvedValueOnce([
+      'new-images/uniqueId/component/new.png'
+    ]);
+    getKeysFromS3Mock.mockResolvedValueOnce([]);
+    await runAction();
+    expect(deleteObjectsMock).toHaveBeenCalledWith({
+      Bucket: 'some-bucket',
+      Delete: {
+        Objects: [{ Key: 'new-images/uniqueId/component/new.png' }],
+        Quiet: true
+      }
+    });
+  });
+
+  it('should not delete S3 images when tests pass on first attempt', async () => {
+    execMock.mockResolvedValue(0);
+    globMock.mockResolvedValue(['path/to/screenshots/base.png']);
+    await runAction();
+    expect(deleteObjectsMock).not.toHaveBeenCalled();
+  });
+
+  it('should skip deletion when no images exist in S3 on retry', async () => {
+    githubContext.runAttempt = 2;
+    execMock.mockResolvedValue(0);
+    globMock.mockResolvedValue(['path/to/screenshots/base.png']);
+    getKeysFromS3Mock.mockResolvedValue([]);
+    await runAction();
+    expect(deleteObjectsMock).not.toHaveBeenCalled();
   });
 
   it('should call setFailed with the diff message when visual-test-command-fails-on-diff is true', async () => {

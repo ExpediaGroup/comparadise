@@ -11,7 +11,10 @@ import {
   PutObjectCommandOutput,
   CopyObjectCommand,
   CopyObjectCommandInput,
-  CopyObjectCommandOutput
+  CopyObjectCommandOutput,
+  DeleteObjectsCommand,
+  DeleteObjectsCommandInput,
+  DeleteObjectsCommandOutput
 } from '@aws-sdk/client-s3';
 import {
   BASE_IMAGES_DIRECTORY,
@@ -59,6 +62,12 @@ export function copyObject(
   input: CopyObjectCommandInput
 ): Promise<CopyObjectCommandOutput> {
   return s3Client.send(new CopyObjectCommand(input));
+}
+
+export function deleteObjects(
+  input: DeleteObjectsCommandInput
+): Promise<DeleteObjectsCommandOutput> {
+  return s3Client.send(new DeleteObjectsCommand(input));
 }
 
 function encodeS3CopySource(bucket: string, key: string): string {

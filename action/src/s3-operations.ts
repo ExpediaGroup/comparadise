@@ -6,7 +6,14 @@ import {
   NEW_IMAGE_NAME,
   ORIGINAL_NEW_IMAGES_DIRECTORY
 } from 'shared/constants';
-import { getObject, listAllObjects, listObjects, putObject } from 'shared/s3';
+import {
+  deleteObjects,
+  getKeysFromS3,
+  getObject,
+  listAllObjects,
+  listObjects,
+  putObject
+} from 'shared/s3';
 import { map } from 'bluebird';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -240,6 +247,32 @@ export const uploadOriginalNewImages = async (hash: string) => {
     bucketName,
     `${ORIGINAL_NEW_IMAGES_DIRECTORY}/${hash}/`
   );
+};
+
+export const deleteHashImages = async (hash: string) => {
+  const bucketName = getInput('bucket-name', { required: true });
+
+  const [newImageKeys, originalImageKeys] = await Promise.all([
+    getKeysFromS3(NEW_IMAGES_DIRECTORY, hash, bucketName),
+    getKeysFromS3(ORIGINAL_NEW_IMAGES_DIRECTORY, hash, bucketName)
+  ]);
+
+  const keysToDelete = [...newImageKeys, ...originalImageKeys];
+
+  if (!keysToDelete.length) {
+    info(`No images found in S3 for hash ${hash}. Skipping deletion.`);
+    return;
+  }
+
+  await deleteObjects({
+    Bucket: bucketName,
+    Delete: {
+      Objects: keysToDelete.map(Key => ({ Key })),
+      Quiet: true
+    }
+  });
+
+  info(`Deleted ${keysToDelete.length} image(s) for ${hash}`);
 };
 
 export const uploadBaseImages = async (newFilePaths: string[]) => {
