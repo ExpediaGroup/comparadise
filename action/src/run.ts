@@ -7,6 +7,7 @@ import {
   warning
 } from '@actions/core';
 import {
+  deleteHashImages,
   downloadBaseImages,
   uploadAllImages,
   uploadOriginalNewImages
@@ -127,8 +128,13 @@ export const run = async () => {
 
   const isRetry = context.runAttempt > 1;
 
-  if (diffFileCount === 0 && newFileCount === 0) {
+  const testsPassed = diffFileCount === 0 && newFileCount === 0;
+  if (testsPassed) {
     info('All visual tests passed, and no diffs found!');
+
+    if (isRetry) {
+      await deleteHashImages(hash);
+    }
 
     if (!commitHash) return;
     if (isRetry) {
