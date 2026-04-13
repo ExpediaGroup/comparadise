@@ -4,11 +4,11 @@
   "private": true,
   "dependencies": {
     "@actions/core": "3.0.0",
-    "@actions/github": "9.0.0",
-    "@aws-sdk/client-s3": "3.1025.0",
+    "@actions/github": "9.1.0",
+    "@aws-sdk/client-s3": "3.1029.0",
     "bluebird": "3.7.2",
     "glob": "13.0.6",
-    "jimp": "1.6.0"
+    "jimp": "1.6.1"
   },
   "devDependencies": {
     "@types/bluebird": "3.5.42"
