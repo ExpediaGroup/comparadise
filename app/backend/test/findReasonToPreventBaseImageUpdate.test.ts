@@ -40,7 +40,8 @@ describe('findReasonToPreventVisualChangeAcceptance', () => {
     const result = await findReasonToPreventVisualChangeAcceptance(
       'github-owner',
       'github-repo',
-      'sha'
+      'sha',
+      true
     );
     expect(result).toBeUndefined();
   });
@@ -73,7 +74,8 @@ describe('findReasonToPreventVisualChangeAcceptance', () => {
     const result = await findReasonToPreventVisualChangeAcceptance(
       'github-owner',
       'github-repo',
-      'sha'
+      'sha',
+      true
     );
     expect(result).toBe(
       'All other PR checks must pass before updating base images! These checks have not passed on your PR: other tests, even more tests'
@@ -103,7 +105,8 @@ describe('findReasonToPreventVisualChangeAcceptance', () => {
     const result = await findReasonToPreventVisualChangeAcceptance(
       'github-owner',
       'github-repo',
-      'sha'
+      'sha',
+      true
     );
     expect(result).toBe(
       'All other PR checks must pass before updating base images! These checks have not passed on your PR: other tests'
@@ -133,7 +136,8 @@ describe('findReasonToPreventVisualChangeAcceptance', () => {
     const result = await findReasonToPreventVisualChangeAcceptance(
       'github-owner',
       'github-repo',
-      'sha'
+      'sha',
+      true
     );
     expect(result).toBeUndefined();
   });
@@ -161,7 +165,8 @@ describe('findReasonToPreventVisualChangeAcceptance', () => {
     const result = await findReasonToPreventVisualChangeAcceptance(
       'github-owner',
       'github-repo',
-      'sha'
+      'sha',
+      true
     );
     expect(result).toBe(
       'All other PR checks must pass before updating base images! These checks have not passed on your PR: unit tests'
@@ -187,7 +192,8 @@ describe('findReasonToPreventVisualChangeAcceptance', () => {
     const result = await findReasonToPreventVisualChangeAcceptance(
       'github-owner',
       'github-repo',
-      'sha'
+      'sha',
+      true
     );
     expect(result).toBe(
       'At least one visual test job failed to take a screenshot. All jobs must take a screenshot before reviewing and updating base images!'
