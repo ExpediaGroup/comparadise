@@ -1,7 +1,7 @@
 {
   "name": "comparadise-utils",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/index.mjs",
+  "types": "dist/index.d.mts",
   "license": "Apache-2.0",
   "files": [
     "dist",
@@ -21,14 +21,13 @@
   },
   "devDependencies": {
     "@types/pngjs": "6.0.5",
-    "cypress": "15.13.0",
-    "tsup": "8.5.1"
+    "tsdown": "0.21.9"
   },
   "peerDependencies": {
     "cypress": ">=12"
   },
   "scripts": {
-    "build": "tsup",
+    "build": "tsdown index.ts match-screenshot.ts create-base-image.ts --deps.neverBundle shared",
     "postbuild": "echo \"require('./dist/match-screenshot');\nrequire('./dist/create-base-image');\" > commands.js",
     "prepack": "bun run build",
     "test": "bun test"
