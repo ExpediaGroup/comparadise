@@ -8,7 +8,8 @@ import {
 export const findReasonToPreventVisualChangeAcceptance = async (
   owner: string,
   repo: string,
-  sha: string
+  sha: string,
+  useBaseImages: boolean
 ) => {
   const octokit = getOctokit(owner, repo);
 
@@ -36,7 +37,7 @@ export const findReasonToPreventVisualChangeAcceptance = async (
   const nonVisualChecksThatHaveNotPassed = mostRecentNonVisualStatuses
     .filter(({ state }) => state !== 'success')
     .map(({ context }) => context);
-  if (nonVisualChecksThatHaveNotPassed.length) {
+  if (useBaseImages && nonVisualChecksThatHaveNotPassed.length) {
     return `All other PR checks must pass before updating base images! These checks have not passed on your PR: ${nonVisualChecksThatHaveNotPassed.join(
       ', '
     )}`;

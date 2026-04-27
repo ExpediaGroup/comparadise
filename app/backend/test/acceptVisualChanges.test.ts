@@ -80,6 +80,38 @@ describe('acceptVisualChanges', () => {
     expect(updateCommitStatusMock).not.toHaveBeenCalled();
   });
 
+  it('should not throw if other checks have not passed when useBaseImages is false', async () => {
+    listCommitStatusesForRefMock.mockImplementationOnce(() => ({
+      data: [
+        {
+          context: 'unit tests',
+          state: 'success',
+          created_at: '2023-05-02T19:11:02Z'
+        },
+        {
+          context: 'other tests',
+          state: 'failure',
+          created_at: '2023-05-02T19:11:02Z'
+        }
+      ]
+    }));
+
+    const expectedBucket = 'expected-bucket-name';
+    await acceptVisualChanges(
+      {
+        commitHash: '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5',
+        bucket: expectedBucket,
+        useBaseImages: false,
+        repo: 'repo',
+        owner: 'owner'
+      },
+      { urlParams: {} }
+    );
+
+    expect(updateBaseImagesMock).not.toHaveBeenCalled();
+    expect(updateCommitStatusMock).toHaveBeenCalled();
+  });
+
   it('should update commit status but not base images if useBaseImages is false', async () => {
     const expectedBucket = 'expected-bucket-name';
     await acceptVisualChanges(
