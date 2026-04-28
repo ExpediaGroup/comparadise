@@ -12,7 +12,7 @@ import {
   uploadAllImages,
   uploadOriginalNewImages
 } from './s3-operations';
-import { updateBaseImages } from 'shared/s3';
+import { updateBaseImages, getKeysFromS3 } from 'shared/s3';
 import { exec } from '@actions/exec';
 import { octokit } from './octokit';
 import { context } from '@actions/github';
@@ -23,10 +23,13 @@ import { createGithubComment, PackageResult } from './comment';
 import { getLatestVisualRegressionStatus } from './get-latest-visual-regression-status';
 import {
   VISUAL_REGRESSION_CONTEXT,
-  VISUAL_TESTS_FAILED_TO_EXECUTE
+  VISUAL_TESTS_FAILED_TO_EXECUTE,
+  NEW_IMAGES_DIRECTORY
 } from 'shared/constants';
 import { buildComparadiseUrl } from './build-comparadise-url';
 import { disableAutoMerge } from './disable-auto-merge';
+import { waitForMergeQueueBaseline } from './wait-for-merge-queue-baseline';
+import { computeMergeQueueDiffs } from './compute-merge-queue-diffs';
 
 export const run = async () => {
   const workflow = getInput('workflow') || 'pr';
@@ -45,6 +48,67 @@ export const run = async () => {
     const bucket = getInput('bucket-name', { required: true });
     await updateBaseImages(hash, bucket, info);
     info('Base images updated successfully.');
+    return;
+  }
+
+  if (workflow === 'merge-queue-diff') {
+    const bucketName = getInput('bucket-name', { required: true });
+    const baseSha = (context.payload as { merge_group?: { base_sha?: string } })
+      .merge_group?.base_sha;
+    if (!baseSha) {
+      setFailed(
+        'merge-queue-diff workflow requires a merge_group event context.'
+      );
+      return;
+    }
+
+    const shouldComputeDiffs = await waitForMergeQueueBaseline(
+      baseSha,
+      bucketName
+    );
+    if (shouldComputeDiffs) {
+      await computeMergeQueueDiffs(hash, baseSha, bucketName);
+    }
+
+    const allHeadKeys = await getKeysFromS3(
+      NEW_IMAGES_DIRECTORY,
+      hash,
+      bucketName
+    );
+    const totalDiffCount = allHeadKeys.filter(k =>
+      k.endsWith('/diff.png')
+    ).length;
+    const totalNewCount = allHeadKeys.filter(k =>
+      k.endsWith('/new.png')
+    ).length;
+
+    if (!commitHash) return;
+
+    if (totalDiffCount === 0 && totalNewCount === 0) {
+      return octokit.rest.repos.createCommitStatus({
+        sha: commitHash,
+        context: VISUAL_REGRESSION_CONTEXT,
+        state: 'success',
+        description: 'Visual tests passed!',
+        ...context.repo
+      });
+    }
+
+    const newVisualTestCount = totalNewCount - totalDiffCount;
+    const newFileSuffix =
+      newVisualTestCount > 0 ? ' and new visual tests created' : '';
+    const pendingDescription = `Visual diffs found${newFileSuffix}.`;
+
+    await octokit.rest.repos.createCommitStatus({
+      sha: commitHash,
+      context: VISUAL_REGRESSION_CONTEXT,
+      state: 'pending',
+      description: pendingDescription,
+      target_url: buildComparadiseUrl(),
+      ...context.repo
+    });
+
+    setFailed(pendingDescription);
     return;
   }
 
@@ -107,7 +171,7 @@ export const run = async () => {
     setFailed(
       'Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?'
     );
-    if (!commitHash) return;
+    if (!commitHash || context.eventName === 'merge_group') return;
     return octokit.rest.repos.createCommitStatus({
       sha: commitHash,
       context: VISUAL_REGRESSION_CONTEXT,
@@ -136,7 +200,7 @@ export const run = async () => {
       await deleteHashImages(hash);
     }
 
-    if (!commitHash) return;
+    if (!commitHash || context.eventName === 'merge_group') return;
     if (isRetry) {
       warning(
         'Disabling auto merge because this is a retry attempt. This is to avoid auto merging prematurely.'
@@ -204,7 +268,7 @@ export const run = async () => {
 
   info(`${diffFileCount} visual differences found.`);
   await Promise.all([uploadAllImages(hash), uploadOriginalNewImages(hash)]);
-  if (!commitHash) return;
+  if (!commitHash || context.eventName === 'merge_group') return;
   await octokit.rest.repos.createCommitStatus({
     sha: commitHash,
     context: VISUAL_REGRESSION_CONTEXT,

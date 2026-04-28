@@ -3,7 +3,7 @@ description: 'A Github Action for using Comparadise with visual regression tests
 author: 'Dan Adajian'
 inputs:
   workflow:
-    description: 'The workflow to run. "pr" (default) runs visual tests and sets commit status. "merge" updates base images in S3.'
+    description: 'The workflow to run. "pr" (default) runs visual tests and sets commit status. "merge" updates base images in S3. "merge-queue-diff" computes pixel-isolated diffs for GitHub merge queue position N against position N-1 and sets the final commit status.'
     required: false
     default: 'pr'
   visual-test-command:
