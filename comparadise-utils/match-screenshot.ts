@@ -1,4 +1,4 @@
-import { PixelMatchOptions } from 'shared/images';
+import type { PixelMatchOptions } from 'shared/images';
 import { CompareScreenshotArgs } from './screenshots';
 
 export const PREFIX_DIFFERENTIATOR = '___';

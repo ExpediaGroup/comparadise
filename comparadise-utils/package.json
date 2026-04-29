@@ -22,7 +22,7 @@
     "cypress": ">=12"
   },
   "scripts": {
-    "build": "tsdown index.ts match-screenshot.ts create-base-image.ts --deps.neverBundle shared",
+    "build": "tsdown index.ts match-screenshot.ts create-base-image.ts --deps.neverBundle shared --dts.eager",
     "postbuild": "echo \"require('./dist/match-screenshot');\nrequire('./dist/create-base-image');\" > commands.js",
     "prepack": "bun run build",
     "test": "bun test"
