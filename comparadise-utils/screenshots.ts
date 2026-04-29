@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import { PNG } from 'pngjs';
-import { getDiffPixels, PixelMatchOptions } from './images';
+import { getDiffPixels, PixelMatchOptions } from 'shared/images';
 import { createImageFileName } from './files';
 
 /**
@@ -38,8 +38,8 @@ export function compareScreenshots(args: CompareScreenshotArgs) {
   const basePath = createImageFileName(screenshotsFolder, 'base');
   const actualPath = createImageFileName(screenshotsFolder, 'new');
   const { diffPixels, diff } = getDiffPixels(
-    basePath,
-    actualPath,
+    fs.readFileSync(basePath),
+    fs.readFileSync(actualPath),
     pixelMatchOptions
   );
 

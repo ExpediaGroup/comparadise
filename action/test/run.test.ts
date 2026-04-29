@@ -12,6 +12,16 @@ mock.module('../src/disable-auto-merge', () => ({
   disableAutoMerge: disableAutoMergeMock
 }));
 
+const waitForMergeQueueBaselineMock = mock();
+mock.module('../src/wait-for-merge-queue-baseline', () => ({
+  waitForMergeQueueBaseline: waitForMergeQueueBaselineMock
+}));
+
+const computeMergeQueueDiffsMock = mock();
+mock.module('../src/compute-merge-queue-diffs', () => ({
+  computeMergeQueueDiffs: computeMergeQueueDiffsMock
+}));
+
 const globMock = mock();
 mock.module('glob', () => ({
   glob: globMock
@@ -116,9 +126,17 @@ const listCommitStatusesForRefMock = mock(() => ({
     }
   ]
 }));
+const listWorkflowRunsForRepoMock = mock(() => ({
+  data: { workflow_runs: [] }
+}));
 const createCommentMock = mock();
 const listCommentsMock = mock(() => ({ data: [{ id: 1 }] }));
-const githubContext = {
+const githubContext: {
+  repo: { repo: string; owner: string };
+  runAttempt: number;
+  eventName?: string;
+  payload?: Record<string, unknown>;
+} = {
   repo: { repo: 'repo', owner: 'owner' },
   runAttempt: 1
 };
@@ -131,6 +149,9 @@ mock.module('@actions/github', () => ({
         listPullRequestsAssociatedWithCommit:
           listPullRequestsAssociatedWithCommitMock,
         listCommitStatusesForRef: listCommitStatusesForRefMock
+      },
+      actions: {
+        listWorkflowRunsForRepo: listWorkflowRunsForRepoMock
       },
       issues: {
         createComment: createCommentMock,
@@ -148,6 +169,9 @@ mock.module('../src/octokit', () => ({
         listPullRequestsAssociatedWithCommit:
           listPullRequestsAssociatedWithCommitMock,
         listCommitStatusesForRef: listCommitStatusesForRefMock
+      },
+      actions: {
+        listWorkflowRunsForRepo: listWorkflowRunsForRepoMock
       },
       issues: {
         createComment: createCommentMock,
@@ -221,6 +245,11 @@ describe('main', () => {
     deleteObjectsMock.mockResolvedValue({});
     getKeysFromS3Mock.mockResolvedValue([]);
     updateBaseImagesMock.mockResolvedValue(undefined);
+    waitForMergeQueueBaselineMock.mockResolvedValue(false);
+    computeMergeQueueDiffsMock.mockResolvedValue({
+      intersectionCount: 0,
+      diffCount: 0
+    });
     mkdirMock.mockResolvedValue(undefined);
     readFileMock.mockResolvedValue(Buffer.from('image-data'));
     createWriteStreamMock.mockReturnValue(new EventEmitter());
@@ -900,6 +929,163 @@ describe('main', () => {
       expect(execMock).not.toHaveBeenCalled();
       expect(createCommitStatusMock).not.toHaveBeenCalled();
       expect(setFailedMock).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('pr workflow with merge_group event', () => {
+    beforeEach(() => {
+      githubContext.eventName = 'merge_group';
+    });
+
+    afterEach(() => {
+      delete (githubContext as Record<string, unknown>).eventName;
+    });
+
+    it('should not call createCommitStatus or createGithubComment when event is merge_group and diffs found', async () => {
+      execMock.mockResolvedValue(1);
+      globMock.mockResolvedValue([
+        'path/to/screenshots/diff.png',
+        'path/to/screenshots/new.png'
+      ]);
+      await runAction();
+      expect(createCommitStatusMock).not.toHaveBeenCalled();
+      expect(createCommentMock).not.toHaveBeenCalled();
+    });
+
+    it('should not call createCommitStatus when tests pass and event is merge_group', async () => {
+      execMock.mockResolvedValue(0);
+      globMock.mockResolvedValue(['path/to/screenshots/base.png']);
+      await runAction();
+      expect(createCommitStatusMock).not.toHaveBeenCalled();
+    });
+
+    it('should set failure commit status when tests fail to execute and event is merge_group', async () => {
+      execMock.mockResolvedValue(1);
+      globMock.mockResolvedValue([]);
+      await runAction();
+      expect(setFailedMock).toHaveBeenCalled();
+      expect(createCommitStatusMock).toHaveBeenCalledWith({
+        owner: 'owner',
+        repo: 'repo',
+        sha: 'sha',
+        context: VISUAL_REGRESSION_CONTEXT,
+        state: 'failure',
+        description: VISUAL_TESTS_FAILED_TO_EXECUTE
+      });
+    });
+
+    it('should set failure commit status when job fails for non-diff reason and event is merge_group', async () => {
+      execMock.mockResolvedValue(1);
+      getBooleanInputMock.mockImplementation(name =>
+        name === 'visual-test-command-fails-on-diff' ? false : undefined
+      );
+      globMock.mockResolvedValue([]);
+      await runAction();
+      expect(setFailedMock).toHaveBeenCalledWith(
+        'The job failed, and this is not due to visual tests.'
+      );
+      expect(createCommitStatusMock).toHaveBeenCalledWith({
+        owner: 'owner',
+        repo: 'repo',
+        sha: 'sha',
+        context: VISUAL_REGRESSION_CONTEXT,
+        state: 'failure',
+        description: VISUAL_TESTS_FAILED_TO_EXECUTE
+      });
+    });
+  });
+
+  describe('merge-queue-diff workflow', () => {
+    const mergeQueueInputMap: Record<string, string> = {
+      ...inputMap,
+      workflow: 'merge-queue-diff'
+    };
+
+    beforeEach(() => {
+      getInputMock.mockImplementation(
+        (name: string) => mergeQueueInputMap[name] ?? ''
+      );
+      (githubContext as Record<string, unknown>).payload = {
+        merge_group: { base_sha: 'base-sha-123' }
+      };
+    });
+
+    afterEach(() => {
+      delete (githubContext as Record<string, unknown>).payload;
+    });
+
+    it('should fail when no merge_group context is present', async () => {
+      (githubContext as Record<string, unknown>).payload = {};
+      await runAction();
+      expect(setFailedMock).toHaveBeenCalledWith(
+        'merge-queue-diff workflow requires a merge_group event context.'
+      );
+    });
+
+    it('should call waitForMergeQueueBaseline with baseSha and bucket', async () => {
+      getKeysFromS3Mock.mockResolvedValue([]);
+      await runAction();
+      expect(waitForMergeQueueBaselineMock).toHaveBeenCalledWith(
+        'base-sha-123',
+        'some-bucket'
+      );
+    });
+
+    it('should call computeMergeQueueDiffs when baseline returns true', async () => {
+      waitForMergeQueueBaselineMock.mockResolvedValue(true);
+      getKeysFromS3Mock.mockResolvedValue([]);
+      await runAction();
+      expect(computeMergeQueueDiffsMock).toHaveBeenCalledWith(
+        'sha',
+        'base-sha-123',
+        'some-bucket'
+      );
+    });
+
+    it('should not call computeMergeQueueDiffs when baseline returns false', async () => {
+      waitForMergeQueueBaselineMock.mockResolvedValue(false);
+      getKeysFromS3Mock.mockResolvedValue([]);
+      await runAction();
+      expect(computeMergeQueueDiffsMock).not.toHaveBeenCalled();
+    });
+
+    it('should set success status when no keys exist', async () => {
+      getKeysFromS3Mock.mockResolvedValue([]);
+      await runAction();
+      expect(createCommitStatusMock).toHaveBeenCalledWith({
+        owner: 'owner',
+        repo: 'repo',
+        sha: 'sha',
+        context: VISUAL_REGRESSION_CONTEXT,
+        state: 'success',
+        description: 'Visual tests passed!'
+      });
+      expect(createCommentMock).not.toHaveBeenCalled();
+    });
+
+    it('should set pending status and call setFailed when diffs found', async () => {
+      getKeysFromS3Mock.mockResolvedValue([
+        'new-images/sha/test/diff.png',
+        'new-images/sha/test/new.png'
+      ]);
+      await runAction();
+      expect(createCommitStatusMock).toHaveBeenCalledWith(
+        expect.objectContaining({ state: 'pending' })
+      );
+      expect(setFailedMock).toHaveBeenCalled();
+      expect(createCommentMock).not.toHaveBeenCalled();
+    });
+
+    it('should not call createCommitStatus when no commitHash', async () => {
+      const noHashMap: Record<string, string | undefined> = {
+        ...mergeQueueInputMap,
+        'commit-hash': undefined,
+        'diff-id': 'some-diff-id'
+      };
+      getInputMock.mockImplementation(name => noHashMap[name]);
+      getKeysFromS3Mock.mockResolvedValue([]);
+      await runAction();
+      expect(createCommitStatusMock).not.toHaveBeenCalled();
     });
   });
 });
