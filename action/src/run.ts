@@ -171,7 +171,7 @@ export const run = async () => {
     setFailed(
       'Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?'
     );
-    if (!commitHash || context.eventName === 'merge_group') return;
+    if (!commitHash) return;
     return octokit.rest.repos.createCommitStatus({
       sha: commitHash,
       context: VISUAL_REGRESSION_CONTEXT,
@@ -183,6 +183,15 @@ export const run = async () => {
 
   if (!visualTestCommandFailsOnDiff && numVisualTestFailures > 0) {
     setFailed('The job failed, and this is not due to visual tests.');
+    if (commitHash && context.eventName === 'merge_group') {
+      await octokit.rest.repos.createCommitStatus({
+        sha: commitHash,
+        context: VISUAL_REGRESSION_CONTEXT,
+        state: 'failure',
+        description: VISUAL_TESTS_FAILED_TO_EXECUTE,
+        ...context.repo
+      });
+    }
     return;
   }
 

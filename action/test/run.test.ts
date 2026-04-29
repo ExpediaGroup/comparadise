@@ -959,11 +959,39 @@ describe('main', () => {
       expect(createCommitStatusMock).not.toHaveBeenCalled();
     });
 
-    it('should still call setFailed when tests fail to execute and event is merge_group', async () => {
+    it('should set failure commit status when tests fail to execute and event is merge_group', async () => {
       execMock.mockResolvedValue(1);
       globMock.mockResolvedValue([]);
       await runAction();
       expect(setFailedMock).toHaveBeenCalled();
+      expect(createCommitStatusMock).toHaveBeenCalledWith({
+        owner: 'owner',
+        repo: 'repo',
+        sha: 'sha',
+        context: VISUAL_REGRESSION_CONTEXT,
+        state: 'failure',
+        description: VISUAL_TESTS_FAILED_TO_EXECUTE
+      });
+    });
+
+    it('should set failure commit status when job fails for non-diff reason and event is merge_group', async () => {
+      execMock.mockResolvedValue(1);
+      getBooleanInputMock.mockImplementation(name =>
+        name === 'visual-test-command-fails-on-diff' ? false : undefined
+      );
+      globMock.mockResolvedValue([]);
+      await runAction();
+      expect(setFailedMock).toHaveBeenCalledWith(
+        'The job failed, and this is not due to visual tests.'
+      );
+      expect(createCommitStatusMock).toHaveBeenCalledWith({
+        owner: 'owner',
+        repo: 'repo',
+        sha: 'sha',
+        context: VISUAL_REGRESSION_CONTEXT,
+        state: 'failure',
+        description: VISUAL_TESTS_FAILED_TO_EXECUTE
+      });
     });
   });
 
@@ -1035,10 +1063,7 @@ describe('main', () => {
       expect(createCommentMock).not.toHaveBeenCalled();
     });
 
-    it('should set pending status and call setFailed when diffs found and visual-test-command-fails-on-diff is true', async () => {
-      getBooleanInputMock.mockImplementation(name =>
-        name === 'visual-test-command-fails-on-diff' ? true : undefined
-      );
+    it('should set pending status and call setFailed when diffs found', async () => {
       getKeysFromS3Mock.mockResolvedValue([
         'new-images/sha/test/diff.png',
         'new-images/sha/test/new.png'
@@ -1049,24 +1074,6 @@ describe('main', () => {
       );
       expect(setFailedMock).toHaveBeenCalled();
       expect(createCommentMock).not.toHaveBeenCalled();
-    });
-
-    it('should set pending status and call warning when diffs found and visual-test-command-fails-on-diff is false', async () => {
-      getBooleanInputMock.mockImplementation(name =>
-        name === 'visual-test-command-fails-on-diff' ? false : undefined
-      );
-      getKeysFromS3Mock.mockResolvedValue([
-        'new-images/sha/test/diff.png',
-        'new-images/sha/test/new.png'
-      ]);
-      await runAction();
-      expect(createCommitStatusMock).toHaveBeenCalledWith(
-        expect.objectContaining({ state: 'pending' })
-      );
-      expect(setFailedMock).not.toHaveBeenCalledWith(
-        expect.stringContaining('Visual diffs')
-      );
-      expect(warningMock).toHaveBeenCalled();
     });
 
     it('should not call createCommitStatus when no commitHash', async () => {
