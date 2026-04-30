@@ -261,9 +261,9 @@ export const deleteHashImages = async (hash: string) => {
   let keysToDelete = [...newImageKeys, ...originalImageKeys];
 
   if (packagePaths?.length) {
-    const packagePrefixes = packagePaths.flatMap(pkg => [
-      `${NEW_IMAGES_DIRECTORY}/${hash}/${pkg}/`,
-      `${ORIGINAL_NEW_IMAGES_DIRECTORY}/${hash}/${pkg}/`
+    const packagePrefixes = packagePaths.flatMap(packagePath => [
+      `${NEW_IMAGES_DIRECTORY}/${hash}/${packagePath}/`,
+      `${ORIGINAL_NEW_IMAGES_DIRECTORY}/${hash}/${packagePath}/`
     ]);
     keysToDelete = keysToDelete.filter(key =>
       packagePrefixes.some(prefix => key.startsWith(prefix))
