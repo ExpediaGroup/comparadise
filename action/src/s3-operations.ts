@@ -251,13 +251,24 @@ export const uploadOriginalNewImages = async (hash: string) => {
 
 export const deleteHashImages = async (hash: string) => {
   const bucketName = getInput('bucket-name', { required: true });
+  const packagePaths = getInput('package-paths')?.split(',').filter(Boolean);
 
   const [newImageKeys, originalImageKeys] = await Promise.all([
     getKeysFromS3(NEW_IMAGES_DIRECTORY, hash, bucketName),
     getKeysFromS3(ORIGINAL_NEW_IMAGES_DIRECTORY, hash, bucketName)
   ]);
 
-  const keysToDelete = [...newImageKeys, ...originalImageKeys];
+  let keysToDelete = [...newImageKeys, ...originalImageKeys];
+
+  if (packagePaths?.length) {
+    const packagePrefixes = packagePaths.flatMap(packagePath => [
+      `${NEW_IMAGES_DIRECTORY}/${hash}/${packagePath}/`,
+      `${ORIGINAL_NEW_IMAGES_DIRECTORY}/${hash}/${packagePath}/`
+    ]);
+    keysToDelete = keysToDelete.filter(key =>
+      packagePrefixes.some(prefix => key.startsWith(prefix))
+    );
+  }
 
   if (!keysToDelete.length) {
     info(`No images found in S3 for hash ${hash}. Skipping deletion.`);

@@ -808,6 +808,36 @@ describe('main', () => {
     expect(deleteObjectsMock).not.toHaveBeenCalled();
   });
 
+  it('should only delete S3 images scoped to package-paths on retry', async () => {
+    githubContext.runAttempt = 2;
+    const extendedInputMap: Record<string, string> = {
+      ...inputMap,
+      'package-paths': 'pkg1'
+    };
+    getInputMock.mockImplementation(name => extendedInputMap[name]);
+    execMock.mockResolvedValue(0);
+    globMock.mockResolvedValue(['path/to/screenshots/pkg1/base.png']);
+    getKeysFromS3Mock.mockResolvedValueOnce([
+      'new-images/sha/pkg1/component/new.png',
+      'new-images/sha/pkg2/component/new.png'
+    ]);
+    getKeysFromS3Mock.mockResolvedValueOnce([
+      'original-new-images/sha/pkg1/component/new.png',
+      'original-new-images/sha/pkg2/component/new.png'
+    ]);
+    await runAction();
+    expect(deleteObjectsMock).toHaveBeenCalledWith({
+      Bucket: 'some-bucket',
+      Delete: {
+        Objects: [
+          { Key: 'new-images/sha/pkg1/component/new.png' },
+          { Key: 'original-new-images/sha/pkg1/component/new.png' }
+        ],
+        Quiet: true
+      }
+    });
+  });
+
   it('should call setFailed with the diff message when visual-test-command-fails-on-diff is true', async () => {
     execMock.mockResolvedValue(0);
     getBooleanInputMock.mockImplementation(name =>
