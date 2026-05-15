@@ -68,6 +68,19 @@ export const run = async () => {
 
   const screenshotsDirectory = getInput('screenshots-directory');
   const screenshotsPath = path.join(process.cwd(), screenshotsDirectory);
+
+  const orphanedNewPngs = await glob(`**/screenshots/**/new.png`, {
+    cwd: process.cwd(),
+    absolute: true,
+    ignore: ['**/node_modules/**', `${screenshotsPath}/**`]
+  });
+  if (orphanedNewPngs.length > 0) {
+    setFailed(
+      `Screenshots were found outside the configured screenshots-directory ("${screenshotsDirectory}"): ${orphanedNewPngs.join(', ')}. Check that your screenshots-directory input points to where Cypress writes screenshots.`
+    );
+    return;
+  }
+
   const filesInScreenshotDirectory = await glob(
     `${screenshotsPath}/**/{base,diff,new}.png`,
     {
