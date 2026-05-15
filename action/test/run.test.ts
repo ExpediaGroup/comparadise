@@ -199,6 +199,12 @@ async function runAction() {
   await run();
 }
 
+function mockScreenshotFiles(files: string[]) {
+  globMock.mockImplementation((pattern: string) =>
+    Promise.resolve(pattern === '**/screenshots/**/new.png' ? [] : files)
+  );
+}
+
 describe('main', () => {
   beforeEach(() => {
     githubContext.runAttempt = 1;
@@ -232,7 +238,7 @@ describe('main', () => {
     unlinkSyncMock.mockReturnValue(undefined);
     rmMock.mockResolvedValue(undefined);
 
-    globMock.mockResolvedValue([]);
+    mockScreenshotFiles([]);
   });
 
   afterEach(() => {
@@ -296,9 +302,7 @@ describe('main', () => {
     };
     getInputMock.mockImplementation(name => extendedInputMap[name]);
     execMock.mockResolvedValue(0);
-    globMock
-      .mockResolvedValueOnce([])
-      .mockResolvedValue(['path/to/screenshots/base.png']);
+    mockScreenshotFiles(['path/to/screenshots/base.png']);
     await runAction();
     expect(setFailedMock).not.toHaveBeenCalled();
     expect(createCommitStatusMock).toHaveBeenCalledWith({
@@ -320,9 +324,7 @@ describe('main', () => {
 
   it('should pass if visual tests pass and no diffs or new images', async () => {
     execMock.mockResolvedValue(0);
-    globMock
-      .mockResolvedValueOnce([])
-      .mockResolvedValue(['path/to/screenshots/base.png']);
+    mockScreenshotFiles(['path/to/screenshots/base.png']);
     await runAction();
     expect(setFailedMock).not.toHaveBeenCalled();
     expect(createCommitStatusMock).toHaveBeenCalledWith({
@@ -338,9 +340,7 @@ describe('main', () => {
   it('should pass if visual tests pass and no diffs or new images with diff-id input', async () => {
     getInputMock.mockImplementation(name => diffIdInputMap[name]);
     execMock.mockResolvedValue(0);
-    globMock
-      .mockResolvedValueOnce([])
-      .mockResolvedValue(['path/to/screenshots/base.png']);
+    mockScreenshotFiles(['path/to/screenshots/base.png']);
     await runAction();
     expect(setFailedMock).not.toHaveBeenCalled();
     assertNoOctokitCalls();
@@ -348,14 +348,12 @@ describe('main', () => {
 
   it('should fail if visual tests pass and some diff images were created', async () => {
     execMock.mockResolvedValue(1);
-    globMock
-      .mockResolvedValueOnce([])
-      .mockResolvedValue([
-        'path/to/screenshots/base.png',
-        'path/to/screenshots/diff.png',
-        'path/to/screenshots/new.png',
-        'path/to/another-screenshot/diff.png'
-      ]);
+    mockScreenshotFiles([
+      'path/to/screenshots/base.png',
+      'path/to/screenshots/diff.png',
+      'path/to/screenshots/new.png',
+      'path/to/another-screenshot/diff.png'
+    ]);
     await runAction();
     expect(setFailedMock).toHaveBeenCalled();
     expect(unlinkSyncMock).not.toHaveBeenCalledWith(
@@ -379,14 +377,12 @@ describe('main', () => {
   it('should fail if visual tests pass and some diff images were created', async () => {
     getInputMock.mockImplementation(name => diffIdInputMap[name]);
     execMock.mockResolvedValue(1);
-    globMock
-      .mockResolvedValueOnce([])
-      .mockResolvedValue([
-        'path/to/screenshots/base.png',
-        'path/to/screenshots/diff.png',
-        'path/to/screenshots/new.png',
-        'path/to/another-screenshot/diff.png'
-      ]);
+    mockScreenshotFiles([
+      'path/to/screenshots/base.png',
+      'path/to/screenshots/diff.png',
+      'path/to/screenshots/new.png',
+      'path/to/another-screenshot/diff.png'
+    ]);
     await runAction();
     expect(setFailedMock).not.toHaveBeenCalled();
     expect(unlinkSyncMock).not.toHaveBeenCalledWith(
@@ -406,13 +402,11 @@ describe('main', () => {
       name => multiLineInputMapMultipleCommands[name]
     );
     execMock.mockResolvedValue(1);
-    globMock
-      .mockResolvedValueOnce([])
-      .mockResolvedValue([
-        'path/to/screenshots/base.png',
-        'path/to/screenshots/diff.png',
-        'path/to/screenshots/new.png'
-      ]);
+    mockScreenshotFiles([
+      'path/to/screenshots/base.png',
+      'path/to/screenshots/diff.png',
+      'path/to/screenshots/new.png'
+    ]);
     await runAction();
     expect(setFailedMock).toHaveBeenCalled();
     expect(createCommitStatusMock).toHaveBeenCalledWith({
@@ -434,13 +428,11 @@ describe('main', () => {
       name => multiLineInputMapMultipleCommands[name]
     );
     execMock.mockResolvedValue(1);
-    globMock
-      .mockResolvedValueOnce([])
-      .mockResolvedValue([
-        'path/to/screenshots/base.png',
-        'path/to/screenshots/diff.png',
-        'path/to/screenshots/new.png'
-      ]);
+    mockScreenshotFiles([
+      'path/to/screenshots/base.png',
+      'path/to/screenshots/diff.png',
+      'path/to/screenshots/new.png'
+    ]);
     await runAction();
     expect(setFailedMock).toHaveBeenCalled();
     assertNoOctokitCalls();
@@ -448,9 +440,7 @@ describe('main', () => {
 
   it('should pass if visual tests initially fail but pass on retry', async () => {
     execMock.mockResolvedValue(0);
-    globMock
-      .mockResolvedValueOnce([])
-      .mockResolvedValue(['path/to/screenshots/diff.png']);
+    mockScreenshotFiles(['path/to/screenshots/diff.png']);
     await runAction();
     expect(setFailedMock).not.toHaveBeenCalled();
     expect(unlinkSyncMock).toHaveBeenCalledWith('path/to/screenshots/diff.png');
@@ -467,9 +457,7 @@ describe('main', () => {
   it('should pass if visual tests initially fail but pass on retry with diff-id input', async () => {
     getInputMock.mockImplementation(name => diffIdInputMap[name]);
     execMock.mockResolvedValue(0);
-    globMock
-      .mockResolvedValueOnce([])
-      .mockResolvedValue(['path/to/screenshots/diff.png']);
+    mockScreenshotFiles(['path/to/screenshots/diff.png']);
     await runAction();
     expect(setFailedMock).not.toHaveBeenCalled();
     expect(unlinkSyncMock).toHaveBeenCalledWith('path/to/screenshots/diff.png');
@@ -478,13 +466,11 @@ describe('main', () => {
 
   it('should set pending status and upload to new-images if visual tests pass and only new images were created', async () => {
     execMock.mockResolvedValue(0);
-    globMock
-      .mockResolvedValueOnce([])
-      .mockResolvedValue([
-        'path/to/screenshots/existingTest/base.png',
-        'path/to/screenshots/newTest1/new.png',
-        'path/to/screenshots/newTest2/new.png'
-      ]);
+    mockScreenshotFiles([
+      'path/to/screenshots/existingTest/base.png',
+      'path/to/screenshots/newTest1/new.png',
+      'path/to/screenshots/newTest2/new.png'
+    ]);
     await runAction();
     expect(setFailedMock).not.toHaveBeenCalled();
     expect(warningMock).toHaveBeenCalledWith(
@@ -510,13 +496,11 @@ describe('main', () => {
   it('should set pending status and upload to new-images if visual tests pass and only new images were created with diff-id input', async () => {
     getInputMock.mockImplementation(name => diffIdInputMap[name]);
     execMock.mockResolvedValue(0);
-    globMock
-      .mockResolvedValueOnce([])
-      .mockResolvedValue([
-        'path/to/screenshots/existingTest/base.png',
-        'path/to/screenshots/newTest1/new.png',
-        'path/to/screenshots/newTest2/new.png'
-      ]);
+    mockScreenshotFiles([
+      'path/to/screenshots/existingTest/base.png',
+      'path/to/screenshots/newTest1/new.png',
+      'path/to/screenshots/newTest2/new.png'
+    ]);
     await runAction();
     expect(setFailedMock).not.toHaveBeenCalled();
     expect(putObjectMock).toHaveBeenCalledWith(
@@ -534,14 +518,12 @@ describe('main', () => {
       'package-paths': 'path/1,path/2'
     };
     getInputMock.mockImplementation(name => extendedInputMap[name]);
-    globMock
-      .mockResolvedValueOnce([])
-      .mockResolvedValue([
-        'path/to/screenshots/path/1/component/base.png',
-        'path/to/screenshots/path/1/component/diff.png',
-        'path/to/screenshots/path/1/component/new.png',
-        'path/to/screenshots/path/2/component/base.png'
-      ]);
+    mockScreenshotFiles([
+      'path/to/screenshots/path/1/component/base.png',
+      'path/to/screenshots/path/1/component/diff.png',
+      'path/to/screenshots/path/1/component/new.png',
+      'path/to/screenshots/path/2/component/base.png'
+    ]);
     await runAction();
     expect(listObjectsMock).toHaveBeenCalledWith(
       expect.objectContaining({ Prefix: 'base-images/' })
@@ -565,13 +547,11 @@ describe('main', () => {
       'package-paths': 'path/1,path/2'
     };
     getInputMock.mockImplementation(name => extendedInputMap[name]);
-    globMock
-      .mockResolvedValueOnce([])
-      .mockResolvedValue([
-        'path/to/screenshots/base.png',
-        'path/to/screenshots/diff.png',
-        'path/to/screenshots/new.png'
-      ]);
+    mockScreenshotFiles([
+      'path/to/screenshots/base.png',
+      'path/to/screenshots/diff.png',
+      'path/to/screenshots/new.png'
+    ]);
     await runAction();
     expect(listObjectsMock).toHaveBeenCalledWith(
       expect.objectContaining({ Prefix: 'base-images/' })
@@ -588,13 +568,11 @@ describe('main', () => {
     execMock.mockResolvedValue(0);
     getInputMock.mockImplementation(name => inputMap[name]);
     getBooleanInputMock.mockImplementation(() => true);
-    globMock
-      .mockResolvedValueOnce([])
-      .mockResolvedValue([
-        'path/to/screenshots/base.png',
-        'path/to/screenshots/diff.png',
-        'path/to/screenshots/new.png'
-      ]);
+    mockScreenshotFiles([
+      'path/to/screenshots/base.png',
+      'path/to/screenshots/diff.png',
+      'path/to/screenshots/new.png'
+    ]);
     await runAction();
     expect(listObjectsMock).toHaveBeenCalledWith(
       expect.objectContaining({ Prefix: 'base-images/' })
@@ -605,13 +583,11 @@ describe('main', () => {
     execMock.mockResolvedValue(0);
     getInputMock.mockImplementation(name => inputMap[name]);
     getBooleanInputMock.mockImplementation(() => false);
-    globMock
-      .mockResolvedValueOnce([])
-      .mockResolvedValue([
-        'path/to/screenshots/base.png',
-        'path/to/screenshots/diff.png',
-        'path/to/screenshots/new.png'
-      ]);
+    mockScreenshotFiles([
+      'path/to/screenshots/base.png',
+      'path/to/screenshots/diff.png',
+      'path/to/screenshots/new.png'
+    ]);
     await runAction();
     expect(listObjectsMock).not.toHaveBeenCalled();
     expect(createCommitStatusMock).toHaveBeenCalledWith({
@@ -633,13 +609,11 @@ describe('main', () => {
       'package-paths': 'path/1,path/2'
     };
     getInputMock.mockImplementation(name => extendedInputMap[name]);
-    globMock
-      .mockResolvedValueOnce([])
-      .mockResolvedValue([
-        'path/to/screenshots/base.png',
-        'path/to/screenshots/diff.png',
-        'path/to/screenshots/new.png'
-      ]);
+    mockScreenshotFiles([
+      'path/to/screenshots/base.png',
+      'path/to/screenshots/diff.png',
+      'path/to/screenshots/new.png'
+    ]);
     await runAction();
     expect(listObjectsMock).toHaveBeenCalledWith(
       expect.objectContaining({ Prefix: 'base-images/' })
@@ -653,9 +627,7 @@ describe('main', () => {
 
   it('should not set successful commit status or create comment if the latest Visual Regression status is failure', async () => {
     execMock.mockResolvedValue(0);
-    globMock
-      .mockResolvedValueOnce([])
-      .mockResolvedValue(['path/to/screenshots/base.png']);
+    mockScreenshotFiles(['path/to/screenshots/base.png']);
     listCommitStatusesForRefMock.mockImplementationOnce(() => ({
       data: [
         {
@@ -683,9 +655,7 @@ describe('main', () => {
 
   it('should not set successful commit status if the latest Visual Regression status has been set', async () => {
     execMock.mockResolvedValue(0);
-    globMock
-      .mockResolvedValueOnce([])
-      .mockResolvedValue(['path/to/screenshots/base.png']);
+    mockScreenshotFiles(['path/to/screenshots/base.png']);
     listCommitStatusesForRefMock.mockImplementationOnce(() => ({
       data: [
         {
@@ -711,13 +681,11 @@ describe('main', () => {
 
   it('should not set commit status or create comment if the latest Visual Regression status is failure because tests failed to execute successfully', async () => {
     execMock.mockResolvedValue(1);
-    globMock
-      .mockResolvedValueOnce([])
-      .mockResolvedValue([
-        'path/to/screenshots/base.png',
-        'path/to/screenshots/diff.png',
-        'path/to/screenshots/new.png'
-      ]);
+    mockScreenshotFiles([
+      'path/to/screenshots/base.png',
+      'path/to/screenshots/diff.png',
+      'path/to/screenshots/new.png'
+    ]);
     listCommitStatusesForRefMock.mockImplementationOnce(() => ({
       data: [
         {
@@ -747,9 +715,7 @@ describe('main', () => {
   it('should set successful commit status (and disable auto merge) if a visual test failed to execute but this is a re-run', async () => {
     githubContext.runAttempt = 2;
     execMock.mockResolvedValue(0);
-    globMock
-      .mockResolvedValueOnce([])
-      .mockResolvedValue(['path/to/screenshots/base.png']);
+    mockScreenshotFiles(['path/to/screenshots/base.png']);
     listCommitStatusesForRefMock.mockImplementationOnce(() => ({
       data: [
         {
@@ -778,13 +744,11 @@ describe('main', () => {
   it('should set failure commit status (and not disable auto merge) if a visual test failed to execute but this is a re-run', async () => {
     githubContext.runAttempt = 2;
     execMock.mockResolvedValue(1);
-    globMock
-      .mockResolvedValueOnce([])
-      .mockResolvedValue([
-        'path/to/screenshots/base.png',
-        'path/to/screenshots/diff.png',
-        'path/to/screenshots/new.png'
-      ]);
+    mockScreenshotFiles([
+      'path/to/screenshots/base.png',
+      'path/to/screenshots/diff.png',
+      'path/to/screenshots/new.png'
+    ]);
     listCommitStatusesForRefMock.mockImplementationOnce(() => ({
       data: [
         {
@@ -813,9 +777,7 @@ describe('main', () => {
   it('should delete S3 images for hash when tests pass on retry', async () => {
     githubContext.runAttempt = 2;
     execMock.mockResolvedValue(0);
-    globMock
-      .mockResolvedValueOnce([])
-      .mockResolvedValue(['path/to/screenshots/base.png']);
+    mockScreenshotFiles(['path/to/screenshots/base.png']);
     getKeysFromS3Mock.mockResolvedValueOnce([
       'new-images/sha/component/new.png'
     ]);
@@ -834,9 +796,7 @@ describe('main', () => {
     githubContext.runAttempt = 2;
     getInputMock.mockImplementation(name => diffIdInputMap[name]);
     execMock.mockResolvedValue(0);
-    globMock
-      .mockResolvedValueOnce([])
-      .mockResolvedValue(['path/to/screenshots/base.png']);
+    mockScreenshotFiles(['path/to/screenshots/base.png']);
     getKeysFromS3Mock.mockResolvedValueOnce([
       'new-images/uniqueId/component/new.png'
     ]);
@@ -853,9 +813,7 @@ describe('main', () => {
 
   it('should not delete S3 images when tests pass on first attempt', async () => {
     execMock.mockResolvedValue(0);
-    globMock
-      .mockResolvedValueOnce([])
-      .mockResolvedValue(['path/to/screenshots/base.png']);
+    mockScreenshotFiles(['path/to/screenshots/base.png']);
     await runAction();
     expect(deleteObjectsMock).not.toHaveBeenCalled();
   });
@@ -863,9 +821,7 @@ describe('main', () => {
   it('should skip deletion when no images exist in S3 on retry', async () => {
     githubContext.runAttempt = 2;
     execMock.mockResolvedValue(0);
-    globMock
-      .mockResolvedValueOnce([])
-      .mockResolvedValue(['path/to/screenshots/base.png']);
+    mockScreenshotFiles(['path/to/screenshots/base.png']);
     getKeysFromS3Mock.mockResolvedValue([]);
     await runAction();
     expect(deleteObjectsMock).not.toHaveBeenCalled();
@@ -879,9 +835,7 @@ describe('main', () => {
     };
     getInputMock.mockImplementation(name => extendedInputMap[name]);
     execMock.mockResolvedValue(0);
-    globMock
-      .mockResolvedValueOnce([])
-      .mockResolvedValue(['path/to/screenshots/pkg1/base.png']);
+    mockScreenshotFiles(['path/to/screenshots/pkg1/base.png']);
     getKeysFromS3Mock.mockResolvedValueOnce([
       'new-images/sha/pkg1/component/new.png',
       'new-images/sha/pkg2/component/new.png'
@@ -908,12 +862,10 @@ describe('main', () => {
     getBooleanInputMock.mockImplementation(name =>
       name === 'visual-test-command-fails-on-diff' ? true : undefined
     );
-    globMock
-      .mockResolvedValueOnce([])
-      .mockResolvedValue([
-        'path/to/screenshots/diff.png',
-        'path/to/screenshots/new.png'
-      ]);
+    mockScreenshotFiles([
+      'path/to/screenshots/diff.png',
+      'path/to/screenshots/new.png'
+    ]);
     await runAction();
     expect(setFailedMock).toHaveBeenCalledWith('Visual diffs found.');
     expect(warningMock).not.toHaveBeenCalledWith('Visual diffs found.');
@@ -924,12 +876,10 @@ describe('main', () => {
     getBooleanInputMock.mockImplementation(name =>
       name === 'visual-test-command-fails-on-diff' ? false : undefined
     );
-    globMock
-      .mockResolvedValueOnce([])
-      .mockResolvedValue([
-        'path/to/screenshots/diff.png',
-        'path/to/screenshots/new.png'
-      ]);
+    mockScreenshotFiles([
+      'path/to/screenshots/diff.png',
+      'path/to/screenshots/new.png'
+    ]);
     await runAction();
     expect(setFailedMock).not.toHaveBeenCalledWith('Visual diffs found.');
     expect(warningMock).toHaveBeenCalledWith('Visual diffs found.');
@@ -953,16 +903,14 @@ describe('main', () => {
     getBooleanInputMock.mockImplementation(name =>
       name === 'visual-test-command-fails-on-diff' ? false : undefined
     );
-    globMock
-      .mockResolvedValueOnce([])
-      .mockResolvedValue([
-        'path/to/screenshots/diff1.png',
-        'path/to/screenshots/new1.png',
-        'path/to/screenshots/diff2.png',
-        'path/to/screenshots/new2.png',
-        'path/to/screenshots/diff3.png',
-        'path/to/screenshots/new3.png'
-      ]);
+    mockScreenshotFiles([
+      'path/to/screenshots/diff1.png',
+      'path/to/screenshots/new1.png',
+      'path/to/screenshots/diff2.png',
+      'path/to/screenshots/new2.png',
+      'path/to/screenshots/diff3.png',
+      'path/to/screenshots/new3.png'
+    ]);
     await runAction();
     expect(setFailedMock).toHaveBeenCalledWith(
       'The job failed, and this is not due to visual tests.'
