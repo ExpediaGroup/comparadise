@@ -63,28 +63,37 @@ const buildCommentBody = (
   return commentDetails ? `${base}\n${commentDetails}` : base;
 };
 
-export const createGithubComment = async (packageResults: PackageResult[]) => {
-  const commitHash = getInput('commit-hash', { required: true });
-  const comparadiseHost = getInput('comparadise-host');
-  const comparadiseUrl = buildComparadiseUrl();
-  const comparadiseLink = comparadiseHost
-    ? `[Comparadise](${comparadiseUrl})`
-    : 'Comparadise';
-  const commentDetails = getInput('comment-details');
-
+export const getPrNumber = async (
+  commitHash: string
+): Promise<number | undefined> => {
   const { data } =
     await octokit.rest.repos.listPullRequestsAssociatedWithCommit({
       commit_sha: commitHash,
       ...context.repo
     });
-  const prNumber = data.find(Boolean)?.number ?? context.issue.number;
-  if (!prNumber) {
+  return (data.find(Boolean)?.number ?? context.issue.number) || undefined;
+};
+
+export const createGithubComment = async (
+  packageResults: PackageResult[],
+  prNumber?: number
+) => {
+  const commitHash = getInput('commit-hash', { required: true });
+  const comparadiseHost = getInput('comparadise-host');
+  const comparadiseUrl = buildComparadiseUrl(prNumber);
+  const comparadiseLink = comparadiseHost
+    ? `[Comparadise](${comparadiseUrl})`
+    : 'Comparadise';
+  const commentDetails = getInput('comment-details');
+
+  const resolvedPrNumber = prNumber ?? (await getPrNumber(commitHash));
+  if (!resolvedPrNumber) {
     info('No PR number found, skipping comment creation.');
     return;
   }
 
   const { data: comments } = await octokit.rest.issues.listComments({
-    issue_number: prNumber,
+    issue_number: resolvedPrNumber,
     ...context.repo
   });
 
@@ -100,7 +109,7 @@ export const createGithubComment = async (packageResults: PackageResult[]) => {
         comparadiseLink,
         commentDetails
       ),
-      issue_number: prNumber,
+      issue_number: resolvedPrNumber,
       ...context.repo
     });
     return;

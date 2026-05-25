@@ -383,6 +383,48 @@ describe('App', () => {
     });
   });
 
+  describe('back to PR link', () => {
+    beforeEach(() => {
+      cy.intercept('/trpc/fetchCurrentPage*', req => {
+        const page = getPageFromRequest(req);
+        const body = page === 2 ? secondPage : firstPage;
+        req.reply(body);
+      });
+      cy.intercept('/trpc/getVisualRegressionStatus*', {
+        body: { result: { data: { isAlreadyUpdated: false } } }
+      });
+    });
+
+    it('should render Back to PR link when prNumber is in the URL', () => {
+      cy.mount(
+        <MemoryRouter
+          initialEntries={[
+            '/?commitHash=123&bucket=bucket&repo=repo&owner=owner&prNumber=42'
+          ]}
+        >
+          <App trpcLinks={trpcLinks} />
+        </MemoryRouter>
+      );
+      cy.findByText('Back to PR')
+        .should('be.visible')
+        .and('have.attr', 'href', 'https://github.com/owner/repo/pull/42');
+    });
+
+    it('should not render Back to PR link when prNumber is absent', () => {
+      cy.mount(
+        <MemoryRouter
+          initialEntries={[
+            '/?commitHash=123&bucket=bucket&repo=repo&owner=owner'
+          ]}
+        >
+          <App trpcLinks={trpcLinks} />
+        </MemoryRouter>
+      );
+      cy.findByRole('heading', { name: 'large/example' });
+      cy.findByText('Back to PR').should('not.exist');
+    });
+  });
+
   describe('use-base-images param case', () => {
     beforeEach(() => {
       cy.intercept('/trpc/fetchCurrentPage*', req => {

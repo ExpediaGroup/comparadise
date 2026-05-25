@@ -53,7 +53,14 @@ export const MainPage = ({
   const params: Record<string, string | undefined> = Object.fromEntries(
     searchParams.entries()
   );
-  const { page: pageParam, forceUpdate, commitHash, owner, repo } = params;
+  const {
+    page: pageParam,
+    forceUpdate,
+    commitHash,
+    owner,
+    repo,
+    prNumber
+  } = params;
 
   const page = Number(pageParam ?? 1);
   const { data: visualRegressionStatusData } =
@@ -131,8 +138,35 @@ export const MainPage = ({
   const backButtonDisabled = page <= 1 || isFetching;
   const forwardButtonDisabled = !nextPageExists || isFetching;
 
+  const prUrl =
+    prNumber && owner && repo
+      ? `https://github.com/${owner}/${repo}/pull/${prNumber}`
+      : undefined;
+
   return (
     <>
+      {prUrl && (
+        <div className="fixed top-4 left-4 z-50">
+          <a
+            href={prUrl}
+            className="inline-flex items-center rounded-md bg-white/90 px-3 py-1.5 font-medium text-sky-600 shadow-sm backdrop-blur hover:text-sky-800"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              className="mr-1 h-5 w-5"
+            >
+              <path
+                fillRule="evenodd"
+                d="M17 10a.75.75 0 0 1-.75.75H5.612l4.158 3.96a.75.75 0 1 1-1.04 1.08l-5.5-5.25a.75.75 0 0 1 0-1.08l5.5-5.25a.75.75 0 1 1 1.04 1.08L5.612 9.25H16.25A.75.75 0 0 1 17 10Z"
+                clipRule="evenodd"
+              />
+            </svg>
+            Back to PR
+          </a>
+        </div>
+      )}
       <div className="mt-10 flex flex-col items-center justify-center">
         <div className="flex w-4/5 items-center justify-between">
           <button
