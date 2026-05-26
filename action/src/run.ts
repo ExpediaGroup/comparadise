@@ -19,7 +19,7 @@ import { context } from '@actions/github';
 import * as path from 'path';
 import { glob } from 'glob';
 import { unlinkSync } from 'fs';
-import { createGithubComment, getPrNumber, PackageResult } from './comment';
+import { createGithubComment, PackageResult } from './comment';
 import { getLatestVisualRegressionStatus } from './get-latest-visual-regression-status';
 import {
   VISUAL_REGRESSION_CONTEXT,
@@ -218,16 +218,15 @@ export const run = async () => {
   info(`${diffFileCount} visual differences found.`);
   await Promise.all([uploadAllImages(hash), uploadOriginalNewImages(hash)]);
   if (!commitHash) return;
-  const prNumber = await getPrNumber(commitHash);
   await octokit.rest.repos.createCommitStatus({
     sha: commitHash,
     context: VISUAL_REGRESSION_CONTEXT,
     state: 'pending',
     description: pendingDescription,
-    target_url: buildComparadiseUrl(prNumber),
+    target_url: buildComparadiseUrl(),
     ...context.repo
   });
-  await createGithubComment(packageResults, prNumber);
+  await createGithubComment(packageResults);
 
   if (visualTestCommandFailsOnDiff && diffFileCount > 0) {
     setFailed(pendingDescription);

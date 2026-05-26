@@ -68,16 +68,10 @@ const WITH_PACKAGES: PackageResult[] = [
 ];
 
 async function runCreateGithubComment(
-  packageResults: PackageResult[] = NO_PACKAGES,
-  prNumber?: number
+  packageResults: PackageResult[] = NO_PACKAGES
 ) {
   const { createGithubComment } = await import('../src/comment');
-  await createGithubComment(packageResults, prNumber);
-}
-
-async function runGetPrNumber(commitHash: string) {
-  const { getPrNumber } = await import('../src/comment');
-  return getPrNumber(commitHash);
+  await createGithubComment(packageResults);
 }
 
 describe('createGithubComment', () => {
@@ -268,73 +262,5 @@ describe('createGithubComment', () => {
       const body: string = createCommentMock.mock.calls[0]![0].body;
       expect(body).toContain('Extra info');
     });
-  });
-
-  describe('prNumber parameter', () => {
-    it('should pass prNumber to buildComparadiseUrl when provided', async () => {
-      listCommentsMock.mockResolvedValue({ data: [] });
-
-      await runCreateGithubComment(NO_PACKAGES, 42);
-
-      expect(buildComparadiseUrlMock).toHaveBeenCalledWith(42);
-    });
-
-    it('should pass undefined to buildComparadiseUrl when prNumber is not provided', async () => {
-      listCommentsMock.mockResolvedValue({ data: [] });
-
-      await runCreateGithubComment(NO_PACKAGES);
-
-      expect(buildComparadiseUrlMock).toHaveBeenCalledWith(undefined);
-    });
-
-    it('should skip PR lookup when prNumber is provided', async () => {
-      listCommentsMock.mockResolvedValue({ data: [] });
-
-      await runCreateGithubComment(NO_PACKAGES, 42);
-
-      expect(listPullRequestsAssociatedWithCommitMock).not.toHaveBeenCalled();
-    });
-  });
-});
-
-describe('getPrNumber', () => {
-  beforeEach(() => {
-    githubContext.issue.number = 0;
-  });
-
-  afterEach(() => {
-    mock.clearAllMocks();
-  });
-
-  it('should return the PR number from the API response', async () => {
-    listPullRequestsAssociatedWithCommitMock.mockResolvedValueOnce({
-      data: [{ number: 456 }]
-    });
-
-    const result = await runGetPrNumber('abc123');
-
-    expect(result).toBe(456);
-  });
-
-  it('should fall back to context.issue.number when API returns empty', async () => {
-    listPullRequestsAssociatedWithCommitMock.mockResolvedValueOnce({
-      data: []
-    });
-    githubContext.issue.number = 789;
-
-    const result = await runGetPrNumber('abc123');
-
-    expect(result).toBe(789);
-  });
-
-  it('should return undefined when no PR is found', async () => {
-    listPullRequestsAssociatedWithCommitMock.mockResolvedValueOnce({
-      data: []
-    });
-    githubContext.issue.number = 0;
-
-    const result = await runGetPrNumber('abc123');
-
-    expect(result).toBeUndefined();
   });
 });

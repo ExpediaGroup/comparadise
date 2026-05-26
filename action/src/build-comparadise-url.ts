@@ -1,7 +1,7 @@
 import { getBooleanInput, getInput } from '@actions/core';
 import { context } from '@actions/github';
 
-export const buildComparadiseUrl = (prNumber?: number) => {
+export const buildComparadiseUrl = () => {
   const bucketName = getInput('bucket-name', { required: true });
   const comparadiseHost = getInput('comparadise-host');
   const commitHash = getInput('commit-hash');
@@ -16,5 +16,5 @@ export const buildComparadiseUrl = (prNumber?: number) => {
     updateBaseImagesOnAccept && getBooleanInput('use-base-images');
   const { owner, repo } = context.repo;
 
-  return `${comparadiseHost}/?${hashParam}&owner=${owner}&repo=${repo}&bucket=${bucketName}&useBaseImages=${useBaseImages}${prNumber ? `&prNumber=${prNumber}` : ''}`;
+  return `${comparadiseHost}/?${hashParam}&owner=${owner}&repo=${repo}&bucket=${bucketName}&useBaseImages=${useBaseImages}`;
 };

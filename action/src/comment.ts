@@ -63,37 +63,28 @@ const buildCommentBody = (
   return commentDetails ? `${base}\n${commentDetails}` : base;
 };
 
-export const getPrNumber = async (
-  commitHash: string
-): Promise<number | undefined> => {
-  const { data } =
-    await octokit.rest.repos.listPullRequestsAssociatedWithCommit({
-      commit_sha: commitHash,
-      ...context.repo
-    });
-  return (data.find(Boolean)?.number ?? context.issue.number) || undefined;
-};
-
-export const createGithubComment = async (
-  packageResults: PackageResult[],
-  prNumber?: number
-) => {
+export const createGithubComment = async (packageResults: PackageResult[]) => {
   const commitHash = getInput('commit-hash', { required: true });
   const comparadiseHost = getInput('comparadise-host');
-  const comparadiseUrl = buildComparadiseUrl(prNumber);
+  const comparadiseUrl = buildComparadiseUrl();
   const comparadiseLink = comparadiseHost
     ? `[Comparadise](${comparadiseUrl})`
     : 'Comparadise';
   const commentDetails = getInput('comment-details');
 
-  const resolvedPrNumber = prNumber ?? (await getPrNumber(commitHash));
-  if (!resolvedPrNumber) {
+  const { data } =
+    await octokit.rest.repos.listPullRequestsAssociatedWithCommit({
+      commit_sha: commitHash,
+      ...context.repo
+    });
+  const prNumber = data.find(Boolean)?.number ?? context.issue.number;
+  if (!prNumber) {
     info('No PR number found, skipping comment creation.');
     return;
   }
 
   const { data: comments } = await octokit.rest.issues.listComments({
-    issue_number: resolvedPrNumber,
+    issue_number: prNumber,
     ...context.repo
   });
 
@@ -109,7 +100,7 @@ export const createGithubComment = async (
         comparadiseLink,
         commentDetails
       ),
-      issue_number: resolvedPrNumber,
+      issue_number: prNumber,
       ...context.repo
     });
     return;

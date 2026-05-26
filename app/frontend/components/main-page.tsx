@@ -53,14 +53,7 @@ export const MainPage = ({
   const params: Record<string, string | undefined> = Object.fromEntries(
     searchParams.entries()
   );
-  const {
-    page: pageParam,
-    forceUpdate,
-    commitHash,
-    owner,
-    repo,
-    prNumber
-  } = params;
+  const { page: pageParam, forceUpdate, commitHash, owner, repo } = params;
 
   const page = Number(pageParam ?? 1);
   const { data: visualRegressionStatusData } =
@@ -69,6 +62,12 @@ export const MainPage = ({
       { enabled: Boolean(commitHash && owner && repo) }
     );
   const isAlreadyUpdated = visualRegressionStatusData?.isAlreadyUpdated;
+
+  const { data: pullRequestUrlData } = trpc.getPullRequestUrl.useQuery(
+    { commitHash: commitHash ?? '', owner: owner ?? '', repo: repo ?? '' },
+    { enabled: Boolean(commitHash && owner && repo) }
+  );
+  const pullRequestUrl = pullRequestUrlData?.url;
 
   const { isLoading, data, isFetching, error } = trpc.fetchCurrentPage.useQuery(
     { hash, bucket, page }
@@ -138,17 +137,12 @@ export const MainPage = ({
   const backButtonDisabled = page <= 1 || isFetching;
   const forwardButtonDisabled = !nextPageExists || isFetching;
 
-  const prUrl =
-    prNumber && owner && repo
-      ? `https://github.com/${owner}/${repo}/pull/${prNumber}`
-      : undefined;
-
   return (
     <>
-      {prUrl && (
+      {pullRequestUrl && (
         <div className="fixed top-4 left-4 z-50">
           <a
-            href={prUrl}
+            href={pullRequestUrl}
             className="inline-flex items-center rounded-md bg-white/90 px-3 py-1.5 font-medium text-sky-600 shadow-sm backdrop-blur hover:text-sky-800"
           >
             <svg
