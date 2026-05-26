@@ -103,7 +103,7 @@ A flat object containing only entries the PR changed. Non-null values are the PR
 - **Hashing:** MD5 via Node.js `crypto`. Always computed from the full-size image regardless of resize settings
 - **Missing ancestor manifest:** Fail with rebase instruction (only during initial adoption)
 - **Staleness handling:** Changeset overlay at merge time ensures concurrent merges are handled correctly
-- **Merge concurrency:** Consumer should use a `concurrency` group on their `manifest-merge` workflow to serialize merge jobs
+- **Merge concurrency:** Consumers **must** set a `concurrency` group (with `cancel-in-progress: false`) on their `manifest-merge` workflow to serialize merge jobs. Without it, two simultaneous merges can both update `base-images/` at the same time, producing a corrupted or interleaved state that `manifest-compare` jobs running in parallel will read. The concrete race: PR A and PR B merge within seconds of each other; both `manifest-merge` jobs start concurrently, each overwriting overlapping `base-images/` keys; a `manifest-compare` job for an open PR C reads `base-images/` mid-update and generates a diff against a partially-applied base, producing a wrong or misleading visual result. Serializing merges via `concurrency` eliminates this window entirely.
 - **Post-merge conflicts:** `manifest-merge` applies the changeset without re-validating. Accepted risk — consumers should ensure `manifest-compare` status is required before merge
 
 ## No Changes To
