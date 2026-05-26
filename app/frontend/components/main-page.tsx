@@ -8,6 +8,7 @@ import {
   AvailableView
 } from './view-toggle';
 import { UpdateImagesButton } from './update-images-button';
+import { BackToPrLink } from './back-to-pr-link';
 import { trpc } from '../utils/trpc';
 import {
   createSearchParams,
@@ -62,12 +63,6 @@ export const MainPage = ({
       { enabled: Boolean(commitHash && owner && repo) }
     );
   const isAlreadyUpdated = visualRegressionStatusData?.isAlreadyUpdated;
-
-  const { data: pullRequestUrlData } = trpc.getPullRequestUrl.useQuery(
-    { commitHash: commitHash ?? '', owner: owner ?? '', repo: repo ?? '' },
-    { enabled: Boolean(commitHash && owner && repo) }
-  );
-  const pullRequestUrl = pullRequestUrlData?.url;
 
   const { isLoading, data, isFetching, error } = trpc.fetchCurrentPage.useQuery(
     { hash, bucket, page }
@@ -139,28 +134,7 @@ export const MainPage = ({
 
   return (
     <>
-      {pullRequestUrl && (
-        <div className="fixed top-4 left-4 z-50">
-          <a
-            href={pullRequestUrl}
-            className="inline-flex items-center rounded-md bg-white/90 px-3 py-1.5 font-medium text-sky-600 shadow-sm backdrop-blur hover:text-sky-800"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              className="mr-1 h-5 w-5"
-            >
-              <path
-                fillRule="evenodd"
-                d="M17 10a.75.75 0 0 1-.75.75H5.612l4.158 3.96a.75.75 0 1 1-1.04 1.08l-5.5-5.25a.75.75 0 0 1 0-1.08l5.5-5.25a.75.75 0 1 1 1.04 1.08L5.612 9.25H16.25A.75.75 0 0 1 17 10Z"
-                clipRule="evenodd"
-              />
-            </svg>
-            Back to PR
-          </a>
-        </div>
-      )}
+      <BackToPrLink commitHash={commitHash} owner={owner} repo={repo} />
       <div className="mt-10 flex flex-col items-center justify-center">
         <div className="flex w-4/5 items-center justify-between">
           <button
