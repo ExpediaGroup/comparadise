@@ -8,9 +8,8 @@ mock.module('shared/s3', () => ({
   getObject: getObjectMock
 }));
 
-const { putManifest, getManifest, putChangeset, getChangeset } = await import(
-  '../src/manifest-s3'
-);
+const { putManifest, getManifest, putChangeset, getChangeset } =
+  await import('../src/manifest-s3');
 
 const bucket = 'test-bucket';
 const sha = 'abc123def456';
@@ -43,7 +42,9 @@ describe('getManifest', () => {
       'components/Button/screenshot.png': 'd41d8cd98f00b204e9800998ecf8427e'
     };
     getObjectMock.mockResolvedValueOnce({
-      Body: { transformToString: () => Promise.resolve(JSON.stringify(manifest)) }
+      Body: {
+        transformToString: () => Promise.resolve(JSON.stringify(manifest))
+      }
     });
 
     const result = await getManifest(bucket, sha);
@@ -95,7 +96,9 @@ describe('getChangeset', () => {
       'deleted/screenshot.png': null
     };
     getObjectMock.mockResolvedValueOnce({
-      Body: { transformToString: () => Promise.resolve(JSON.stringify(changeset)) }
+      Body: {
+        transformToString: () => Promise.resolve(JSON.stringify(changeset))
+      }
     });
 
     const result = await getChangeset(bucket, sha);

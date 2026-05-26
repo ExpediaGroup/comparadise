@@ -26,7 +26,7 @@ export async function getManifest(
       Key: `manifests/${sha}.json`
     });
     const body = await response.Body!.transformToString();
-    return JSON.parse(body);
+    return JSON.parse(body) as Manifest;
   } catch (error: unknown) {
     if (error instanceof Error && error.name === 'NoSuchKey') {
       return null;
@@ -58,7 +58,7 @@ export async function getChangeset(
       Key: `changesets/${sha}.json`
     });
     const body = await response.Body!.transformToString();
-    return JSON.parse(body);
+    return JSON.parse(body) as Changeset;
   } catch (error: unknown) {
     if (error instanceof Error && error.name === 'NoSuchKey') {
       return null;
