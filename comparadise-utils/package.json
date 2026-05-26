@@ -16,12 +16,12 @@
     "url": "https://github.com/ExpediaGroup/comparadise/issues"
   },
   "dependencies": {
-    "pixelmatch": "7.1.0",
+    "pixelmatch": "7.2.0",
     "pngjs": "7.0.0"
   },
   "devDependencies": {
     "@types/pngjs": "6.0.5",
-    "tsdown": "0.21.10"
+    "tsdown": "0.22.0"
   },
   "peerDependencies": {
     "cypress": ">=12"

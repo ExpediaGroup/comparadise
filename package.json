@@ -1,21 +1,21 @@
 {
   "name": "comparadise",
-  "packageManager": "bun@1.3.13",
+  "packageManager": "bun@1.3.14",
   "type": "module",
   "devDependencies": {
-    "@testing-library/cypress": "10.1.0",
+    "@testing-library/cypress": "10.1.3",
     "@total-typescript/ts-reset": "0.6.1",
-    "@types/bun": "1.3.13",
-    "cypress": "15.14.1",
-    "eslint": "10.2.1",
+    "@types/bun": "1.3.14",
+    "cypress": "15.15.0",
+    "eslint": "10.4.0",
     "eslint-plugin-react": "7.37.5",
     "husky": "9.1.7",
-    "nx": "22.7.0",
+    "nx": "22.7.4",
     "prettier": "3.8.3",
-    "prettier-plugin-tailwindcss": "0.7.3",
+    "prettier-plugin-tailwindcss": "0.8.0",
     "shared": "workspace:*",
     "typescript": "6.0.3",
-    "typescript-eslint": "8.59.0"
+    "typescript-eslint": "8.60.0"
   },
   "scripts": {
     "docker": "docker build . --tag comparadise && docker compose up -d",
