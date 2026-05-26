@@ -96,13 +96,14 @@ A flat object containing only entries the PR changed. Non-null values are the PR
 6. Stale changeset check: if `changeset._headSha !== parents[0].sha`:
    - Fetch `manifests/{changeset._headSha}.json` (the manifest HEAD at compare time)
    - For each screenshot key in the changeset (excluding `_headSha`), compare its hash in `manifests/{changeset._headSha}.json` vs `manifests/{parents[0].sha}.json`
-   - If any key differs between the two manifests: fail with a list of the conflicting paths and an instruction to re-run tests on the updated base
+   - If any key differs between the two manifests: record the conflicting paths and continue (base images will not be updated)
    - If no keys differ: proceed (the intervening merges didn't touch the same screenshots)
-7. Overlay changeset onto parent manifest:
+7. Overlay changeset onto parent manifest, skipping any conflicting paths identified in step 6:
    - Non-null entries: update hash
    - Null entries: remove key
 8. Write result to `manifests/{merge-commit-sha}.json`
-9. Update base images: for each non-null changeset entry, copy `new-images/{pr-sha}/path/new.png` → `base-images/path/base.png`. For null entries, delete `base-images/path/base.png`.
+9. If conflicting paths were recorded in step 6: fail with the list of conflicting paths
+10. Update base images: for each non-null changeset entry, copy `new-images/{pr-sha}/path/new.png` → `base-images/path/base.png`. For null entries, delete `base-images/path/base.png`.
 
 ## Design Decisions
 
@@ -111,7 +112,7 @@ A flat object containing only entries the PR changed. Non-null values are the PR
 - **Missing ancestor manifest:** Fail with rebase instruction (only during initial adoption)
 - **Staleness handling:** Changeset overlay at merge time ensures concurrent merges are handled correctly
 - **Merge concurrency:** Consumers **must** set a `concurrency` group (with `cancel-in-progress: false`) on their `manifest-merge` workflow to serialize merge jobs. Without it, two simultaneous merges can both update `base-images/` at the same time, producing a corrupted or interleaved state that `manifest-compare` jobs running in parallel will read. The concrete race: PR A and PR B merge within seconds of each other; both `manifest-merge` jobs start concurrently, each overwriting overlapping `base-images/` keys; a `manifest-compare` job for an open PR C reads `base-images/` mid-update and generates a diff against a partially-applied base, producing a wrong or misleading visual result. Serializing merges via `concurrency` eliminates this window entirely.
-- **Stale changeset detection:** The changeset stores `_headSha` (the HEAD SHA at compare time). If `manifest-merge` finds a different parent, it fetches both manifests and checks only the keys present in the changeset. If any of those screenshots changed on main in the interim, the job fails with the conflicting paths listed. If none overlap, the merge proceeds — false positives are avoided. Consumers should still require the `manifest-compare` status check before merge; this is a last-resort safety net for cases where that check was bypassed or HEAD moved after approval.
+- **Stale changeset detection:** The changeset stores `_headSha` (the HEAD SHA at compare time). If `manifest-merge` finds a different parent, it fetches both manifests and checks only the keys present in the changeset. If none overlap, the merge proceeds — false positives are avoided. If any overlap, the manifest is still written (so future PRs branching off the merge commit get a correct ancestor manifest and auto-pass via Scenario 2), but base images are not updated and the job fails with the conflicting paths listed. Consumers should still require the `manifest-compare` status check before merge; this is a last-resort safety net for cases where that check was bypassed or HEAD moved after approval.
 
 ## No Changes To
 
