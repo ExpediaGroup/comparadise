@@ -8,6 +8,7 @@ import {
   AvailableView
 } from './view-toggle';
 import { UpdateImagesButton } from './update-images-button';
+import { BackToPrLink } from './back-to-pr-link';
 import { trpc } from '../utils/trpc';
 import {
   createSearchParams,
@@ -133,6 +134,7 @@ export const MainPage = ({
 
   return (
     <>
+      <BackToPrLink commitHash={commitHash} owner={owner} repo={repo} />
       <div className="mt-10 flex flex-col items-center justify-center">
         <div className="flex w-4/5 items-center justify-between">
           <button

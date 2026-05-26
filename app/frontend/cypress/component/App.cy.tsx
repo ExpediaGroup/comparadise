@@ -49,6 +49,9 @@ describe('App', () => {
       cy.intercept('/trpc/getVisualRegressionStatus*', {
         body: { result: { data: { isAlreadyUpdated: false } } }
       });
+      cy.intercept('/trpc/getPullRequestUrl*', {
+        body: { result: { data: { url: null } } }
+      });
       cy.mount(
         <MemoryRouter
           initialEntries={[
@@ -200,6 +203,9 @@ describe('App', () => {
       cy.intercept('/trpc/getVisualRegressionStatus*', {
         body: { result: { data: { isAlreadyUpdated: false } } }
       });
+      cy.intercept('/trpc/getPullRequestUrl*', {
+        body: { result: { data: { url: null } } }
+      });
       cy.mount(
         <MemoryRouter
           initialEntries={[
@@ -235,6 +241,9 @@ describe('App', () => {
       cy.intercept('/trpc/getVisualRegressionStatus*', {
         body: { result: { data: { isAlreadyUpdated: false } } }
       });
+      cy.intercept('/trpc/getPullRequestUrl*', {
+        body: { result: { data: { url: null } } }
+      });
       cy.mount(
         <MemoryRouter
           initialEntries={[
@@ -262,6 +271,9 @@ describe('App', () => {
       });
       cy.intercept('/trpc/getVisualRegressionStatus*', {
         body: { result: { data: { isAlreadyUpdated: false } } }
+      });
+      cy.intercept('/trpc/getPullRequestUrl*', {
+        body: { result: { data: { url: null } } }
       });
       cy.mount(
         <MemoryRouter
@@ -304,6 +316,9 @@ describe('App', () => {
       cy.intercept('/trpc/getVisualRegressionStatus*', {
         body: { result: { data: { isAlreadyUpdated: false } } }
       });
+      cy.intercept('/trpc/getPullRequestUrl*', {
+        body: { result: { data: { url: null } } }
+      });
       cy.mount(
         <MemoryRouter
           initialEntries={[
@@ -339,6 +354,9 @@ describe('App', () => {
       });
       cy.intercept('/trpc/getVisualRegressionStatus*', {
         body: { result: { data: { isAlreadyUpdated: true } } }
+      });
+      cy.intercept('/trpc/getPullRequestUrl*', {
+        body: { result: { data: { url: null } } }
       });
       cy.mount(
         <MemoryRouter
@@ -380,6 +398,58 @@ describe('App', () => {
     it('should use diffId param when commitId not provided', () => {
       cy.findByRole('heading', { name: 'large/example' });
       cy.findByAltText('diff').should('be.visible');
+    });
+  });
+
+  describe('back to PR link', () => {
+    beforeEach(() => {
+      cy.intercept('/trpc/fetchCurrentPage*', req => {
+        const page = getPageFromRequest(req);
+        const body = page === 2 ? secondPage : firstPage;
+        req.reply(body);
+      });
+      cy.intercept('/trpc/getVisualRegressionStatus*', {
+        body: { result: { data: { isAlreadyUpdated: false } } }
+      });
+    });
+
+    it('should render Back to PR link when getPullRequestUrl returns a url', () => {
+      cy.intercept('/trpc/getPullRequestUrl*', {
+        body: {
+          result: {
+            data: { url: 'https://github.com/owner/repo/pull/42' }
+          }
+        }
+      });
+      cy.mount(
+        <MemoryRouter
+          initialEntries={[
+            '/?commitHash=123&bucket=bucket&repo=repo&owner=owner'
+          ]}
+        >
+          <App trpcLinks={trpcLinks} />
+        </MemoryRouter>
+      );
+      cy.findByText('Back to PR')
+        .should('be.visible')
+        .and('have.attr', 'href', 'https://github.com/owner/repo/pull/42');
+    });
+
+    it('should not render Back to PR link when getPullRequestUrl returns null', () => {
+      cy.intercept('/trpc/getPullRequestUrl*', {
+        body: { result: { data: { url: null } } }
+      });
+      cy.mount(
+        <MemoryRouter
+          initialEntries={[
+            '/?commitHash=123&bucket=bucket&repo=repo&owner=owner'
+          ]}
+        >
+          <App trpcLinks={trpcLinks} />
+        </MemoryRouter>
+      );
+      cy.findByRole('heading', { name: 'large/example' });
+      cy.findByText('Back to PR').should('not.exist');
     });
   });
 
