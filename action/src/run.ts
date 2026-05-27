@@ -86,7 +86,6 @@ export const run = async (deps: Dependencies = makeDefaultDeps()) => {
     file.endsWith('new.png')
   );
 
-  // Delete orphaned diff files (no corresponding new file)
   const validDiffFilePaths: string[] = [];
   const diffFileCount = diffFilePaths.reduce((count, diffPath) => {
     if (
@@ -97,6 +96,7 @@ export const run = async (deps: Dependencies = makeDefaultDeps()) => {
       validDiffFilePaths.push(diffPath);
       return count + 1;
     }
+    // Delete orphaned diff files (no corresponding new file)
     deps.fs.unlinkSync(diffPath);
     return count;
   }, 0);
