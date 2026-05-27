@@ -1,61 +1,22 @@
-import { getInput, getMultilineInput, info, setFailed } from '@actions/core';
-import { exec } from '@actions/exec';
-import { glob } from 'glob';
-import { hashFile as defaultHashFile } from './hash';
-import { readImageFile as defaultReadImageFile } from './read-image-file';
-import { resizeImageIfNeeded as defaultResizeImageIfNeeded } from './resize';
-import { putObject, getObject } from 'shared/s3';
+import { getInput, getMultilineInput } from '@actions/core';
 import {
   NEW_IMAGES_DIRECTORY,
   ORIGINAL_NEW_IMAGES_DIRECTORY
 } from 'shared/constants';
+import { resizeImageIfNeeded } from './resize';
+import { type Dependencies, makeDefaultDeps } from './dependencies';
 import type { Manifest } from './manifest-s3';
 
-export interface ManifestGenerateDeps {
-  hashFile: (path: string) => Promise<string>;
-  readImageFile: (path: string) => Promise<Buffer>;
-  resizeImageIfNeeded: (buffer: Buffer) => Promise<Buffer>;
-  exec: (
-    cmd: string,
-    args: string[],
-    opts: { ignoreReturnCode: boolean }
-  ) => Promise<number>;
-  glob: (
-    pattern: string,
-    opts: { nodir: boolean; absolute: boolean }
-  ) => Promise<string[]>;
-  getInput: (name: string, opts?: { required?: boolean }) => string;
-  getMultilineInput: (name: string) => string[];
-  info: (msg: string) => void;
-  setFailed: (msg: string) => void;
-  putObject: typeof putObject;
-  getObject: typeof getObject;
-}
-
-const defaultDeps: ManifestGenerateDeps = {
-  hashFile: defaultHashFile,
-  readImageFile: defaultReadImageFile,
-  resizeImageIfNeeded: defaultResizeImageIfNeeded,
-  exec,
-  glob,
-  getInput,
-  getMultilineInput,
-  info,
-  setFailed,
-  putObject,
-  getObject
-};
-
 export async function manifestGenerate(
-  deps: ManifestGenerateDeps = defaultDeps
+  deps: Dependencies = makeDefaultDeps()
 ): Promise<void> {
-  const visualTestCommands = deps.getMultilineInput('visual-test-command');
-  const commitHash = deps.getInput('commit-hash');
-  const bucket = deps.getInput('bucket-name', { required: true });
-  const screenshotsDirectory = deps.getInput('screenshots-directory');
-  const headSha = deps.getInput('head-sha');
-  const resizeWidth = deps.getInput('resize-width');
-  const resizeHeight = deps.getInput('resize-height');
+  const visualTestCommands = getMultilineInput('visual-test-command');
+  const commitHash = getInput('commit-hash');
+  const bucket = getInput('bucket-name', { required: true });
+  const screenshotsDirectory = getInput('screenshots-directory');
+  const headSha = getInput('head-sha');
+  const resizeWidth = getInput('resize-width');
+  const resizeHeight = getInput('resize-height');
   const resizeEnabled = Boolean(resizeWidth || resizeHeight);
 
   const exitCodes = await Promise.all(
@@ -64,7 +25,7 @@ export async function manifestGenerate(
     )
   );
   if (exitCodes.some(code => code !== 0)) {
-    deps.setFailed('Visual test command failed.');
+    deps.core.setFailed('Visual test command failed.');
     return;
   }
 
@@ -88,27 +49,30 @@ export async function manifestGenerate(
     p => !headManifest || headManifest[p] !== manifest[p]
   );
 
-  deps.info(`${changedPaths.length} changed image(s) to upload.`);
+  deps.core.info(`${changedPaths.length} changed image(s) to upload.`);
 
   await Promise.all(
     changedPaths.map(async relativePath => {
       const localPath = `${screenshotsDirectory}/${relativePath}`;
-      const fileBuffer = await deps.readImageFile(localPath);
+      const fileBuffer = await deps.fs.readFile(localPath);
 
       if (resizeEnabled) {
-        const resizedBuffer = await deps.resizeImageIfNeeded(fileBuffer);
-        await deps.putObject({
+        const resizedBuffer = await resizeImageIfNeeded(
+          fileBuffer as Buffer,
+          deps.jimp
+        );
+        await deps.s3.putObject({
           Bucket: bucket,
           Key: `${NEW_IMAGES_DIRECTORY}/${commitHash}/${relativePath}`,
           Body: resizedBuffer
         });
-        await deps.putObject({
+        await deps.s3.putObject({
           Bucket: bucket,
           Key: `${ORIGINAL_NEW_IMAGES_DIRECTORY}/${commitHash}/${relativePath}`,
           Body: fileBuffer
         });
       } else {
-        await deps.putObject({
+        await deps.s3.putObject({
           Bucket: bucket,
           Key: `${NEW_IMAGES_DIRECTORY}/${commitHash}/${relativePath}`,
           Body: fileBuffer
@@ -117,25 +81,25 @@ export async function manifestGenerate(
     })
   );
 
-  await deps.putObject({
+  await deps.s3.putObject({
     Bucket: bucket,
     Key: `manifests/${commitHash}.json`,
     Body: JSON.stringify(manifest),
     ContentType: 'application/json'
   });
 
-  deps.info(
+  deps.core.info(
     `Manifest uploaded for ${commitHash} with ${Object.keys(manifest).length} entries.`
   );
 }
 
 async function fetchHeadManifest(
-  deps: Pick<ManifestGenerateDeps, 'getObject'>,
+  deps: Pick<Dependencies, 's3'>,
   bucket: string,
   sha: string
 ): Promise<Manifest | null> {
   try {
-    const response = await deps.getObject({
+    const response = await deps.s3.getObject({
       Bucket: bucket,
       Key: `manifests/${sha}.json`
     });
