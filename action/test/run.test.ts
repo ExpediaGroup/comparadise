@@ -6,58 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
 import { EventEmitter } from 'events';
 import { Readable } from 'stream';
 import path from 'path';
-
-const disableAutoMergeMock = mock();
-mock.module('../src/disable-auto-merge', () => ({
-  disableAutoMerge: disableAutoMergeMock
-}));
-
-const globMock = mock();
-mock.module('glob', () => ({
-  glob: globMock
-}));
-
-const getInputMock = mock();
-const getBooleanInputMock = mock();
-const getMultilineInputMock = mock();
-const setFailedMock = mock();
-const warningMock = mock();
-mock.module('@actions/core', () => ({
-  info: mock(),
-  getInput: getInputMock,
-  getBooleanInput: getBooleanInputMock,
-  getMultilineInput: getMultilineInputMock,
-  setFailed: setFailedMock,
-  warning: warningMock
-}));
-
-const execMock = mock();
-mock.module('@actions/exec', () => ({
-  exec: execMock
-}));
-
-const unlinkSyncMock = mock();
-const createWriteStreamMock = mock();
-const mkdirMock = mock();
-const readFileMock = mock();
-mock.module('fs', () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const actualFs = require('fs');
-  return {
-    ...actualFs,
-    unlinkSync: unlinkSyncMock,
-    createWriteStream: createWriteStreamMock,
-    promises: {
-      mkdir: mkdirMock,
-      readFile: readFileMock
-    }
-  };
-});
-
-const rmMock = mock();
-mock.module('fs/promises', () => ({
-  rm: rmMock
-}));
+import type { Dependencies } from '../src/dependencies';
 
 const listObjectsMock = mock();
 const getObjectMock = mock();
@@ -66,6 +15,7 @@ const copyObjectMock = mock();
 const deleteObjectsMock = mock();
 const getKeysFromS3Mock = mock();
 const updateBaseImagesMock = mock();
+
 async function listAllObjects(
   input: { Bucket: string; Prefix: string },
   continuationToken?: string
@@ -81,17 +31,14 @@ async function listAllObjects(
     ...(await listAllObjects(input, response.NextContinuationToken))
   ];
 }
-mock.module('shared/s3', () => ({
-  s3Client: {},
-  listObjects: listObjectsMock,
-  listAllObjects,
-  getKeysFromS3: getKeysFromS3Mock,
-  updateBaseImages: updateBaseImagesMock,
-  getObject: getObjectMock,
-  putObject: putObjectMock,
-  copyObject: copyObjectMock,
-  deleteObjects: deleteObjectsMock
-}));
+
+const execMock = mock();
+const globMock = mock();
+
+const unlinkSyncMock = mock();
+const createWriteStreamMock = mock();
+const mkdirMock = mock();
+const readFileMock = mock();
 
 const jimpImageMock = {
   width: 400,
@@ -100,14 +47,11 @@ const jimpImageMock = {
   getBuffer: mock()
 };
 const jimpReadMock = mock();
-mock.module('jimp', () => ({
-  Jimp: { read: jimpReadMock }
-}));
 
 const createCommitStatusMock = mock();
-const listPullRequestsAssociatedWithCommitMock = mock(() => ({
-  data: [{ number: 123 }]
-}));
+const listPullRequestsAssociatedWithCommitMock = mock<
+  () => Promise<{ data: { number: number; node_id?: string }[] }>
+>(() => Promise.resolve({ data: [{ number: 123 }] }));
 const listCommitStatusesForRefMock = mock(() => ({
   data: [
     {
@@ -118,44 +62,58 @@ const listCommitStatusesForRefMock = mock(() => ({
 }));
 const createCommentMock = mock();
 const listCommentsMock = mock(() => ({ data: [{ id: 1 }] }));
-const githubContext = {
-  repo: { repo: 'repo', owner: 'owner' },
-  runAttempt: 1
-};
-mock.module('@actions/github', () => ({
-  context: githubContext,
-  getOctokit: mock(() => ({
-    rest: {
-      repos: {
-        createCommitStatus: createCommitStatusMock,
-        listPullRequestsAssociatedWithCommit:
-          listPullRequestsAssociatedWithCommitMock,
-        listCommitStatusesForRef: listCommitStatusesForRefMock
-      },
-      issues: {
-        createComment: createCommentMock,
-        listComments: listCommentsMock
-      }
-    }
-  }))
-}));
+const graphqlMock = mock();
 
-mock.module('../src/octokit', () => ({
-  octokit: {
-    rest: {
-      repos: {
-        createCommitStatus: createCommitStatusMock,
-        listPullRequestsAssociatedWithCommit:
-          listPullRequestsAssociatedWithCommitMock,
-        listCommitStatusesForRef: listCommitStatusesForRefMock
+function makeDeps(): Dependencies {
+  return {
+    core: {
+      setFailed: mock(),
+      warning: mock(),
+      info: mock()
+    },
+    octokit: {
+      rest: {
+        repos: {
+          createCommitStatus: createCommitStatusMock,
+          listPullRequestsAssociatedWithCommit:
+            listPullRequestsAssociatedWithCommitMock,
+          listCommitStatusesForRef: listCommitStatusesForRefMock
+        },
+        issues: {
+          createComment: createCommentMock,
+          listComments: listCommentsMock
+        }
       },
-      issues: {
-        createComment: createCommentMock,
-        listComments: listCommentsMock
-      }
+      graphql: graphqlMock
+    } as unknown as Dependencies['octokit'],
+    exec: execMock,
+    glob: globMock as unknown as Dependencies['glob'],
+    jimp: { read: jimpReadMock },
+    s3: {
+      listObjects: listObjectsMock,
+      listAllObjects:
+        listAllObjects as unknown as Dependencies['s3']['listAllObjects'],
+      getObject: getObjectMock,
+      putObject: putObjectMock,
+      deleteObjects: deleteObjectsMock,
+      getKeysFromS3: getKeysFromS3Mock,
+      updateBaseImages: updateBaseImagesMock
+    } as unknown as Dependencies['s3'],
+    fs: {
+      unlinkSync: unlinkSyncMock,
+      createWriteStream: createWriteStreamMock,
+      mkdir: mkdirMock,
+      readFile: readFileMock
+    },
+    context: {
+      runAttempt: 1,
+      runId: 456,
+      serverUrl: 'https://github.com',
+      repo: { owner: 'owner', repo: 'repo' },
+      issue: { number: 0 }
     }
-  }
-}));
+  };
+}
 
 // A Readable subclass whose pipe() immediately triggers 'finish' on the destination
 class MockReadable extends Readable {
@@ -166,12 +124,31 @@ class MockReadable extends Readable {
   }
 }
 
+const setEnv = (map: Record<string, string | undefined>) => {
+  for (const [key, value] of Object.entries(map)) {
+    const envKey = `INPUT_${key.replace(/ /g, '_').toUpperCase()}`;
+    if (value === undefined) {
+      delete process.env[envKey];
+    } else {
+      process.env[envKey] = value;
+    }
+  }
+};
+
+const clearEnv = (...keys: string[]) => {
+  for (const key of keys) {
+    delete process.env[`INPUT_${key.replace(/ /g, '_').toUpperCase()}`];
+  }
+};
+
 const inputMap: Record<string, string> = {
   'screenshots-directory': 'path/to/screenshots',
   'bucket-name': 'some-bucket',
   'commit-hash': 'sha',
   'github-token': 'some-token',
-  'comparadise-host': 'https://comparadise.app'
+  'comparadise-host': 'https://comparadise.app',
+  'use-base-images': 'true',
+  'update-base-images-on-accept': 'false'
 };
 
 const diffIdInputMap: Record<string, string | undefined> = {
@@ -180,45 +157,26 @@ const diffIdInputMap: Record<string, string | undefined> = {
   'commit-hash': undefined
 };
 
-// Helper to assert no calls to `octokit.rest` methods
-const assertNoOctokitCalls = () => {
-  const allMethods = [
-    createCommitStatusMock,
-    listPullRequestsAssociatedWithCommitMock,
-    listCommitStatusesForRefMock,
-    createCommentMock,
-    listCommentsMock
-  ];
-  allMethods.forEach(method => {
-    expect(method).not.toHaveBeenCalled();
-  });
-};
-
-async function runAction() {
+async function runAction(deps: Dependencies) {
   const { run } = await import('../src/run');
-  await run();
+  await run(deps);
 }
 
-function mockScreenshotFiles(files: string[]) {
+function mockScreenshotFiles(deps: Dependencies, files: string[]) {
   globMock.mockImplementation((pattern: string) =>
     Promise.resolve(pattern === '**/screenshots/**/new.png' ? [] : files)
   );
 }
 
 describe('main', () => {
+  let deps: Dependencies;
+
   beforeEach(() => {
-    githubContext.runAttempt = 1;
+    deps = makeDeps();
 
-    getInputMock.mockImplementation(name => inputMap[name]);
-
-    getBooleanInputMock.mockImplementation(name =>
-      name === 'visual-test-command-fails-on-diff' ? true : undefined
-    );
-
-    const multiLineInputMap: Record<string, string[]> = {
-      'visual-test-command': ['run my visual tests']
-    };
-    getMultilineInputMock.mockImplementation(name => multiLineInputMap[name]);
+    setEnv(inputMap);
+    setEnv({ 'visual-test-command-fails-on-diff': 'true' });
+    setEnv({ 'visual-test-command': 'run my visual tests' });
 
     listObjectsMock.mockResolvedValue({ Contents: [] });
     getObjectMock.mockResolvedValue({ Body: null });
@@ -233,28 +191,49 @@ describe('main', () => {
     jimpReadMock.mockResolvedValue(jimpImageMock);
     jimpImageMock.resize.mockReturnValue(jimpImageMock);
     jimpImageMock.getBuffer.mockResolvedValue(Buffer.from('resized-image'));
-
-    // Mock fs operations
     unlinkSyncMock.mockReturnValue(undefined);
-    rmMock.mockResolvedValue(undefined);
-
-    mockScreenshotFiles([]);
+    mockScreenshotFiles(deps, []);
   });
 
   afterEach(() => {
     mock.clearAllMocks();
+    clearEnv(
+      'screenshots-directory',
+      'bucket-name',
+      'commit-hash',
+      'diff-id',
+      'github-token',
+      'comparadise-host',
+      'visual-test-command-fails-on-diff',
+      'visual-test-command',
+      'workflow',
+      'package-paths',
+      'use-base-images',
+      'update-base-images-on-accept',
+      'resize-width',
+      'resize-height'
+    );
   });
 
+  // Helper to assert no calls to octokit.rest methods
+  const assertNoOctokitCalls = () => {
+    const allMethods = [
+      createCommitStatusMock,
+      listPullRequestsAssociatedWithCommitMock,
+      listCommitStatusesForRefMock,
+      createCommentMock,
+      listCommentsMock
+    ];
+    allMethods.forEach(method => {
+      expect(method).not.toHaveBeenCalled();
+    });
+  };
+
   it('should fail when neither diff-id nor commit-hash is provided', async () => {
-    const extendedInputMap: Record<string, string | undefined> = {
-      ...inputMap,
-      'diff-id': undefined,
-      'commit-hash': undefined
-    };
-    getInputMock.mockImplementation(name => extendedInputMap[name]);
+    setEnv({ 'diff-id': undefined, 'commit-hash': undefined });
     execMock.mockResolvedValue(0);
-    await runAction();
-    expect(setFailedMock).toHaveBeenCalledWith(
+    await runAction(deps);
+    expect(deps.core.setFailed).toHaveBeenCalledWith(
       'Please provide either a commit-hash or a diff-id.'
     );
   });
@@ -264,8 +243,8 @@ describe('main', () => {
     globMock.mockResolvedValueOnce([
       '/repo/packages/react-adapters/screenshots/test/new.png'
     ]);
-    await runAction();
-    expect(setFailedMock).toHaveBeenCalledWith(
+    await runAction(deps);
+    expect(deps.core.setFailed).toHaveBeenCalledWith(
       expect.stringContaining(
         'Screenshots were found outside the configured screenshots-directory'
       )
@@ -274,8 +253,8 @@ describe('main', () => {
 
   it('should fail if visual tests fail', async () => {
     execMock.mockResolvedValue(1);
-    await runAction();
-    expect(setFailedMock).toHaveBeenCalled();
+    await runAction(deps);
+    expect(deps.core.setFailed).toHaveBeenCalled();
     expect(createCommitStatusMock).toHaveBeenCalledWith({
       owner: 'owner',
       repo: 'repo',
@@ -287,24 +266,19 @@ describe('main', () => {
   });
 
   it('should fail if visual tests fail with diff-id input', async () => {
-    getInputMock.mockImplementation(name => diffIdInputMap[name]);
+    setEnv(diffIdInputMap);
     execMock.mockResolvedValue(1);
-    await runAction();
-    expect(setFailedMock).toHaveBeenCalled();
+    await runAction(deps);
+    expect(deps.core.setFailed).toHaveBeenCalled();
     assertNoOctokitCalls();
   });
 
   it('should pick commit-hash when both commit-hash and diff-id are provided', async () => {
-    const extendedInputMap: Record<string, string> = {
-      ...inputMap,
-      'diff-id': '12345',
-      'commit-hash': 'sha'
-    };
-    getInputMock.mockImplementation(name => extendedInputMap[name]);
+    setEnv({ 'diff-id': '12345', 'commit-hash': 'sha' });
     execMock.mockResolvedValue(0);
-    mockScreenshotFiles(['path/to/screenshots/base.png']);
-    await runAction();
-    expect(setFailedMock).not.toHaveBeenCalled();
+    mockScreenshotFiles(deps, ['path/to/screenshots/base.png']);
+    await runAction(deps);
+    expect(deps.core.setFailed).not.toHaveBeenCalled();
     expect(createCommitStatusMock).toHaveBeenCalledWith({
       owner: 'owner',
       repo: 'repo',
@@ -316,17 +290,17 @@ describe('main', () => {
   });
 
   it('should pass when only diff-id is provided', async () => {
-    getInputMock.mockImplementation(name => diffIdInputMap[name]);
+    setEnv(diffIdInputMap);
     execMock.mockResolvedValue(0);
-    await runAction();
-    expect(setFailedMock).not.toHaveBeenCalled();
+    await runAction(deps);
+    expect(deps.core.setFailed).not.toHaveBeenCalled();
   });
 
   it('should pass if visual tests pass and no diffs or new images', async () => {
     execMock.mockResolvedValue(0);
-    mockScreenshotFiles(['path/to/screenshots/base.png']);
-    await runAction();
-    expect(setFailedMock).not.toHaveBeenCalled();
+    mockScreenshotFiles(deps, ['path/to/screenshots/base.png']);
+    await runAction(deps);
+    expect(deps.core.setFailed).not.toHaveBeenCalled();
     expect(createCommitStatusMock).toHaveBeenCalledWith({
       owner: 'owner',
       repo: 'repo',
@@ -338,24 +312,24 @@ describe('main', () => {
   });
 
   it('should pass if visual tests pass and no diffs or new images with diff-id input', async () => {
-    getInputMock.mockImplementation(name => diffIdInputMap[name]);
+    setEnv(diffIdInputMap);
     execMock.mockResolvedValue(0);
-    mockScreenshotFiles(['path/to/screenshots/base.png']);
-    await runAction();
-    expect(setFailedMock).not.toHaveBeenCalled();
+    mockScreenshotFiles(deps, ['path/to/screenshots/base.png']);
+    await runAction(deps);
+    expect(deps.core.setFailed).not.toHaveBeenCalled();
     assertNoOctokitCalls();
   });
 
   it('should fail if visual tests pass and some diff images were created', async () => {
     execMock.mockResolvedValue(1);
-    mockScreenshotFiles([
+    mockScreenshotFiles(deps, [
       'path/to/screenshots/base.png',
       'path/to/screenshots/diff.png',
       'path/to/screenshots/new.png',
       'path/to/another-screenshot/diff.png'
     ]);
-    await runAction();
-    expect(setFailedMock).toHaveBeenCalled();
+    await runAction(deps);
+    expect(deps.core.setFailed).toHaveBeenCalled();
     expect(unlinkSyncMock).not.toHaveBeenCalledWith(
       'path/to/screenshots/diff.png'
     );
@@ -375,16 +349,16 @@ describe('main', () => {
   });
 
   it('should fail if visual tests pass and some diff images were created', async () => {
-    getInputMock.mockImplementation(name => diffIdInputMap[name]);
+    setEnv(diffIdInputMap);
     execMock.mockResolvedValue(1);
-    mockScreenshotFiles([
+    mockScreenshotFiles(deps, [
       'path/to/screenshots/base.png',
       'path/to/screenshots/diff.png',
       'path/to/screenshots/new.png',
       'path/to/another-screenshot/diff.png'
     ]);
-    await runAction();
-    expect(setFailedMock).not.toHaveBeenCalled();
+    await runAction(deps);
+    expect(deps.core.setFailed).not.toHaveBeenCalled();
     expect(unlinkSyncMock).not.toHaveBeenCalledWith(
       'path/to/screenshots/diff.png'
     );
@@ -395,20 +369,15 @@ describe('main', () => {
   });
 
   it('should fail if some visual tests fail and some diff images were created', async () => {
-    const multiLineInputMapMultipleCommands: Record<string, string[]> = {
-      'visual-test-command': ['run my visual tests', 'ok thank you']
-    };
-    getMultilineInputMock.mockImplementation(
-      name => multiLineInputMapMultipleCommands[name]
-    );
+    setEnv({ 'visual-test-command': 'run my visual tests\nok thank you' });
     execMock.mockResolvedValue(1);
-    mockScreenshotFiles([
+    mockScreenshotFiles(deps, [
       'path/to/screenshots/base.png',
       'path/to/screenshots/diff.png',
       'path/to/screenshots/new.png'
     ]);
-    await runAction();
-    expect(setFailedMock).toHaveBeenCalled();
+    await runAction(deps);
+    expect(deps.core.setFailed).toHaveBeenCalled();
     expect(createCommitStatusMock).toHaveBeenCalledWith({
       owner: 'owner',
       repo: 'repo',
@@ -420,29 +389,26 @@ describe('main', () => {
   });
 
   it('should fail if some visual tests fail and some diff images were created with diff-id input', async () => {
-    getInputMock.mockImplementation(name => diffIdInputMap[name]);
-    const multiLineInputMapMultipleCommands: Record<string, string[]> = {
-      'visual-test-command': ['run my visual tests', 'ok thank you']
-    };
-    getMultilineInputMock.mockImplementation(
-      name => multiLineInputMapMultipleCommands[name]
-    );
+    setEnv({
+      ...diffIdInputMap,
+      'visual-test-command': 'run my visual tests\nok thank you'
+    });
     execMock.mockResolvedValue(1);
-    mockScreenshotFiles([
+    mockScreenshotFiles(deps, [
       'path/to/screenshots/base.png',
       'path/to/screenshots/diff.png',
       'path/to/screenshots/new.png'
     ]);
-    await runAction();
-    expect(setFailedMock).toHaveBeenCalled();
+    await runAction(deps);
+    expect(deps.core.setFailed).toHaveBeenCalled();
     assertNoOctokitCalls();
   });
 
   it('should pass if visual tests initially fail but pass on retry', async () => {
     execMock.mockResolvedValue(0);
-    mockScreenshotFiles(['path/to/screenshots/diff.png']);
-    await runAction();
-    expect(setFailedMock).not.toHaveBeenCalled();
+    mockScreenshotFiles(deps, ['path/to/screenshots/diff.png']);
+    await runAction(deps);
+    expect(deps.core.setFailed).not.toHaveBeenCalled();
     expect(unlinkSyncMock).toHaveBeenCalledWith('path/to/screenshots/diff.png');
     expect(createCommitStatusMock).toHaveBeenCalledWith({
       owner: 'owner',
@@ -455,25 +421,25 @@ describe('main', () => {
   });
 
   it('should pass if visual tests initially fail but pass on retry with diff-id input', async () => {
-    getInputMock.mockImplementation(name => diffIdInputMap[name]);
+    setEnv(diffIdInputMap);
     execMock.mockResolvedValue(0);
-    mockScreenshotFiles(['path/to/screenshots/diff.png']);
-    await runAction();
-    expect(setFailedMock).not.toHaveBeenCalled();
+    mockScreenshotFiles(deps, ['path/to/screenshots/diff.png']);
+    await runAction(deps);
+    expect(deps.core.setFailed).not.toHaveBeenCalled();
     expect(unlinkSyncMock).toHaveBeenCalledWith('path/to/screenshots/diff.png');
     assertNoOctokitCalls();
   });
 
   it('should set pending status and upload to new-images if visual tests pass and only new images were created', async () => {
     execMock.mockResolvedValue(0);
-    mockScreenshotFiles([
+    mockScreenshotFiles(deps, [
       'path/to/screenshots/existingTest/base.png',
       'path/to/screenshots/newTest1/new.png',
       'path/to/screenshots/newTest2/new.png'
     ]);
-    await runAction();
-    expect(setFailedMock).not.toHaveBeenCalled();
-    expect(warningMock).toHaveBeenCalledWith(
+    await runAction(deps);
+    expect(deps.core.setFailed).not.toHaveBeenCalled();
+    expect(deps.core.warning).toHaveBeenCalledWith(
       'Visual diffs found and new visual tests created.'
     );
     expect(putObjectMock).toHaveBeenCalledWith(
@@ -494,15 +460,15 @@ describe('main', () => {
   });
 
   it('should set pending status and upload to new-images if visual tests pass and only new images were created with diff-id input', async () => {
-    getInputMock.mockImplementation(name => diffIdInputMap[name]);
+    setEnv(diffIdInputMap);
     execMock.mockResolvedValue(0);
-    mockScreenshotFiles([
+    mockScreenshotFiles(deps, [
       'path/to/screenshots/existingTest/base.png',
       'path/to/screenshots/newTest1/new.png',
       'path/to/screenshots/newTest2/new.png'
     ]);
-    await runAction();
-    expect(setFailedMock).not.toHaveBeenCalled();
+    await runAction(deps);
+    expect(deps.core.setFailed).not.toHaveBeenCalled();
     expect(putObjectMock).toHaveBeenCalledWith(
       expect.objectContaining({
         Key: expect.stringContaining('new-images/uniqueId/')
@@ -513,18 +479,14 @@ describe('main', () => {
 
   it('should use subdirectories if provided', async () => {
     execMock.mockResolvedValue(0);
-    const extendedInputMap: Record<string, string> = {
-      ...inputMap,
-      'package-paths': 'path/1,path/2'
-    };
-    getInputMock.mockImplementation(name => extendedInputMap[name]);
-    mockScreenshotFiles([
+    setEnv({ 'package-paths': 'path/1,path/2' });
+    mockScreenshotFiles(deps, [
       'path/to/screenshots/path/1/component/base.png',
       'path/to/screenshots/path/1/component/diff.png',
       'path/to/screenshots/path/1/component/new.png',
       'path/to/screenshots/path/2/component/base.png'
     ]);
-    await runAction();
+    await runAction(deps);
     expect(listObjectsMock).toHaveBeenCalledWith(
       expect.objectContaining({ Prefix: 'base-images/' })
     );
@@ -542,17 +504,13 @@ describe('main', () => {
 
   it('should use subdirectories if provided with diff-id input', async () => {
     execMock.mockResolvedValue(0);
-    const extendedInputMap: Record<string, string> = {
-      ...diffIdInputMap,
-      'package-paths': 'path/1,path/2'
-    };
-    getInputMock.mockImplementation(name => extendedInputMap[name]);
-    mockScreenshotFiles([
+    setEnv({ ...diffIdInputMap, 'package-paths': 'path/1,path/2' });
+    mockScreenshotFiles(deps, [
       'path/to/screenshots/base.png',
       'path/to/screenshots/diff.png',
       'path/to/screenshots/new.png'
     ]);
-    await runAction();
+    await runAction(deps);
     expect(listObjectsMock).toHaveBeenCalledWith(
       expect.objectContaining({ Prefix: 'base-images/' })
     );
@@ -566,14 +524,13 @@ describe('main', () => {
 
   it('should download base images if use-base-images specified as true', async () => {
     execMock.mockResolvedValue(0);
-    getInputMock.mockImplementation(name => inputMap[name]);
-    getBooleanInputMock.mockImplementation(() => true);
-    mockScreenshotFiles([
+    setEnv({ 'use-base-images': 'true' });
+    mockScreenshotFiles(deps, [
       'path/to/screenshots/base.png',
       'path/to/screenshots/diff.png',
       'path/to/screenshots/new.png'
     ]);
-    await runAction();
+    await runAction(deps);
     expect(listObjectsMock).toHaveBeenCalledWith(
       expect.objectContaining({ Prefix: 'base-images/' })
     );
@@ -581,14 +538,13 @@ describe('main', () => {
 
   it('should not download base images if use-base-images specified as false and set URL param', async () => {
     execMock.mockResolvedValue(0);
-    getInputMock.mockImplementation(name => inputMap[name]);
-    getBooleanInputMock.mockImplementation(() => false);
-    mockScreenshotFiles([
+    setEnv({ 'use-base-images': 'false' });
+    mockScreenshotFiles(deps, [
       'path/to/screenshots/base.png',
       'path/to/screenshots/diff.png',
       'path/to/screenshots/new.png'
     ]);
-    await runAction();
+    await runAction(deps);
     expect(listObjectsMock).not.toHaveBeenCalled();
     expect(createCommitStatusMock).toHaveBeenCalledWith({
       owner: 'owner',
@@ -603,18 +559,13 @@ describe('main', () => {
 
   it('should not download base images if prefix does not exist', async () => {
     execMock.mockResolvedValue(0);
-    getBooleanInputMock.mockReturnValue(true); // Ensure use-base-images is true
-    const extendedInputMap: Record<string, string> = {
-      ...inputMap,
-      'package-paths': 'path/1,path/2'
-    };
-    getInputMock.mockImplementation(name => extendedInputMap[name]);
-    mockScreenshotFiles([
+    setEnv({ 'use-base-images': 'true', 'package-paths': 'path/1,path/2' });
+    mockScreenshotFiles(deps, [
       'path/to/screenshots/base.png',
       'path/to/screenshots/diff.png',
       'path/to/screenshots/new.png'
     ]);
-    await runAction();
+    await runAction(deps);
     expect(listObjectsMock).toHaveBeenCalledWith(
       expect.objectContaining({ Prefix: 'base-images/' })
     );
@@ -627,7 +578,7 @@ describe('main', () => {
 
   it('should not set successful commit status or create comment if the latest Visual Regression status is failure', async () => {
     execMock.mockResolvedValue(0);
-    mockScreenshotFiles(['path/to/screenshots/base.png']);
+    mockScreenshotFiles(deps, ['path/to/screenshots/base.png']);
     listCommitStatusesForRefMock.mockImplementationOnce(() => ({
       data: [
         {
@@ -648,14 +599,14 @@ describe('main', () => {
         }
       ]
     }));
-    await runAction();
+    await runAction(deps);
     expect(createCommitStatusMock).not.toHaveBeenCalled();
     expect(createCommentMock).not.toHaveBeenCalled();
   });
 
   it('should not set successful commit status if the latest Visual Regression status has been set', async () => {
     execMock.mockResolvedValue(0);
-    mockScreenshotFiles(['path/to/screenshots/base.png']);
+    mockScreenshotFiles(deps, ['path/to/screenshots/base.png']);
     listCommitStatusesForRefMock.mockImplementationOnce(() => ({
       data: [
         {
@@ -675,13 +626,13 @@ describe('main', () => {
         }
       ]
     }));
-    await runAction();
+    await runAction(deps);
     expect(createCommitStatusMock).not.toHaveBeenCalled();
   });
 
   it('should not set commit status or create comment if the latest Visual Regression status is failure because tests failed to execute successfully', async () => {
     execMock.mockResolvedValue(1);
-    mockScreenshotFiles([
+    mockScreenshotFiles(deps, [
       'path/to/screenshots/base.png',
       'path/to/screenshots/diff.png',
       'path/to/screenshots/new.png'
@@ -706,16 +657,16 @@ describe('main', () => {
         }
       ]
     }));
-    await runAction();
-    expect(setFailedMock).not.toHaveBeenCalled();
+    await runAction(deps);
+    expect(deps.core.setFailed).not.toHaveBeenCalled();
     expect(createCommitStatusMock).not.toHaveBeenCalled();
     expect(createCommentMock).not.toHaveBeenCalled();
   });
 
   it('should set successful commit status (and disable auto merge) if a visual test failed to execute but this is a re-run', async () => {
-    githubContext.runAttempt = 2;
+    deps.context.runAttempt = 2;
     execMock.mockResolvedValue(0);
-    mockScreenshotFiles(['path/to/screenshots/base.png']);
+    mockScreenshotFiles(deps, ['path/to/screenshots/base.png']);
     listCommitStatusesForRefMock.mockImplementationOnce(() => ({
       data: [
         {
@@ -736,15 +687,19 @@ describe('main', () => {
         }
       ]
     }));
-    await runAction();
-    expect(disableAutoMergeMock).toHaveBeenCalled();
+    graphqlMock.mockResolvedValue({});
+    listPullRequestsAssociatedWithCommitMock.mockResolvedValueOnce({
+      data: [{ number: 123, node_id: 'PR_123' }]
+    });
+    await runAction(deps);
+    expect(graphqlMock).toHaveBeenCalled();
     expect(createCommitStatusMock).toHaveBeenCalled();
   });
 
   it('should set failure commit status (and not disable auto merge) if a visual test failed to execute but this is a re-run', async () => {
-    githubContext.runAttempt = 2;
+    deps.context.runAttempt = 2;
     execMock.mockResolvedValue(1);
-    mockScreenshotFiles([
+    mockScreenshotFiles(deps, [
       'path/to/screenshots/base.png',
       'path/to/screenshots/diff.png',
       'path/to/screenshots/new.png'
@@ -769,20 +724,24 @@ describe('main', () => {
         }
       ]
     }));
-    await runAction();
-    expect(disableAutoMergeMock).not.toHaveBeenCalled();
+    await runAction(deps);
+    expect(graphqlMock).not.toHaveBeenCalled();
     expect(createCommitStatusMock).toHaveBeenCalled();
   });
 
   it('should delete S3 images for hash when tests pass on retry', async () => {
-    githubContext.runAttempt = 2;
+    deps.context.runAttempt = 2;
     execMock.mockResolvedValue(0);
-    mockScreenshotFiles(['path/to/screenshots/base.png']);
+    mockScreenshotFiles(deps, ['path/to/screenshots/base.png']);
     getKeysFromS3Mock.mockResolvedValueOnce([
       'new-images/sha/component/new.png'
     ]);
     getKeysFromS3Mock.mockResolvedValueOnce([]);
-    await runAction();
+    graphqlMock.mockResolvedValue({});
+    listPullRequestsAssociatedWithCommitMock.mockResolvedValueOnce({
+      data: [{ number: 123, node_id: 'PR_123' }]
+    });
+    await runAction(deps);
     expect(deleteObjectsMock).toHaveBeenCalledWith({
       Bucket: 'some-bucket',
       Delete: {
@@ -793,15 +752,15 @@ describe('main', () => {
   });
 
   it('should delete S3 images for hash when tests pass on retry with diff-id input', async () => {
-    githubContext.runAttempt = 2;
-    getInputMock.mockImplementation(name => diffIdInputMap[name]);
+    deps.context.runAttempt = 2;
+    setEnv(diffIdInputMap);
     execMock.mockResolvedValue(0);
-    mockScreenshotFiles(['path/to/screenshots/base.png']);
+    mockScreenshotFiles(deps, ['path/to/screenshots/base.png']);
     getKeysFromS3Mock.mockResolvedValueOnce([
       'new-images/uniqueId/component/new.png'
     ]);
     getKeysFromS3Mock.mockResolvedValueOnce([]);
-    await runAction();
+    await runAction(deps);
     expect(deleteObjectsMock).toHaveBeenCalledWith({
       Bucket: 'some-bucket',
       Delete: {
@@ -813,29 +772,29 @@ describe('main', () => {
 
   it('should not delete S3 images when tests pass on first attempt', async () => {
     execMock.mockResolvedValue(0);
-    mockScreenshotFiles(['path/to/screenshots/base.png']);
-    await runAction();
+    mockScreenshotFiles(deps, ['path/to/screenshots/base.png']);
+    await runAction(deps);
     expect(deleteObjectsMock).not.toHaveBeenCalled();
   });
 
   it('should skip deletion when no images exist in S3 on retry', async () => {
-    githubContext.runAttempt = 2;
+    deps.context.runAttempt = 2;
     execMock.mockResolvedValue(0);
-    mockScreenshotFiles(['path/to/screenshots/base.png']);
+    mockScreenshotFiles(deps, ['path/to/screenshots/base.png']);
     getKeysFromS3Mock.mockResolvedValue([]);
-    await runAction();
+    graphqlMock.mockResolvedValue({});
+    listPullRequestsAssociatedWithCommitMock.mockResolvedValueOnce({
+      data: [{ number: 123, node_id: 'PR_123' }]
+    });
+    await runAction(deps);
     expect(deleteObjectsMock).not.toHaveBeenCalled();
   });
 
   it('should only delete S3 images scoped to package-paths on retry', async () => {
-    githubContext.runAttempt = 2;
-    const extendedInputMap: Record<string, string> = {
-      ...inputMap,
-      'package-paths': 'pkg1'
-    };
-    getInputMock.mockImplementation(name => extendedInputMap[name]);
+    deps.context.runAttempt = 2;
+    setEnv({ 'package-paths': 'pkg1' });
     execMock.mockResolvedValue(0);
-    mockScreenshotFiles(['path/to/screenshots/pkg1/base.png']);
+    mockScreenshotFiles(deps, ['path/to/screenshots/pkg1/base.png']);
     getKeysFromS3Mock.mockResolvedValueOnce([
       'new-images/sha/pkg1/component/new.png',
       'new-images/sha/pkg2/component/new.png'
@@ -844,7 +803,11 @@ describe('main', () => {
       'original-new-images/sha/pkg1/component/new.png',
       'original-new-images/sha/pkg2/component/new.png'
     ]);
-    await runAction();
+    graphqlMock.mockResolvedValue({});
+    listPullRequestsAssociatedWithCommitMock.mockResolvedValueOnce({
+      data: [{ number: 123, node_id: 'PR_123' }]
+    });
+    await runAction(deps);
     expect(deleteObjectsMock).toHaveBeenCalledWith({
       Bucket: 'some-bucket',
       Delete: {
@@ -859,40 +822,34 @@ describe('main', () => {
 
   it('should call setFailed with the diff message when visual-test-command-fails-on-diff is true', async () => {
     execMock.mockResolvedValue(0);
-    getBooleanInputMock.mockImplementation(name =>
-      name === 'visual-test-command-fails-on-diff' ? true : undefined
-    );
-    mockScreenshotFiles([
+    setEnv({ 'visual-test-command-fails-on-diff': 'true' });
+    mockScreenshotFiles(deps, [
       'path/to/screenshots/diff.png',
       'path/to/screenshots/new.png'
     ]);
-    await runAction();
-    expect(setFailedMock).toHaveBeenCalledWith('Visual diffs found.');
-    expect(warningMock).not.toHaveBeenCalledWith('Visual diffs found.');
+    await runAction(deps);
+    expect(deps.core.setFailed).toHaveBeenCalledWith('Visual diffs found.');
+    expect(deps.core.warning).not.toHaveBeenCalledWith('Visual diffs found.');
   });
 
   it('should call warning instead of setFailed when visual-test-command-fails-on-diff is false', async () => {
     execMock.mockResolvedValue(0);
-    getBooleanInputMock.mockImplementation(name =>
-      name === 'visual-test-command-fails-on-diff' ? false : undefined
-    );
-    mockScreenshotFiles([
+    setEnv({ 'visual-test-command-fails-on-diff': 'false' });
+    mockScreenshotFiles(deps, [
       'path/to/screenshots/diff.png',
       'path/to/screenshots/new.png'
     ]);
-    await runAction();
-    expect(setFailedMock).not.toHaveBeenCalledWith('Visual diffs found.');
-    expect(warningMock).toHaveBeenCalledWith('Visual diffs found.');
+    await runAction(deps);
+    expect(deps.core.setFailed).not.toHaveBeenCalledWith('Visual diffs found.');
+    expect(deps.core.warning).toHaveBeenCalledWith('Visual diffs found.');
   });
 
   it('should call setFailed without setting commit status when visual tests fail for non-diff reason and visual-test-command-fails-on-diff is false', async () => {
     execMock.mockResolvedValue(1);
-    getBooleanInputMock.mockImplementation(name =>
-      name === 'visual-test-command-fails-on-diff' ? false : undefined
-    );
+    setEnv({ 'visual-test-command-fails-on-diff': 'false' });
     globMock.mockResolvedValue([]);
-    await runAction();
-    expect(setFailedMock).toHaveBeenCalledWith(
+    await runAction(deps);
+    expect(deps.core.setFailed).toHaveBeenCalledWith(
       'The job failed, and this is not due to visual tests.'
     );
     expect(createCommitStatusMock).not.toHaveBeenCalled();
@@ -900,10 +857,8 @@ describe('main', () => {
 
   it('should call setFailed without setting commit status when visual-test-command-fails-on-diff is false and 1 failure with multiple diffs', async () => {
     execMock.mockResolvedValue(1);
-    getBooleanInputMock.mockImplementation(name =>
-      name === 'visual-test-command-fails-on-diff' ? false : undefined
-    );
-    mockScreenshotFiles([
+    setEnv({ 'visual-test-command-fails-on-diff': 'false' });
+    mockScreenshotFiles(deps, [
       'path/to/screenshots/diff1.png',
       'path/to/screenshots/new1.png',
       'path/to/screenshots/diff2.png',
@@ -911,36 +866,29 @@ describe('main', () => {
       'path/to/screenshots/diff3.png',
       'path/to/screenshots/new3.png'
     ]);
-    await runAction();
-    expect(setFailedMock).toHaveBeenCalledWith(
+    await runAction(deps);
+    expect(deps.core.setFailed).toHaveBeenCalledWith(
       'The job failed, and this is not due to visual tests.'
     );
     expect(createCommitStatusMock).not.toHaveBeenCalled();
   });
 
   it('should fail when workflow is pr and visual-test-command is not provided', async () => {
-    getMultilineInputMock.mockImplementation(() => []);
+    setEnv({ 'visual-test-command': '' });
     execMock.mockResolvedValue(0);
-    await runAction();
-    expect(setFailedMock).toHaveBeenCalledWith(
+    await runAction(deps);
+    expect(deps.core.setFailed).toHaveBeenCalledWith(
       'visual-test-command is required when workflow is pr.'
     );
   });
 
   describe('merge workflow', () => {
-    const mergeInputMap: Record<string, string> = {
-      ...inputMap,
-      workflow: 'merge'
-    };
-
     beforeEach(() => {
-      getInputMock.mockImplementation(
-        (name: string) => mergeInputMap[name] ?? ''
-      );
+      setEnv({ workflow: 'merge' });
     });
 
     it('should call updateBaseImages with correct args', async () => {
-      await runAction();
+      await runAction(deps);
       expect(updateBaseImagesMock).toHaveBeenCalledWith(
         'sha',
         'some-bucket',
@@ -948,13 +896,13 @@ describe('main', () => {
       );
       expect(execMock).not.toHaveBeenCalled();
       expect(createCommitStatusMock).not.toHaveBeenCalled();
-      expect(setFailedMock).not.toHaveBeenCalled();
+      expect(deps.core.setFailed).not.toHaveBeenCalled();
     });
   });
 });
 
 describe('s3-operations', () => {
-  let s3InputMap: Record<string, string> = {};
+  let deps: Dependencies;
 
   const defaultS3InputMap: Record<string, string> = {
     'bucket-name': 'test-bucket',
@@ -969,8 +917,8 @@ describe('s3-operations', () => {
   }
 
   beforeEach(() => {
-    s3InputMap = { ...defaultS3InputMap };
-    getInputMock.mockImplementation((name: string) => s3InputMap[name] ?? '');
+    deps = makeDeps();
+    setEnv(defaultS3InputMap);
 
     listObjectsMock.mockResolvedValue({ Contents: [] });
     getObjectMock.mockResolvedValue({ Body: null });
@@ -988,6 +936,13 @@ describe('s3-operations', () => {
 
   afterEach(() => {
     mock.clearAllMocks();
+    clearEnv(
+      'bucket-name',
+      'screenshots-directory',
+      'package-paths',
+      'resize-width',
+      'resize-height'
+    );
   });
 
   describe('downloadBaseImages', () => {
@@ -995,7 +950,7 @@ describe('s3-operations', () => {
       listObjectsMock.mockResolvedValue({ Contents: [] });
 
       const { downloadBaseImages } = await getS3Operations();
-      await downloadBaseImages();
+      await downloadBaseImages(deps);
 
       expect(mkdirMock).toHaveBeenCalledWith('path/to/screenshots', {
         recursive: true
@@ -1007,7 +962,7 @@ describe('s3-operations', () => {
       listObjectsMock.mockRejectedValue(new Error('S3 error'));
 
       const { downloadBaseImages } = await getS3Operations();
-      await downloadBaseImages();
+      await downloadBaseImages(deps);
 
       expect(mkdirMock).toHaveBeenCalledWith('path/to/screenshots', {
         recursive: true
@@ -1016,11 +971,9 @@ describe('s3-operations', () => {
     });
 
     it('should download only base.png files from S3 when prefix exists', async () => {
-      // checkS3PrefixExists → prefix exists
       listObjectsMock.mockResolvedValueOnce({
         Contents: [{ Key: 'base-images/component/base.png' }]
       });
-      // downloadS3Directory → list all objects (new.png should be filtered out)
       listObjectsMock.mockResolvedValueOnce({
         Contents: [
           { Key: 'base-images/component/base.png' },
@@ -1030,7 +983,7 @@ describe('s3-operations', () => {
       getObjectMock.mockResolvedValue({ Body: new MockReadable() });
 
       const { downloadBaseImages } = await getS3Operations();
-      await downloadBaseImages();
+      await downloadBaseImages(deps);
 
       expect(getObjectMock).toHaveBeenCalledTimes(1);
       expect(getObjectMock).toHaveBeenCalledWith({
@@ -1050,23 +1003,20 @@ describe('s3-operations', () => {
       getObjectMock.mockResolvedValue({ Body: 'not-a-readable' });
 
       const { downloadBaseImages } = await getS3Operations();
-      await downloadBaseImages();
+      await downloadBaseImages(deps);
 
       expect(createWriteStreamMock).not.toHaveBeenCalled();
     });
 
     it('should download all base images across multiple pages when results are truncated', async () => {
-      // checkS3PrefixExists → prefix exists
       listObjectsMock.mockResolvedValueOnce({
         Contents: [{ Key: 'base-images/component/base.png' }]
       });
-      // downloadS3Directory → first page (truncated)
       listObjectsMock.mockResolvedValueOnce({
         Contents: [{ Key: 'base-images/component1/base.png' }],
         IsTruncated: true,
         NextContinuationToken: 'token-1'
       });
-      // downloadS3Directory → second page (last)
       listObjectsMock.mockResolvedValueOnce({
         Contents: [{ Key: 'base-images/component2/base.png' }],
         IsTruncated: false
@@ -1074,7 +1024,7 @@ describe('s3-operations', () => {
       getObjectMock.mockResolvedValue({ Body: new MockReadable() });
 
       const { downloadBaseImages } = await getS3Operations();
-      await downloadBaseImages();
+      await downloadBaseImages(deps);
 
       expect(listObjectsMock).toHaveBeenCalledWith(
         expect.objectContaining({ ContinuationToken: 'token-1' })
@@ -1091,19 +1041,16 @@ describe('s3-operations', () => {
     });
 
     it('should download from each package path subdirectory when package-paths is set', async () => {
-      s3InputMap['package-paths'] = 'pkg1,pkg2';
+      setEnv({ 'package-paths': 'pkg1,pkg2' });
 
-      // checkS3PrefixExists
       listObjectsMock.mockResolvedValueOnce({
         Contents: [{ Key: 'base-images/something' }]
       });
-      // downloadS3Directory for pkg1
       listObjectsMock.mockResolvedValueOnce({ Contents: [] });
-      // downloadS3Directory for pkg2
       listObjectsMock.mockResolvedValueOnce({ Contents: [] });
 
       const { downloadBaseImages } = await getS3Operations();
-      await downloadBaseImages();
+      await downloadBaseImages(deps);
 
       expect(listObjectsMock).toHaveBeenCalledTimes(3);
       expect(listObjectsMock).toHaveBeenCalledWith(
@@ -1124,7 +1071,7 @@ describe('s3-operations', () => {
       ]);
 
       const { uploadAllImages } = await getS3Operations();
-      await uploadAllImages('abc123');
+      await uploadAllImages('abc123', deps);
 
       expect(putObjectMock).toHaveBeenCalledTimes(3);
       expect(putObjectMock).toHaveBeenCalledWith(
@@ -1148,11 +1095,11 @@ describe('s3-operations', () => {
       globMock.mockResolvedValue([
         'failing/base.png',
         'failing/new.png',
-        'passing/base.png' // no new.png in passing/ → excluded
+        'passing/base.png'
       ]);
 
       const { uploadAllImages } = await getS3Operations();
-      await uploadAllImages('abc123');
+      await uploadAllImages('abc123', deps);
 
       expect(putObjectMock).toHaveBeenCalledTimes(2);
       expect(putObjectMock).not.toHaveBeenCalledWith(
@@ -1166,17 +1113,17 @@ describe('s3-operations', () => {
       globMock.mockResolvedValue(['component/base.png', 'component/diff.png']);
 
       const { uploadAllImages } = await getS3Operations();
-      await uploadAllImages('abc123');
+      await uploadAllImages('abc123', deps);
 
       expect(putObjectMock).not.toHaveBeenCalled();
     });
 
     it('should glob and upload from each package path subdirectory', async () => {
-      s3InputMap['package-paths'] = 'pkg1,pkg2';
+      setEnv({ 'package-paths': 'pkg1,pkg2' });
       globMock.mockResolvedValue(['component/new.png']);
 
       const { uploadAllImages } = await getS3Operations();
-      await uploadAllImages('abc123');
+      await uploadAllImages('abc123', deps);
 
       expect(globMock).toHaveBeenCalledTimes(2);
       expect(putObjectMock).toHaveBeenCalledWith(
@@ -1197,7 +1144,7 @@ describe('s3-operations', () => {
       readFileMock.mockResolvedValue(originalBuffer);
 
       const { uploadAllImages } = await getS3Operations();
-      await uploadAllImages('abc123');
+      await uploadAllImages('abc123', deps);
 
       expect(jimpReadMock).not.toHaveBeenCalled();
       expect(putObjectMock).toHaveBeenCalledWith(
@@ -1206,11 +1153,11 @@ describe('s3-operations', () => {
     });
 
     it('should resize with width only when resize-width is set', async () => {
-      s3InputMap['resize-width'] = '200';
+      setEnv({ 'resize-width': '200' });
       globMock.mockResolvedValue(['component/new.png']);
 
       const { uploadAllImages } = await getS3Operations();
-      await uploadAllImages('abc123');
+      await uploadAllImages('abc123', deps);
 
       expect(jimpReadMock).toHaveBeenCalled();
       expect(jimpImageMock.resize).toHaveBeenCalledWith({ w: 200 });
@@ -1220,24 +1167,22 @@ describe('s3-operations', () => {
     });
 
     it('should resize with height only when resize-height is set', async () => {
-      s3InputMap['resize-height'] = '150';
+      setEnv({ 'resize-height': '150' });
       globMock.mockResolvedValue(['component/new.png']);
 
       const { uploadAllImages } = await getS3Operations();
-      await uploadAllImages('abc123');
+      await uploadAllImages('abc123', deps);
 
       expect(jimpImageMock.resize).toHaveBeenCalledWith({ h: 150 });
     });
 
     it('should resize to fit within bounds when both resize-width and resize-height are set', async () => {
-      s3InputMap['resize-width'] = '200';
-      s3InputMap['resize-height'] = '150';
+      setEnv({ 'resize-width': '200', 'resize-height': '150' });
       globMock.mockResolvedValue(['component/new.png']);
 
       const { uploadAllImages } = await getS3Operations();
-      await uploadAllImages('abc123');
+      await uploadAllImages('abc123', deps);
 
-      // mock image is 400x300; scale = min(200/400, 150/300, 1) = 0.5
       expect(jimpImageMock.resize).toHaveBeenCalledWith({ w: 200, h: 150 });
     });
   });
@@ -1245,20 +1190,20 @@ describe('s3-operations', () => {
   describe('uploadOriginalNewImages', () => {
     it('should return early when no resize inputs are set', async () => {
       const { uploadOriginalNewImages } = await getS3Operations();
-      await uploadOriginalNewImages('abc123');
+      await uploadOriginalNewImages('abc123', deps);
 
       expect(globMock).not.toHaveBeenCalled();
       expect(putObjectMock).not.toHaveBeenCalled();
     });
 
     it('should upload original new.png files (without resize) when resize-width is set', async () => {
-      s3InputMap['resize-width'] = '200';
+      setEnv({ 'resize-width': '200' });
       const originalBuffer = Buffer.from('original-image');
       globMock.mockResolvedValue(['component/new.png']);
       readFileMock.mockResolvedValue(originalBuffer);
 
       const { uploadOriginalNewImages } = await getS3Operations();
-      await uploadOriginalNewImages('abc123');
+      await uploadOriginalNewImages('abc123', deps);
 
       expect(jimpReadMock).not.toHaveBeenCalled();
       expect(putObjectMock).toHaveBeenCalledTimes(1);
@@ -1270,22 +1215,21 @@ describe('s3-operations', () => {
     });
 
     it('should upload original new.png files when resize-height is set', async () => {
-      s3InputMap['resize-height'] = '150';
+      setEnv({ 'resize-height': '150' });
       globMock.mockResolvedValue(['component/new.png']);
 
       const { uploadOriginalNewImages } = await getS3Operations();
-      await uploadOriginalNewImages('abc123');
+      await uploadOriginalNewImages('abc123', deps);
 
       expect(putObjectMock).toHaveBeenCalledTimes(1);
     });
 
     it('should upload from each package path subdirectory', async () => {
-      s3InputMap['resize-width'] = '200';
-      s3InputMap['package-paths'] = 'pkg1,pkg2';
+      setEnv({ 'resize-width': '200', 'package-paths': 'pkg1,pkg2' });
       globMock.mockResolvedValue([]);
 
       const { uploadOriginalNewImages } = await getS3Operations();
-      await uploadOriginalNewImages('abc123');
+      await uploadOriginalNewImages('abc123', deps);
 
       expect(globMock).toHaveBeenCalledTimes(2);
       expect(globMock).toHaveBeenCalledWith(
@@ -1306,7 +1250,7 @@ describe('s3-operations', () => {
   describe('uploadBaseImages', () => {
     it('should upload each new image as a base image with the correct S3 key', async () => {
       const { uploadBaseImages } = await getS3Operations();
-      await uploadBaseImages(['path/to/screenshots/component/new.png']);
+      await uploadBaseImages(['path/to/screenshots/component/new.png'], deps);
 
       expect(putObjectMock).toHaveBeenCalledTimes(1);
       expect(putObjectMock).toHaveBeenCalledWith({
@@ -1318,10 +1262,13 @@ describe('s3-operations', () => {
 
     it('should upload multiple base images', async () => {
       const { uploadBaseImages } = await getS3Operations();
-      await uploadBaseImages([
-        'path/to/screenshots/component1/new.png',
-        'path/to/screenshots/component2/new.png'
-      ]);
+      await uploadBaseImages(
+        [
+          'path/to/screenshots/component1/new.png',
+          'path/to/screenshots/component2/new.png'
+        ],
+        deps
+      );
 
       expect(putObjectMock).toHaveBeenCalledTimes(2);
       expect(putObjectMock).toHaveBeenCalledWith(
@@ -1337,10 +1284,10 @@ describe('s3-operations', () => {
     });
 
     it('should resize the image when resize-width is set', async () => {
-      s3InputMap['resize-width'] = '300';
+      setEnv({ 'resize-width': '300' });
 
       const { uploadBaseImages } = await getS3Operations();
-      await uploadBaseImages(['path/to/screenshots/component/new.png']);
+      await uploadBaseImages(['path/to/screenshots/component/new.png'], deps);
 
       expect(jimpReadMock).toHaveBeenCalled();
       expect(jimpImageMock.resize).toHaveBeenCalledWith({ w: 300 });
