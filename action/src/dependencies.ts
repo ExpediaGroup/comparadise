@@ -5,8 +5,7 @@ import { glob } from 'glob';
 import { Jimp } from 'jimp';
 import { unlinkSync, createWriteStream } from 'fs';
 import { mkdir, readFile } from 'fs/promises';
-import type { S3Operations } from 'shared/s3';
-import * as defaultS3 from 'shared/s3';
+import { defaultS3Operations, type S3Operations } from 'shared/s3';
 
 export type Octokit = ReturnType<typeof getOctokit>;
 
@@ -20,16 +19,7 @@ export interface Dependencies {
   exec: typeof exec;
   glob: typeof glob;
   jimp: { read: typeof Jimp.read };
-  s3: Pick<
-    S3Operations,
-    | 'listObjects'
-    | 'listAllObjects'
-    | 'getObject'
-    | 'putObject'
-    | 'deleteObjects'
-    | 'getKeysFromS3'
-    | 'updateBaseImages'
-  >;
+  s3: S3Operations;
   fs: {
     unlinkSync: typeof unlinkSync;
     createWriteStream: typeof createWriteStream;
@@ -51,15 +41,7 @@ export const makeDefaultDeps = (): Dependencies => ({
   exec,
   glob,
   jimp: { read: Jimp.read.bind(Jimp) },
-  s3: {
-    listObjects: defaultS3.listObjects,
-    listAllObjects: defaultS3.listAllObjects,
-    getObject: defaultS3.getObject,
-    putObject: defaultS3.putObject,
-    deleteObjects: defaultS3.deleteObjects,
-    getKeysFromS3: defaultS3.getKeysFromS3,
-    updateBaseImages: defaultS3.updateBaseImages
-  },
+  s3: defaultS3Operations,
   fs: { unlinkSync, createWriteStream, mkdir, readFile },
   context: {
     runAttempt: context.runAttempt,

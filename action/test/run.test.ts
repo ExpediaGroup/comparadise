@@ -98,7 +98,7 @@ function makeDeps(): Dependencies {
       deleteObjects: deleteObjectsMock,
       getKeysFromS3: getKeysFromS3Mock,
       updateBaseImages: updateBaseImagesMock
-    },
+    } as unknown as Dependencies['s3'],
     fs: {
       unlinkSync: unlinkSyncMock,
       createWriteStream: createWriteStreamMock,

@@ -203,7 +203,7 @@ export function createS3Operations(client: S3Client = new S3Client()) {
   };
 }
 
-const defaultS3Operations = createS3Operations();
+export const defaultS3Operations = createS3Operations();
 
 export const s3Client = defaultS3Operations.client;
 export const listObjects = defaultS3Operations.listObjects;
