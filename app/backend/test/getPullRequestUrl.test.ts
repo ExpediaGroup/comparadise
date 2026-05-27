@@ -1,21 +1,18 @@
 import { afterEach, describe, expect, it, mock } from 'bun:test';
+import { getPullRequestUrl } from '../src/getPullRequestUrl';
+import type { Octokit } from '@octokit/rest';
 
 const listPullRequestsAssociatedWithCommitMock = mock();
-mock.module('../src/getOctokit', () => ({
-  getOctokit: mock(() => ({
+
+const makeOctokit = (): Octokit =>
+  ({
     rest: {
       repos: {
         listPullRequestsAssociatedWithCommit:
           listPullRequestsAssociatedWithCommitMock
       }
     }
-  }))
-}));
-mock.module('@octokit/rest', () => ({
-  Octokit: mock()
-}));
-
-import { getPullRequestUrl } from '../src/getPullRequestUrl';
+  }) as unknown as Octokit;
 
 describe('getPullRequestUrl', () => {
   afterEach(() => {
@@ -27,11 +24,10 @@ describe('getPullRequestUrl', () => {
       data: [{ html_url: 'https://github.com/owner/repo/pull/42', number: 42 }]
     });
 
-    const result = await getPullRequestUrl({
-      owner: 'owner',
-      repo: 'repo',
-      commitHash: 'abc123'
-    });
+    const result = await getPullRequestUrl(
+      { owner: 'owner', repo: 'repo', commitHash: 'abc123' },
+      makeOctokit()
+    );
 
     expect(result).toEqual({
       url: 'https://github.com/owner/repo/pull/42'
@@ -43,11 +39,10 @@ describe('getPullRequestUrl', () => {
       data: []
     });
 
-    const result = await getPullRequestUrl({
-      owner: 'owner',
-      repo: 'repo',
-      commitHash: 'abc123'
-    });
+    const result = await getPullRequestUrl(
+      { owner: 'owner', repo: 'repo', commitHash: 'abc123' },
+      makeOctokit()
+    );
 
     expect(result).toEqual({ url: null });
   });
