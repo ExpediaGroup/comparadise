@@ -1,15 +1,16 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, it, mock, afterEach } from 'bun:test';
+import { makeManifestS3 } from '../src/manifest-s3';
 
-const putObjectMock = mock();
-const getObjectMock = mock();
+const putObjectMock = mock<any>();
+const getObjectMock = mock<any>();
 
-mock.module('shared/s3', () => ({
-  putObject: putObjectMock,
-  getObject: getObjectMock
-}));
-
-const { putManifest, getManifest, putChangeset, getChangeset } =
-  await import('../src/manifest-s3');
+const { putManifest, getManifest, putChangeset, getChangeset } = makeManifestS3(
+  {
+    getObject: getObjectMock,
+    putObject: putObjectMock
+  }
+);
 
 const bucket = 'test-bucket';
 const sha = 'abc123def456';
