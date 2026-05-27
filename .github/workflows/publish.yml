@@ -71,7 +71,7 @@ jobs:
       - name: Publish
         working-directory: comparadise-utils
         run: |
-          pnpm version $NEW_VERSION --no-workspaces-update
+          npm pkg set version=$NEW_VERSION
           pnpm publish --no-git-checks
 
   publish-tags:
