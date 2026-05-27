@@ -1,10 +1,13 @@
 import { logEvent } from './logger';
-import { updateBaseImages } from 'shared/s3';
 import { findReasonToPreventVisualChangeAcceptance } from './findReasonToPreventVisualChangeAcceptance';
 import { TRPCError } from '@trpc/server';
 import { AcceptVisualChangesInput } from './schema';
 import type { Context } from './context';
-import { updateCommitStatus } from './updateCommitStatus';
+import { getOctokit } from './getOctokit';
+import * as defaultS3 from 'shared/s3';
+import type { S3Operations } from 'shared/s3';
+import { VISUAL_REGRESSION_CONTEXT } from 'shared/constants';
+import type { Octokit } from '@octokit/rest';
 
 export const acceptVisualChanges = async (
   {
@@ -15,7 +18,9 @@ export const acceptVisualChanges = async (
     owner,
     repo
   }: AcceptVisualChangesInput,
-  ctx: Context
+  ctx: Context,
+  s3: Pick<S3Operations, 'updateBaseImages'> = defaultS3,
+  octokit: Octokit = getOctokit(owner, repo)
 ) => {
   const reasonToPreventUpdate =
     commitHash &&
@@ -23,7 +28,8 @@ export const acceptVisualChanges = async (
       owner,
       repo,
       commitHash,
-      useBaseImages
+      useBaseImages,
+      octokit
     ));
   if (reasonToPreventUpdate) {
     throw new TRPCError({
@@ -42,13 +48,37 @@ export const acceptVisualChanges = async (
   }
 
   if (useBaseImages) {
-    await updateBaseImages(hash, bucket);
+    await s3.updateBaseImages(hash, bucket);
   }
   if (commitHash) {
-    await updateCommitStatus({ owner, repo, commitHash });
+    await updateCommitStatus(owner, repo, commitHash, octokit);
   }
   logEvent('INFO', {
     event: 'VISUAL_CHANGES_ACCEPTED',
     ...ctx.urlParams
   });
 };
+
+async function updateCommitStatus(
+  owner: string,
+  repo: string,
+  commitHash: string,
+  octokit: Octokit
+) {
+  return octokit.rest.repos
+    .createCommitStatus({
+      owner,
+      repo,
+      sha: commitHash,
+      state: 'success',
+      description: 'Base images updated successfully.',
+      context: VISUAL_REGRESSION_CONTEXT
+    })
+    .catch(error => {
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: `Failed to update GitHub commit status: ${error}`,
+        cause: { event: 'COMMIT_STATUS_UPDATE_FAILED' }
+      });
+    });
+}

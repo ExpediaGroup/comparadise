@@ -1,18 +1,13 @@
 import { NEW_IMAGES_DIRECTORY } from 'shared/constants';
 import { getGroupedKeys } from '../src/getGroupedKeys';
 import { describe, expect, it, mock } from 'bun:test';
+import type { S3Operations } from 'shared/s3';
 
 const getKeysFromS3Mock = mock();
-mock.module('shared/s3', () => ({
-  s3Client: {},
-  listObjects: mock(),
-  listAllObjects: mock(),
-  getKeysFromS3: getKeysFromS3Mock,
-  updateBaseImages: mock(),
-  getObject: mock(),
-  putObject: mock(),
-  copyObject: mock()
-}));
+
+const makeS3 = (): Pick<S3Operations, 'getKeysFromS3'> => ({
+  getKeysFromS3: getKeysFromS3Mock
+});
 
 const pathPrefix = `${NEW_IMAGES_DIRECTORY}/hash`;
 
@@ -25,7 +20,7 @@ describe('getGroupedKeys', () => {
       `${pathPrefix}/EXTRA_LARGE/pdpPage/diff.png`,
       `${pathPrefix}/EXTRA_LARGE/pdpPage/new.png`
     ]);
-    const paths = await getGroupedKeys('hash', 'bucket');
+    const paths = await getGroupedKeys('hash', 'bucket', makeS3());
     expect(paths).toEqual([
       {
         title: 'EXTRA_LARGE/pdpPage',
@@ -44,7 +39,7 @@ describe('getGroupedKeys', () => {
       `${pathPrefix}/SMALL/pdpPage/new.png`,
       `${pathPrefix}/EXTRA_LARGE/pdpPage/base.png`
     ]);
-    const paths = await getGroupedKeys('hash', 'bucket');
+    const paths = await getGroupedKeys('hash', 'bucket', makeS3());
     expect(paths).toEqual([
       {
         title: 'SMALL/pdpPage',
@@ -63,7 +58,7 @@ describe('getGroupedKeys', () => {
       `${pathPrefix}/EXTRA_LARGE/pdpPage/diff.png`,
       `${pathPrefix}/EXTRA_LARGE/pdpPage/new.png`
     ]);
-    const paths = await getGroupedKeys('hash', 'bucket');
+    const paths = await getGroupedKeys('hash', 'bucket', makeS3());
     expect(paths).toEqual([
       {
         title: 'SMALL/srpPage',
@@ -86,7 +81,7 @@ describe('getGroupedKeys', () => {
 
   it('tells us if the commit hash was not associated with a visual regression test failure', async () => {
     getKeysFromS3Mock.mockImplementationOnce(() => []);
-    expect(getGroupedKeys('hash', 'bucket')).rejects.toThrow(
+    expect(getGroupedKeys('hash', 'bucket', makeS3())).rejects.toThrow(
       'The commit hash was not associated with any visual regression test failures'
     );
   });
@@ -97,7 +92,7 @@ describe('getGroupedKeys', () => {
       `${pathPrefix}/SMALL/srpPage/base.png`,
       `${pathPrefix}/EXTRA_LARGE/pdpPage/base.png`
     ]);
-    expect(getGroupedKeys('hash', 'bucket')).rejects.toThrow(
+    expect(getGroupedKeys('hash', 'bucket', makeS3())).rejects.toThrow(
       'There was no new or diff images associated with the commit hash.\nThis might be because the tests failed before a screenshot could be taken and it could be compared to the base.'
     );
   });

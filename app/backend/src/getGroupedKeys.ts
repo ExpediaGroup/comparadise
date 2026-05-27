@@ -2,10 +2,15 @@ import { TRPCError } from '@trpc/server';
 import { join, parse } from 'path';
 import { groupBy } from 'lodash';
 import { NEW_IMAGE_NAME, NEW_IMAGES_DIRECTORY } from 'shared/constants';
-import { getKeysFromS3 } from 'shared/s3';
+import * as defaultS3 from 'shared/s3';
+import type { S3Operations } from 'shared/s3';
 
-export const getGroupedKeys = async (hash: string, bucket: string) => {
-  const keys = await getKeysFromS3(NEW_IMAGES_DIRECTORY, hash, bucket);
+export const getGroupedKeys = async (
+  hash: string,
+  bucket: string,
+  s3: Pick<S3Operations, 'getKeysFromS3'> = defaultS3
+) => {
+  const keys = await s3.getKeysFromS3(NEW_IMAGES_DIRECTORY, hash, bucket);
   if (!keys.length) {
     throw new TRPCError({
       code: 'NOT_FOUND',

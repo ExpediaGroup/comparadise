@@ -4,42 +4,26 @@ import {
   NEW_IMAGES_DIRECTORY,
   ORIGINAL_NEW_IMAGES_DIRECTORY
 } from 'shared/constants';
+import { createS3Operations } from 'shared/s3';
+import type { S3Client } from '@aws-sdk/client-s3';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const listObjectsMock = mock((command?: unknown) => ({
-  Contents: [
-    {
-      Key: 'ome/actions-runner/something'
-    },
-    {
-      Key: 'a/normal/key'
-    }
-  ]
+const listObjectsMock = mock(() => ({
+  Contents: [{ Key: 'ome/actions-runner/something' }, { Key: 'a/normal/key' }]
 }));
 const copyObjectMock = mock();
 
-class ListObjectsV2Command {
-  constructor(public input: unknown) {}
-}
-class CopyObjectCommand {
-  constructor(public input: unknown) {}
-}
+const mockClient = {
+  send: mock((command: unknown) => {
+    const name = (command as { constructor: { name: string } }).constructor
+      .name;
+    if (name === 'CopyObjectCommand') {
+      return copyObjectMock((command as { input: unknown }).input);
+    }
+    return listObjectsMock();
+  })
+} as unknown as S3Client;
 
-mock.module('@aws-sdk/client-s3', () => ({
-  S3Client: class {
-    send = mock((command: unknown) => {
-      if (command instanceof CopyObjectCommand) {
-        return copyObjectMock(command.input);
-      }
-      return listObjectsMock(command);
-    });
-  },
-  ListObjectsV2Command,
-  GetObjectCommand: class {},
-  PutObjectCommand: class {},
-  CopyObjectCommand,
-  DeleteObjectsCommand: class {}
-}));
+const s3 = createS3Operations(mockClient);
 
 const {
   filterNewImages,
@@ -47,7 +31,7 @@ const {
   getBaseImagePathsFromOriginal,
   getKeysFromS3,
   updateBaseImages
-} = await import('shared/s3');
+} = s3;
 
 const pathPrefix = `${NEW_IMAGES_DIRECTORY}/030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5`;
 const originalPathPrefix = `${ORIGINAL_NEW_IMAGES_DIRECTORY}/030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5`;
