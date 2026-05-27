@@ -1,28 +1,15 @@
-import {
-  getObject as defaultGetObject,
-  putObject as defaultPutObject
-} from 'shared/s3';
+import { defaultS3Operations, type S3Operations } from 'shared/s3';
 
 export type Manifest = Record<string, string>;
 export type Changeset = Record<string, string | null>;
 
-export interface ManifestS3Deps {
-  getObject: typeof defaultGetObject;
-  putObject: typeof defaultPutObject;
-}
-
-const defaultDeps: ManifestS3Deps = {
-  getObject: defaultGetObject,
-  putObject: defaultPutObject
-};
-
-export function makeManifestS3(deps: ManifestS3Deps = defaultDeps) {
+export function makeManifestS3(s3: S3Operations = defaultS3Operations) {
   async function putManifest(
     bucket: string,
     sha: string,
     manifest: Manifest
   ): Promise<void> {
-    await deps.putObject({
+    await s3.putObject({
       Bucket: bucket,
       Key: `manifests/${sha}.json`,
       Body: JSON.stringify(manifest),
@@ -35,7 +22,7 @@ export function makeManifestS3(deps: ManifestS3Deps = defaultDeps) {
     sha: string
   ): Promise<Manifest | null> {
     try {
-      const response = await deps.getObject({
+      const response = await s3.getObject({
         Bucket: bucket,
         Key: `manifests/${sha}.json`
       });
@@ -54,7 +41,7 @@ export function makeManifestS3(deps: ManifestS3Deps = defaultDeps) {
     sha: string,
     changeset: Changeset
   ): Promise<void> {
-    await deps.putObject({
+    await s3.putObject({
       Bucket: bucket,
       Key: `changesets/${sha}.json`,
       Body: JSON.stringify(changeset),
@@ -67,7 +54,7 @@ export function makeManifestS3(deps: ManifestS3Deps = defaultDeps) {
     sha: string
   ): Promise<Changeset | null> {
     try {
-      const response = await deps.getObject({
+      const response = await s3.getObject({
         Bucket: bucket,
         Key: `changesets/${sha}.json`
       });

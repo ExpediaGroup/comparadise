@@ -1,80 +1,105 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { describe, expect, it, mock, beforeEach } from 'bun:test';
-import {
-  manifestGenerate,
-  type ManifestGenerateDeps
-} from '../src/manifest-generate';
+import { describe, expect, it, mock, beforeEach, afterEach } from 'bun:test';
+import { manifestGenerate } from '../src/manifest-generate';
+import type { Dependencies } from '../src/dependencies';
 
 const execMock = mock<any>(() => Promise.resolve(0));
 const globMock = mock<any>();
-const getInputMock = mock<any>();
-const getMultilineInputMock = mock<any>();
-const infoMock = mock<any>();
-const setFailedMock = mock<any>();
 const putObjectMock = mock<any>();
 const getObjectMock = mock<any>();
 const hashFileMock = mock<any>();
-const readImageFileMock = mock<any>();
-const resizeImageIfNeededMock = mock<any>();
+const readFileMock = mock<any>();
+const jimpReadMock = mock<any>();
+const infoMock = mock<any>();
+const setFailedMock = mock<any>();
 
-function makeDeps(
-  overrides: Partial<ManifestGenerateDeps> = {}
-): ManifestGenerateDeps {
+function makeDeps(): Dependencies {
   return {
+    core: {
+      setFailed: setFailedMock,
+      warning: mock(),
+      info: infoMock
+    },
+    octokit: {} as unknown as Dependencies['octokit'],
     exec: execMock,
-    glob: globMock,
-    getInput: getInputMock,
-    getMultilineInput: getMultilineInputMock,
-    info: infoMock,
-    setFailed: setFailedMock,
-    putObject: putObjectMock,
-    getObject: getObjectMock,
+    glob: globMock as unknown as Dependencies['glob'],
+    jimp: { read: jimpReadMock },
+    s3: {
+      putObject: putObjectMock,
+      getObject: getObjectMock
+    } as unknown as Dependencies['s3'],
+    fs: {
+      unlinkSync: mock(),
+      createWriteStream: mock(),
+      mkdir: mock(),
+      readFile: readFileMock
+    },
     hashFile: hashFileMock,
-    readImageFile: readImageFileMock,
-    resizeImageIfNeeded: resizeImageIfNeededMock,
-    ...overrides
+    context: {
+      runAttempt: 1,
+      runId: 1,
+      serverUrl: 'https://github.com',
+      repo: { owner: 'test', repo: 'test' },
+      issue: { number: 1 }
+    }
   };
 }
 
-function setupInputs(overrides: Record<string, string> = {}) {
-  const defaults: Record<string, string> = {
-    'bucket-name': 'test-bucket',
-    'commit-hash': 'abc123',
-    'head-sha': '',
-    'screenshots-directory': 'screenshots',
-    'resize-width': '',
-    'resize-height': '',
-    'package-paths': ''
-  };
-  const inputs = { ...defaults, ...overrides };
-  getInputMock.mockImplementation((name: string) => inputs[name] ?? '');
-  getMultilineInputMock.mockImplementation((name: string) => {
-    if (name === 'visual-test-command') return ['npm run test:visual'];
-    return [];
-  });
-}
+const setEnv = (map: Record<string, string | undefined>) => {
+  for (const [key, value] of Object.entries(map)) {
+    const envKey = `INPUT_${key.replace(/ /g, '_').toUpperCase()}`;
+    if (value === undefined) {
+      delete process.env[envKey];
+    } else {
+      process.env[envKey] = value;
+    }
+  }
+};
+
+const clearEnv = (...keys: string[]) => {
+  for (const key of keys) {
+    delete process.env[`INPUT_${key.replace(/ /g, '_').toUpperCase()}`];
+  }
+};
+
+const defaultInputs: Record<string, string> = {
+  'bucket-name': 'test-bucket',
+  'commit-hash': 'abc123',
+  'head-sha': '',
+  'screenshots-directory': 'screenshots',
+  'resize-width': '',
+  'resize-height': '',
+  'visual-test-command': 'npm run test:visual'
+};
 
 describe('manifestGenerate', () => {
   beforeEach(() => {
     execMock.mockReset().mockResolvedValue(0);
     globMock.mockReset();
-    getInputMock.mockReset();
-    getMultilineInputMock.mockReset();
-    infoMock.mockReset();
-    setFailedMock.mockReset();
-    putObjectMock.mockReset();
+    putObjectMock.mockReset().mockResolvedValue({});
     getObjectMock.mockReset();
     hashFileMock.mockReset();
-    readImageFileMock.mockReset();
-    resizeImageIfNeededMock.mockReset();
+    readFileMock.mockReset();
+    jimpReadMock.mockReset();
+    infoMock.mockReset();
+    setFailedMock.mockReset();
 
-    resizeImageIfNeededMock.mockImplementation((buf: Buffer) =>
-      Promise.resolve(buf)
+    setEnv(defaultInputs);
+  });
+
+  afterEach(() => {
+    clearEnv(
+      'bucket-name',
+      'commit-hash',
+      'head-sha',
+      'screenshots-directory',
+      'resize-width',
+      'resize-height',
+      'visual-test-command'
     );
   });
 
   it('runs visual test commands', async () => {
-    setupInputs();
     globMock.mockResolvedValue([]);
     getObjectMock.mockRejectedValue(
       Object.assign(new Error(), { name: 'NoSuchKey' })
@@ -88,7 +113,6 @@ describe('manifestGenerate', () => {
   });
 
   it('fails when visual test command exits non-zero', async () => {
-    setupInputs();
     execMock.mockResolvedValue(1);
 
     await manifestGenerate(makeDeps());
@@ -99,7 +123,6 @@ describe('manifestGenerate', () => {
   });
 
   it('builds manifest by hashing all png files in screenshots directory', async () => {
-    setupInputs();
     globMock.mockResolvedValue([
       'screenshots/Button/new.png',
       'screenshots/Modal/new.png'
@@ -108,8 +131,7 @@ describe('manifestGenerate', () => {
     getObjectMock.mockRejectedValue(
       Object.assign(new Error(), { name: 'NoSuchKey' })
     );
-    putObjectMock.mockResolvedValue({});
-    readImageFileMock.mockResolvedValue(Buffer.from('fake-image'));
+    readFileMock.mockResolvedValue(Buffer.from('fake-image'));
 
     await manifestGenerate(makeDeps());
 
@@ -118,14 +140,12 @@ describe('manifestGenerate', () => {
   });
 
   it('uploads manifest to S3 with correct key', async () => {
-    setupInputs();
     globMock.mockResolvedValue(['screenshots/Button/new.png']);
     hashFileMock.mockResolvedValue('hash1');
     getObjectMock.mockRejectedValue(
       Object.assign(new Error(), { name: 'NoSuchKey' })
     );
-    putObjectMock.mockResolvedValue({});
-    readImageFileMock.mockResolvedValue(Buffer.from('fake-image'));
+    readFileMock.mockResolvedValue(Buffer.from('fake-image'));
 
     await manifestGenerate(makeDeps());
 
@@ -138,7 +158,7 @@ describe('manifestGenerate', () => {
   });
 
   it('uploads only changed images when HEAD manifest exists', async () => {
-    setupInputs({ 'head-sha': 'base999' });
+    setEnv({ 'head-sha': 'base999' });
     globMock.mockResolvedValue([
       'screenshots/Button/new.png',
       'screenshots/Modal/new.png'
@@ -156,8 +176,7 @@ describe('manifestGenerate', () => {
         transformToString: () => Promise.resolve(JSON.stringify(headManifest))
       }
     });
-    putObjectMock.mockResolvedValue({});
-    readImageFileMock.mockResolvedValue(Buffer.from('modal-image'));
+    readFileMock.mockResolvedValue(Buffer.from('modal-image'));
 
     await manifestGenerate(makeDeps());
 
@@ -169,7 +188,6 @@ describe('manifestGenerate', () => {
   });
 
   it('uploads all images when no HEAD manifest exists', async () => {
-    setupInputs();
     globMock.mockResolvedValue([
       'screenshots/Button/new.png',
       'screenshots/Modal/new.png'
@@ -178,8 +196,7 @@ describe('manifestGenerate', () => {
     getObjectMock.mockRejectedValue(
       Object.assign(new Error(), { name: 'NoSuchKey' })
     );
-    putObjectMock.mockResolvedValue({});
-    readImageFileMock.mockResolvedValue(Buffer.from('fake-image'));
+    readFileMock.mockResolvedValue(Buffer.from('fake-image'));
 
     await manifestGenerate(makeDeps());
 
@@ -190,18 +207,22 @@ describe('manifestGenerate', () => {
   });
 
   it('uploads original full-size images when resize is enabled', async () => {
-    setupInputs({ 'resize-width': '800' });
+    setEnv({ 'resize-width': '800' });
     globMock.mockResolvedValue(['screenshots/Button/new.png']);
     hashFileMock.mockResolvedValue('hash1');
     getObjectMock.mockRejectedValue(
       Object.assign(new Error(), { name: 'NoSuchKey' })
     );
-    putObjectMock.mockResolvedValue({});
 
     const originalBuffer = Buffer.from('full-size-image');
     const resizedBuffer = Buffer.from('resized-image');
-    readImageFileMock.mockResolvedValue(originalBuffer);
-    resizeImageIfNeededMock.mockResolvedValue(resizedBuffer);
+    readFileMock.mockResolvedValue(originalBuffer);
+    jimpReadMock.mockResolvedValue({
+      width: 1200,
+      height: 900,
+      resize: mock().mockReturnThis(),
+      getBuffer: mock().mockResolvedValue(resizedBuffer)
+    });
 
     await manifestGenerate(makeDeps());
 
@@ -213,20 +234,18 @@ describe('manifestGenerate', () => {
     ) as any[];
 
     expect(newImageCalls).toHaveLength(1);
-    expect(newImageCalls[0]![0].Body).toBe(resizedBuffer);
+    expect(newImageCalls[0]![0].Body).toEqual(resizedBuffer);
     expect(originalCalls).toHaveLength(1);
     expect(originalCalls[0]![0].Body).toBe(originalBuffer);
   });
 
   it('does not upload originals when resize is not enabled', async () => {
-    setupInputs();
     globMock.mockResolvedValue(['screenshots/Button/new.png']);
     hashFileMock.mockResolvedValue('hash1');
     getObjectMock.mockRejectedValue(
       Object.assign(new Error(), { name: 'NoSuchKey' })
     );
-    putObjectMock.mockResolvedValue({});
-    readImageFileMock.mockResolvedValue(Buffer.from('fake-image'));
+    readFileMock.mockResolvedValue(Buffer.from('fake-image'));
 
     await manifestGenerate(makeDeps());
 
@@ -234,30 +253,5 @@ describe('manifestGenerate', () => {
       call[0].Key?.startsWith('original-new-images/')
     );
     expect(originalCalls).toHaveLength(0);
-  });
-
-  it('uses package-paths to prefix manifest keys', async () => {
-    setupInputs({ 'package-paths': 'pkg-a,pkg-b' });
-    globMock.mockResolvedValue([
-      'screenshots/pkg-a/Button/new.png',
-      'screenshots/pkg-b/Modal/new.png'
-    ]);
-    hashFileMock.mockResolvedValueOnce('hashA').mockResolvedValueOnce('hashB');
-    getObjectMock.mockRejectedValue(
-      Object.assign(new Error(), { name: 'NoSuchKey' })
-    );
-    putObjectMock.mockResolvedValue({});
-    readImageFileMock.mockResolvedValue(Buffer.from('fake-image'));
-
-    await manifestGenerate(makeDeps());
-
-    const manifestCall = putObjectMock.mock.calls.find((call: any) =>
-      call[0].Key?.startsWith('manifests/')
-    ) as any;
-    const manifest = JSON.parse(manifestCall![0].Body);
-    expect(manifest).toEqual({
-      'pkg-a/Button/new.png': 'hashA',
-      'pkg-b/Modal/new.png': 'hashB'
-    });
   });
 });

@@ -105,6 +105,7 @@ function makeDeps(): Dependencies {
       mkdir: mkdirMock,
       readFile: readFileMock
     },
+    hashFile: mock(() => Promise.resolve('mockhash')),
     context: {
       runAttempt: 1,
       runId: 456,

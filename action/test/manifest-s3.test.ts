@@ -5,12 +5,13 @@ import { makeManifestS3 } from '../src/manifest-s3';
 const putObjectMock = mock<any>();
 const getObjectMock = mock<any>();
 
-const { putManifest, getManifest, putChangeset, getChangeset } = makeManifestS3(
-  {
-    getObject: getObjectMock,
-    putObject: putObjectMock
-  }
-);
+const s3Mock = {
+  putObject: putObjectMock,
+  getObject: getObjectMock
+} as any;
+
+const { putManifest, getManifest, putChangeset, getChangeset } =
+  makeManifestS3(s3Mock);
 
 const bucket = 'test-bucket';
 const sha = 'abc123def456';
