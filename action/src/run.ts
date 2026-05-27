@@ -86,6 +86,7 @@ export const run = async (deps: Dependencies = makeDefaultDeps()) => {
     file.endsWith('new.png')
   );
 
+  // Delete orphaned diff files (no corresponding new file)
   const validDiffFilePaths: string[] = [];
   const diffFileCount = diffFilePaths.reduce((count, diffPath) => {
     if (
