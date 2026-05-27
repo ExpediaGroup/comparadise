@@ -1,19 +1,13 @@
 import { acceptVisualChanges } from '../src/acceptVisualChanges';
-
 import { afterEach, describe, expect, it, mock } from 'bun:test';
+import type { S3Operations } from 'shared/s3';
+import type { Octokit } from '@octokit/rest';
 
-const copyObjectMock = mock();
 const updateBaseImagesMock = mock();
-mock.module('shared/s3', () => ({
-  s3Client: {},
-  listObjects: mock(),
-  listAllObjects: mock(),
-  getKeysFromS3: mock(),
-  updateBaseImages: updateBaseImagesMock,
-  getObject: mock(),
-  putObject: mock(),
-  copyObject: copyObjectMock
-}));
+
+const makeS3 = (): Pick<S3Operations, 'updateBaseImages'> => ({
+  updateBaseImages: updateBaseImagesMock
+});
 
 const listCommitStatusesForRefMock = mock(() => ({
   data: [
@@ -24,22 +18,18 @@ const listCommitStatusesForRefMock = mock(() => ({
     }
   ]
 }));
-mock.module('../src/getOctokit', () => ({
-  getOctokit: mock(() => ({
+
+const createCommitStatusMock = mock(() => Promise.resolve());
+
+const makeOctokit = (): Octokit =>
+  ({
     rest: {
       repos: {
-        listCommitStatusesForRef: listCommitStatusesForRefMock
+        listCommitStatusesForRef: listCommitStatusesForRefMock,
+        createCommitStatus: createCommitStatusMock
       }
     }
-  }))
-}));
-const updateCommitStatusMock = mock();
-mock.module('../src/updateCommitStatus', () => ({
-  updateCommitStatus: updateCommitStatusMock
-}));
-mock.module('@octokit/rest', () => ({
-  Octokit: mock()
-}));
+  }) as unknown as Octokit;
 
 describe('acceptVisualChanges', () => {
   afterEach(() => {
@@ -72,12 +62,14 @@ describe('acceptVisualChanges', () => {
           repo: 'repo',
           owner: 'owner'
         },
-        { urlParams: {} }
+        { urlParams: {} },
+        makeS3(),
+        makeOctokit()
       )
     ).rejects.toThrow();
 
     expect(updateBaseImagesMock).not.toHaveBeenCalled();
-    expect(updateCommitStatusMock).not.toHaveBeenCalled();
+    expect(createCommitStatusMock).not.toHaveBeenCalled();
   });
 
   it('should not throw if other checks have not passed when useBaseImages is false', async () => {
@@ -105,11 +97,13 @@ describe('acceptVisualChanges', () => {
         repo: 'repo',
         owner: 'owner'
       },
-      { urlParams: {} }
+      { urlParams: {} },
+      makeS3(),
+      makeOctokit()
     );
 
     expect(updateBaseImagesMock).not.toHaveBeenCalled();
-    expect(updateCommitStatusMock).toHaveBeenCalled();
+    expect(createCommitStatusMock).toHaveBeenCalled();
   });
 
   it('should update commit status but not base images if useBaseImages is false', async () => {
@@ -122,11 +116,13 @@ describe('acceptVisualChanges', () => {
         repo: 'repo',
         owner: 'owner'
       },
-      { urlParams: {} }
+      { urlParams: {} },
+      makeS3(),
+      makeOctokit()
     );
 
     expect(updateBaseImagesMock).not.toHaveBeenCalled();
-    expect(updateCommitStatusMock).toHaveBeenCalled();
+    expect(createCommitStatusMock).toHaveBeenCalled();
   });
 
   it('should call updateBaseImages and updateCommitStatus when useBaseImages is true', async () => {
@@ -139,13 +135,15 @@ describe('acceptVisualChanges', () => {
         repo: 'repo',
         owner: 'owner'
       },
-      { urlParams: {} }
+      { urlParams: {} },
+      makeS3(),
+      makeOctokit()
     );
 
     expect(updateBaseImagesMock).toHaveBeenCalledWith(
       '030928b2c4b48ab4d3b57c8e0b0f7a56db768ef5',
       expectedBucket
     );
-    expect(updateCommitStatusMock).toHaveBeenCalled();
+    expect(createCommitStatusMock).toHaveBeenCalled();
   });
 });

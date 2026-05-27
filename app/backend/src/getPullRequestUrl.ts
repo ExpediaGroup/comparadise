@@ -1,12 +1,11 @@
 import { getOctokit } from './getOctokit';
 import { GetPullRequestUrlInput } from './schema';
+import type { Octokit } from '@octokit/rest';
 
-export const getPullRequestUrl = async ({
-  owner,
-  repo,
-  commitHash
-}: GetPullRequestUrlInput): Promise<{ url: string | null }> => {
-  const octokit = getOctokit(owner, repo);
+export const getPullRequestUrl = async (
+  { owner, repo, commitHash }: GetPullRequestUrlInput,
+  octokit: Octokit = getOctokit(owner, repo)
+): Promise<{ url: string | null }> => {
   const { data } =
     await octokit.rest.repos.listPullRequestsAssociatedWithCommit({
       owner,
