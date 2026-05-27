@@ -10,7 +10,7 @@ import * as defaultS3 from 'shared/s3';
 
 export type Octokit = ReturnType<typeof getOctokit>;
 
-export interface Deps {
+export interface Dependencies {
   core: {
     setFailed: (message: string | Error) => void;
     warning: (message: string | Error) => void;
@@ -36,10 +36,16 @@ export interface Deps {
     mkdir: typeof mkdir;
     readFile: typeof readFile;
   };
-  runAttempt: number;
+  context: {
+    runAttempt: number;
+    runId: number;
+    serverUrl: string;
+    repo: { owner: string; repo: string };
+    issue: { number: number };
+  };
 }
 
-export const makeDefaultDeps = (): Deps => ({
+export const makeDefaultDeps = (): Dependencies => ({
   core: { setFailed, warning, info },
   octokit: getOctokit(getInput('github-token')),
   exec,
@@ -55,5 +61,11 @@ export const makeDefaultDeps = (): Deps => ({
     updateBaseImages: defaultS3.updateBaseImages
   },
   fs: { unlinkSync, createWriteStream, mkdir, readFile },
-  runAttempt: context.runAttempt
+  context: {
+    runAttempt: context.runAttempt,
+    runId: context.runId,
+    serverUrl: context.serverUrl,
+    repo: context.repo,
+    issue: context.issue
+  }
 });

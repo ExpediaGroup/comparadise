@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
 import { EventEmitter } from 'events';
 import { Readable } from 'stream';
 import path from 'path';
-import type { Deps } from '../src/deps';
+import type { Dependencies } from '../src/dependencies';
 
 const listObjectsMock = mock();
 const getObjectMock = mock();
@@ -64,7 +64,7 @@ const createCommentMock = mock();
 const listCommentsMock = mock(() => ({ data: [{ id: 1 }] }));
 const graphqlMock = mock();
 
-function makeDeps(): Deps {
+function makeDeps(): Dependencies {
   return {
     core: {
       setFailed: mock(),
@@ -85,13 +85,14 @@ function makeDeps(): Deps {
         }
       },
       graphql: graphqlMock
-    } as unknown as Deps['octokit'],
+    } as unknown as Dependencies['octokit'],
     exec: execMock,
-    glob: globMock as unknown as Deps['glob'],
+    glob: globMock as unknown as Dependencies['glob'],
     jimp: { read: jimpReadMock },
     s3: {
       listObjects: listObjectsMock,
-      listAllObjects: listAllObjects as unknown as Deps['s3']['listAllObjects'],
+      listAllObjects:
+        listAllObjects as unknown as Dependencies['s3']['listAllObjects'],
       getObject: getObjectMock,
       putObject: putObjectMock,
       deleteObjects: deleteObjectsMock,
@@ -104,7 +105,13 @@ function makeDeps(): Deps {
       mkdir: mkdirMock,
       readFile: readFileMock
     },
-    runAttempt: 1
+    context: {
+      runAttempt: 1,
+      runId: 456,
+      serverUrl: 'https://github.com',
+      repo: { owner: 'owner', repo: 'repo' },
+      issue: { number: 0 }
+    }
   };
 }
 
@@ -150,26 +157,22 @@ const diffIdInputMap: Record<string, string | undefined> = {
   'commit-hash': undefined
 };
 
-async function runAction(deps: Deps) {
+async function runAction(deps: Dependencies) {
   const { run } = await import('../src/run');
   await run(deps);
 }
 
-function mockScreenshotFiles(deps: Deps, files: string[]) {
+function mockScreenshotFiles(deps: Dependencies, files: string[]) {
   globMock.mockImplementation((pattern: string) =>
     Promise.resolve(pattern === '**/screenshots/**/new.png' ? [] : files)
   );
 }
 
 describe('main', () => {
-  let deps: Deps;
+  let deps: Dependencies;
 
   beforeEach(() => {
     deps = makeDeps();
-
-    process.env['GITHUB_REPOSITORY'] = 'owner/repo';
-    process.env['GITHUB_RUN_ID'] = '456';
-    process.env['GITHUB_SERVER_URL'] = 'https://github.com';
 
     setEnv(inputMap);
     setEnv({ 'visual-test-command-fails-on-diff': 'true' });
@@ -210,9 +213,6 @@ describe('main', () => {
       'resize-width',
       'resize-height'
     );
-    delete process.env['GITHUB_REPOSITORY'];
-    delete process.env['GITHUB_RUN_ID'];
-    delete process.env['GITHUB_SERVER_URL'];
   });
 
   // Helper to assert no calls to octokit.rest methods
@@ -664,7 +664,7 @@ describe('main', () => {
   });
 
   it('should set successful commit status (and disable auto merge) if a visual test failed to execute but this is a re-run', async () => {
-    deps.runAttempt = 2;
+    deps.context.runAttempt = 2;
     execMock.mockResolvedValue(0);
     mockScreenshotFiles(deps, ['path/to/screenshots/base.png']);
     listCommitStatusesForRefMock.mockImplementationOnce(() => ({
@@ -697,7 +697,7 @@ describe('main', () => {
   });
 
   it('should set failure commit status (and not disable auto merge) if a visual test failed to execute but this is a re-run', async () => {
-    deps.runAttempt = 2;
+    deps.context.runAttempt = 2;
     execMock.mockResolvedValue(1);
     mockScreenshotFiles(deps, [
       'path/to/screenshots/base.png',
@@ -730,7 +730,7 @@ describe('main', () => {
   });
 
   it('should delete S3 images for hash when tests pass on retry', async () => {
-    deps.runAttempt = 2;
+    deps.context.runAttempt = 2;
     execMock.mockResolvedValue(0);
     mockScreenshotFiles(deps, ['path/to/screenshots/base.png']);
     getKeysFromS3Mock.mockResolvedValueOnce([
@@ -752,7 +752,7 @@ describe('main', () => {
   });
 
   it('should delete S3 images for hash when tests pass on retry with diff-id input', async () => {
-    deps.runAttempt = 2;
+    deps.context.runAttempt = 2;
     setEnv(diffIdInputMap);
     execMock.mockResolvedValue(0);
     mockScreenshotFiles(deps, ['path/to/screenshots/base.png']);
@@ -778,7 +778,7 @@ describe('main', () => {
   });
 
   it('should skip deletion when no images exist in S3 on retry', async () => {
-    deps.runAttempt = 2;
+    deps.context.runAttempt = 2;
     execMock.mockResolvedValue(0);
     mockScreenshotFiles(deps, ['path/to/screenshots/base.png']);
     getKeysFromS3Mock.mockResolvedValue([]);
@@ -791,7 +791,7 @@ describe('main', () => {
   });
 
   it('should only delete S3 images scoped to package-paths on retry', async () => {
-    deps.runAttempt = 2;
+    deps.context.runAttempt = 2;
     setEnv({ 'package-paths': 'pkg1' });
     execMock.mockResolvedValue(0);
     mockScreenshotFiles(deps, ['path/to/screenshots/pkg1/base.png']);
@@ -902,7 +902,7 @@ describe('main', () => {
 });
 
 describe('s3-operations', () => {
-  let deps: Deps;
+  let deps: Dependencies;
 
   const defaultS3InputMap: Record<string, string> = {
     'bucket-name': 'test-bucket',

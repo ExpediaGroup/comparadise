@@ -5,7 +5,6 @@ import {
   uploadAllImages,
   uploadOriginalNewImages
 } from './s3-operations';
-import { context } from '@actions/github';
 import * as path from 'path';
 import { createGithubComment, PackageResult } from './comment';
 import { getLatestVisualRegressionStatus } from './get-latest-visual-regression-status';
@@ -15,9 +14,9 @@ import {
 } from 'shared/constants';
 import { buildComparadiseUrl } from './build-comparadise-url';
 import { disableAutoMerge } from './disable-auto-merge';
-import { type Deps, makeDefaultDeps } from './deps';
+import { type Dependencies, makeDefaultDeps } from './dependencies';
 
-export const run = async (deps: Deps = makeDefaultDeps()) => {
+export const run = async (deps: Dependencies = makeDefaultDeps()) => {
   const workflow = getInput('workflow') || 'pr';
   const commitHash = getInput('commit-hash');
   const diffId = getInput('diff-id');
@@ -117,7 +116,7 @@ export const run = async (deps: Deps = makeDefaultDeps()) => {
       context: VISUAL_REGRESSION_CONTEXT,
       state: 'failure',
       description: VISUAL_TESTS_FAILED_TO_EXECUTE,
-      ...context.repo
+      ...deps.context.repo
     });
   }
 
@@ -127,10 +126,14 @@ export const run = async (deps: Deps = makeDefaultDeps()) => {
   }
 
   const latestVisualRegressionStatus = commitHash
-    ? await getLatestVisualRegressionStatus(commitHash, deps.octokit)
+    ? await getLatestVisualRegressionStatus(
+        commitHash,
+        deps.octokit,
+        deps.context
+      )
     : null;
 
-  const isRetry = deps.runAttempt > 1;
+  const isRetry = deps.context.runAttempt > 1;
 
   const testsPassed = diffFileCount === 0 && newFileCount === 0;
   if (testsPassed) {
@@ -158,7 +161,7 @@ export const run = async (deps: Deps = makeDefaultDeps()) => {
       context: VISUAL_REGRESSION_CONTEXT,
       state: 'success',
       description: `Visual tests passed${isRetry ? ' on retry' : ''}!`,
-      ...context.repo
+      ...deps.context.repo
     });
   }
 
@@ -217,10 +220,10 @@ export const run = async (deps: Deps = makeDefaultDeps()) => {
     context: VISUAL_REGRESSION_CONTEXT,
     state: 'pending',
     description: pendingDescription,
-    target_url: buildComparadiseUrl(),
-    ...context.repo
+    target_url: buildComparadiseUrl(deps.context),
+    ...deps.context.repo
   });
-  await createGithubComment(packageResults, deps.octokit);
+  await createGithubComment(packageResults, deps.octokit, deps.context);
 
   if (visualTestCommandFailsOnDiff && diffFileCount > 0) {
     deps.core.setFailed(pendingDescription);

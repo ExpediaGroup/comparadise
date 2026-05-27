@@ -1,9 +1,9 @@
 import { getInput } from '@actions/core';
-import type { Deps } from './deps';
+import type { Dependencies } from './dependencies';
 
 export async function resizeImageIfNeeded(
   buffer: Buffer,
-  jimp: Deps['jimp']
+  jimp: Dependencies['jimp']
 ): Promise<Buffer> {
   const resizeWidth = getInput('resize-width');
   const resizeHeight = getInput('resize-height');

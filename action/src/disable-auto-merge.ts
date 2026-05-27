@@ -1,12 +1,14 @@
-import { context } from '@actions/github';
-import type { Deps } from './deps';
+import type { Dependencies } from './dependencies';
 
-export const disableAutoMerge = async (commitHash: string, deps: Deps) => {
+export const disableAutoMerge = async (
+  commitHash: string,
+  deps: Dependencies
+) => {
   try {
     const { data } =
       await deps.octokit.rest.repos.listPullRequestsAssociatedWithCommit({
         commit_sha: commitHash,
-        ...context.repo
+        ...deps.context.repo
       });
     const pullRequest = data.find(Boolean);
     if (!pullRequest) {

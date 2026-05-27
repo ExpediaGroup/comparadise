@@ -10,12 +10,12 @@ import { map } from 'bluebird';
 import * as path from 'path';
 import { Readable } from 'stream';
 import { resizeImageIfNeeded } from './resize';
-import type { Deps } from './deps';
+import type { Dependencies } from './dependencies';
 
 async function checkS3PrefixExists(
   bucketName: string,
   prefix: string,
-  s3: Deps['s3']
+  s3: Dependencies['s3']
 ): Promise<boolean> {
   try {
     const response = await s3.listObjects({
@@ -33,7 +33,7 @@ async function downloadS3Directory(
   bucketName: string,
   s3Prefix: string,
   localDir: string,
-  deps: Deps
+  deps: Dependencies
 ): Promise<void> {
   info(`Downloading base images from s3://${bucketName}/${s3Prefix}`);
 
@@ -72,7 +72,7 @@ async function uploadLocalDirectoryWithResize(
   localDir: string,
   bucketName: string,
   s3Prefix: string,
-  deps: Deps
+  deps: Dependencies
 ): Promise<void> {
   const files = await deps.glob('**/{base,diff,new}.png', {
     cwd: localDir,
@@ -112,7 +112,7 @@ async function uploadLocalDirectoryWithResize(
 async function uploadSingleFile(
   localFilePath: string,
   s3Key: string,
-  deps: Deps
+  deps: Dependencies
 ): Promise<void> {
   const bucketName = getInput('bucket-name', { required: true });
   const fileBuffer = await deps.fs.readFile(localFilePath);
@@ -125,7 +125,7 @@ async function uploadSingleFile(
   info(`Uploaded ${localFilePath} to s3://${bucketName}/${s3Key}`);
 }
 
-export const downloadBaseImages = async (deps: Deps) => {
+export const downloadBaseImages = async (deps: Dependencies) => {
   const bucketName = getInput('bucket-name', { required: true });
   const screenshotsDirectory = getInput('screenshots-directory');
 
@@ -165,7 +165,7 @@ export const downloadBaseImages = async (deps: Deps) => {
   );
 };
 
-export const uploadAllImages = async (hash: string, deps: Deps) => {
+export const uploadAllImages = async (hash: string, deps: Dependencies) => {
   const bucketName = getInput('bucket-name', { required: true });
   const screenshotsDirectory = getInput('screenshots-directory');
   const packagePaths = getInput('package-paths')?.split(',').filter(Boolean);
@@ -193,7 +193,7 @@ async function uploadOriginalNewPngs(
   localDir: string,
   bucketName: string,
   s3Prefix: string,
-  deps: Deps
+  deps: Dependencies
 ): Promise<void> {
   const files = await deps.glob('**/new.png', {
     cwd: localDir,
@@ -220,7 +220,10 @@ async function uploadOriginalNewPngs(
   }
 }
 
-export const uploadOriginalNewImages = async (hash: string, deps: Deps) => {
+export const uploadOriginalNewImages = async (
+  hash: string,
+  deps: Dependencies
+) => {
   const resizeWidth = getInput('resize-width');
   const resizeHeight = getInput('resize-height');
 
@@ -251,7 +254,7 @@ export const uploadOriginalNewImages = async (hash: string, deps: Deps) => {
   );
 };
 
-export const deleteHashImages = async (hash: string, deps: Deps) => {
+export const deleteHashImages = async (hash: string, deps: Dependencies) => {
   const bucketName = getInput('bucket-name', { required: true });
   const packagePaths = getInput('package-paths')?.split(',').filter(Boolean);
 
@@ -288,7 +291,10 @@ export const deleteHashImages = async (hash: string, deps: Deps) => {
   info(`Deleted ${keysToDelete.length} image(s) for ${hash}`);
 };
 
-export const uploadBaseImages = async (newFilePaths: string[], deps: Deps) => {
+export const uploadBaseImages = async (
+  newFilePaths: string[],
+  deps: Dependencies
+) => {
   info(`Uploading ${newFilePaths.length} base image(s)`);
   return map(newFilePaths, newFilePath =>
     uploadSingleFile(newFilePath, buildBaseImagePath(newFilePath), deps)

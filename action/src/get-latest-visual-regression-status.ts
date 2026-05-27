@@ -1,10 +1,10 @@
-import { context } from '@actions/github';
 import { VISUAL_REGRESSION_CONTEXT } from 'shared/constants';
-import type { Octokit } from './deps';
+import type { Dependencies, Octokit } from './dependencies';
 
 export const getLatestVisualRegressionStatus = async (
   commitHash: string,
-  octokit: Octokit
+  octokit: Octokit,
+  context: Dependencies['context']
 ) => {
   const { data } = await octokit.rest.repos.listCommitStatusesForRef({
     ref: commitHash,

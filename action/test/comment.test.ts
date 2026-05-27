@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
 import type { PackageResult } from '../src/comment';
-import type { Octokit } from '../src/deps';
+import type { Dependencies, Octokit } from '../src/dependencies';
 
 const listPullRequestsAssociatedWithCommitMock = mock<
   () => Promise<{ data: Array<{ number: number }> }>
@@ -29,6 +29,14 @@ function makeOctokit(): Octokit {
 const HOST = 'https://comparadise.app';
 const CURRENT_SHA = 'abc123';
 const currentUrl = `${HOST}/?commitHash=${CURRENT_SHA}&owner=owner&repo=repo&bucket=some-bucket&useBaseImages=false`;
+
+const defaultContext: Dependencies['context'] = {
+  runAttempt: 1,
+  runId: 456,
+  serverUrl: 'https://github.com',
+  repo: { owner: 'owner', repo: 'repo' },
+  issue: { number: 0 }
+};
 
 const setEnv = (map: Record<string, string | undefined>) => {
   for (const [key, value] of Object.entries(map)) {
@@ -66,19 +74,15 @@ const WITH_PACKAGES: PackageResult[] = [
 
 async function runCreateGithubComment(
   packageResults: PackageResult[] = NO_PACKAGES,
-  octokit: Octokit = makeOctokit()
+  octokit: Octokit = makeOctokit(),
+  context: Dependencies['context'] = defaultContext
 ) {
   const { createGithubComment } = await import('../src/comment');
-  await createGithubComment(packageResults, octokit);
+  await createGithubComment(packageResults, octokit, context);
 }
 
 describe('createGithubComment', () => {
   beforeEach(() => {
-    process.env['GITHUB_REPOSITORY'] = 'owner/repo';
-    process.env['GITHUB_RUN_ID'] = '456';
-    process.env['GITHUB_SERVER_URL'] = 'https://github.com';
-    process.env['GITHUB_EVENT_NAME'] = 'pull_request';
-
     setEnv(baseInputMap);
   });
 
@@ -93,11 +97,6 @@ describe('createGithubComment', () => {
       'update-base-images-on-accept',
       'use-base-images'
     );
-    delete process.env['GITHUB_REPOSITORY'];
-    delete process.env['GITHUB_RUN_ID'];
-    delete process.env['GITHUB_SERVER_URL'];
-    delete process.env['GITHUB_EVENT_NAME'];
-    delete process.env['GITHUB_EVENT_PATH'];
   });
 
   describe('comment creation and updating', () => {
@@ -182,10 +181,11 @@ describe('createGithubComment', () => {
       listPullRequestsAssociatedWithCommitMock.mockResolvedValueOnce({
         data: []
       });
-      // No GITHUB_EVENT_PATH set, so context.issue.number will be 0/NaN
-      delete process.env['GITHUB_EVENT_PATH'];
 
-      await runCreateGithubComment();
+      await runCreateGithubComment(NO_PACKAGES, makeOctokit(), {
+        ...defaultContext,
+        issue: { number: 0 }
+      });
 
       expect(listCommentsMock).not.toHaveBeenCalled();
       expect(createCommentMock).not.toHaveBeenCalled();

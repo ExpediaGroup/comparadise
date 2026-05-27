@@ -1,7 +1,6 @@
-import { context } from '@actions/github';
 import { getInput, info } from '@actions/core';
 import { buildComparadiseUrl } from './build-comparadise-url';
-import type { Octokit } from './deps';
+import type { Dependencies, Octokit } from './dependencies';
 
 export interface PackageResult {
   packagePath: string;
@@ -13,7 +12,7 @@ const COMPARADISE_MARKER = '<!-- comparadise -->';
 const TABLE_END_MARKER = '<!-- comparadise-table-end -->';
 const TIMESTAMP_MARKER = '<!-- comparadise-updated -->';
 
-const buildTimestampLine = (): string => {
+const buildTimestampLine = (context: Dependencies['context']): string => {
   const utcString = new Date().toUTCString().replace('GMT', 'UTC');
   const jobUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
   return `_Last updated: ${utcString}_ | [GitHub Actions run](${jobUrl}) ${TIMESTAMP_MARKER}`;
@@ -46,7 +45,8 @@ const buildCommentBody = (
   commitHash: string,
   packageResults: PackageResult[],
   comparadiseLink: string,
-  commentDetails: string
+  commentDetails: string,
+  context: Dependencies['context']
 ): string => {
   const table = buildTable(packageResults);
   const totalDiffs = packageResults.reduce((sum, r) => sum + r.diffCount, 0);
@@ -59,17 +59,18 @@ const buildCommentBody = (
       ? `, ${totalNewTests} new visual ${totalNewTests === 1 ? 'test' : 'tests'}`
       : '';
   const heading = `${totalDiffs} visual ${totalDiffs === 1 ? 'diff' : 'diffs'}${newTestsSuffix}`;
-  const base = `${COMPARADISE_MARKER}\n${buildHashMarker(commitHash)}\n## Visual Test Results\n${heading}\n\n${table}\n${TABLE_END_MARKER}\n\nCheck ${comparadiseLink}! :palm_tree:\n\n${buildTimestampLine()}`;
+  const base = `${COMPARADISE_MARKER}\n${buildHashMarker(commitHash)}\n## Visual Test Results\n${heading}\n\n${table}\n${TABLE_END_MARKER}\n\nCheck ${comparadiseLink}! :palm_tree:\n\n${buildTimestampLine(context)}`;
   return commentDetails ? `${base}\n${commentDetails}` : base;
 };
 
 export const createGithubComment = async (
   packageResults: PackageResult[],
-  octokit: Octokit
+  octokit: Octokit,
+  context: Dependencies['context']
 ) => {
   const commitHash = getInput('commit-hash', { required: true });
   const comparadiseHost = getInput('comparadise-host');
-  const comparadiseUrl = buildComparadiseUrl();
+  const comparadiseUrl = buildComparadiseUrl(context);
   const comparadiseLink = comparadiseHost
     ? `[Comparadise](${comparadiseUrl})`
     : 'Comparadise';
@@ -101,7 +102,8 @@ export const createGithubComment = async (
         commitHash,
         packageResults,
         comparadiseLink,
-        commentDetails
+        commentDetails,
+        context
       ),
       issue_number: prNumber,
       ...context.repo
@@ -117,7 +119,10 @@ export const createGithubComment = async (
     const newRows = buildTable(packageResults).split('\n').slice(2).join('\n');
     const updatedBody = existingComment.body
       .replace(TABLE_END_MARKER, `${newRows}\n${TABLE_END_MARKER}`)
-      .replace(new RegExp(`.*${TIMESTAMP_MARKER}`), buildTimestampLine());
+      .replace(
+        new RegExp(`.*${TIMESTAMP_MARKER}`),
+        buildTimestampLine(context)
+      );
     await octokit.rest.issues.updateComment({
       comment_id: existingComment.id,
       body: updatedBody,
@@ -130,7 +135,8 @@ export const createGithubComment = async (
         commitHash,
         packageResults,
         comparadiseLink,
-        commentDetails
+        commentDetails,
+        context
       ),
       ...context.repo
     });
