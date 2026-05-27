@@ -1,13 +1,5 @@
 {
-  "plugins": [
-    {
-      "plugin": "@nx/js/typescript",
-      "options": {
-        "typecheck": { "targetName": "typecheck" },
-        "build": { "targetName": "build" }
-      }
-    }
-  ],
+  "plugins": ["@nx/js/typescript"],
   "parallel": 5,
   "targetDefaults": {
     "build": {
