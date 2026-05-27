@@ -91,18 +91,18 @@ A flat object containing only entries the PR changed. Non-null values are the PR
 1. Get PR head SHA from `github.event.pull_request.head.sha`
 2. Get merge commit SHA from `github.event.pull_request.merge_commit_sha`
 3. Fetch changeset from `changesets/{pr-head-sha}.json` (if missing, treat as no changes)
-4. Fetch first parent of merge commit via GitHub API (`parents[0].sha`) → load `manifests/{parent-sha}.json`
-5. If no changeset: copy parent manifest as-is to `manifests/{merge-commit-sha}.json`, done
-6. Stale changeset check: if `changeset._headSha !== parents[0].sha`:
+4. Conflict prevention: if changeset exists, list all open PRs via GitHub API; for each open PR, fetch `changesets/{pr-head-sha}.json` from S3 (skip if missing); for each open PR whose changeset shares at least one screenshot key with this PR's changeset, set a failure commit status on that PR's head SHA (message: "Visual comparison outdated — please rebase")
+5. Fetch first parent of merge commit via GitHub API (`parents[0].sha`) → load `manifests/{parent-sha}.json`
+6. If no changeset: copy parent manifest as-is to `manifests/{merge-commit-sha}.json`, done
+7. Stale changeset check: if `changeset._headSha !== parents[0].sha`:
    - Fetch `manifests/{changeset._headSha}.json` (the manifest HEAD at compare time)
    - For each screenshot key in the changeset (excluding `_headSha`), compare its hash in `manifests/{changeset._headSha}.json` vs `manifests/{parents[0].sha}.json`
-   - If any key differs between the two manifests: record the conflicting paths and continue (base images will not be updated)
+   - If any key differs between the two manifests: fail with the list of conflicting paths (conflict prevention in step 4 should have prevented this; treat as a safeguard)
    - If no keys differ: proceed (the intervening merges didn't touch the same screenshots)
-7. Overlay changeset onto parent manifest, skipping any conflicting paths identified in step 6:
+8. Overlay changeset onto parent manifest:
    - Non-null entries: update hash
    - Null entries: remove key
-8. Write result to `manifests/{merge-commit-sha}.json`
-9. If conflicting paths were recorded in step 6: fail with the list of conflicting paths
+9. Write result to `manifests/{merge-commit-sha}.json`
 10. Update base images: for each non-null changeset entry, copy `new-images/{pr-sha}/path/new.png` → `base-images/path/base.png`. For null entries, delete `base-images/path/base.png`.
 
 ## Design Decisions
@@ -112,7 +112,8 @@ A flat object containing only entries the PR changed. Non-null values are the PR
 - **Missing ancestor manifest:** Fail with rebase instruction (only during initial adoption)
 - **Staleness handling:** Changeset overlay at merge time ensures concurrent merges are handled correctly
 - **Merge concurrency:** Consumers **must** set a `concurrency` group (with `cancel-in-progress: false`) on their `manifest-merge` workflow to serialize merge jobs. Without it, two simultaneous merges can both update `base-images/` at the same time, producing a corrupted or interleaved state that `manifest-compare` jobs running in parallel will read. The concrete race: PR A and PR B merge within seconds of each other; both `manifest-merge` jobs start concurrently, each overwriting overlapping `base-images/` keys; a `manifest-compare` job for an open PR C reads `base-images/` mid-update and generates a diff against a partially-applied base, producing a wrong or misleading visual result. Serializing merges via `concurrency` eliminates this window entirely.
-- **Stale changeset detection:** The changeset stores `_headSha` (the HEAD SHA at compare time). If `manifest-merge` finds a different parent, it fetches both manifests and checks only the keys present in the changeset. If none overlap, the merge proceeds. If any overlap, the manifest is still written (so future PRs branching off the merge commit get a correct ancestor manifest and auto-pass via Scenario 2), but the MD5 hashes and base images are not updated for conflicting paths, and the job fails with the conflicting paths listed.
+- **Stale changeset detection:** The changeset stores `_headSha` (the HEAD SHA at compare time). 
+At merge time, open PRs whose changesets overlap with the merging PR's changeset are proactively failed with a "rebase required" commit status — preventing the stale scenario from occurring. If `manifest-merge` nonetheless finds a stale changeset with overlapping paths (e.g. due to a race or the conflict prevention step being skipped), it fails the merge job with the conflicting paths listed as a safeguard. If the stale changeset has no overlapping paths, the merge proceeds normally.
 
 ## No Changes To
 
