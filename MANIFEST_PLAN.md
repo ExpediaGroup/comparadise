@@ -69,12 +69,12 @@ A flat object containing only entries the PR changed. Non-null values are the PR
 5. Resolve ancestor SHA via GitHub Compare API (`GET /repos/{owner}/{repo}/compare/{head-sha}...{pr-sha}` → `merge_base_commit.sha`)
 6. Fetch ancestor manifest from `manifests/{ancestor-sha}.json` (fail with rebase instruction if missing)
 7. For each differing screenshot, run 3-way comparison (treat missing entries as a distinct state):
-   - **Scenario 1 (HEAD = ancestor):** PR introduced the diff → download base.png from `base-images/`, download PR's new.png from `new-images/{pr-sha}/path/new.png`, generate diff.png via pixelmatch, upload base.png and diff.png to `new-images/{pr-sha}/path/{base,diff}.png`
+   - **PR Owns (HEAD = ancestor):** PR introduced the diff → download base.png from `base-images/`, download PR's new.png from `new-images/{pr-sha}/path/new.png`, generate diff.png via pixelmatch, upload base.png and diff.png to `new-images/{pr-sha}/path/{base,diff}.png`
      - Special case: new screenshot (not in HEAD or ancestor) → no base.png or diff.png, just new.png
      - Special case: PR deletes screenshot (not in PR, HEAD = ancestor) → note deletion, no images to upload
-   - **Scenario 2 (PR = ancestor):** Main changed, PR is clean → pass (log informational message)
+   - **Main Owns (PR = ancestor):** Main changed, PR is clean → pass (log informational message)
      - Includes: screenshot added on main since branching (in HEAD only)
-   - **Scenario 3 (all different):** Conflict → collect conflicting paths
+   - **Conflict (all different):** Conflict → collect conflicting paths
 8. Determine outcome:
    - All Scenario 2 → success status
    - Any Scenario 1 (and no Scenario 3) → pending status + Comparadise comment
