@@ -4,15 +4,15 @@ import {
   VISUAL_REGRESSION_CONTEXT,
   VISUAL_TESTS_FAILED_TO_EXECUTE
 } from 'shared/constants';
+import type { Octokit } from '@octokit/rest';
 
 export const findReasonToPreventVisualChangeAcceptance = async (
   owner: string,
   repo: string,
   sha: string,
-  useBaseImages: boolean
+  useBaseImages: boolean,
+  octokit: Octokit = getOctokit(owner, repo)
 ) => {
-  const octokit = getOctokit(owner, repo);
-
   const { data } = await octokit.rest.repos.listCommitStatusesForRef({
     owner,
     repo,
