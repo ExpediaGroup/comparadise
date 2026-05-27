@@ -1,4 +1,5 @@
 {
+  "plugins": ["@nx/js/typescript"],
   "parallel": 5,
   "targetDefaults": {
     "build": {
