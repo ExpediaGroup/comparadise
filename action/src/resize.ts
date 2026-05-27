@@ -1,7 +1,10 @@
 import { getInput } from '@actions/core';
-import { Jimp } from 'jimp';
+import type { Deps } from './deps';
 
-export async function resizeImageIfNeeded(buffer: Buffer): Promise<Buffer> {
+export async function resizeImageIfNeeded(
+  buffer: Buffer,
+  jimp: Deps['jimp']
+): Promise<Buffer> {
   const resizeWidth = getInput('resize-width');
   const resizeHeight = getInput('resize-height');
 
@@ -14,7 +17,7 @@ export async function resizeImageIfNeeded(buffer: Buffer): Promise<Buffer> {
     throw new Error('resize-width and resize-height must be valid numbers');
   }
 
-  const image = await Jimp.read(buffer);
+  const image = await jimp.read(buffer);
   if (width && height) {
     const scale = Math.min(width / image.width, height / image.height, 1);
     image.resize({

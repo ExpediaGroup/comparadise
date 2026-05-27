@@ -1,7 +1,7 @@
-import { octokit } from './octokit';
 import { context } from '@actions/github';
 import { getInput, info } from '@actions/core';
 import { buildComparadiseUrl } from './build-comparadise-url';
+import type { Octokit } from './deps';
 
 export interface PackageResult {
   packagePath: string;
@@ -63,7 +63,10 @@ const buildCommentBody = (
   return commentDetails ? `${base}\n${commentDetails}` : base;
 };
 
-export const createGithubComment = async (packageResults: PackageResult[]) => {
+export const createGithubComment = async (
+  packageResults: PackageResult[],
+  octokit: Octokit
+) => {
   const commitHash = getInput('commit-hash', { required: true });
   const comparadiseHost = getInput('comparadise-host');
   const comparadiseUrl = buildComparadiseUrl();

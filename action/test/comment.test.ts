@@ -1,30 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
 import type { PackageResult } from '../src/comment';
-
-const getInputMock = mock();
-mock.module('@actions/core', () => ({
-  info: mock(),
-  warning: mock(),
-  setFailed: mock(),
-  getBooleanInput: mock(),
-  getMultilineInput: mock(),
-  getInput: getInputMock
-}));
-
-const githubContext = {
-  repo: { repo: 'repo', owner: 'owner' },
-  issue: { number: 0 },
-  serverUrl: 'https://github.com',
-  runId: 456
-};
-mock.module('@actions/github', () => ({
-  context: githubContext
-}));
-
-const buildComparadiseUrlMock = mock();
-mock.module('../src/build-comparadise-url', () => ({
-  buildComparadiseUrl: buildComparadiseUrlMock
-}));
+import type { Octokit } from '../src/deps';
 
 const listPullRequestsAssociatedWithCommitMock = mock<
   () => Promise<{ data: Array<{ number: number }> }>
@@ -33,8 +9,9 @@ const listCommentsMock =
   mock<() => Promise<{ data: Array<{ id: number; body: string | null }> }>>();
 const createCommentMock = mock();
 const updateCommentMock = mock();
-mock.module('../src/octokit', () => ({
-  octokit: {
+
+function makeOctokit(): Octokit {
+  return {
     rest: {
       repos: {
         listPullRequestsAssociatedWithCommit:
@@ -46,17 +23,37 @@ mock.module('../src/octokit', () => ({
         updateComment: updateCommentMock
       }
     }
-  }
-}));
+  } as unknown as Octokit;
+}
 
 const HOST = 'https://comparadise.app';
 const CURRENT_SHA = 'abc123';
-const currentUrl = `${HOST}/?commitHash=${CURRENT_SHA}&owner=owner&repo=repo&bucket=some-bucket&useBaseImages=true`;
+const currentUrl = `${HOST}/?commitHash=${CURRENT_SHA}&owner=owner&repo=repo&bucket=some-bucket&useBaseImages=false`;
 
-const inputMap: Record<string, string> = {
+const setEnv = (map: Record<string, string | undefined>) => {
+  for (const [key, value] of Object.entries(map)) {
+    const envKey = `INPUT_${key.replace(/ /g, '_').toUpperCase()}`;
+    if (value === undefined) {
+      delete process.env[envKey];
+    } else {
+      process.env[envKey] = value;
+    }
+  }
+};
+
+const clearEnv = (...keys: string[]) => {
+  for (const key of keys) {
+    delete process.env[`INPUT_${key.replace(/ /g, '_').toUpperCase()}`];
+  }
+};
+
+const baseInputMap: Record<string, string> = {
   'commit-hash': CURRENT_SHA,
   'comparadise-host': HOST,
-  'comment-details': ''
+  'bucket-name': 'some-bucket',
+  'comment-details': '',
+  'update-base-images-on-accept': 'false',
+  'use-base-images': 'false'
 };
 
 const NO_PACKAGES: PackageResult[] = [
@@ -68,21 +65,39 @@ const WITH_PACKAGES: PackageResult[] = [
 ];
 
 async function runCreateGithubComment(
-  packageResults: PackageResult[] = NO_PACKAGES
+  packageResults: PackageResult[] = NO_PACKAGES,
+  octokit: Octokit = makeOctokit()
 ) {
   const { createGithubComment } = await import('../src/comment');
-  await createGithubComment(packageResults);
+  await createGithubComment(packageResults, octokit);
 }
 
 describe('createGithubComment', () => {
   beforeEach(() => {
-    getInputMock.mockImplementation((name: string) => inputMap[name] ?? '');
-    buildComparadiseUrlMock.mockReturnValue(currentUrl);
-    githubContext.issue.number = 0;
+    process.env['GITHUB_REPOSITORY'] = 'owner/repo';
+    process.env['GITHUB_RUN_ID'] = '456';
+    process.env['GITHUB_SERVER_URL'] = 'https://github.com';
+    process.env['GITHUB_EVENT_NAME'] = 'pull_request';
+
+    setEnv(baseInputMap);
   });
 
   afterEach(() => {
     mock.clearAllMocks();
+    clearEnv(
+      'commit-hash',
+      'comparadise-host',
+      'bucket-name',
+      'comment-details',
+      'diff-id',
+      'update-base-images-on-accept',
+      'use-base-images'
+    );
+    delete process.env['GITHUB_REPOSITORY'];
+    delete process.env['GITHUB_RUN_ID'];
+    delete process.env['GITHUB_SERVER_URL'];
+    delete process.env['GITHUB_EVENT_NAME'];
+    delete process.env['GITHUB_EVENT_PATH'];
   });
 
   describe('comment creation and updating', () => {
@@ -167,7 +182,8 @@ describe('createGithubComment', () => {
       listPullRequestsAssociatedWithCommitMock.mockResolvedValueOnce({
         data: []
       });
-      githubContext.issue.number = 0;
+      // No GITHUB_EVENT_PATH set, so context.issue.number will be 0/NaN
+      delete process.env['GITHUB_EVENT_PATH'];
 
       await runCreateGithubComment();
 
@@ -252,9 +268,7 @@ describe('createGithubComment', () => {
     });
 
     it('should append comment-details when provided', async () => {
-      getInputMock.mockImplementation((name: string) =>
-        name === 'comment-details' ? 'Extra info' : (inputMap[name] ?? '')
-      );
+      setEnv({ 'comment-details': 'Extra info' });
       listCommentsMock.mockResolvedValue({ data: [] });
 
       await runCreateGithubComment();

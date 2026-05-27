@@ -1,24 +1,12 @@
-import {
-  getInput,
-  getBooleanInput,
-  getMultilineInput,
-  info,
-  setFailed,
-  warning
-} from '@actions/core';
+import { getInput, getBooleanInput, getMultilineInput } from '@actions/core';
 import {
   deleteHashImages,
   downloadBaseImages,
   uploadAllImages,
   uploadOriginalNewImages
 } from './s3-operations';
-import { updateBaseImages } from 'shared/s3';
-import { exec } from '@actions/exec';
-import { octokit } from './octokit';
 import { context } from '@actions/github';
 import * as path from 'path';
-import { glob } from 'glob';
-import { unlinkSync } from 'fs';
 import { createGithubComment, PackageResult } from './comment';
 import { getLatestVisualRegressionStatus } from './get-latest-visual-regression-status';
 import {
@@ -27,40 +15,45 @@ import {
 } from 'shared/constants';
 import { buildComparadiseUrl } from './build-comparadise-url';
 import { disableAutoMerge } from './disable-auto-merge';
+import { type Deps, makeDefaultDeps } from './deps';
 
-export const run = async () => {
+export const run = async (deps: Deps = makeDefaultDeps()) => {
   const workflow = getInput('workflow') || 'pr';
   const commitHash = getInput('commit-hash');
   const diffId = getInput('diff-id');
 
   if (!commitHash && !diffId) {
-    setFailed('Please provide either a commit-hash or a diff-id.');
+    deps.core.setFailed('Please provide either a commit-hash or a diff-id.');
     return;
   }
 
   const hash = commitHash || diffId;
 
   if (workflow === 'merge') {
-    info('Running in merge workflow mode — updating base images in S3.');
+    deps.core.info(
+      'Running in merge workflow mode — updating base images in S3.'
+    );
     const bucket = getInput('bucket-name', { required: true });
-    await updateBaseImages(hash, bucket, info);
-    info('Base images updated successfully.');
+    await deps.s3.updateBaseImages(hash, bucket, deps.core.info);
+    deps.core.info('Base images updated successfully.');
     return;
   }
 
   const visualTestCommands = getMultilineInput('visual-test-command');
   if (!visualTestCommands.length) {
-    setFailed('visual-test-command is required when workflow is pr.');
+    deps.core.setFailed('visual-test-command is required when workflow is pr.');
     return;
   }
 
   const useBaseImages = getBooleanInput('use-base-images') ?? true;
   if (useBaseImages) {
-    await downloadBaseImages();
+    await downloadBaseImages(deps);
   }
 
   const visualTestExitCodes = await Promise.all(
-    visualTestCommands.map(cmd => exec(cmd, [], { ignoreReturnCode: true }))
+    visualTestCommands.map(cmd =>
+      deps.exec(cmd, [], { ignoreReturnCode: true })
+    )
   );
   const numVisualTestFailures = visualTestExitCodes.filter(
     code => code !== 0
@@ -69,19 +62,19 @@ export const run = async () => {
   const screenshotsDirectory = getInput('screenshots-directory');
   const screenshotsPath = path.join(process.cwd(), screenshotsDirectory);
 
-  const orphanedNewPngs = await glob(`**/screenshots/**/new.png`, {
+  const orphanedNewPngs = await deps.glob(`**/screenshots/**/new.png`, {
     cwd: process.cwd(),
     absolute: true,
     ignore: ['**/node_modules/**', `${screenshotsPath}/**`]
   });
   if (orphanedNewPngs.length > 0) {
-    setFailed(
+    deps.core.setFailed(
       `Screenshots were found outside the configured screenshots-directory ("${screenshotsDirectory}"): ${orphanedNewPngs.join(', ')}. Check that your screenshots-directory input points to where Cypress writes screenshots.`
     );
     return;
   }
 
-  const filesInScreenshotDirectory = await glob(
+  const filesInScreenshotDirectory = await deps.glob(
     `${screenshotsPath}/**/{base,diff,new}.png`,
     {
       absolute: false
@@ -104,9 +97,7 @@ export const run = async () => {
       validDiffFilePaths.push(diffPath);
       return count + 1;
     }
-    // Delete orphaned diff files (no corresponding new file)
-    unlinkSync(diffPath);
-
+    deps.fs.unlinkSync(diffPath);
     return count;
   }, 0);
 
@@ -117,11 +108,11 @@ export const run = async () => {
   );
 
   if (visualTestCommandFailsOnDiff && numVisualTestFailures > diffFileCount) {
-    setFailed(
+    deps.core.setFailed(
       'Visual tests failed to execute successfully. Perhaps one failed to take a screenshot?'
     );
     if (!commitHash) return;
-    return octokit.rest.repos.createCommitStatus({
+    return deps.octokit.rest.repos.createCommitStatus({
       sha: commitHash,
       context: VISUAL_REGRESSION_CONTEXT,
       state: 'failure',
@@ -131,38 +122,38 @@ export const run = async () => {
   }
 
   if (!visualTestCommandFailsOnDiff && numVisualTestFailures > 0) {
-    setFailed('The job failed, and this is not due to visual tests.');
+    deps.core.setFailed('The job failed, and this is not due to visual tests.');
     return;
   }
 
   const latestVisualRegressionStatus = commitHash
-    ? await getLatestVisualRegressionStatus(commitHash)
+    ? await getLatestVisualRegressionStatus(commitHash, deps.octokit)
     : null;
 
-  const isRetry = context.runAttempt > 1;
+  const isRetry = deps.runAttempt > 1;
 
   const testsPassed = diffFileCount === 0 && newFileCount === 0;
   if (testsPassed) {
-    info('All visual tests passed, and no diffs found!');
+    deps.core.info('All visual tests passed, and no diffs found!');
 
     if (isRetry) {
-      await deleteHashImages(hash);
+      await deleteHashImages(hash, deps);
     }
 
     if (!commitHash) return;
     if (isRetry) {
-      warning(
+      deps.core.warning(
         'Disabling auto merge because this is a retry attempt. This is to avoid auto merging prematurely.'
       );
-      await disableAutoMerge(commitHash);
+      await disableAutoMerge(commitHash, deps);
     } else if (latestVisualRegressionStatus?.state) {
-      info(
+      deps.core.info(
         'Skipping status update since Visual Regression status has already been set.'
       );
       return;
     }
 
-    return octokit.rest.repos.createCommitStatus({
+    return deps.octokit.rest.repos.createCommitStatus({
       sha: commitHash,
       context: VISUAL_REGRESSION_CONTEXT,
       state: 'success',
@@ -178,7 +169,7 @@ export const run = async () => {
       VISUAL_TESTS_FAILED_TO_EXECUTE &&
     !isRetry
   ) {
-    warning(
+    deps.core.warning(
       'Some other Visual Regression tests failed to execute successfully, so skipping status update and comment.'
     );
     return;
@@ -215,10 +206,13 @@ export const run = async () => {
           }
         ];
 
-  info(`${diffFileCount} visual differences found.`);
-  await Promise.all([uploadAllImages(hash), uploadOriginalNewImages(hash)]);
+  deps.core.info(`${diffFileCount} visual differences found.`);
+  await Promise.all([
+    uploadAllImages(hash, deps),
+    uploadOriginalNewImages(hash, deps)
+  ]);
   if (!commitHash) return;
-  await octokit.rest.repos.createCommitStatus({
+  await deps.octokit.rest.repos.createCommitStatus({
     sha: commitHash,
     context: VISUAL_REGRESSION_CONTEXT,
     state: 'pending',
@@ -226,11 +220,11 @@ export const run = async () => {
     target_url: buildComparadiseUrl(),
     ...context.repo
   });
-  await createGithubComment(packageResults);
+  await createGithubComment(packageResults, deps.octokit);
 
   if (visualTestCommandFailsOnDiff && diffFileCount > 0) {
-    setFailed(pendingDescription);
+    deps.core.setFailed(pendingDescription);
   } else {
-    warning(pendingDescription);
+    deps.core.warning(pendingDescription);
   }
 };
