@@ -4,24 +4,13 @@ import { getGroupedKeys } from './getGroupedKeys';
 import { TRPCError } from '@trpc/server';
 import { getKeysFromS3, s3Client } from 'shared/s3';
 import type { S3Operations } from 'shared/s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { GetObjectCommand } from '@aws-sdk/client-s3';
 
 const defaultS3: Pick<S3Operations, 'getKeysFromS3' | 'client'> = {
   getKeysFromS3,
   client: s3Client
 };
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { GetObjectCommand } from '@aws-sdk/client-s3';
-
-const oneHour = 3600;
-
-async function getTemporaryObjectUrl(
-  key: string,
-  bucket: string,
-  s3: Pick<S3Operations, 'client'>
-) {
-  const command = new GetObjectCommand({ Bucket: bucket, Key: key });
-  return getSignedUrl(s3.client, command, { expiresIn: oneHour });
-}
 
 export const fetchCurrentPage = async (
   { hash, bucket, page }: FetchCurrentPageInput,
@@ -62,3 +51,14 @@ export const fetchCurrentPage = async (
     totalPages: paginatedKeys.length
   };
 };
+
+const oneHour = 3600;
+
+async function getTemporaryObjectUrl(
+  key: string,
+  bucket: string,
+  s3: Pick<S3Operations, 'client'>
+) {
+  const command = new GetObjectCommand({ Bucket: bucket, Key: key });
+  return getSignedUrl(s3.client, command, { expiresIn: oneHour });
+}

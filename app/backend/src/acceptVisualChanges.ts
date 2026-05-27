@@ -9,30 +9,6 @@ import type { S3Operations } from 'shared/s3';
 import { VISUAL_REGRESSION_CONTEXT } from 'shared/constants';
 import type { Octokit } from '@octokit/rest';
 
-async function updateCommitStatus(
-  owner: string,
-  repo: string,
-  commitHash: string,
-  octokit: Octokit
-) {
-  return octokit.rest.repos
-    .createCommitStatus({
-      owner,
-      repo,
-      sha: commitHash,
-      state: 'success',
-      description: 'Base images updated successfully.',
-      context: VISUAL_REGRESSION_CONTEXT
-    })
-    .catch(error => {
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: `Failed to update GitHub commit status: ${error}`,
-        cause: { event: 'COMMIT_STATUS_UPDATE_FAILED' }
-      });
-    });
-}
-
 export const acceptVisualChanges = async (
   {
     commitHash,
@@ -82,3 +58,27 @@ export const acceptVisualChanges = async (
     ...ctx.urlParams
   });
 };
+
+async function updateCommitStatus(
+  owner: string,
+  repo: string,
+  commitHash: string,
+  octokit: Octokit
+) {
+  return octokit.rest.repos
+    .createCommitStatus({
+      owner,
+      repo,
+      sha: commitHash,
+      state: 'success',
+      description: 'Base images updated successfully.',
+      context: VISUAL_REGRESSION_CONTEXT
+    })
+    .catch(error => {
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: `Failed to update GitHub commit status: ${error}`,
+        cause: { event: 'COMMIT_STATUS_UPDATE_FAILED' }
+      });
+    });
+}
