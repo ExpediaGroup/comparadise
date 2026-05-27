@@ -206,12 +206,6 @@ export function createS3Operations(client: S3Client = new S3Client()) {
 export const defaultS3Operations = createS3Operations();
 
 export const s3Client = defaultS3Operations.client;
-export const listObjects = defaultS3Operations.listObjects;
-export const listAllObjects = defaultS3Operations.listAllObjects;
-export const getObject = defaultS3Operations.getObject;
-export const putObject = defaultS3Operations.putObject;
-export const copyObject = defaultS3Operations.copyObject;
-export const deleteObjects = defaultS3Operations.deleteObjects;
 export const filterNewImages = defaultS3Operations.filterNewImages;
 export const getKeysFromS3 = defaultS3Operations.getKeysFromS3;
 export const getBaseImagePaths = defaultS3Operations.getBaseImagePaths;
