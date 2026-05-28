@@ -14,8 +14,8 @@ Three new workflow modes added to the existing action:
 
 ```
 bucket/
-├── manifests/{commit-sha}.json              # Full manifest: { "pkg/path/screenshot.png": "md5hash", ... }
-├── changesets/{pr-head-sha}.json                # Changeset: { "changed.png": "newhash", "deleted.png": null }
+├── manifests/{commit-sha}.json              # Full manifest: { "pkg/path/component-dir": "md5hash", ... }
+├── changesets/{pr-head-sha}.json            # Changeset: { "pkg/path/component-dir": "newhash", "pkg/path/other-dir": null }
 ├── base-images/[path]/base.png              # (existing) Updated by manifest-merge
 ├── new-images/{sha}/[path]/new.png          # (existing) Only changed images uploaded per commit
 └── original-new-images/{sha}/[path]/new.png # (existing) Full-size originals if resize enabled
@@ -27,21 +27,21 @@ bucket/
 
 ```json
 {
-  "components/Button/screenshot.png": "d41d8cd98f00b204e9800998ecf8427e",
-  "components/Modal/screenshot.png": "7d793037a076d2e1f3eb15d3a5e4389a",
-  "pages/Home/screenshot.png": "098f6bcd4621d373cade4e832627b4f6"
+  "components/Button": "d41d8cd98f00b204e9800998ecf8427e",
+  "components/Modal": "7d793037a076d2e1f3eb15d3a5e4389a",
+  "pages/Home": "098f6bcd4621d373cade4e832627b4f6"
 }
 ```
 
-A flat object mapping each screenshot's relative path (prefixed with package path for monorepos) to its MD5 hash of the full-size image.
+A flat object mapping each screenshot directory's relative path (prefixed with package path for monorepos) to an MD5 hash derived from the image(s) in that directory.
 
 ### Changeset (`changesets/{pr-head-sha}.json`)
 
 ```json
 {
   "_headSha": "abc123def456...",
-  "components/Button/screenshot.png": "a3c2f8d1b4e6a9c7d2f0e1b3a5c7d9f1",
-  "components/Removed/screenshot.png": null
+  "components/Button": "a3c2f8d1b4e6a9c7d2f0e1b3a5c7d9f1",
+  "components/Removed": null
 }
 ```
 
@@ -52,7 +52,7 @@ A flat object containing only entries the PR changed. Non-null values are the PR
 ### `manifest-generate` mode
 
 1. Run `visual-test-command` (no base image download, no diff expected)
-2. Walk screenshots directory, compute MD5 hash of each full-size image
+2. Walk screenshots directory, compute MD5 hash for each screenshot directory (keyed by the directory's path relative to the screenshots root)
 3. Fetch the HEAD manifest from S3 to determine which hashes changed (if no manifest exists, treat as empty — all images upload)
 4. Upload only changed images to `new-images/{commit-sha}/path/new.png`
 5. If resize enabled: upload resized to `new-images/`, upload full-size original to `original-new-images/`
@@ -68,7 +68,7 @@ A flat object containing only entries the PR changed. Non-null values are the PR
    - **At least one differs** → proceed to 3-way comparison
 5. Resolve ancestor SHA via GitHub Compare API (`GET /repos/{owner}/{repo}/compare/{head-sha}...{pr-sha}` → `merge_base_commit.sha`)
 6. Fetch ancestor manifest from `manifests/{ancestor-sha}.json` (fail with rebase instruction if missing)
-7. For each differing screenshot, run 3-way comparison (treat missing entries as a distinct state):
+7. For each differing directory, run 3-way comparison (treat missing entries as a distinct state):
    - **PR Owns (HEAD = ancestor):** PR introduced the diff → download base.png from `base-images/`, download PR's new.png from `new-images/{pr-sha}/path/new.png`, generate diff.png via pixelmatch, upload base.png and diff.png to `new-images/{pr-sha}/path/{base,diff}.png`
      - Special case: new screenshot (not in HEAD or ancestor) → no base.png or diff.png, just new.png
      - Special case: PR deletes screenshot (not in PR, HEAD = ancestor) → note deletion, no images to upload
