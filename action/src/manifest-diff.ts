@@ -1,6 +1,6 @@
 import { BASE_IMAGES_DIRECTORY, NEW_IMAGES_DIRECTORY } from 'shared/constants';
 import type { Dependencies } from './dependencies';
-import type { PrOwnsEntry } from './manifest-compare';
+import type { PrOwnsEntry } from './manifest-compare-classify';
 
 export interface GenerateDiffsDeps {
   s3: Pick<Dependencies['s3'], 'getObject' | 'putObject'>;

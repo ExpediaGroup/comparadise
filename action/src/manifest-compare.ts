@@ -1,29 +1,44 @@
-import type { Dependencies } from './dependencies';
-import type { Manifest } from './manifest-s3';
+import type {
+  ClassifyParams,
+  CompareResult,
+  PrOwnsEntry
+} from './manifest-compare-classify';
+import type { GenerateDiffsParams } from './manifest-diff';
+import type { Changeset, Manifest } from './manifest-s3';
+import { VISUAL_REGRESSION_CONTEXT } from 'shared/constants';
 
-export interface PrOwnsEntry {
-  path: string;
-  type: 'changed' | 'added' | 'deleted';
+export interface SetCommitStatusParams {
+  sha: string;
+  state: 'success' | 'pending' | 'failure';
+  description: string;
+  context: string;
+  target_url?: string;
 }
 
-export type CompareResult =
-  | { outcome: 'match' }
-  | {
-      outcome: 'classified';
-      headSha: string;
-      prSha: string;
-      prOwns: PrOwnsEntry[];
-      mainOwns: string[];
-      conflicts: string[];
-    };
+export type CommentArgs =
+  | { kind: 'diffs'; commitHash: string; prOwns: PrOwnsEntry[] }
+  | { kind: 'conflict'; commitHash: string; conflicts: string[] };
 
 export interface ManifestCompareDeps {
-  s3: Dependencies['s3'];
-  octokit: Dependencies['octokit'];
-  core: Dependencies['core'];
+  classify: (params: ClassifyParams) => Promise<CompareResult>;
+  generateDiffs: (params: GenerateDiffsParams) => Promise<void>;
+  putChangeset: (
+    bucket: string,
+    sha: string,
+    changeset: Changeset
+  ) => Promise<void>;
+  getPrManifest: (bucket: string, sha: string) => Promise<Manifest | null>;
+  setCommitStatus: (params: SetCommitStatusParams) => Promise<void>;
+  postComment: (args: CommentArgs) => Promise<void>;
+  buildComparadiseUrl: () => string;
+  core: {
+    info: (message: string) => void;
+    setFailed: (message: string | Error) => void;
+    warning: (message: string | Error) => void;
+  };
 }
 
-export interface CompareParams {
+export interface ManifestCompareParams {
   bucket: string;
   prSha: string;
   repo: { owner: string; repo: string };
@@ -31,144 +46,113 @@ export interface CompareParams {
 }
 
 export async function manifestCompare(
-  params: CompareParams,
+  params: ManifestCompareParams,
   deps: ManifestCompareDeps
-): Promise<CompareResult> {
+): Promise<void> {
   const { bucket, prSha, repo, baseRef } = params;
 
-  const prManifest = await requirePrManifest(deps, bucket, prSha);
+  const result = await deps.classify({ bucket, prSha, repo, baseRef });
 
-  const headSha = await resolveHeadSha(deps, repo, baseRef);
-  const headManifest = (await getManifestFromS3(deps, bucket, headSha)) ?? {};
-
-  const allPaths = new Set([
-    ...Object.keys(prManifest),
-    ...Object.keys(headManifest)
-  ]);
-
-  const differingPaths = [...allPaths].filter(
-    p => prManifest[p] !== headManifest[p]
-  );
-
-  if (differingPaths.length === 0) {
-    return { outcome: 'match' };
+  if (result.outcome === 'match') {
+    deps.core.info('Visual manifests match — no changes detected.');
+    await deps.setCommitStatus({
+      sha: prSha,
+      state: 'success',
+      description: 'Visual tests passed!',
+      context: VISUAL_REGRESSION_CONTEXT
+    });
+    return;
   }
 
-  const ancestorSha = await resolveAncestorSha(deps, repo, headSha, prSha);
-  const ancestorManifest = await requireAncestorManifest(
-    deps,
-    bucket,
-    ancestorSha
+  if (result.conflicts.length > 0) {
+    await handleConflicts(deps, prSha, result.conflicts);
+    return;
+  }
+
+  if (result.prOwns.length === 0) {
+    deps.core.info(
+      `Visual changes on main only (${result.mainOwns.length} path(s)) — PR is clean.`
+    );
+    await deps.setCommitStatus({
+      sha: prSha,
+      state: 'success',
+      description: 'Visual tests passed!',
+      context: VISUAL_REGRESSION_CONTEXT
+    });
+    return;
+  }
+
+  await handlePrOwns(deps, params, result);
+}
+
+async function handleConflicts(
+  deps: ManifestCompareDeps,
+  prSha: string,
+  conflicts: string[]
+): Promise<void> {
+  deps.core.setFailed(
+    `Visual diff conflicts detected on ${conflicts.length} screenshot(s). Please rebase.`
   );
+  await deps.setCommitStatus({
+    sha: prSha,
+    state: 'failure',
+    description: 'Visual diff conflicts — please rebase.',
+    context: VISUAL_REGRESSION_CONTEXT
+  });
+  await deps.postComment({
+    kind: 'conflict',
+    commitHash: prSha,
+    conflicts
+  });
+}
 
-  const prOwns: PrOwnsEntry[] = [];
-  const mainOwns: string[] = [];
-  const conflicts: string[] = [];
+async function handlePrOwns(
+  deps: ManifestCompareDeps,
+  params: ManifestCompareParams,
+  result: Extract<CompareResult, { outcome: 'classified' }>
+): Promise<void> {
+  const { bucket, prSha } = params;
 
-  for (const path of differingPaths) {
-    const ancestorHash = ancestorManifest[path] ?? null;
-    const headHash = headManifest[path] ?? null;
-    const prHash = prManifest[path] ?? null;
+  const prManifest = (await deps.getPrManifest(bucket, prSha)) ?? {};
 
-    if (headHash === ancestorHash) {
-      // PR introduced the change
-      if (ancestorHash === null) {
-        prOwns.push({ path, type: 'added' });
-      } else if (prHash === null) {
-        prOwns.push({ path, type: 'deleted' });
-      } else {
-        prOwns.push({ path, type: 'changed' });
-      }
-    } else if (prHash === ancestorHash) {
-      // Main changed, PR is clean
-      mainOwns.push(path);
+  await deps.generateDiffs({ bucket, prSha, prOwns: result.prOwns });
+
+  const changeset = buildChangeset(result.headSha, result.prOwns, prManifest);
+  await deps.putChangeset(bucket, prSha, changeset);
+
+  await deps.setCommitStatus({
+    sha: prSha,
+    state: 'pending',
+    description: 'Visual diffs found.',
+    context: VISUAL_REGRESSION_CONTEXT,
+    target_url: deps.buildComparadiseUrl()
+  });
+
+  await deps.postComment({
+    kind: 'diffs',
+    commitHash: prSha,
+    prOwns: result.prOwns
+  });
+}
+
+function buildChangeset(
+  headSha: string,
+  prOwns: PrOwnsEntry[],
+  prManifest: Manifest
+): Changeset {
+  const changeset: Changeset = { _headSha: headSha };
+  for (const entry of prOwns) {
+    if (entry.type === 'deleted') {
+      changeset[entry.path] = null;
     } else {
-      // All three differ
-      conflicts.push(path);
+      const hash = prManifest[entry.path];
+      if (!hash) {
+        throw new Error(
+          `PR manifest is missing hash for ${entry.path} (type: ${entry.type})`
+        );
+      }
+      changeset[entry.path] = hash;
     }
   }
-
-  return {
-    outcome: 'classified',
-    headSha,
-    prSha,
-    prOwns,
-    mainOwns,
-    conflicts
-  };
-}
-
-function isNoSuchKey(error: unknown): boolean {
-  return error instanceof Error && error.name === 'NoSuchKey';
-}
-
-async function getManifestFromS3(
-  deps: ManifestCompareDeps,
-  bucket: string,
-  sha: string
-): Promise<Manifest | null> {
-  try {
-    const response = await deps.s3.getObject({
-      Bucket: bucket,
-      Key: `manifests/${sha}.json`
-    });
-    const body = await response.Body!.transformToString();
-    return JSON.parse(body) as Manifest;
-  } catch (error: unknown) {
-    if (isNoSuchKey(error)) return null;
-    throw error;
-  }
-}
-
-async function requirePrManifest(
-  deps: ManifestCompareDeps,
-  bucket: string,
-  sha: string
-): Promise<Manifest> {
-  const manifest = await getManifestFromS3(deps, bucket, sha);
-  if (!manifest) {
-    throw new Error(
-      `PR manifest not found for ${sha}. Ensure manifest-generate ran successfully.`
-    );
-  }
-  return manifest;
-}
-
-async function requireAncestorManifest(
-  deps: ManifestCompareDeps,
-  bucket: string,
-  sha: string
-): Promise<Manifest> {
-  const manifest = await getManifestFromS3(deps, bucket, sha);
-  if (!manifest) {
-    throw new Error(
-      `Ancestor manifest not found for ${sha}. Please rebase your branch to generate the missing manifest.`
-    );
-  }
-  return manifest;
-}
-
-async function resolveHeadSha(
-  deps: ManifestCompareDeps,
-  repo: { owner: string; repo: string },
-  baseRef: string
-): Promise<string> {
-  const { data } = await deps.octokit.rest.repos.getBranch({
-    ...repo,
-    branch: baseRef
-  });
-  return data.commit.sha;
-}
-
-async function resolveAncestorSha(
-  deps: ManifestCompareDeps,
-  repo: { owner: string; repo: string },
-  headSha: string,
-  prSha: string
-): Promise<string> {
-  const { data } = await deps.octokit.rest.repos.compareCommitsWithBasehead({
-    ...repo,
-    basehead: `${headSha}...${prSha}`
-  });
-  return data.merge_base_commit.sha;
+  return changeset;
 }

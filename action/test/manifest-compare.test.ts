@@ -2,358 +2,327 @@
 import { describe, expect, it, mock, beforeEach } from 'bun:test';
 import {
   manifestCompare,
-  type CompareResult,
   type ManifestCompareDeps
 } from '../src/manifest-compare';
+import type { CompareResult } from '../src/manifest-compare-classify';
 
-const getObjectMock = mock<any>();
-const getBranchMock = mock<any>();
-const compareMock = mock<any>();
+const classifyMock = mock<any>();
+const generateDiffsMock = mock<any>();
+const putChangesetMock = mock<any>();
+const getManifestMock = mock<any>();
+const setCommitStatusMock = mock<any>();
+const postCommentMock = mock<any>();
+const buildUrlMock = mock<any>();
 const infoMock = mock<any>();
+const setFailedMock = mock<any>();
+const warningMock = mock<any>();
 
 function makeDeps(
   overrides: Partial<ManifestCompareDeps> = {}
 ): ManifestCompareDeps {
   return {
-    s3: { getObject: getObjectMock } as any,
-    octokit: {
-      rest: {
-        repos: {
-          getBranch: getBranchMock,
-          compareCommitsWithBasehead: compareMock
-        }
-      }
+    classify: classifyMock,
+    generateDiffs: generateDiffsMock,
+    putChangeset: putChangesetMock,
+    getPrManifest: getManifestMock,
+    setCommitStatus: setCommitStatusMock,
+    postComment: postCommentMock,
+    buildComparadiseUrl: buildUrlMock,
+    core: {
+      info: infoMock,
+      setFailed: setFailedMock,
+      warning: warningMock
     } as any,
-    core: { info: infoMock, setFailed: mock() } as any,
     ...overrides
   };
 }
 
-function mockManifest(manifest: Record<string, string>) {
-  getObjectMock.mockResolvedValueOnce({
-    Body: {
-      transformToString: () => Promise.resolve(JSON.stringify(manifest))
-    }
-  });
-}
-
-function mockNoSuchKey() {
-  const error = new Error('NoSuchKey');
-  error.name = 'NoSuchKey';
-  getObjectMock.mockRejectedValueOnce(error);
-}
-
-const repo = { owner: 'test-org', repo: 'test-repo' };
-const baseRef = 'main';
-const prSha = 'pr-sha-111';
+const params = {
+  bucket: 'test-bucket',
+  prSha: 'pr-sha-111',
+  repo: { owner: 'test-org', repo: 'test-repo' },
+  baseRef: 'main'
+};
 
 describe('manifestCompare', () => {
   beforeEach(() => {
-    getObjectMock.mockReset();
-    getBranchMock.mockReset();
-    compareMock.mockReset();
+    classifyMock.mockReset();
+    generateDiffsMock.mockReset().mockResolvedValue(undefined);
+    putChangesetMock.mockReset().mockResolvedValue(undefined);
+    getManifestMock.mockReset();
+    setCommitStatusMock.mockReset().mockResolvedValue(undefined);
+    postCommentMock.mockReset().mockResolvedValue(undefined);
+    buildUrlMock.mockReset().mockReturnValue('https://comparadise.example/run');
     infoMock.mockReset();
+    setFailedMock.mockReset();
+    warningMock.mockReset();
   });
 
-  it('returns match when PR and HEAD manifests are identical', async () => {
-    const manifest = { Button: 'hash1', Modal: 'hash2' };
+  describe('outcome: match', () => {
+    it('sets a success commit status', async () => {
+      classifyMock.mockResolvedValue({ outcome: 'match' } as CompareResult);
 
-    // PR manifest
-    mockManifest(manifest);
-    // HEAD SHA
-    getBranchMock.mockResolvedValue({
-      data: { commit: { sha: 'head-sha-222' } }
+      await manifestCompare(params, makeDeps());
+
+      expect(setCommitStatusMock).toHaveBeenCalledTimes(1);
+      expect(setCommitStatusMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sha: 'pr-sha-111',
+          state: 'success'
+        })
+      );
     });
-    // HEAD manifest
-    mockManifest(manifest);
 
-    const result = await manifestCompare(
-      { bucket: 'test-bucket', prSha, repo, baseRef },
-      makeDeps()
-    );
+    it('does not generate diffs, post comment, or write changeset', async () => {
+      classifyMock.mockResolvedValue({ outcome: 'match' } as CompareResult);
 
-    expect(result).toEqual({ outcome: 'match' });
+      await manifestCompare(params, makeDeps());
+
+      expect(generateDiffsMock).not.toHaveBeenCalled();
+      expect(postCommentMock).not.toHaveBeenCalled();
+      expect(putChangesetMock).not.toHaveBeenCalled();
+    });
   });
 
-  it('classifies as prOwns when HEAD equals ancestor but PR differs', async () => {
-    const ancestorManifest = { Button: 'hash1' };
-    const headManifest = { Button: 'hash1' };
-    const prManifest = { Button: 'hash2' };
-
-    // PR manifest
-    mockManifest(prManifest);
-    // HEAD SHA
-    getBranchMock.mockResolvedValue({
-      data: { commit: { sha: 'head-sha-222' } }
-    });
-    // HEAD manifest
-    mockManifest(headManifest);
-    // Ancestor SHA
-    compareMock.mockResolvedValue({
-      data: { merge_base_commit: { sha: 'ancestor-sha-333' } }
-    });
-    // Ancestor manifest
-    mockManifest(ancestorManifest);
-
-    const result = await manifestCompare(
-      { bucket: 'test-bucket', prSha, repo, baseRef },
-      makeDeps()
-    );
-
-    expect(result).toEqual({
+  describe('outcome: classified — only mainOwns', () => {
+    const result: CompareResult = {
       outcome: 'classified',
       headSha: 'head-sha-222',
-      prSha,
-      prOwns: [{ path: 'Button', type: 'changed' }],
-      mainOwns: [],
-      conflicts: []
-    });
-  });
-
-  it('classifies as prOwns with type added when screenshot is new', async () => {
-    const ancestorManifest = {};
-    const headManifest = {};
-    const prManifest = { NewComponent: 'hash1' };
-
-    mockManifest(prManifest);
-    getBranchMock.mockResolvedValue({
-      data: { commit: { sha: 'head-sha-222' } }
-    });
-    mockManifest(headManifest);
-    compareMock.mockResolvedValue({
-      data: { merge_base_commit: { sha: 'ancestor-sha-333' } }
-    });
-    mockManifest(ancestorManifest);
-
-    const result = await manifestCompare(
-      { bucket: 'test-bucket', prSha, repo, baseRef },
-      makeDeps()
-    );
-
-    expect(result).toEqual({
-      outcome: 'classified',
-      headSha: 'head-sha-222',
-      prSha,
-      prOwns: [{ path: 'NewComponent', type: 'added' }],
-      mainOwns: [],
-      conflicts: []
-    });
-  });
-
-  it('classifies as prOwns with type deleted when PR removes a screenshot', async () => {
-    const ancestorManifest = { Removed: 'hash1' };
-    const headManifest = { Removed: 'hash1' };
-    const prManifest = {};
-
-    mockManifest(prManifest);
-    getBranchMock.mockResolvedValue({
-      data: { commit: { sha: 'head-sha-222' } }
-    });
-    mockManifest(headManifest);
-    compareMock.mockResolvedValue({
-      data: { merge_base_commit: { sha: 'ancestor-sha-333' } }
-    });
-    mockManifest(ancestorManifest);
-
-    const result = await manifestCompare(
-      { bucket: 'test-bucket', prSha, repo, baseRef },
-      makeDeps()
-    );
-
-    expect(result).toEqual({
-      outcome: 'classified',
-      headSha: 'head-sha-222',
-      prSha,
-      prOwns: [{ path: 'Removed', type: 'deleted' }],
-      mainOwns: [],
-      conflicts: []
-    });
-  });
-
-  it('classifies as mainOwns when PR equals ancestor but HEAD differs', async () => {
-    const ancestorManifest = { Button: 'hash1' };
-    const headManifest = { Button: 'hash3' };
-    const prManifest = { Button: 'hash1' };
-
-    mockManifest(prManifest);
-    getBranchMock.mockResolvedValue({
-      data: { commit: { sha: 'head-sha-222' } }
-    });
-    mockManifest(headManifest);
-    compareMock.mockResolvedValue({
-      data: { merge_base_commit: { sha: 'ancestor-sha-333' } }
-    });
-    mockManifest(ancestorManifest);
-
-    const result = await manifestCompare(
-      { bucket: 'test-bucket', prSha, repo, baseRef },
-      makeDeps()
-    );
-
-    expect(result).toEqual({
-      outcome: 'classified',
-      headSha: 'head-sha-222',
-      prSha,
+      prSha: 'pr-sha-111',
       prOwns: [],
       mainOwns: ['Button'],
       conflicts: []
+    };
+
+    it('sets a success commit status (main changed, PR clean)', async () => {
+      classifyMock.mockResolvedValue(result);
+
+      await manifestCompare(params, makeDeps());
+
+      expect(setCommitStatusMock).toHaveBeenCalledTimes(1);
+      expect(setCommitStatusMock).toHaveBeenCalledWith(
+        expect.objectContaining({ sha: 'pr-sha-111', state: 'success' })
+      );
+    });
+
+    it('does not generate diffs, post comment, or write changeset', async () => {
+      classifyMock.mockResolvedValue(result);
+
+      await manifestCompare(params, makeDeps());
+
+      expect(generateDiffsMock).not.toHaveBeenCalled();
+      expect(postCommentMock).not.toHaveBeenCalled();
+      expect(putChangesetMock).not.toHaveBeenCalled();
     });
   });
 
-  it('classifies as mainOwns when screenshot was added on main only', async () => {
-    const ancestorManifest = {};
-    const headManifest = { MainOnly: 'hash1' };
-    const prManifest = {};
-
-    mockManifest(prManifest);
-    getBranchMock.mockResolvedValue({
-      data: { commit: { sha: 'head-sha-222' } }
-    });
-    mockManifest(headManifest);
-    compareMock.mockResolvedValue({
-      data: { merge_base_commit: { sha: 'ancestor-sha-333' } }
-    });
-    mockManifest(ancestorManifest);
-
-    const result = await manifestCompare(
-      { bucket: 'test-bucket', prSha, repo, baseRef },
-      makeDeps()
-    );
-
-    expect(result).toEqual({
+  describe('outcome: classified — conflicts present', () => {
+    const result: CompareResult = {
       outcome: 'classified',
       headSha: 'head-sha-222',
-      prSha,
-      prOwns: [],
-      mainOwns: ['MainOnly'],
-      conflicts: []
-    });
-  });
-
-  it('classifies as conflict when all three manifests differ', async () => {
-    const ancestorManifest = { Button: 'hash1' };
-    const headManifest = { Button: 'hash2' };
-    const prManifest = { Button: 'hash3' };
-
-    mockManifest(prManifest);
-    getBranchMock.mockResolvedValue({
-      data: { commit: { sha: 'head-sha-222' } }
-    });
-    mockManifest(headManifest);
-    compareMock.mockResolvedValue({
-      data: { merge_base_commit: { sha: 'ancestor-sha-333' } }
-    });
-    mockManifest(ancestorManifest);
-
-    const result = await manifestCompare(
-      { bucket: 'test-bucket', prSha, repo, baseRef },
-      makeDeps()
-    );
-
-    expect(result).toEqual({
-      outcome: 'classified',
-      headSha: 'head-sha-222',
-      prSha,
-      prOwns: [],
+      prSha: 'pr-sha-111',
+      prOwns: [{ path: 'Button', type: 'changed' }],
       mainOwns: [],
-      conflicts: ['Button']
-    });
-  });
-
-  it('classifies multiple screenshots into different categories', async () => {
-    const ancestorManifest = {
-      Button: 'hash1',
-      Modal: 'hash2',
-      Card: 'hash3'
-    };
-    const headManifest = {
-      Button: 'hash1',
-      Modal: 'hash2-main',
-      Card: 'hash3-main'
-    };
-    const prManifest = {
-      Button: 'hash1-pr',
-      Modal: 'hash2',
-      Card: 'hash3-pr'
+      conflicts: ['Card', 'Modal']
     };
 
-    mockManifest(prManifest);
-    getBranchMock.mockResolvedValue({
-      data: { commit: { sha: 'head-sha-222' } }
-    });
-    mockManifest(headManifest);
-    compareMock.mockResolvedValue({
-      data: { merge_base_commit: { sha: 'ancestor-sha-333' } }
-    });
-    mockManifest(ancestorManifest);
+    it('sets a failure commit status', async () => {
+      classifyMock.mockResolvedValue(result);
 
-    const result = (await manifestCompare(
-      { bucket: 'test-bucket', prSha, repo, baseRef },
-      makeDeps()
-    )) as Extract<CompareResult, { outcome: 'classified' }>;
+      await manifestCompare(params, makeDeps());
 
-    expect(result.prOwns).toEqual([{ path: 'Button', type: 'changed' }]);
-    expect(result.mainOwns).toEqual(['Modal']);
-    expect(result.conflicts).toEqual(['Card']);
+      expect(setCommitStatusMock).toHaveBeenCalledTimes(1);
+      expect(setCommitStatusMock).toHaveBeenCalledWith(
+        expect.objectContaining({ sha: 'pr-sha-111', state: 'failure' })
+      );
+    });
+
+    it('posts a comment listing conflicting paths with rebase instruction', async () => {
+      classifyMock.mockResolvedValue(result);
+
+      await manifestCompare(params, makeDeps());
+
+      expect(postCommentMock).toHaveBeenCalledTimes(1);
+      const arg = postCommentMock.mock.calls[0]?.[0] as any;
+      expect(arg.kind).toBe('conflict');
+      expect(arg.conflicts).toEqual(['Card', 'Modal']);
+      expect(arg.commitHash).toBe('pr-sha-111');
+    });
+
+    it('does not generate diffs or write changeset', async () => {
+      classifyMock.mockResolvedValue(result);
+
+      await manifestCompare(params, makeDeps());
+
+      expect(generateDiffsMock).not.toHaveBeenCalled();
+      expect(putChangesetMock).not.toHaveBeenCalled();
+    });
   });
 
-  it('fails when ancestor manifest is missing', async () => {
-    const headManifest = { Button: 'hash1' };
-    const prManifest = { Button: 'hash2' };
+  describe('outcome: classified — prOwns changed', () => {
+    const result: CompareResult = {
+      outcome: 'classified',
+      headSha: 'head-sha-222',
+      prSha: 'pr-sha-111',
+      prOwns: [{ path: 'Button', type: 'changed' }],
+      mainOwns: [],
+      conflicts: []
+    };
+    const prManifest = { Button: 'pr-hash-button' };
 
-    mockManifest(prManifest);
-    getBranchMock.mockResolvedValue({
-      data: { commit: { sha: 'head-sha-222' } }
-    });
-    mockManifest(headManifest);
-    compareMock.mockResolvedValue({
-      data: { merge_base_commit: { sha: 'ancestor-sha-333' } }
-    });
-    // Ancestor manifest missing
-    mockNoSuchKey();
+    it('generates diffs for prOwns entries', async () => {
+      classifyMock.mockResolvedValue(result);
+      getManifestMock.mockResolvedValue(prManifest);
 
-    await expect(
-      manifestCompare(
-        { bucket: 'test-bucket', prSha, repo, baseRef },
-        makeDeps()
-      )
-    ).rejects.toThrow(/rebase/i);
+      await manifestCompare(params, makeDeps());
+
+      expect(generateDiffsMock).toHaveBeenCalledTimes(1);
+      expect(generateDiffsMock).toHaveBeenCalledWith({
+        bucket: 'test-bucket',
+        prSha: 'pr-sha-111',
+        prOwns: [{ path: 'Button', type: 'changed' }]
+      });
+    });
+
+    it('sets a pending commit status with the Comparadise URL', async () => {
+      classifyMock.mockResolvedValue(result);
+      getManifestMock.mockResolvedValue(prManifest);
+
+      await manifestCompare(params, makeDeps());
+
+      expect(setCommitStatusMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sha: 'pr-sha-111',
+          state: 'pending',
+          target_url: 'https://comparadise.example/run'
+        })
+      );
+    });
+
+    it('posts a diffs comment', async () => {
+      classifyMock.mockResolvedValue(result);
+      getManifestMock.mockResolvedValue(prManifest);
+
+      await manifestCompare(params, makeDeps());
+
+      expect(postCommentMock).toHaveBeenCalledTimes(1);
+      const arg = postCommentMock.mock.calls[0]?.[0] as any;
+      expect(arg.kind).toBe('diffs');
+      expect(arg.commitHash).toBe('pr-sha-111');
+    });
+
+    it('writes a changeset with _headSha and pr hash', async () => {
+      classifyMock.mockResolvedValue(result);
+      getManifestMock.mockResolvedValue(prManifest);
+
+      await manifestCompare(params, makeDeps());
+
+      expect(putChangesetMock).toHaveBeenCalledTimes(1);
+      expect(putChangesetMock).toHaveBeenCalledWith(
+        'test-bucket',
+        'pr-sha-111',
+        {
+          _headSha: 'head-sha-222',
+          Button: 'pr-hash-button'
+        }
+      );
+    });
   });
 
-  it('fails when PR manifest is missing', async () => {
-    mockNoSuchKey();
+  describe('outcome: classified — prOwns deleted', () => {
+    const result: CompareResult = {
+      outcome: 'classified',
+      headSha: 'head-sha-222',
+      prSha: 'pr-sha-111',
+      prOwns: [{ path: 'Removed', type: 'deleted' }],
+      mainOwns: [],
+      conflicts: []
+    };
 
-    await expect(
-      manifestCompare(
-        { bucket: 'test-bucket', prSha, repo, baseRef },
-        makeDeps()
-      )
-    ).rejects.toThrow();
+    it('writes a changeset with null for the deleted path', async () => {
+      classifyMock.mockResolvedValue(result);
+      getManifestMock.mockResolvedValue({});
+
+      await manifestCompare(params, makeDeps());
+
+      expect(putChangesetMock).toHaveBeenCalledWith(
+        'test-bucket',
+        'pr-sha-111',
+        {
+          _headSha: 'head-sha-222',
+          Removed: null
+        }
+      );
+    });
   });
 
-  it('treats missing HEAD manifest as empty (first run on main)', async () => {
-    const prManifest = { Button: 'hash1' };
+  describe('outcome: classified — prOwns added', () => {
+    const result: CompareResult = {
+      outcome: 'classified',
+      headSha: 'head-sha-222',
+      prSha: 'pr-sha-111',
+      prOwns: [{ path: 'NewThing', type: 'added' }],
+      mainOwns: [],
+      conflicts: []
+    };
 
-    // PR manifest
-    mockManifest(prManifest);
-    // HEAD SHA
-    getBranchMock.mockResolvedValue({
-      data: { commit: { sha: 'head-sha-222' } }
-    });
-    // HEAD manifest missing — first time running on main
-    mockNoSuchKey();
-    // Ancestor SHA
-    compareMock.mockResolvedValue({
-      data: { merge_base_commit: { sha: 'ancestor-sha-333' } }
-    });
-    // Ancestor manifest missing too
-    mockNoSuchKey();
+    it('writes a changeset with the pr hash for the added path', async () => {
+      classifyMock.mockResolvedValue(result);
+      getManifestMock.mockResolvedValue({ NewThing: 'pr-hash-new' });
 
-    await expect(
-      manifestCompare(
-        { bucket: 'test-bucket', prSha, repo, baseRef },
-        makeDeps()
-      )
-    ).rejects.toThrow(/rebase/i);
+      await manifestCompare(params, makeDeps());
+
+      expect(putChangesetMock).toHaveBeenCalledWith(
+        'test-bucket',
+        'pr-sha-111',
+        {
+          _headSha: 'head-sha-222',
+          NewThing: 'pr-hash-new'
+        }
+      );
+    });
+  });
+
+  describe('outcome: classified — mixed prOwns and mainOwns', () => {
+    const result: CompareResult = {
+      outcome: 'classified',
+      headSha: 'head-sha-222',
+      prSha: 'pr-sha-111',
+      prOwns: [
+        { path: 'Button', type: 'changed' },
+        { path: 'Removed', type: 'deleted' }
+      ],
+      mainOwns: ['Modal', 'Card'],
+      conflicts: []
+    };
+
+    it('omits mainOwns entries from the changeset', async () => {
+      classifyMock.mockResolvedValue(result);
+      getManifestMock.mockResolvedValue({ Button: 'pr-hash-button' });
+
+      await manifestCompare(params, makeDeps());
+
+      expect(putChangesetMock).toHaveBeenCalledWith(
+        'test-bucket',
+        'pr-sha-111',
+        {
+          _headSha: 'head-sha-222',
+          Button: 'pr-hash-button',
+          Removed: null
+        }
+      );
+    });
+
+    it('sets pending status and writes changeset', async () => {
+      classifyMock.mockResolvedValue(result);
+      getManifestMock.mockResolvedValue({ Button: 'pr-hash-button' });
+
+      await manifestCompare(params, makeDeps());
+
+      expect(setCommitStatusMock).toHaveBeenCalledWith(
+        expect.objectContaining({ state: 'pending' })
+      );
+      expect(putChangesetMock).toHaveBeenCalledTimes(1);
+    });
   });
 });
