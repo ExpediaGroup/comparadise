@@ -17,8 +17,7 @@ bucket/
 ├── manifests/{commit-sha}.json              # Full manifest: { "pkg/path/component-dir": "md5hash", ... }
 ├── changesets/{pr-head-sha}.json            # Changeset: { "pkg/path/component-dir": "newhash", "pkg/path/other-dir": null }
 ├── base-images/[path]/base.png              # (existing) Updated by manifest-merge
-├── new-images/{sha}/[path]/new.png          # (existing) Only changed images uploaded per commit
-└── original-new-images/{sha}/[path]/new.png # (existing) Full-size originals if resize enabled
+└── new-images/{sha}/[path]/new.png          # (existing) Only changed images uploaded per commit
 ```
 
 ## File Schemas
@@ -54,9 +53,8 @@ A flat object containing only entries the PR changed. Non-null values are the PR
 1. Run `visual-test-command` (no base image download, no diff expected)
 2. Walk screenshots directory, compute MD5 hash of each new.png image file; key each entry by the containing directory's path relative to the screenshots root
 3. Fetch the HEAD manifest from S3 to determine which hashes changed (if no manifest exists, treat as empty — all images upload)
-4. Upload only changed images to `new-images/{commit-sha}/path/new.png`
-5. If resize enabled: upload resized to `new-images/`, upload full-size original to `original-new-images/`
-6. Upload manifest to `manifests/{commit-sha}.json`
+4. Upload only changed images to `new-images/{commit-sha}/path/new.png`; if resize enabled, resize before upload
+5. Upload manifest to `manifests/{commit-sha}.json`
 
 ### `manifest-compare` mode
 
@@ -69,7 +67,7 @@ A flat object containing only entries the PR changed. Non-null values are the PR
 5. Resolve ancestor SHA via GitHub Compare API (`GET /repos/{owner}/{repo}/compare/{head-sha}...{pr-sha}` → `merge_base_commit.sha`)
 6. Fetch ancestor manifest from `manifests/{ancestor-sha}.json` (fail with rebase instruction if missing)
 7. For each differing hash, run 3-way comparison (treat missing entries as a distinct state):
-   - **PR Owns (HEAD = ancestor):** PR introduced the diff → download base.png from `base-images/`, download PR's new.png from `new-images/{pr-sha}/path/new.png`, generate diff.png via pixelmatch, upload base.png and diff.png to `new-images/{pr-sha}/path/{base,diff}.png`
+   - **PR Owns (HEAD = ancestor):** PR introduced the diff → download base.png from `base-images/`, download PR's new.png from `new-images/{pr-sha}/path/new.png`; generate diff.png via pixelmatch; upload base.png and diff.png to `new-images/{pr-sha}/path/{base,diff}.png` (resize if enabled)
      - Special case: new screenshot (not in HEAD or ancestor) → no base.png or diff.png, just new.png
      - Special case: PR deletes screenshot (not in PR, HEAD = ancestor) → note deletion, no images to upload
    - **Main Owns (PR = ancestor):** Main changed, PR is clean → pass (log informational message)
