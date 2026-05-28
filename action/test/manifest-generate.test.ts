@@ -101,9 +101,6 @@ describe('manifestGenerate', () => {
 
   it('runs visual test commands', async () => {
     globMock.mockResolvedValue([]);
-    getObjectMock.mockRejectedValue(
-      Object.assign(new Error(), { name: 'NoSuchKey' })
-    );
 
     await manifestGenerate(makeDeps());
 
@@ -122,7 +119,7 @@ describe('manifestGenerate', () => {
     );
   });
 
-  it('builds manifest by hashing all png files in screenshots directory', async () => {
+  it('builds manifest by hashing new.png files keyed by containing directory', async () => {
     globMock.mockResolvedValue([
       'screenshots/Button/new.png',
       'screenshots/Modal/new.png'
@@ -152,7 +149,7 @@ describe('manifestGenerate', () => {
     expect(putObjectMock).toHaveBeenCalledWith({
       Bucket: 'test-bucket',
       Key: 'manifests/abc123.json',
-      Body: JSON.stringify({ 'Button/new.png': 'hash1' }),
+      Body: JSON.stringify({ Button: 'hash1' }),
       ContentType: 'application/json'
     });
   });
@@ -168,8 +165,8 @@ describe('manifestGenerate', () => {
       .mockResolvedValueOnce('newHash2');
 
     const headManifest = {
-      'Button/new.png': 'hash1',
-      'Modal/new.png': 'oldHash2'
+      Button: 'hash1',
+      Modal: 'oldHash2'
     };
     getObjectMock.mockResolvedValue({
       Body: {
