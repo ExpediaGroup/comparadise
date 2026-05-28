@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, it, mock, beforeEach } from 'bun:test';
 import { generateDiffs, type GenerateDiffsDeps } from '../src/manifest-diff';
-import type { PrOwnsEntry } from '../src/manifest-compare';
+import type { PrOwnsEntry } from '../src/manifest-compare-classify';
 
 const getObjectMock = mock<any>();
 const putObjectMock = mock<any>();
