@@ -33,7 +33,7 @@ bucket/
 }
 ```
 
-A flat object mapping each screenshot directory's relative path (prefixed with package path for monorepos) to an MD5 hash derived from the image(s) in that directory.
+A flat object mapping each screenshot directory's relative path (prefixed with package path for monorepos) to the MD5 hash of the image file in that directory.
 
 ### Changeset (`changesets/{pr-head-sha}.json`)
 
@@ -52,7 +52,7 @@ A flat object containing only entries the PR changed. Non-null values are the PR
 ### `manifest-generate` mode
 
 1. Run `visual-test-command` (no base image download, no diff expected)
-2. Walk screenshots directory, compute MD5 hash for each screenshot directory (keyed by the directory's path relative to the screenshots root)
+2. Walk screenshots directory, compute MD5 hash of each image file; key each entry by the containing directory's path relative to the screenshots root
 3. Fetch the HEAD manifest from S3 to determine which hashes changed (if no manifest exists, treat as empty — all images upload)
 4. Upload only changed images to `new-images/{commit-sha}/path/new.png`
 5. If resize enabled: upload resized to `new-images/`, upload full-size original to `original-new-images/`
