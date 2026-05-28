@@ -65,7 +65,7 @@ A flat object containing only entries the PR changed. Non-null values are the PR
    - **All match** → set success status, done
    - **At least one differs** → proceed to 3-way comparison
 5. Resolve ancestor SHA via GitHub Compare API (`GET /repos/{owner}/{repo}/compare/{head-sha}...{pr-sha}` → `merge_base_commit.sha`)
-6. Fetch ancestor manifest from `manifests/{ancestor-sha}.json` (fail with rebase instruction if missing)
+6. Fetch ancestor manifest from `manifests/{ancestor-sha}.json` (fail if missing — error message should explain that the ancestor manifest was not found and instruct the user to ensure `manifest-generate` has run on the base branch and to rebase onto a commit that has a manifest)
 7. For each differing hash, run 3-way comparison (treat missing entries as a distinct state):
    - **PR Owns (HEAD = ancestor):** PR introduced the diff → download base.png from `base-images/`, download PR's new.png from `new-images/{pr-sha}/path/new.png`; generate diff.png via pixelmatch; upload base.png and diff.png to `new-images/{pr-sha}/path/{base,diff}.png` (resize if enabled)
      - Special case: new screenshot (not in HEAD or ancestor) → no base.png or diff.png, just new.png
@@ -107,7 +107,7 @@ A flat object containing only entries the PR changed. Non-null values are the PR
 
 - **Coexistence:** New modes alongside existing `pr`/`merge` — consumers opt in
 - **Hashing:** MD5 via Node.js `crypto`. Always computed from the full-size image regardless of resize settings
-- **Missing ancestor manifest:** Fail with rebase instruction (only during initial adoption)
+- **Missing ancestor manifest:** Fail with an error explaining the ancestor manifest was not found and instructing the user to ensure `manifest-generate` has run on the base branch and to rebase onto a commit that has a manifest (most likely during initial adoption)
 - **Staleness handling:** Changeset overlay at merge time ensures concurrent merges are handled correctly
 - **Merge concurrency:** Consumers **must** set a `concurrency` group (with `cancel-in-progress: false`) on their `manifest-merge` workflow to serialize merge jobs. Without it, two simultaneous merges can both update `base-images/` at the same time, producing a corrupted or interleaved state that `manifest-compare` jobs running in parallel will read. The concrete race: PR A and PR B merge within seconds of each other; both `manifest-merge` jobs start concurrently, each overwriting overlapping `base-images/` keys; a `manifest-compare` job for an open PR C reads `base-images/` mid-update and generates a diff against a partially-applied base, producing a wrong or misleading visual result. Serializing merges via `concurrency` eliminates this window entirely.
 - **Stale changeset detection:** The changeset stores `_headSha` (the HEAD SHA at compare time).
