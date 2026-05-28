@@ -29,7 +29,7 @@ export async function manifestGenerate(
     return;
   }
 
-  const filePaths = await deps.glob(`${screenshotsDirectory}/**/*.png`, {
+  const filePaths = await deps.glob(`${screenshotsDirectory}/**/new.png`, {
     nodir: true,
     absolute: false
   });
@@ -37,23 +37,24 @@ export async function manifestGenerate(
   const manifest: Manifest = {};
   for (const filePath of filePaths) {
     const relativePath = filePath.replace(`${screenshotsDirectory}/`, '');
+    const key = relativePath.replace(/\/new\.png$/, '');
     const hash = await deps.hashFile(filePath);
-    manifest[relativePath] = hash;
+    manifest[key] = hash;
   }
 
   const headManifest = headSha
     ? await fetchHeadManifest(deps, bucket, headSha)
     : null;
 
-  const changedPaths = Object.keys(manifest).filter(
+  const changedKeys = Object.keys(manifest).filter(
     p => !headManifest || headManifest[p] !== manifest[p]
   );
 
-  deps.core.info(`${changedPaths.length} changed image(s) to upload.`);
+  deps.core.info(`${changedKeys.length} changed image(s) to upload.`);
 
   await Promise.all(
-    changedPaths.map(async relativePath => {
-      const localPath = `${screenshotsDirectory}/${relativePath}`;
+    changedKeys.map(async key => {
+      const localPath = `${screenshotsDirectory}/${key}/new.png`;
       const fileBuffer = await deps.fs.readFile(localPath);
 
       if (resizeEnabled) {
@@ -63,18 +64,18 @@ export async function manifestGenerate(
         );
         await deps.s3.putObject({
           Bucket: bucket,
-          Key: `${NEW_IMAGES_DIRECTORY}/${commitHash}/${relativePath}`,
+          Key: `${NEW_IMAGES_DIRECTORY}/${commitHash}/${key}/new.png`,
           Body: resizedBuffer
         });
         await deps.s3.putObject({
           Bucket: bucket,
-          Key: `${ORIGINAL_NEW_IMAGES_DIRECTORY}/${commitHash}/${relativePath}`,
+          Key: `${ORIGINAL_NEW_IMAGES_DIRECTORY}/${commitHash}/${key}/new.png`,
           Body: fileBuffer
         });
       } else {
         await deps.s3.putObject({
           Bucket: bucket,
-          Key: `${NEW_IMAGES_DIRECTORY}/${commitHash}/${relativePath}`,
+          Key: `${NEW_IMAGES_DIRECTORY}/${commitHash}/${key}/new.png`,
           Body: fileBuffer
         });
       }
