@@ -68,7 +68,7 @@ A flat object containing only entries the PR changed. Non-null values are the PR
    - **At least one differs** → proceed to 3-way comparison
 5. Resolve ancestor SHA via GitHub Compare API (`GET /repos/{owner}/{repo}/compare/{head-sha}...{pr-sha}` → `merge_base_commit.sha`)
 6. Fetch ancestor manifest from `manifests/{ancestor-sha}.json` (fail with rebase instruction if missing)
-7. For each differing directory, run 3-way comparison (treat missing entries as a distinct state):
+7. For each differing hash, run 3-way comparison (treat missing entries as a distinct state):
    - **PR Owns (HEAD = ancestor):** PR introduced the diff → download base.png from `base-images/`, download PR's new.png from `new-images/{pr-sha}/path/new.png`, generate diff.png via pixelmatch, upload base.png and diff.png to `new-images/{pr-sha}/path/{base,diff}.png`
      - Special case: new screenshot (not in HEAD or ancestor) → no base.png or diff.png, just new.png
      - Special case: PR deletes screenshot (not in PR, HEAD = ancestor) → note deletion, no images to upload
