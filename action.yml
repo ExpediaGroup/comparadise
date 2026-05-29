@@ -3,7 +3,7 @@ description: 'A Github Action for using Comparadise with visual regression tests
 author: 'Dan Adajian'
 inputs:
   workflow:
-    description: 'The workflow to run. "pr" (default) runs visual tests and sets commit status. "merge" updates base images in S3.'
+    description: 'The workflow to run. Supported values: "pr" (default), "merge", "manifest-generate", "manifest-compare", "manifest-merge".'
     required: false
     default: 'pr'
   visual-test-command:
@@ -13,7 +13,7 @@ inputs:
     description: 'The S3 bucket name'
     required: true
   commit-hash:
-    description: 'The commit hash'
+    description: 'The commit hash. Required for pr/merge/manifest-compare workflows.'
     required: false
   diff-id:
     description: 'Alternative to commit-hash as a unique identifier for visual tests. GitHub integration will be disabled if diff-id is used.'
@@ -49,6 +49,21 @@ inputs:
     description: 'Whether the visual-test-command fails if visual diffs are detected'
     required: false
     default: 'true'
+  head-sha:
+    description: 'Optional main HEAD SHA used by manifest-generate to only upload changed screenshots.'
+    required: false
+  base-ref:
+    description: 'Base branch name for manifest-compare (for example, "main").'
+    required: false
+  pr-sha:
+    description: 'PR head SHA for manifest-merge. Falls back to github.event.pull_request.head.sha.'
+    required: false
+  pr-number:
+    description: 'PR number for manifest-merge. Falls back to github.event.pull_request.number.'
+    required: false
+  merge-commit-sha:
+    description: 'Merge commit SHA for manifest-merge. Falls back to github.event.pull_request.merge_commit_sha.'
+    required: false
   update-base-images-on-accept:
     description: 'Whether accepting visual changes in the web app should update base images in S3.'
     required: false
