@@ -60,8 +60,23 @@ const listCommitStatusesForRefMock = mock(() => ({
     }
   ]
 }));
+const getBranchMock = mock<
+  () => Promise<{ data: { commit: { sha: string } } }>
+>(() => Promise.resolve({ data: { commit: { sha: 'headsha' } } }));
+const compareCommitsWithBaseheadMock = mock<
+  () => Promise<{ data: { merge_base_commit: { sha: string } } }>
+>(() =>
+  Promise.resolve({ data: { merge_base_commit: { sha: 'ancestor-sha' } } })
+);
+const getCommitMock = mock<
+  () => Promise<{ data: { parents: Array<{ sha: string }> } }>
+>(() => Promise.resolve({ data: { parents: [{ sha: 'parent-sha' }] } }));
+const listOpenPullsMock = mock<() => Promise<{ data: unknown[] }>>(() =>
+  Promise.resolve({ data: [] })
+);
 const createCommentMock = mock();
 const listCommentsMock = mock(() => ({ data: [{ id: 1 }] }));
+const updateCommentMock = mock();
 const graphqlMock = mock();
 
 function makeDeps(): Dependencies {
@@ -77,11 +92,18 @@ function makeDeps(): Dependencies {
           createCommitStatus: createCommitStatusMock,
           listPullRequestsAssociatedWithCommit:
             listPullRequestsAssociatedWithCommitMock,
-          listCommitStatusesForRef: listCommitStatusesForRefMock
+          listCommitStatusesForRef: listCommitStatusesForRefMock,
+          getBranch: getBranchMock,
+          compareCommitsWithBasehead: compareCommitsWithBaseheadMock,
+          getCommit: getCommitMock
         },
         issues: {
           createComment: createCommentMock,
-          listComments: listCommentsMock
+          listComments: listCommentsMock,
+          updateComment: updateCommentMock
+        },
+        pulls: {
+          list: listOpenPullsMock
         }
       },
       graphql: graphqlMock
@@ -186,6 +208,15 @@ describe('main', () => {
     deleteObjectsMock.mockResolvedValue({});
     getKeysFromS3Mock.mockResolvedValue([]);
     updateBaseImagesMock.mockResolvedValue(undefined);
+    getBranchMock.mockResolvedValue({ data: { commit: { sha: 'headsha' } } });
+    compareCommitsWithBaseheadMock.mockResolvedValue({
+      data: { merge_base_commit: { sha: 'ancestor-sha' } }
+    });
+    getCommitMock.mockResolvedValue({
+      data: { parents: [{ sha: 'parent-sha' }] }
+    });
+    listOpenPullsMock.mockResolvedValue({ data: [] });
+    updateCommentMock.mockResolvedValue({});
     mkdirMock.mockResolvedValue(undefined);
     readFileMock.mockResolvedValue(Buffer.from('image-data'));
     createWriteStreamMock.mockReturnValue(new EventEmitter());
@@ -212,7 +243,12 @@ describe('main', () => {
       'use-base-images',
       'update-base-images-on-accept',
       'resize-width',
-      'resize-height'
+      'resize-height',
+      'head-sha',
+      'base-ref',
+      'pr-sha',
+      'pr-number',
+      'merge-commit-sha'
     );
   });
 
@@ -898,6 +934,110 @@ describe('main', () => {
       expect(execMock).not.toHaveBeenCalled();
       expect(createCommitStatusMock).not.toHaveBeenCalled();
       expect(deps.core.setFailed).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('manifest workflows', () => {
+    it('runs manifest-generate when workflow is manifest-generate', async () => {
+      setEnv({ workflow: 'manifest-generate' });
+      execMock.mockResolvedValue(0);
+      globMock.mockResolvedValue([]);
+
+      await runAction(deps);
+
+      expect(execMock).toHaveBeenCalledWith('run my visual tests', [], {
+        ignoreReturnCode: true
+      });
+      expect(putObjectMock).toHaveBeenCalledWith({
+        Bucket: 'some-bucket',
+        Key: 'manifests/sha.json',
+        Body: '{}',
+        ContentType: 'application/json'
+      });
+      expect(updateBaseImagesMock).not.toHaveBeenCalled();
+    });
+
+    it('runs manifest-compare when workflow is manifest-compare', async () => {
+      setEnv({ workflow: 'manifest-compare', 'base-ref': 'main' });
+      getObjectMock.mockImplementation(({ Key }: { Key: string }) => {
+        if (Key === 'manifests/sha.json') {
+          return Promise.resolve({
+            Body: {
+              transformToString: () => Promise.resolve('{"Button":"hash1"}')
+            }
+          });
+        }
+
+        if (Key === 'manifests/headsha.json') {
+          return Promise.resolve({
+            Body: {
+              transformToString: () => Promise.resolve('{"Button":"hash1"}')
+            }
+          });
+        }
+
+        throw Object.assign(new Error('NoSuchKey'), { name: 'NoSuchKey' });
+      });
+
+      await runAction(deps);
+
+      expect(getBranchMock).toHaveBeenCalledWith({
+        owner: 'owner',
+        repo: 'repo',
+        branch: 'main'
+      });
+      expect(createCommitStatusMock).toHaveBeenCalledWith({
+        owner: 'owner',
+        repo: 'repo',
+        sha: 'sha',
+        state: 'success',
+        description: 'Visual tests passed!',
+        context: VISUAL_REGRESSION_CONTEXT
+      });
+      expect(execMock).not.toHaveBeenCalled();
+    });
+
+    it('runs manifest-merge when workflow is manifest-merge', async () => {
+      setEnv({
+        workflow: 'manifest-merge',
+        'pr-sha': 'pr-sha',
+        'pr-number': '17',
+        'merge-commit-sha': 'merge-sha'
+      });
+      getCommitMock.mockResolvedValue({
+        data: { parents: [{ sha: 'parent-sha' }] }
+      });
+      getObjectMock.mockImplementation(({ Key }: { Key: string }) => {
+        if (Key === 'changesets/pr-sha.json') {
+          throw Object.assign(new Error('NoSuchKey'), { name: 'NoSuchKey' });
+        }
+
+        if (Key === 'manifests/parent-sha.json') {
+          return Promise.resolve({
+            Body: {
+              transformToString: () => Promise.resolve('{"Button":"hash1"}')
+            }
+          });
+        }
+
+        throw Object.assign(new Error('NoSuchKey'), { name: 'NoSuchKey' });
+      });
+
+      await runAction(deps);
+
+      expect(getCommitMock).toHaveBeenCalledWith({
+        owner: 'owner',
+        repo: 'repo',
+        ref: 'merge-sha'
+      });
+      expect(putObjectMock).toHaveBeenCalledWith({
+        Bucket: 'some-bucket',
+        Key: 'manifests/merge-sha.json',
+        Body: JSON.stringify({ Button: 'hash1' }),
+        ContentType: 'application/json'
+      });
+      expect(execMock).not.toHaveBeenCalled();
+      expect(updateBaseImagesMock).not.toHaveBeenCalled();
     });
   });
 });
