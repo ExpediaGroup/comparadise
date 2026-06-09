@@ -8,6 +8,8 @@ Manifest-based workflows are an alternative to the standard `pr`/`merge` setup t
 
 Three workflow modes work together:
 
+![Manifest workflow sequence diagram](/img/manifest-workflow.svg)
+
 | Mode                | Trigger                  | What it does                                                                                     |
 | ------------------- | ------------------------ | ------------------------------------------------------------------------------------------------ |
 | `manifest-generate` | PR push                  | Runs visual tests, hashes screenshots, uploads only changed images and a manifest to S3          |
