@@ -1,0 +1,149 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="820" height="640" viewBox="0 0 820 640">
+  <title>Manifest Workflow Modes — Sequence Diagram</title>
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#475569"/>
+    </marker>
+    <marker id="arr-lt" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#94A3B8"/>
+    </marker>
+  </defs>
+
+  <!-- Canvas -->
+  <rect width="820" height="640" fill="white"/>
+
+  <!-- Phase backgrounds -->
+  <rect x="4" y="58" width="812" height="156" rx="4" fill="#EFF6FF"/>
+  <rect x="4" y="222" width="812" height="196" rx="4" fill="#F0FDF4"/>
+  <rect x="4" y="426" width="812" height="208" rx="4" fill="#FFFBEB"/>
+
+  <!-- Participant headers -->
+  <rect x="8" y="8" width="72" height="42" rx="4" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/>
+  <text x="44" y="26" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif" font-size="10" font-weight="600" fill="#64748B">PR</text>
+  <text x="44" y="41" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif" font-size="10" font-weight="600" fill="#64748B">Events</text>
+
+  <rect x="90" y="8" width="120" height="42" rx="4" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/>
+  <text x="150" y="26" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif" font-size="10" font-weight="600" fill="#1E40AF">manifest</text>
+  <text x="150" y="41" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif" font-size="10" font-weight="600" fill="#1E40AF">-generate</text>
+
+  <rect x="250" y="8" width="120" height="42" rx="4" fill="#DCFCE7" stroke="#16A34A" stroke-width="1.5"/>
+  <text x="310" y="26" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif" font-size="10" font-weight="600" fill="#15803D">manifest</text>
+  <text x="310" y="41" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif" font-size="10" font-weight="600" fill="#15803D">-compare</text>
+
+  <rect x="410" y="8" width="120" height="42" rx="4" fill="#FEF3C7" stroke="#D97706" stroke-width="1.5"/>
+  <text x="470" y="26" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif" font-size="10" font-weight="600" fill="#92400E">manifest</text>
+  <text x="470" y="41" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif" font-size="10" font-weight="600" fill="#92400E">-merge</text>
+
+  <rect x="580" y="8" width="90" height="42" rx="4" fill="#F5F3FF" stroke="#7C3AED" stroke-width="1.5"/>
+  <text x="625" y="26" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif" font-size="10" font-weight="600" fill="#4C1D95">S3</text>
+  <text x="625" y="41" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif" font-size="10" font-weight="600" fill="#4C1D95">Storage</text>
+
+  <rect x="685" y="8" width="127" height="42" rx="4" fill="#FFF1F2" stroke="#E11D48" stroke-width="1.5"/>
+  <text x="748" y="26" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif" font-size="10" font-weight="600" fill="#9F1239">GitHub</text>
+  <text x="748" y="41" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif" font-size="10" font-weight="600" fill="#9F1239">API</text>
+
+  <!-- Lifelines -->
+  <line x1="44" y1="50" x2="44" y2="634" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="150" y1="50" x2="150" y2="634" stroke="#93C5FD" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="310" y1="50" x2="310" y2="634" stroke="#86EFAC" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="470" y1="50" x2="470" y2="634" stroke="#FCD34D" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="625" y1="50" x2="625" y2="634" stroke="#C4B5FD" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="748" y1="50" x2="748" y2="634" stroke="#FDA4AF" stroke-width="1" stroke-dasharray="4,3"/>
+
+  <!-- ============================================================
+       PHASE 1: manifest-generate
+       ============================================================ -->
+  <text x="14" y="74" font-family="ui-sans-serif,system-ui,sans-serif"
+        font-size="10.5" font-weight="700" fill="#1D4ED8">① PR push</text>
+
+  <!-- Activation box: generate -->
+  <rect x="145" y="80" width="10" height="122" rx="2" fill="#2563EB"/>
+
+  <!-- Trigger: PR push → generate -->
+  <circle cx="44" cy="96" r="4" fill="#64748B"/>
+  <line x1="49" y1="96" x2="144" y2="96" stroke="#475569" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="96" y="90" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif" font-size="9.5" fill="#374151">PR push</text>
+
+  <!-- generate → S3: upload images -->
+  <line x1="156" y1="126" x2="619" y2="126" stroke="#374151" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="388" y="120" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif" font-size="9.5" fill="#374151">upload new-images/{sha}/*</text>
+
+  <!-- generate → S3: write manifest -->
+  <line x1="156" y1="162" x2="619" y2="162" stroke="#374151" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="388" y="156" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif" font-size="9.5" fill="#374151">write manifests/{sha}.json</text>
+
+  <!-- ============================================================
+       PHASE 2: manifest-compare
+       ============================================================ -->
+  <text x="14" y="238" font-family="ui-sans-serif,system-ui,sans-serif"
+        font-size="10.5" font-weight="700" fill="#15803D">② PR compare  (sequential after generate)</text>
+
+  <!-- Activation box: compare -->
+  <rect x="305" y="244" width="10" height="166" rx="2" fill="#16A34A"/>
+
+  <!-- generate → compare: sequential trigger -->
+  <line x1="155" y1="258" x2="304" y2="258" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-lt)"/>
+  <text x="230" y="252" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif" font-size="9" fill="#94A3B8">sequential</text>
+
+  <!-- compare ↔ S3: fetch manifests -->
+  <line x1="316" y1="280" x2="619" y2="280" stroke="#374151" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="468" y="274" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif" font-size="9.5" fill="#374151">fetch manifests/{pr, head, ancestor}.json</text>
+  <line x1="619" y1="289" x2="316" y2="289" stroke="#94A3B8" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr-lt)"/>
+
+  <!-- compare ↔ GitHub: resolve SHAs -->
+  <line x1="316" y1="308" x2="742" y2="308" stroke="#374151" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="529" y="302" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif" font-size="9.5" fill="#374151">resolve HEAD + ancestor SHAs</text>
+  <line x1="742" y1="317" x2="316" y2="317" stroke="#94A3B8" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr-lt)"/>
+
+  <!-- Note: 3-way classification -->
+  <rect x="248" y="325" width="124" height="18" rx="3" fill="#BBF7D0" stroke="#4ADE80" stroke-width="1"/>
+  <text x="310" y="337" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif" font-size="9" font-style="italic" fill="#065F46">3-way classification</text>
+
+  <!-- compare → S3: upload diffs + write changeset -->
+  <line x1="316" y1="358" x2="619" y2="358" stroke="#374151" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="468" y="352" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif" font-size="9.5" fill="#374151">upload diffs + write changeset</text>
+
+  <!-- compare → GitHub: commit status + comment -->
+  <line x1="316" y1="394" x2="742" y2="394" stroke="#374151" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="529" y="388" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif" font-size="9.5" fill="#374151">commit status + PR comment</text>
+
+  <!-- ============================================================
+       PHASE 3: manifest-merge
+       ============================================================ -->
+  <text x="14" y="442" font-family="ui-sans-serif,system-ui,sans-serif"
+        font-size="10.5" font-weight="700" fill="#B45309">③ PR merged</text>
+
+  <!-- Activation box: merge -->
+  <rect x="465" y="450" width="10" height="174" rx="2" fill="#D97706"/>
+
+  <!-- Trigger: PR merged → merge -->
+  <circle cx="44" cy="464" r="4" fill="#64748B"/>
+  <line x1="49" y1="464" x2="464" y2="464" stroke="#475569" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="256" y="458" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif" font-size="9.5" fill="#374151">PR merged</text>
+
+  <!-- merge ↔ S3: fetch changeset -->
+  <line x1="476" y1="486" x2="619" y2="486" stroke="#374151" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="547" y="480" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif" font-size="9.5" fill="#374151">fetch changeset</text>
+  <line x1="619" y1="495" x2="476" y2="495" stroke="#94A3B8" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr-lt)"/>
+
+  <!-- merge ↔ GitHub: list open PRs + parent SHA -->
+  <line x1="476" y1="518" x2="742" y2="518" stroke="#374151" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="609" y="512" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif" font-size="9.5" fill="#374151">list open PRs + parent SHA</text>
+  <line x1="742" y1="527" x2="476" y2="527" stroke="#94A3B8" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr-lt)"/>
+
+  <!-- merge → GitHub: flag conflicting PRs -->
+  <line x1="476" y1="548" x2="742" y2="548" stroke="#374151" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="609" y="542" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif" font-size="9.5" fill="#374151">flag conflicting PRs</text>
+
+  <!-- merge ↔ S3: fetch parent manifest -->
+  <line x1="476" y1="572" x2="619" y2="572" stroke="#374151" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="547" y="566" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif" font-size="9.5" fill="#374151">parent manifest</text>
+  <line x1="619" y1="581" x2="476" y2="581" stroke="#94A3B8" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr-lt)"/>
+
+  <!-- merge → S3: write manifest + update base images -->
+  <line x1="476" y1="608" x2="619" y2="608" stroke="#374151" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="547" y="602" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif" font-size="9.5" fill="#374151">manifest + base-images/</text>
+
+</svg>
