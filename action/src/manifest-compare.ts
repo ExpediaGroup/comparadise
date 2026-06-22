@@ -113,12 +113,31 @@ async function handlePrOwns(
 ): Promise<void> {
   const { bucket, prSha } = params;
 
+  const reviewable = result.prOwns.filter(e => e.type !== 'deleted');
+  const deletions = result.prOwns.filter(e => e.type === 'deleted');
+
+  if (deletions.length > 0) {
+    deps.core.info(`${deletions.length} screenshot(s) deleted by this PR.`);
+  }
+
   const prManifest = (await deps.getPrManifest(bucket, prSha)) ?? {};
-
-  await deps.generateDiffs({ bucket, prSha, prOwns: result.prOwns });
-
   const changeset = buildChangeset(result.headSha, result.prOwns, prManifest);
   await deps.putChangeset(bucket, prSha, changeset);
+
+  if (reviewable.length === 0) {
+    deps.core.info(
+      'No visual changes to review (deletions only) — marking success.'
+    );
+    await deps.setCommitStatus({
+      sha: prSha,
+      state: 'success',
+      description: 'Visual tests passed!',
+      context: VISUAL_REGRESSION_CONTEXT
+    });
+    return;
+  }
+
+  await deps.generateDiffs({ bucket, prSha, prOwns: reviewable });
 
   await deps.setCommitStatus({
     sha: prSha,
@@ -131,7 +150,7 @@ async function handlePrOwns(
   await deps.postComment({
     kind: 'diffs',
     commitHash: prSha,
-    prOwns: result.prOwns
+    prOwns: reviewable
   });
 }
 

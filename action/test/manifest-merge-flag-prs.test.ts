@@ -6,6 +6,7 @@ import {
 } from '../src/manifest-merge-flag-prs';
 import type { Changeset } from '../src/manifest-s3';
 
+const paginateMock = mock<any>();
 const listPullsMock = mock<any>();
 const createCommitStatusMock = mock<any>();
 const getChangesetMock = mock<any>();
@@ -16,6 +17,7 @@ function makeDeps(
 ): FlagOverlappingPrsDeps {
   return {
     octokit: {
+      paginate: paginateMock,
       rest: {
         pulls: { list: listPullsMock },
         repos: { createCommitStatus: createCommitStatusMock }
@@ -39,6 +41,7 @@ const mergingChangeset: Changeset = {
 
 describe('flagOverlappingOpenPrs', () => {
   beforeEach(() => {
+    paginateMock.mockReset();
     listPullsMock.mockReset();
     createCommitStatusMock.mockReset().mockResolvedValue({});
     getChangesetMock.mockReset();
@@ -46,7 +49,7 @@ describe('flagOverlappingOpenPrs', () => {
   });
 
   it('does nothing when there are no open PRs', async () => {
-    listPullsMock.mockResolvedValue({ data: [] });
+    paginateMock.mockResolvedValue([]);
 
     const flagged = await flagOverlappingOpenPrs(
       { bucket, repo, mergingPrNumber, mergingChangeset },
@@ -58,9 +61,9 @@ describe('flagOverlappingOpenPrs', () => {
   });
 
   it('skips the merging PR itself', async () => {
-    listPullsMock.mockResolvedValue({
-      data: [{ number: mergingPrNumber, head: { sha: 'merging-head' } }]
-    });
+    paginateMock.mockResolvedValue([
+      { number: mergingPrNumber, head: { sha: 'merging-head' } }
+    ]);
 
     const flagged = await flagOverlappingOpenPrs(
       { bucket, repo, mergingPrNumber, mergingChangeset },
@@ -73,9 +76,9 @@ describe('flagOverlappingOpenPrs', () => {
   });
 
   it('skips open PRs that have no changeset in S3', async () => {
-    listPullsMock.mockResolvedValue({
-      data: [{ number: 200, head: { sha: 'pr-200-head' } }]
-    });
+    paginateMock.mockResolvedValue([
+      { number: 200, head: { sha: 'pr-200-head' } }
+    ]);
     getChangesetMock.mockResolvedValue(null);
 
     const flagged = await flagOverlappingOpenPrs(
@@ -88,9 +91,9 @@ describe('flagOverlappingOpenPrs', () => {
   });
 
   it('does not flag PRs whose changesets do not overlap', async () => {
-    listPullsMock.mockResolvedValue({
-      data: [{ number: 200, head: { sha: 'pr-200-head' } }]
-    });
+    paginateMock.mockResolvedValue([
+      { number: 200, head: { sha: 'pr-200-head' } }
+    ]);
     getChangesetMock.mockResolvedValue({
       _headSha: 'sha',
       OtherThing: 'h-other'
@@ -106,9 +109,9 @@ describe('flagOverlappingOpenPrs', () => {
   });
 
   it('flags PRs whose changesets overlap on at least one path', async () => {
-    listPullsMock.mockResolvedValue({
-      data: [{ number: 200, head: { sha: 'pr-200-head' } }]
-    });
+    paginateMock.mockResolvedValue([
+      { number: 200, head: { sha: 'pr-200-head' } }
+    ]);
     getChangesetMock.mockResolvedValue({
       _headSha: 'sha',
       Button: 'h-button-other',
@@ -134,9 +137,9 @@ describe('flagOverlappingOpenPrs', () => {
   });
 
   it('ignores _headSha when computing overlap', async () => {
-    listPullsMock.mockResolvedValue({
-      data: [{ number: 200, head: { sha: 'pr-200-head' } }]
-    });
+    paginateMock.mockResolvedValue([
+      { number: 200, head: { sha: 'pr-200-head' } }
+    ]);
     // Same _headSha but no real path overlap — must not flag
     getChangesetMock.mockResolvedValue({
       _headSha: 'merging-head',
@@ -152,13 +155,11 @@ describe('flagOverlappingOpenPrs', () => {
   });
 
   it('flags multiple overlapping PRs and leaves non-overlapping alone', async () => {
-    listPullsMock.mockResolvedValue({
-      data: [
-        { number: 200, head: { sha: 'pr-200-head' } },
-        { number: 300, head: { sha: 'pr-300-head' } },
-        { number: 400, head: { sha: 'pr-400-head' } }
-      ]
-    });
+    paginateMock.mockResolvedValue([
+      { number: 200, head: { sha: 'pr-200-head' } },
+      { number: 300, head: { sha: 'pr-300-head' } },
+      { number: 400, head: { sha: 'pr-400-head' } }
+    ]);
     getChangesetMock
       // PR 200 overlaps on Button
       .mockResolvedValueOnce({

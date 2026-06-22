@@ -142,7 +142,7 @@ async function requireAncestorManifest(
   const manifest = await getManifestFromS3(deps, bucket, sha);
   if (!manifest) {
     throw new Error(
-      `Ancestor manifest not found for ${sha}. Please rebase your branch to generate the missing manifest.`
+      `Ancestor manifest not found for ${sha}. Ensure manifest-generate has run on the base branch, then rebase your branch onto a commit that has a manifest.`
     );
   }
   return manifest;

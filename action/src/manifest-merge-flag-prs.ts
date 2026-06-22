@@ -35,7 +35,7 @@ export async function flagOverlappingOpenPrs(
   const mergingPaths = changesetPaths(mergingChangeset);
   if (mergingPaths.size === 0) return [];
 
-  const { data: openPrs } = await deps.octokit.rest.pulls.list({
+  const openPrs = await deps.octokit.paginate(deps.octokit.rest.pulls.list, {
     ...repo,
     state: 'open'
   });

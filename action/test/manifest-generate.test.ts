@@ -203,7 +203,7 @@ describe('manifestGenerate', () => {
     expect(uploadCalls).toHaveLength(2);
   });
 
-  it('uploads original full-size images when resize is enabled', async () => {
+  it('uploads resized image to new-images/ and does not write original-new-images/ when resize is enabled', async () => {
     setEnv({ 'resize-width': '800' });
     globMock.mockResolvedValue(['screenshots/Button/new.png']);
     hashFileMock.mockResolvedValue('hash1');
@@ -228,12 +228,11 @@ describe('manifestGenerate', () => {
     ) as any[];
     const originalCalls = putObjectMock.mock.calls.filter((call: any) =>
       call[0].Key?.startsWith('original-new-images/')
-    ) as any[];
+    );
 
     expect(newImageCalls).toHaveLength(1);
     expect(newImageCalls[0]![0].Body).toEqual(resizedBuffer);
-    expect(originalCalls).toHaveLength(1);
-    expect(originalCalls[0]![0].Body).toBe(originalBuffer);
+    expect(originalCalls).toHaveLength(0);
   });
 
   it('does not upload originals when resize is not enabled', async () => {

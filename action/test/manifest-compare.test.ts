@@ -229,7 +229,7 @@ describe('manifestCompare', () => {
     });
   });
 
-  describe('outcome: classified — prOwns deleted', () => {
+  describe('outcome: classified — prOwns deleted only', () => {
     const result: CompareResult = {
       outcome: 'classified',
       headSha: 'head-sha-222',
@@ -253,6 +253,28 @@ describe('manifestCompare', () => {
           Removed: null
         }
       );
+    });
+
+    it('sets a success commit status (no reviewable changes)', async () => {
+      classifyMock.mockResolvedValue(result);
+      getManifestMock.mockResolvedValue({});
+
+      await manifestCompare(params, makeDeps());
+
+      expect(setCommitStatusMock).toHaveBeenCalledTimes(1);
+      expect(setCommitStatusMock).toHaveBeenCalledWith(
+        expect.objectContaining({ sha: 'pr-sha-111', state: 'success' })
+      );
+    });
+
+    it('does not generate diffs or post a comment', async () => {
+      classifyMock.mockResolvedValue(result);
+      getManifestMock.mockResolvedValue({});
+
+      await manifestCompare(params, makeDeps());
+
+      expect(generateDiffsMock).not.toHaveBeenCalled();
+      expect(postCommentMock).not.toHaveBeenCalled();
     });
   });
 
@@ -323,6 +345,21 @@ describe('manifestCompare', () => {
         expect.objectContaining({ state: 'pending' })
       );
       expect(putChangesetMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('passes only reviewable (non-deleted) entries to generateDiffs and postComment', async () => {
+      classifyMock.mockResolvedValue(result);
+      getManifestMock.mockResolvedValue({ Button: 'pr-hash-button' });
+
+      await manifestCompare(params, makeDeps());
+
+      expect(generateDiffsMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          prOwns: [{ path: 'Button', type: 'changed' }]
+        })
+      );
+      const commentArg = postCommentMock.mock.calls[0]?.[0] as any;
+      expect(commentArg.prOwns).toEqual([{ path: 'Button', type: 'changed' }]);
     });
   });
 });

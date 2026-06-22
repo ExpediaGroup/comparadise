@@ -1,8 +1,5 @@
 import { getInput, getMultilineInput } from '@actions/core';
-import {
-  NEW_IMAGES_DIRECTORY,
-  ORIGINAL_NEW_IMAGES_DIRECTORY
-} from 'shared/constants';
+import { NEW_IMAGES_DIRECTORY } from 'shared/constants';
 import { resizeImageIfNeeded } from './resize';
 import { type Dependencies, makeDefaultDeps } from './dependencies';
 import type { Manifest } from './manifest-s3';
@@ -66,11 +63,6 @@ export async function manifestGenerate(
           Bucket: bucket,
           Key: `${NEW_IMAGES_DIRECTORY}/${commitHash}/${key}/new.png`,
           Body: resizedBuffer
-        });
-        await deps.s3.putObject({
-          Bucket: bucket,
-          Key: `${ORIGINAL_NEW_IMAGES_DIRECTORY}/${commitHash}/${key}/new.png`,
-          Body: fileBuffer
         });
       } else {
         await deps.s3.putObject({

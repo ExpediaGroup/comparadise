@@ -434,11 +434,8 @@ function buildManifestCommentBody(
     entry => entry.type === 'changed'
   ).length;
   const addedCount = args.prOwns.filter(entry => entry.type === 'added').length;
-  const deletedCount = args.prOwns.filter(
-    entry => entry.type === 'deleted'
-  ).length;
 
-  return `${MANIFEST_COMMENT_MARKER}\n## Visual Manifest Results\nVisual diffs found.\n\n- Changed screenshots: ${changedCount}\n- Added screenshots: ${addedCount}\n- Deleted screenshots: ${deletedCount}\n\nCheck [Comparadise](${buildComparadiseUrl(deps.context)}) for image details.`;
+  return `${MANIFEST_COMMENT_MARKER}\n## Visual Manifest Results\nVisual diffs found.\n\n- Changed screenshots: ${changedCount}\n- Added screenshots: ${addedCount}\n\nCheck [Comparadise](${buildComparadiseUrl(deps.context)}) for image details.`;
 }
 
 async function resolvePrNumber(
