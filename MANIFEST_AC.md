@@ -37,6 +37,12 @@ This document is the authoritative acceptance criteria for the `manifest-generat
 **When** hashes are computed  
 **Then** each MD5 hash is computed from the full-size image file as it exists on disk after `visual-test-command` completes — before any resize is applied
 
+### 1.4 Monorepo — per-package manifest path
+
+**Given** the `workflow` input is `manifest-generate` and `package-paths` is non-empty  
+**When** the manifest is written to S3  
+**Then** the manifest is uploaded to `manifests/{commit-sha}/{package-path}.json` (one file per package invocation) instead of `manifests/{commit-sha}.json`
+
 ---
 
 ## 2. `manifest-compare` mode
@@ -167,6 +173,16 @@ This document is the authoritative acceptance criteria for the `manifest-generat
 **When** the ancestor SHA is resolved  
 **Then** the GitHub Compare API is called at `GET /repos/{owner}/{repo}/compare/{head-sha}...{pr-sha}` and `merge_base_commit.sha` is used as the ancestor SHA
 
+### 2.16 Monorepo — squash per-package manifests before comparison
+
+**Given** the `workflow` input is `manifest-compare` and `package-paths` is non-empty  
+**When** the action resolves the PR manifest  
+**Then**:
+
+- All per-package manifests at `manifests/{pr-sha}/{package-path}.json` are downloaded and merged into a single manifest
+- The squashed manifest is uploaded to `manifests/{pr-sha}.json`
+- The squashed manifest is used alongside the pre-existing `manifests/{head-sha}.json` and `manifests/{ancestor-sha}.json` for the 3-way comparison
+
 ---
 
 ## 3. `manifest-merge` mode
@@ -269,7 +285,8 @@ This document is the authoritative acceptance criteria for the `manifest-generat
 **Given** the implementation writes or reads any manifest, changeset, or image  
 **Then** the following exact S3 key patterns are used:
 
-- Manifests: `manifests/{commit-sha}.json`
+- Manifests (single-package, or squashed by compare for monorepo): `manifests/{commit-sha}.json`
+- Manifests (monorepo, written by generate per package): `manifests/{commit-sha}/{package-path}.json`
 - Changesets: `changesets/{pr-head-sha}.json`
 - New images: `new-images/{commit-sha}/path/new.png` (resized if resize is enabled, full-size otherwise)
 - Base images: `base-images/path/base.png` (same dimensions as `new-images/` — resized if resize is enabled)
