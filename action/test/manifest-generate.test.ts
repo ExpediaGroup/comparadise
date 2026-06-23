@@ -95,7 +95,8 @@ describe('manifestGenerate', () => {
       'screenshots-directory',
       'resize-width',
       'resize-height',
-      'visual-test-command'
+      'visual-test-command',
+      'package-paths'
     );
   });
 
@@ -249,5 +250,93 @@ describe('manifestGenerate', () => {
       call[0].Key?.startsWith('original-new-images/')
     );
     expect(originalCalls).toHaveLength(0);
+  });
+
+  describe('monorepo (package-paths set)', () => {
+    it('prefixes manifest keys and the new-image path with the package path', async () => {
+      setEnv({ 'package-paths': 'packages/ui' });
+      globMock.mockResolvedValue(['screenshots/Button/new.png']);
+      hashFileMock.mockResolvedValue('hash1');
+      getObjectMock.mockRejectedValue(
+        Object.assign(new Error(), { name: 'NoSuchKey' })
+      );
+      readFileMock.mockResolvedValue(Buffer.from('fake-image'));
+
+      await manifestGenerate(makeDeps());
+
+      const newImageCall = putObjectMock.mock.calls.find((call: any) =>
+        call[0].Key?.startsWith('new-images/')
+      ) as any[];
+      expect(newImageCall![0].Key).toBe(
+        'new-images/abc123/packages/ui/Button/new.png'
+      );
+
+      const manifestCall = putObjectMock.mock.calls.find((call: any) =>
+        call[0].Key?.startsWith('manifests/')
+      ) as any[];
+      expect(manifestCall![0].Key).toBe('manifests/abc123/packages/ui.json');
+      expect(manifestCall![0].Body).toBe(
+        JSON.stringify({ 'packages/ui/Button': 'hash1' })
+      );
+    });
+
+    it('fails when more than one package path is supplied to a single job', async () => {
+      setEnv({ 'package-paths': 'packages/ui,packages/core' });
+      globMock.mockResolvedValue(['screenshots/Button/new.png']);
+
+      await manifestGenerate(makeDeps());
+
+      expect(setFailedMock).toHaveBeenCalledWith(
+        expect.stringContaining('single package-paths value per matrix job')
+      );
+      expect(putObjectMock).not.toHaveBeenCalled();
+    });
+
+    it('reads the local screenshot path without the package prefix', async () => {
+      setEnv({ 'package-paths': 'packages/ui' });
+      globMock.mockResolvedValue(['screenshots/Button/new.png']);
+      hashFileMock.mockResolvedValue('hash1');
+      getObjectMock.mockRejectedValue(
+        Object.assign(new Error(), { name: 'NoSuchKey' })
+      );
+      readFileMock.mockResolvedValue(Buffer.from('fake-image'));
+
+      await manifestGenerate(makeDeps());
+
+      expect(readFileMock).toHaveBeenCalledWith('screenshots/Button/new.png');
+    });
+
+    it('only uploads images whose prefixed hash differs from the HEAD manifest', async () => {
+      setEnv({ 'package-paths': 'packages/ui', 'head-sha': 'base999' });
+      globMock.mockResolvedValue([
+        'screenshots/Button/new.png',
+        'screenshots/Modal/new.png'
+      ]);
+      hashFileMock
+        .mockResolvedValueOnce('hash1')
+        .mockResolvedValueOnce('newHash2');
+      getObjectMock.mockResolvedValue({
+        Body: {
+          transformToString: () =>
+            Promise.resolve(
+              JSON.stringify({
+                'packages/ui/Button': 'hash1',
+                'packages/ui/Modal': 'oldHash2'
+              })
+            )
+        }
+      });
+      readFileMock.mockResolvedValue(Buffer.from('modal-image'));
+
+      await manifestGenerate(makeDeps());
+
+      const uploadCalls = putObjectMock.mock.calls.filter((call: any) =>
+        call[0].Key?.startsWith('new-images/')
+      ) as any[];
+      expect(uploadCalls).toHaveLength(1);
+      expect(uploadCalls[0]![0].Key).toBe(
+        'new-images/abc123/packages/ui/Modal/new.png'
+      );
+    });
   });
 });

@@ -4,14 +4,21 @@ import { makeManifestS3 } from '../src/manifest-s3';
 
 const putObjectMock = mock<any>();
 const getObjectMock = mock<any>();
+const listAllObjectsMock = mock<any>();
 
 const s3Mock = {
   putObject: putObjectMock,
-  getObject: getObjectMock
+  getObject: getObjectMock,
+  listAllObjects: listAllObjectsMock
 } as any;
 
-const { putManifest, getManifest, putChangeset, getChangeset } =
-  makeManifestS3(s3Mock);
+const {
+  putManifest,
+  getManifest,
+  putChangeset,
+  getChangeset,
+  squashPrManifest
+} = makeManifestS3(s3Mock);
 
 const bucket = 'test-bucket';
 const sha = 'abc123def456';
@@ -120,5 +127,74 @@ describe('getChangeset', () => {
     const result = await getChangeset(bucket, sha);
 
     expect(result).toBeNull();
+  });
+});
+
+describe('squashPrManifest', () => {
+  afterEach(() => {
+    putObjectMock.mockClear();
+    getObjectMock.mockClear();
+    listAllObjectsMock.mockClear();
+  });
+
+  const manifestPart = (manifest: Record<string, string>) => ({
+    Body: {
+      transformToString: () => Promise.resolve(JSON.stringify(manifest))
+    }
+  });
+
+  it('merges per-package manifests and writes the combined manifest', async () => {
+    listAllObjectsMock.mockResolvedValueOnce([
+      { Key: `manifests/${sha}/packages/ui.json` },
+      { Key: `manifests/${sha}/packages/core.json` }
+    ]);
+    getObjectMock
+      .mockResolvedValueOnce(manifestPart({ 'packages/ui/Button': 'hash-ui' }))
+      .mockResolvedValueOnce(
+        manifestPart({ 'packages/core/Modal': 'hash-core' })
+      );
+
+    const result = await squashPrManifest(bucket, sha);
+
+    const merged = {
+      'packages/ui/Button': 'hash-ui',
+      'packages/core/Modal': 'hash-core'
+    };
+    expect(listAllObjectsMock).toHaveBeenCalledWith({
+      Bucket: bucket,
+      Prefix: `manifests/${sha}/`
+    });
+    expect(result).toEqual(merged);
+    expect(putObjectMock).toHaveBeenCalledWith({
+      Bucket: bucket,
+      Key: `manifests/${sha}.json`,
+      Body: JSON.stringify(merged),
+      ContentType: 'application/json'
+    });
+  });
+
+  it('returns null and writes nothing when no per-package manifests exist', async () => {
+    listAllObjectsMock.mockResolvedValueOnce([]);
+
+    const result = await squashPrManifest(bucket, sha);
+
+    expect(result).toBeNull();
+    expect(getObjectMock).not.toHaveBeenCalled();
+    expect(putObjectMock).not.toHaveBeenCalled();
+  });
+
+  it('throws and writes nothing when two per-package manifests share a key', async () => {
+    listAllObjectsMock.mockResolvedValueOnce([
+      { Key: `manifests/${sha}/packages.json` },
+      { Key: `manifests/${sha}/packages/ui.json` }
+    ]);
+    getObjectMock
+      .mockResolvedValueOnce(manifestPart({ 'packages/ui/Button': 'hash-a' }))
+      .mockResolvedValueOnce(manifestPart({ 'packages/ui/Button': 'hash-b' }));
+
+    await expect(squashPrManifest(bucket, sha)).rejects.toThrow(
+      /Duplicate manifest key "packages\/ui\/Button"/
+    );
+    expect(putObjectMock).not.toHaveBeenCalled();
   });
 });

@@ -20,6 +20,7 @@ export type CommentArgs =
   | { kind: 'conflict'; commitHash: string; conflicts: string[] };
 
 export interface ManifestCompareDeps {
+  squashPrManifest: (bucket: string, sha: string) => Promise<unknown>;
   classify: (params: ClassifyParams) => Promise<CompareResult>;
   generateDiffs: (params: GenerateDiffsParams) => Promise<void>;
   putChangeset: (
@@ -50,6 +51,11 @@ export async function manifestCompare(
   deps: ManifestCompareDeps
 ): Promise<void> {
   const { bucket, prSha, repo, baseRef } = params;
+
+  // Monorepo matrix jobs each write a per-package manifest under
+  // manifests/{prSha}/. Squash them into the single manifests/{prSha}.json
+  // before comparing; a no-op for single-package PRs (nothing to squash).
+  await deps.squashPrManifest(bucket, prSha);
 
   const result = await deps.classify({ bucket, prSha, repo, baseRef });
 

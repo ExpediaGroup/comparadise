@@ -27,7 +27,11 @@ inputs:
     required: false
     default: screenshots
   package-paths:
-    description: 'Comma separated list of package paths for monorepos'
+    description: >-
+      Comma separated list of package paths for monorepos. For the
+      manifest-generate workflow, pass the single package path for that matrix
+      job; it is used as the manifest key prefix and the per-package manifest
+      filename (manifests/{commit-sha}/{package-path}.json).
     required: false
   comparadise-host:
     description: 'The URL at which you are hosting Comparadise'

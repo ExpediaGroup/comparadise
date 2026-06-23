@@ -285,6 +285,7 @@ async function runManifestCompareWorkflow(deps: Dependencies): Promise<void> {
       baseRef
     },
     {
+      squashPrManifest: manifestS3.squashPrManifest,
       classify: params =>
         classifyManifests(params, {
           s3: deps.s3,

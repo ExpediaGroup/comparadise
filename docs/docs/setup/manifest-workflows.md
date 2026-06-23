@@ -78,7 +78,9 @@ By default, `manifest-generate` uploads all screenshots on every push. To limit 
 
 ### Matrix jobs
 
-For monorepos running visual tests in parallel, run one `manifest-generate` job per package and a single `manifest-compare` job once all generate jobs complete:
+For monorepos running visual tests in parallel, run one `manifest-generate` job per package and a single `manifest-compare` job once all generate jobs complete.
+
+Pass each package's path as `package-paths` on its generate job. `manifest-generate` then prefixes every manifest key with that path and writes a per-package manifest to `manifests/{commit-sha}/{package-path}.json`, so parallel jobs never overwrite one another. `manifest-compare` automatically discovers those per-package manifests, squashes them into the single `manifests/{commit-sha}.json`, and runs the comparison against it—so the compare and merge jobs need no extra configuration.
 
 ```yaml
 on:

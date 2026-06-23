@@ -6,6 +6,7 @@ import {
 } from '../src/manifest-compare';
 import type { CompareResult } from '../src/manifest-compare-classify';
 
+const squashPrManifestMock = mock<any>();
 const classifyMock = mock<any>();
 const generateDiffsMock = mock<any>();
 const putChangesetMock = mock<any>();
@@ -21,6 +22,7 @@ function makeDeps(
   overrides: Partial<ManifestCompareDeps> = {}
 ): ManifestCompareDeps {
   return {
+    squashPrManifest: squashPrManifestMock,
     classify: classifyMock,
     generateDiffs: generateDiffsMock,
     putChangeset: putChangesetMock,
@@ -46,6 +48,7 @@ const params = {
 
 describe('manifestCompare', () => {
   beforeEach(() => {
+    squashPrManifestMock.mockReset().mockResolvedValue(undefined);
     classifyMock.mockReset();
     generateDiffsMock.mockReset().mockResolvedValue(undefined);
     putChangesetMock.mockReset().mockResolvedValue(undefined);
@@ -56,6 +59,24 @@ describe('manifestCompare', () => {
     infoMock.mockReset();
     setFailedMock.mockReset();
     warningMock.mockReset();
+  });
+
+  describe('squash step', () => {
+    it('squashes per-package PR manifests before classifying', async () => {
+      classifyMock.mockResolvedValue({ outcome: 'match' } as CompareResult);
+      squashPrManifestMock.mockImplementation(() => {
+        expect(classifyMock).not.toHaveBeenCalled();
+        return Promise.resolve();
+      });
+
+      await manifestCompare(params, makeDeps());
+
+      expect(squashPrManifestMock).toHaveBeenCalledWith(
+        'test-bucket',
+        'pr-sha-111'
+      );
+      expect(classifyMock).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('outcome: match', () => {

@@ -15,6 +15,18 @@ export async function manifestGenerate(
   const resizeWidth = getInput('resize-width');
   const resizeHeight = getInput('resize-height');
   const resizeEnabled = Boolean(resizeWidth || resizeHeight);
+  const packagePaths = getInput('package-paths')
+    .split(',')
+    .map(p => p.trim())
+    .filter(Boolean);
+  if (packagePaths.length > 1) {
+    deps.core.setFailed(
+      'manifest-generate expects a single package-paths value per matrix job; ' +
+        `received ${packagePaths.length}: ${packagePaths.join(', ')}.`
+    );
+    return;
+  }
+  const packagePath = packagePaths[0] ?? '';
 
   const exitCodes = await Promise.all(
     visualTestCommands.map(cmd =>
@@ -31,52 +43,52 @@ export async function manifestGenerate(
     absolute: false
   });
 
+  // `localKey` is the path on disk relative to the screenshots root; for
+  // monorepos `manifestKey` prefixes it with the package path so keys are
+  // globally unique across parallel matrix jobs. Images and manifest entries
+  // are keyed by `manifestKey`; only disk reads use `localKey`.
+  const entries: { localKey: string; manifestKey: string; hash: string }[] = [];
   const manifest: Manifest = {};
   for (const filePath of filePaths) {
     const relativePath = filePath.replace(`${screenshotsDirectory}/`, '');
-    const key = relativePath.replace(/\/new\.png$/, '');
+    const localKey = relativePath.replace(/\/new\.png$/, '');
+    const manifestKey = packagePath ? `${packagePath}/${localKey}` : localKey;
     const hash = await deps.hashFile(filePath);
-    manifest[key] = hash;
+    manifest[manifestKey] = hash;
+    entries.push({ localKey, manifestKey, hash });
   }
 
   const headManifest = headSha
     ? await fetchHeadManifest(deps, bucket, headSha)
     : null;
 
-  const changedKeys = Object.keys(manifest).filter(
-    p => !headManifest || headManifest[p] !== manifest[p]
+  const changedEntries = entries.filter(
+    e => !headManifest || headManifest[e.manifestKey] !== e.hash
   );
 
-  deps.core.info(`${changedKeys.length} changed image(s) to upload.`);
+  deps.core.info(`${changedEntries.length} changed image(s) to upload.`);
 
   await Promise.all(
-    changedKeys.map(async key => {
-      const localPath = `${screenshotsDirectory}/${key}/new.png`;
+    changedEntries.map(async ({ localKey, manifestKey }) => {
+      const localPath = `${screenshotsDirectory}/${localKey}/new.png`;
       const fileBuffer = await deps.fs.readFile(localPath);
-
-      if (resizeEnabled) {
-        const resizedBuffer = await resizeImageIfNeeded(
-          fileBuffer as Buffer,
-          deps.jimp
-        );
-        await deps.s3.putObject({
-          Bucket: bucket,
-          Key: `${NEW_IMAGES_DIRECTORY}/${commitHash}/${key}/new.png`,
-          Body: resizedBuffer
-        });
-      } else {
-        await deps.s3.putObject({
-          Bucket: bucket,
-          Key: `${NEW_IMAGES_DIRECTORY}/${commitHash}/${key}/new.png`,
-          Body: fileBuffer
-        });
-      }
+      const body = resizeEnabled
+        ? await resizeImageIfNeeded(fileBuffer as Buffer, deps.jimp)
+        : fileBuffer;
+      await deps.s3.putObject({
+        Bucket: bucket,
+        Key: `${NEW_IMAGES_DIRECTORY}/${commitHash}/${manifestKey}/new.png`,
+        Body: body
+      });
     })
   );
 
+  const manifestObjectKey = packagePath
+    ? `manifests/${commitHash}/${packagePath}.json`
+    : `manifests/${commitHash}.json`;
   await deps.s3.putObject({
     Bucket: bucket,
-    Key: `manifests/${commitHash}.json`,
+    Key: manifestObjectKey,
     Body: JSON.stringify(manifest),
     ContentType: 'application/json'
   });
