@@ -24,6 +24,13 @@ export default [
     }
   },
   {
+    files: ['**/*.ts', '**/*.tsx'],
+    ignores: ['**/*.test.ts', '**/*.test.tsx'],
+    rules: {
+      '@typescript-eslint/no-non-null-assertion': 'error'
+    }
+  },
+  {
     files: ['app/**/*.ts', 'app/**/*.tsx'],
     ignores: ['app/build.ts'],
     rules: {
