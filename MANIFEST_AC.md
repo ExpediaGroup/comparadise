@@ -37,11 +37,29 @@ This document is the authoritative acceptance criteria for the `manifest-generat
 **When** hashes are computed  
 **Then** each MD5 hash is computed from the full-size image file as it exists on disk after `visual-test-command` completes — before any resize is applied
 
-### 1.4 Monorepo — per-package manifest path
+### 1.4 Monorepo — chunk manifest path
 
-**Given** the `workflow` input is `manifest-generate` and `package-paths` is non-empty  
+**Given** the `workflow` input is `manifest-generate` and `package-paths` is non-empty (one or more comma-separated packages — a "chunk")  
 **When** the manifest is written to S3  
-**Then** the manifest is uploaded to `manifests/{commit-sha}/{package-path}.json` (one file per package invocation) instead of `manifests/{commit-sha}.json`
+**Then**:
+
+- A chunk identifier is derived deterministically from `package-paths`: the paths are trimmed, empties dropped, sorted, and joined, then MD5-hashed — the same set of packages always yields the same identifier regardless of order
+- A single manifest is written to `manifests/{commit-sha}/{chunk-id}.json` (instead of `manifests/{commit-sha}.json`), containing the entries for every package in the chunk
+
+_Rationale: the chunk-id only needs to be unique per job and bounded in length (S3 caps keys at 1024 bytes), which an MD5 guarantees regardless of chunk size — and nothing in the system reads meaning from the filename (compare squashes every file under `manifests/{commit-sha}/` regardless of name). The opaque hash costs no debuggability: a manifest's keys are the package-inclusive screenshot paths (e.g. `packages/ui/Button`), so opening the file shows exactly which packages were in scope._
+
+### 1.5 Monorepo — multiple packages per job (chunk)
+
+`package-paths` may list more than one package whose visual tests run together in a single `manifest-generate` job. Screenshots are written under a package-named subdirectory of the screenshots root, so each screenshot's relative path already begins with its package path (e.g. `packages/ui/Button`) and is globally unique across chunks.
+
+**Given** the `workflow` input is `manifest-generate` and `package-paths` lists more than one package  
+**When** the action runs  
+**Then**:
+
+- The job is **not** rejected for listing multiple packages
+- Every screenshot under the screenshots root is included; each entry is keyed by its relative path as-is (no package prefix is added)
+- All packages' entries are written to the single chunk manifest file defined in 1.4 (`manifests/{commit-sha}/{chunk-id}.json`)
+- Differential upload and resize behavior are otherwise identical to the single-package case (1.1–1.3)
 
 ---
 
@@ -175,13 +193,13 @@ _Note: "resized before upload" is satisfied implicitly when the source `base-ima
 **When** the ancestor SHA is resolved  
 **Then** the GitHub Compare API is called at `GET /repos/{owner}/{repo}/compare/{head-sha}...{pr-sha}` and `merge_base_commit.sha` is used as the ancestor SHA
 
-### 2.16 Monorepo — squash per-package manifests before comparison
+### 2.16 Monorepo — squash chunk manifests before comparison
 
 **Given** the `workflow` input is `manifest-compare` and `package-paths` is non-empty  
 **When** the action resolves the PR manifest  
 **Then**:
 
-- All per-package manifests at `manifests/{pr-sha}/{package-path}.json` are downloaded and merged into a single manifest
+- All chunk manifests under `manifests/{pr-sha}/` are downloaded and merged into a single manifest
 - The squashed manifest is uploaded to `manifests/{pr-sha}.json`
 - The squashed manifest is used alongside the pre-existing `manifests/{head-sha}.json` and `manifests/{ancestor-sha}.json` for the 3-way comparison
 
@@ -297,7 +315,7 @@ The window is normally seconds, but because merge workflows are serialized by th
 **Then** the following exact S3 key patterns are used:
 
 - Manifests (single-package, or squashed by compare for monorepo): `manifests/{commit-sha}.json`
-- Manifests (monorepo, written by generate per package): `manifests/{commit-sha}/{package-path}.json`
+- Manifests (monorepo, written by generate per chunk): `manifests/{commit-sha}/{chunk-id}.json`, where `{chunk-id}` is the MD5 of the trimmed, sorted `package-paths`
 - Changesets: `changesets/{pr-head-sha}.json`
 - New images: `new-images/{commit-sha}/path/new.png` (resized if resize is enabled, full-size otherwise)
 - Base images: `base-images/path/base.png` (same dimensions as `new-images/` — resized if resize is enabled)
@@ -312,15 +330,3 @@ The window is normally seconds, but because merge workflows are serialized by th
 
 **Given** the implementation is complete  
 **Then** the documentation (README, `action.yml` input descriptions, or equivalent) explicitly states that consumers using `manifest-merge` must configure a `concurrency` group with `cancel-in-progress: false` on their merge workflow to prevent concurrent merge races
-
-### 4.7 Inputs are derived from the triggering event, not duplicated as overrides
-
-**Given** a manifest workflow mode runs on its documented trigger (`manifest-generate` and `manifest-compare` on `pull_request`; `manifest-merge` on `pull_request` with `types: [closed]`)  
-**When** the action resolves the SHAs, refs, and PR identifiers it needs  
-**Then** each value is derived from the GitHub event context rather than required as a dedicated input — the action does not define `head-sha`, `base-ref`, `pr-sha`, `pr-number`, or `merge-commit-sha` inputs:
-
-- `manifest-generate` resolves the differential-upload baseline from the base branch (e.g. the latest base-branch HEAD via `pull_request.base.ref`); if no baseline manifest exists it is treated as empty (all images upload). No `head-sha` input is required.
-- `manifest-compare` resolves the base branch ref from `pull_request.base.ref`. No `base-ref` input is required.
-- `manifest-merge` resolves the PR head SHA from `pull_request.head.sha`, the PR number from `pull_request.number`, and the merge commit SHA from `pull_request.merge_commit_sha`. No `pr-sha`, `pr-number`, or `merge-commit-sha` inputs are required.
-
-_Rationale: each mode runs on exactly one trigger, so an override input only duplicates a value already in the event payload. The per-commit merge core must remain parameter-driven (decoupled from the event source) so a future trigger — e.g. a `push`/merge-queue path that resolves the same values from the pushed commit range — can reuse it without these inputs._
