@@ -16,26 +16,26 @@ Each criterion is marked ✅ (satisfied), ❌ (not satisfied), or ⚠️ (satisf
 
 - ✅ MD5 of each `new.png` via Node `crypto` from the full-size file on disk — `hash.ts` reads the file and `createHash('md5')`; called at `manifest-generate.ts:56` before any resize.
 - ✅ Each entry keyed by path relative to the screenshots root, prefixed with package path for monorepos — `manifest-generate.ts:53-55` (`manifestKey = packagePath ? \`${packagePath}/${localKey}\` : localKey`). _(Review #1 ❌ → now fixed.)_
-- ✅ Only changed images uploaded to `new-images/{commit-sha}/path/new.png` — `changedEntries` filter (`:65-67`), key at `:80`.
+- ✅ Only changed images uploaded to `new-images/{commit-sha}/path/new.png` — `changedEntries` filter (`manifest-generate.ts:65-67`), key at `manifest-generate.ts:80`.
 - ✅ Resize enabled → resized before upload — `:75-77`.
 - ✅ Resize not enabled → full-size — `:75-77` (`resizeEnabled` false path passes the raw buffer).
 - ✅ Matching-hash images not uploaded — filter excludes them.
 - ✅ Nothing written to `original-new-images/` — no such write exists in `manifest-generate.ts`. _(Review #1 ❌ → now fixed.)_
-- ✅ Manifest written to `manifests/{commit-sha}.json` mapping **all** screenshots — `manifest` built from every entry (`:57`), written at `:89-94`.
+- ✅ Manifest written to `manifests/{commit-sha}.json` mapping **all** screenshots — `manifest` built from every entry (`manifest-generate.ts:57`), written at `manifest-generate.ts:89-94`.
 
 ### 1.2 First run — no HEAD manifest exists
 
-- ✅ Missing manifest treated as empty — `fetchHeadManifest` returns `null` on `NoSuchKey` (`:113-118`); also `null` when `head-sha` not supplied (`:61-63`). Filter `!headManifest || ...` ⇒ upload all.
+- ✅ Missing manifest treated as empty — `fetchHeadManifest` returns `null` on `NoSuchKey` (`manifest-generate.ts:113-118`); also `null` when `head-sha` not supplied (`manifest-generate.ts:61-63`). Filter `!headManifest || ...` ⇒ upload all.
 - ✅ All images uploaded following 1.1 resize rules.
 - ✅ Manifest written for all screenshots.
 
 ### 1.3 Hashing always from full-size image
 
-- ✅ Hash taken at `:56` from the on-disk file; resize only ever touches the upload buffer (`:75`), never the hash input.
+- ✅ Hash taken at `manifest-generate.ts:56` from the on-disk file; resize only ever touches the upload buffer (`manifest-generate.ts:75`), never the hash input.
 
 ### 1.4 Monorepo — per-package manifest path
 
-- ✅ When `packagePath` is set, manifest written to `manifests/{commit-sha}/{package-path}.json` (`:86-88`); falls back to `manifests/{commit-sha}.json` otherwise. A `package-paths` value with >1 entry is rejected with a clear `setFailed` (`:22-28`), enforcing one package per matrix job. _(Review #1 ❌ → now fixed.)_
+- ✅ When `packagePath` is set, manifest written to `manifests/{commit-sha}/{package-path}.json` (`manifest-generate.ts:86-88`); falls back to `manifests/{commit-sha}.json` otherwise. A `package-paths` value with >1 entry is rejected with a clear `setFailed` (`manifest-generate.ts:22-28`), enforcing one package per matrix job. _(Review #1 ❌ → now fixed.)_
 
 ---
 
@@ -47,37 +47,37 @@ Each criterion is marked ✅ (satisfied), ❌ (not satisfied), or ⚠️ (satisf
 
 ### 2.2 PR Owns — PR introduced a visual diff (changed)
 
-- ✅ Classified `changed` when `headHash === ancestorHash` and both PR/ancestor are non-null (`classify:73-81`).
+- ✅ Classified `changed` when `headHash === ancestorHash` and both PR/ancestor are non-null (`manifest-compare-classify.ts:73-81`).
 - ✅ `base.png` downloaded from `base-images/path/base.png` (`manifest-diff.ts:31,34`).
-- ✅ `new.png` downloaded from `new-images/{pr-sha}/path/new.png` (`:32`).
+- ✅ `new.png` downloaded from `new-images/{pr-sha}/path/new.png` (`manifest-diff.ts:32`).
 - ✅ `diff.png` generated via pixelmatch (`diff-png.ts`, `manifest-diff.ts:39`).
-- ⚠️ `base.png` and `diff.png` uploaded to `new-images/{pr-sha}/path/{base,diff}.png` (`:41-52`). **Caveat:** they are uploaded as-is, with no explicit resize call. This still satisfies the intent because both source images are already resized at rest — `base-images/` is populated from already-resized `new-images/` during merge, and `new-images/` is resized at generate time — so the generated diff and the re-uploaded base are already at resized dimensions. The behavior is correct; it just achieves "resized" implicitly rather than by re-running resize. Worth a confirming test if resize correctness here is load-bearing.
+- ⚠️ `base.png` and `diff.png` uploaded to `new-images/{pr-sha}/path/{base,diff}.png` (`manifest-diff.ts:41-52`). **Caveat:** they are uploaded as-is, with no explicit resize call. This still satisfies the intent because both source images are already resized at rest — `base-images/` is populated from already-resized `new-images/` during merge, and `new-images/` is resized at generate time — so the generated diff and the re-uploaded base are already at resized dimensions. The behavior is correct; it just achieves "resized" implicitly rather than by re-running resize. Worth a confirming test if resize correctness here is load-bearing.
 
 ### 2.3 PR Owns — new screenshot (not in HEAD or ancestor)
 
-- ✅ Classified `added` (`headHash === ancestorHash === null`, `classify:75-76`).
+- ✅ Classified `added` (`headHash === ancestorHash === null`, `manifest-compare-classify.ts:75-76`).
 - ✅ No `base.png` download / no `diff.png` — `generateDiffs` processes only `type === 'changed'` (`manifest-diff.ts:23`).
 - ✅ Only `new.png` referenced (already uploaded by generate).
 - ✅ Counts toward pending status and comment — `reviewable` includes `added` (`manifest-compare.ts:122`); comment reports `addedCount` (`run.ts:437`).
 
 ### 2.4 PR Owns — deleted screenshot (PR deleted, HEAD = ancestor)
 
-- ✅ Classified `deleted` (`prHash === null`, ancestor non-null, `classify:77-78`).
+- ✅ Classified `deleted` (`prHash === null`, ancestor non-null, `manifest-compare-classify.ts:77-78`).
 - ✅ Deletion logged as info — `manifest-compare.ts:125-127`.
-- ✅ Recorded as `null` in the changeset — `buildChangeset:170-171`.
-- ✅ Does not contribute to pending/comment — excluded from `reviewable`; a deletions-only PR yields a **success** status and no comment (`:133-144`).
+- ✅ Recorded as `null` in the changeset — `manifest-compare.ts:170-171`.
+- ✅ Does not contribute to pending/comment — excluded from `reviewable`; a deletions-only PR yields a **success** status and no comment (`manifest-compare.ts:133-144`).
 
 ### 2.5 Main Owns — main changed, PR clean
 
-- ✅ `prHash === ancestorHash` ⇒ `mainOwns` (`classify:82-84`). No diff, not in changeset (`buildChangeset` iterates only `prOwns`), no pending/failure from this path alone.
+- ✅ `prHash === ancestorHash` ⇒ `mainOwns` (`manifest-compare-classify.ts:82-84`). No diff, not in changeset (`buildChangeset` at `manifest-compare.ts:163-183` iterates only `prOwns`), no pending/failure from this path alone.
 
 ### 2.6 Main Owns — screenshot added on main since branching
 
-- ✅ HEAD has it, PR/ancestor don't ⇒ `prHash === ancestorHash === null` ⇒ `mainOwns` (`classify:82-84`).
+- ✅ HEAD has it, PR/ancestor don't ⇒ `prHash === ancestorHash === null` ⇒ `mainOwns` (`manifest-compare-classify.ts:82-84`).
 
 ### 2.7 Conflict — all three hashes differ
 
-- ✅ Reaches the `else` (conflict) branch only when `headHash !== ancestorHash` **and** `prHash !== ancestorHash` (`classify:85-87`). Because `differingPaths` is pre-filtered to `prManifest[p] !== headManifest[p]` (`:49-51`), `prHash !== headHash` is also guaranteed here — so the conflict branch correctly fires only when all three differ, and never when PR and main coincidentally made the same change.
+- ✅ Reaches the `else` (conflict) branch only when `headHash !== ancestorHash` **and** `prHash !== ancestorHash` (`manifest-compare-classify.ts:85-87`). Because `differingPaths` is pre-filtered to `prManifest[p] !== headManifest[p]` (`manifest-compare-classify.ts:49-51`), `prHash !== headHash` is also guaranteed here — so the conflict branch correctly fires only when all three differ, and never when PR and main coincidentally made the same change.
 
 ### 2.8 Outcome: any conflict → failure
 
@@ -89,32 +89,32 @@ Each criterion is marked ✅ (satisfied), ❌ (not satisfied), or ⚠️ (satisf
 
 ### 2.11 Outcome: ≥1 PR Owns, no conflicts → pending
 
-- ✅ `handlePrOwns` writes the changeset (`:131`), sets pending status with `target_url` (`:148-154`), and posts the diffs comment (`:156-160`). _(Consistent with 2.4: a PR-Owns set that is **only** deletions instead yields success + no comment, which is the documented deletions behavior, not a regression.)_
+- ✅ `handlePrOwns` writes the changeset (`manifest-compare.ts:131`), sets pending status with `target_url` (`manifest-compare.ts:148-154`), and posts the diffs comment (`manifest-compare.ts:156-160`). _(Consistent with 2.4: a PR-Owns set that is **only** deletions instead yields success + no comment, which is the documented deletions behavior, not a regression.)_
 
 ### 2.12 Changeset schema
 
 - ✅ Written to `changesets/{pr-head-sha}.json` (`manifest-s3.ts:39-50`, `sha = prSha`).
-- ✅ `_headSha` = the HEAD SHA resolved in compare step 2 (`result.headSha`, `buildChangeset:168`).
-- ✅ One entry per PR-owned changed/added path with the PR's new hash (`buildChangeset:172-180`).
-- ✅ One `null` entry per PR-deleted path (`:170-171`).
+- ✅ `_headSha` = the HEAD SHA resolved in compare step 2 (`result.headSha`, `manifest-compare.ts:168`).
+- ✅ One entry per PR-owned changed/added path with the PR's new hash (`manifest-compare.ts:172-180`).
+- ✅ One `null` entry per PR-deleted path (`manifest-compare.ts:170-171`).
 - ✅ Main Owns excluded (loop iterates only `prOwns`).
-- ✅ Contains only PR-introduced paths. Defensive guard throws if a non-deleted entry is missing its PR hash (`:174-178`).
+- ✅ Contains only PR-introduced paths. Defensive guard throws if a non-deleted entry is missing its PR hash (`manifest-compare.ts:174-178`).
 
 ### 2.13 Missing ancestor manifest
 
-- ⚠️ `requireAncestorManifest` throws with the exact required guidance ("Ensure `manifest-generate` has run on the base branch, then rebase your branch onto a commit that has a manifest", `classify:137-149`). The action does fail and the message surfaces. **Caveat:** the failure is delivered by a thrown `Error` that is **not** caught at the top level — `main.ts` is just `run();` with no `.catch()`, so it surfaces as an unhandled rejection (non-zero exit + stderr) rather than via `core.setFailed`. This matches the pre-existing `pr`/`merge` error style, so it's consistent, but routing it through `core.setFailed` would produce a cleaner Actions annotation.
+- ⚠️ `requireAncestorManifest` throws with the exact required guidance ("Ensure `manifest-generate` has run on the base branch, then rebase your branch onto a commit that has a manifest", `manifest-compare-classify.ts:137-149`). The action does fail and the message surfaces. **Caveat:** the failure is delivered by a thrown `Error` that is **not** caught at the top level — `main.ts` is just `run();` with no `.catch()`, so it surfaces as an unhandled rejection (non-zero exit + stderr) rather than via `core.setFailed`. This matches the pre-existing `pr`/`merge` error style, so it's consistent, but routing it through `core.setFailed` would produce a cleaner Actions annotation.
 
 ### 2.14 HEAD SHA resolution
 
-- ✅ `octokit.rest.repos.getBranch({ ...repo, branch: baseRef })` → `data.commit.sha` (`classify:151-161`) — the live branches endpoint, not a cached value.
+- ✅ `octokit.rest.repos.getBranch({ ...repo, branch: baseRef })` → `data.commit.sha` (`manifest-compare-classify.ts:151-161`) — the live branches endpoint, not a cached value.
 
 ### 2.15 Ancestor SHA resolution
 
-- ✅ `octokit.rest.repos.compareCommitsWithBasehead({ basehead: \`${headSha}...${prSha}\` })`→`merge_base_commit.sha` (`classify:163-174`).
+- ✅ `octokit.rest.repos.compareCommitsWithBasehead({ basehead: \`${headSha}...${prSha}\` })`→`merge_base_commit.sha` (`manifest-compare-classify.ts:163-174`).
 
 ### 2.16 Monorepo — squash per-package manifests before comparison
 
-- ✅ `squashPrManifest` lists `manifests/{pr-sha}/`, merges all parts, and uploads the combined `manifests/{pr-sha}.json` (`manifest-s3.ts:80-109`); duplicate keys across packages throw. No-op (returns `null`, writes nothing) for single-package PRs. `classify` then reads the squashed `manifests/{pr-sha}.json` alongside HEAD and ancestor manifests.
+- ✅ `squashPrManifest` lists `manifests/{pr-sha}/`, merges all parts, and uploads the combined `manifests/{pr-sha}.json` (`manifest-s3.ts:80-109`); duplicate keys across packages throw. No-op (returns `null`, writes nothing) for single-package PRs. `classifyManifests` (`manifest-compare-classify.ts`) then reads the squashed `manifests/{pr-sha}.json` alongside HEAD and ancestor manifests.
 
 ---
 
@@ -122,15 +122,15 @@ Each criterion is marked ✅ (satisfied), ❌ (not satisfied), or ⚠️ (satisf
 
 ### 3.1 Manifest always written for merge commit
 
-- ⚠️ Written on both the no-changeset path (`manifest-merge.ts:53`) and the normal overlay path (`:69`). **Caveat:** when a stale changeset has overlapping conflicts (3.5), `assertNoStaleConflicts` throws **before** `putManifest`, so no manifest is written in that case. This is the correct behavior for a hard failure (you do not want to publish a manifest you just declared conflicting), and 3.5 explicitly requires the action to fail — so "always written" holds for every non-failing path. Flagging only because the literal wording is "regardless of whether a changeset exists."
+- ⚠️ Written on both the no-changeset path (`manifest-merge.ts:53`) and the normal overlay path (`manifest-merge.ts:69`). **Caveat:** when a stale changeset has overlapping conflicts (3.5), `assertNoStaleConflicts` throws **before** `putManifest`, so no manifest is written in that case. This is the correct behavior for a hard failure (you do not want to publish a manifest you just declared conflicting), and 3.5 explicitly requires the action to fail — so "always written" holds for every non-failing path. Flagging only because the literal wording is "regardless of whether a changeset exists."
 
 ### 3.2 No changeset — copy parent manifest
 
-- ✅ `parentManifest` copied verbatim to `manifests/{merge-commit-sha}.json` (`:49-55`); returns before any base-image update or status change.
+- ✅ `parentManifest` copied verbatim to `manifests/{merge-commit-sha}.json` (`manifest-merge.ts:49-55`); returns before any base-image update or status change.
 
 ### 3.3 Conflict prevention — overlapping open PR changesets
 
-- ✅ `flagOverlappingOpenPrs` paginates **all** open PRs, loads each one's changeset, and on any shared screenshot path sets a `failure` commit status on that PR's head SHA with "Visual comparison outdated — please rebase." (`manifest-merge-flag-prs.ts:38-69`). Skips the merging PR itself (`:46`).
+- ✅ `flagOverlappingOpenPrs` paginates **all** open PRs, loads each one's changeset, and on any shared screenshot path sets a `failure` commit status on that PR's head SHA with "Visual comparison outdated — please rebase." (`manifest-merge-flag-prs.ts:38-69`). Skips the merging PR itself (`manifest-merge-flag-prs.ts:46`).
 
 ### 3.4 Stale changeset — no overlapping paths → proceed
 
@@ -146,7 +146,7 @@ Each criterion is marked ✅ (satisfied), ❌ (not satisfied), or ⚠️ (satisf
 
 ### 3.7 Overlay — null entries remove key
 
-- ✅ `delete result[path]` for null entries (`:19-21`).
+- ✅ `delete result[path]` for null entries (`manifest-merge-overlay.ts:19-21`).
 
 ### 3.8 Base image update — non-null entries
 
@@ -154,7 +154,7 @@ Each criterion is marked ✅ (satisfied), ❌ (not satisfied), or ⚠️ (satisf
 
 ### 3.9 Base image update — null entries delete base image
 
-- ✅ `deleteObjects` removes `base-images/path/base.png` for null entries (`:67-77`).
+- ✅ `deleteObjects` removes `base-images/path/base.png` for null entries (`manifest-merge-base-images.ts:67-77`).
 
 ### 3.10 Parent SHA resolution
 

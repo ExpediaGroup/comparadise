@@ -27,7 +27,7 @@ This is `MANIFEST_AC.md` annotated with implementation status for PR #786. Sourc
 **When** the action runs  
 **Then**:
 
-- ✅ The missing manifest is treated as an empty object (no hash comparisons are performed) — _`fetchHeadManifest` returns `null` on `NoSuchKey`; filter falls back to "all"_
+- ✅ The missing manifest is treated as an empty object (no hash comparisons are performed) — _`fetchHeadManifest` (`manifest-generate.ts`) returns `null` on `NoSuchKey`; filter falls back to "all"_
 - ✅ All images are uploaded to `new-images/{commit-sha}/path/new.png` following the same resize rules as 1.1
 - ✅ A manifest is written to `manifests/{commit-sha}.json` for all screenshots
 
@@ -89,7 +89,7 @@ _`manifest-compare-classify.ts:75-76` (`added`); `manifest-diff.ts:23` only diff
 **When** the 3-way comparison runs for that path  
 **Then**:
 
-- ❌ The deletion is logged as an informational message — _no `core.info` is emitted for deletions in `classify`_
+- ❌ The deletion is logged as an informational message — _no `core.info` is emitted for deletions in `manifest-compare-classify.ts`_
 - ✅ The path is recorded as a `null` entry in the changeset — _`buildChangeset` (`manifest-compare.ts:145-146`)_
 - ❌ The path does not contribute to pending status or Comparadise comment — _deletions go into the same `prOwns` array as reviewable changes (`manifest-compare-classify.ts:79-81`), so a delete-only PR fails the `prOwns.length === 0` gate (`manifest-compare.ts:72`) and is forced to **pending**, and the comment renders `Deleted screenshots: N` (`run.ts:433-441`). The code conflates "PR introduced this change" (correct for the changeset) with "this needs to gate/be shown."_
 
@@ -103,7 +103,7 @@ _`manifest-compare-classify.ts:75-76` (`added`); `manifest-diff.ts:23` only diff
 - ✅ The path is not included in the changeset
 - ✅ This path alone does not cause a pending or failure status
 
-_`manifest-compare-classify.ts:82-84`; `buildChangeset` iterates only `prOwns`_
+_`manifest-compare-classify.ts:82-84`; `buildChangeset` (`manifest-compare.ts`) iterates only `prOwns`_
 
 ### 2.6 Main Owns — screenshot added on main since branching
 
