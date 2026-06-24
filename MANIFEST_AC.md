@@ -37,6 +37,12 @@ This document is the authoritative acceptance criteria for the `manifest-generat
 **When** hashes are computed  
 **Then** each MD5 hash is computed from the full-size image file as it exists on disk after `visual-test-command` completes — before any resize is applied
 
+### 1.4 Monorepo — per-package manifest path
+
+**Given** the `workflow` input is `manifest-generate` and `package-paths` is non-empty  
+**When** the manifest is written to S3  
+**Then** the manifest is uploaded to `manifests/{commit-sha}/{package-path}.json` (one file per package invocation) instead of `manifests/{commit-sha}.json`
+
 ---
 
 ## 2. `manifest-compare` mode
@@ -61,6 +67,8 @@ This document is the authoritative acceptance criteria for the `manifest-generat
 - `new.png` is downloaded from `new-images/{pr-sha}/path/new.png` (as uploaded by `manifest-generate`)
 - A `diff.png` is generated via pixelmatch
 - `base.png` and `diff.png` are uploaded to `new-images/{pr-sha}/path/base.png` and `new-images/{pr-sha}/path/diff.png`; if resize is enabled they are resized before upload
+
+_Note: "resized before upload" is satisfied implicitly when the source `base-images/` and `new-images/` objects are already at resized dimensions (both are written resized at merge/generate time), so no second resize is required here. Diff generation must tolerate a base/new dimension mismatch (e.g. by padding to a common canvas before pixelmatch) rather than assume identical dimensions, since a real visual change frequently alters a screenshot's height._
 
 ### 2.3 PR Owns — new screenshot (not in HEAD or ancestor)
 
@@ -167,15 +175,34 @@ This document is the authoritative acceptance criteria for the `manifest-generat
 **When** the ancestor SHA is resolved  
 **Then** the GitHub Compare API is called at `GET /repos/{owner}/{repo}/compare/{head-sha}...{pr-sha}` and `merge_base_commit.sha` is used as the ancestor SHA
 
+### 2.16 Monorepo — squash per-package manifests before comparison
+
+**Given** the `workflow` input is `manifest-compare` and `package-paths` is non-empty  
+**When** the action resolves the PR manifest  
+**Then**:
+
+- All per-package manifests at `manifests/{pr-sha}/{package-path}.json` are downloaded and merged into a single manifest
+- The squashed manifest is uploaded to `manifests/{pr-sha}.json`
+- The squashed manifest is used alongside the pre-existing `manifests/{head-sha}.json` and `manifests/{ancestor-sha}.json` for the 3-way comparison
+
 ---
 
 ## 3. `manifest-merge` mode
 
-### 3.1 Manifest always written for merge commit
+### 3.1 Manifest written for every successful merge run
 
 **Given** the `workflow` input is `manifest-merge`  
-**When** the action runs  
-**Then** a manifest is always written to `manifests/{merge-commit-sha}.json`, regardless of whether a changeset exists
+**When** the action completes successfully (no changeset, a valid changeset, or a non-overlapping stale changeset)  
+**Then** a manifest is written to `manifests/{merge-commit-sha}.json`, regardless of whether a changeset exists
+
+**Exception — stale-conflict hard failure:** when a stale changeset has overlapping conflicts (3.5), the action fails _before_ writing a manifest. This is intentional — a manifest just declared conflicting must not be published, and the correct baseline for the overlapping paths is genuinely ambiguous. The resulting chain gap on `main` is prevented in practice by requiring the `Visual Regression` status check, which blocks a stale/overlapping PR from merging at all. Only one specific race can still reach this path, given two PRs (A and B) that both changed the same screenshot path:
+
+1. A is PR-Owns against base X and its visual changes are accepted in the Comparadise UI, flipping its required `Visual Regression` status to `success` — A is now mergeable.
+2. B (also owning that path) merges; `main` advances to Y. B's merge run will overwrite A's status with `failure` via the overlap flag (3.3).
+3. **The window** is the interval between B's merge commit landing on `main` and B's merge workflow actually writing that `failure` status onto A's head. Until it lands, A's head still shows the stale `success`, so the required check passes.
+4. If A is merged inside that window (auto-merge firing, or a manual merge), A lands on top of Y; A's own merge run then sees `A.changeset._headSha` (X) ≠ A's merge parent (Y) with the shared path differing → stale conflict → fail before any manifest is written.
+
+The window is normally seconds, but because merge workflows are serialized by the required `concurrency` group (`cancel-in-progress: false`), a backlog of queued merges can delay B's flag and widen it. Once the flag lands, A's required check is red and A cannot merge until it rebases.
 
 ### 3.2 No changeset — copy parent manifest
 
@@ -269,7 +296,8 @@ This document is the authoritative acceptance criteria for the `manifest-generat
 **Given** the implementation writes or reads any manifest, changeset, or image  
 **Then** the following exact S3 key patterns are used:
 
-- Manifests: `manifests/{commit-sha}.json`
+- Manifests (single-package, or squashed by compare for monorepo): `manifests/{commit-sha}.json`
+- Manifests (monorepo, written by generate per package): `manifests/{commit-sha}/{package-path}.json`
 - Changesets: `changesets/{pr-head-sha}.json`
 - New images: `new-images/{commit-sha}/path/new.png` (resized if resize is enabled, full-size otherwise)
 - Base images: `base-images/path/base.png` (same dimensions as `new-images/` — resized if resize is enabled)
@@ -285,7 +313,14 @@ This document is the authoritative acceptance criteria for the `manifest-generat
 **Given** the implementation is complete  
 **Then** the documentation (README, `action.yml` input descriptions, or equivalent) explicitly states that consumers using `manifest-merge` must configure a `concurrency` group with `cancel-in-progress: false` on their merge workflow to prevent concurrent merge races
 
-### 4.7 `action/dist/` is rebuilt and committed
+### 4.7 Inputs are derived from the triggering event, not duplicated as overrides
 
-**Given** any file in `action/src/` is changed  
-**Then** `bunx nx build action` has been run and the updated `action/dist/` files are included in the PR
+**Given** a manifest workflow mode runs on its documented trigger (`manifest-generate` and `manifest-compare` on `pull_request`; `manifest-merge` on `pull_request` with `types: [closed]`)  
+**When** the action resolves the SHAs, refs, and PR identifiers it needs  
+**Then** each value is derived from the GitHub event context rather than required as a dedicated input — the action does not define `head-sha`, `base-ref`, `pr-sha`, `pr-number`, or `merge-commit-sha` inputs:
+
+- `manifest-generate` resolves the differential-upload baseline from the base branch (e.g. the latest base-branch HEAD via `pull_request.base.ref`); if no baseline manifest exists it is treated as empty (all images upload). No `head-sha` input is required.
+- `manifest-compare` resolves the base branch ref from `pull_request.base.ref`. No `base-ref` input is required.
+- `manifest-merge` resolves the PR head SHA from `pull_request.head.sha`, the PR number from `pull_request.number`, and the merge commit SHA from `pull_request.merge_commit_sha`. No `pr-sha`, `pr-number`, or `merge-commit-sha` inputs are required.
+
+_Rationale: each mode runs on exactly one trigger, so an override input only duplicates a value already in the event payload. The per-commit merge core must remain parameter-driven (decoupled from the event source) so a future trigger — e.g. a `push`/merge-queue path that resolves the same values from the pushed commit range — can reuse it without these inputs._
