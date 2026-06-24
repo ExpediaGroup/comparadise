@@ -301,8 +301,3 @@ This document is the authoritative acceptance criteria for the `manifest-generat
 
 **Given** the implementation is complete  
 **Then** the documentation (README, `action.yml` input descriptions, or equivalent) explicitly states that consumers using `manifest-merge` must configure a `concurrency` group with `cancel-in-progress: false` on their merge workflow to prevent concurrent merge races
-
-### 4.7 `action/dist/` is rebuilt and committed
-
-**Given** any file in `action/src/` is changed  
-**Then** `bunx nx build action` has been run and the updated `action/dist/` files are included in the PR

@@ -6,7 +6,7 @@ Source-only review of `action/src/` at the PR head SHA `02869c8`. (Local review 
 
 Each criterion is marked ✅ (satisfied), ❌ (not satisfied), or ⚠️ (satisfied with a caveat worth noting), with a reason for anything not plainly satisfied.
 
-**Summary:** Every defect flagged in Review #1 (package-prefixed keys, `original-new-images/` writes, missing per-package manifest path) is now fixed. All 41 criteria are satisfied. Three minor caveats are noted (2.2, 2.13, 3.1) — none are behavioral failures. `dist/` diffs were excluded from this review at the reviewer's direction; the committed `dist/main.js` does contain all new manifest functions.
+**Summary:** Every defect flagged in Review #1 (package-prefixed keys, `original-new-images/` writes, missing per-package manifest path) is now fixed. All 40 criteria are satisfied. Three minor caveats are noted (2.2, 2.13, 3.1) — none are behavioral failures.
 
 ---
 
@@ -193,12 +193,8 @@ Each criterion is marked ✅ (satisfied), ❌ (not satisfied), or ⚠️ (satisf
 
 - ✅ `docs/docs/setup/manifest-workflows.md:137-149` states the `manifest-merge` workflow must set a `concurrency` group with `cancel-in-progress: false`, with the rationale, and the example YAML includes it.
 
-### 4.7 `action/dist/` is rebuilt and committed
-
-- ✅ `action/dist/main.js` and `action/dist/main.js.map` are part of the PR and contain all new manifest functions (`manifestGenerate`, `manifestCompare`, `manifestMerge`, `classifyManifests`, `overlayChangeset`, `detectStaleConflicts`, `flagOverlappingOpenPrs`, `hashFile`). _(`dist/` content diffs excluded from this review at the reviewer's direction; a local rebuild differs only in absolute `__dirname` paths and `node_modules` hoisting — pure build-environment noise, no source-level change.)_
-
 ---
 
 ## Verdict
 
-All 41 acceptance criteria are satisfied. The defects from Review #1 are resolved and the test suite is green. The three ⚠️ caveats (2.2 implicit resize, 2.13 thrown error vs `core.setFailed`, 3.1 no manifest on the stale-conflict failure path) are correctness-neutral and optional to address; none block acceptance.
+All 40 acceptance criteria are satisfied. The defects from Review #1 are resolved and the test suite is green. The three ⚠️ caveats (2.2 implicit resize, 2.13 thrown error vs `core.setFailed`, 3.1 no manifest on the stale-conflict failure path) are correctness-neutral and optional to address; none block acceptance.
