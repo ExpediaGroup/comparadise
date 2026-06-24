@@ -6,28 +6,19 @@ import {
   NEW_IMAGE_NAME,
   ORIGINAL_NEW_IMAGES_DIRECTORY
 } from 'shared/constants';
-import {
-  deleteObjects,
-  getKeysFromS3,
-  getObject,
-  listAllObjects,
-  listObjects,
-  putObject
-} from 'shared/s3';
 import { map } from 'bluebird';
 import * as path from 'path';
-import * as fs from 'fs';
-import { promises as fsPromises } from 'fs';
-import { glob } from 'glob';
 import { Readable } from 'stream';
 import { resizeImageIfNeeded } from './resize';
+import type { Dependencies } from './dependencies';
 
 async function checkS3PrefixExists(
   bucketName: string,
-  prefix: string
+  prefix: string,
+  s3: Dependencies['s3']
 ): Promise<boolean> {
   try {
-    const response = await listObjects({
+    const response = await s3.listObjects({
       Bucket: bucketName,
       Prefix: prefix,
       MaxKeys: 1
@@ -41,11 +32,12 @@ async function checkS3PrefixExists(
 async function downloadS3Directory(
   bucketName: string,
   s3Prefix: string,
-  localDir: string
+  localDir: string,
+  deps: Dependencies
 ): Promise<void> {
   info(`Downloading base images from s3://${bucketName}/${s3Prefix}`);
 
-  const allObjects = await listAllObjects({
+  const allObjects = await deps.s3.listAllObjects({
     Bucket: bucketName,
     Prefix: s3Prefix
   });
@@ -59,14 +51,14 @@ async function downloadS3Directory(
     const relativePath = Key.substring(s3Prefix.length);
     const localFilePath = path.join(localDir, relativePath);
 
-    await fsPromises.mkdir(path.dirname(localFilePath), { recursive: true });
+    await deps.fs.mkdir(path.dirname(localFilePath), { recursive: true });
 
-    const { Body } = await getObject({
+    const { Body } = await deps.s3.getObject({
       Bucket: bucketName,
       Key
     });
     if (Body instanceof Readable) {
-      const writeStream = fs.createWriteStream(localFilePath);
+      const writeStream = deps.fs.createWriteStream(localFilePath);
       await new Promise((resolve, reject) => {
         Body.pipe(writeStream).on('finish', resolve).on('error', reject);
       });
@@ -79,9 +71,10 @@ async function downloadS3Directory(
 async function uploadLocalDirectoryWithResize(
   localDir: string,
   bucketName: string,
-  s3Prefix: string
+  s3Prefix: string,
+  deps: Dependencies
 ): Promise<void> {
-  const files = await glob('**/{base,diff,new}.png', {
+  const files = await deps.glob('**/{base,diff,new}.png', {
     cwd: localDir,
     nodir: true,
     absolute: false
@@ -99,10 +92,10 @@ async function uploadLocalDirectoryWithResize(
     const localFilePath = path.join(localDir, file);
     const s3Key = path.join(s3Prefix, file);
 
-    const fileBuffer = await fsPromises.readFile(localFilePath);
-    const resizedBuffer = await resizeImageIfNeeded(fileBuffer);
+    const fileBuffer = await deps.fs.readFile(localFilePath);
+    const resizedBuffer = await resizeImageIfNeeded(fileBuffer, deps.jimp);
 
-    await putObject({
+    await deps.s3.putObject({
       Bucket: bucketName,
       Key: s3Key,
       Body: resizedBuffer
@@ -118,12 +111,13 @@ async function uploadLocalDirectoryWithResize(
 
 async function uploadSingleFile(
   localFilePath: string,
-  s3Key: string
+  s3Key: string,
+  deps: Dependencies
 ): Promise<void> {
   const bucketName = getInput('bucket-name', { required: true });
-  const fileBuffer = await fsPromises.readFile(localFilePath);
-  const resizedBuffer = await resizeImageIfNeeded(fileBuffer);
-  await putObject({
+  const fileBuffer = await deps.fs.readFile(localFilePath);
+  const resizedBuffer = await resizeImageIfNeeded(fileBuffer, deps.jimp);
+  await deps.s3.putObject({
     Bucket: bucketName,
     Key: s3Key,
     Body: resizedBuffer
@@ -131,20 +125,21 @@ async function uploadSingleFile(
   info(`Uploaded ${localFilePath} to s3://${bucketName}/${s3Key}`);
 }
 
-export const downloadBaseImages = async () => {
+export const downloadBaseImages = async (deps: Dependencies) => {
   const bucketName = getInput('bucket-name', { required: true });
   const screenshotsDirectory = getInput('screenshots-directory');
 
   const prefixExists = await checkS3PrefixExists(
     bucketName,
-    `${BASE_IMAGES_DIRECTORY}/`
+    `${BASE_IMAGES_DIRECTORY}/`,
+    deps.s3
   );
 
   if (!prefixExists) {
     info(
       `Base images directory does not exist in bucket ${bucketName}. Skipping download.`
     );
-    await fsPromises.mkdir(screenshotsDirectory, { recursive: true });
+    await deps.fs.mkdir(screenshotsDirectory, { recursive: true });
     return;
   }
 
@@ -155,7 +150,8 @@ export const downloadBaseImages = async () => {
         downloadS3Directory(
           bucketName,
           `${BASE_IMAGES_DIRECTORY}/${packagePath}/`,
-          path.join(screenshotsDirectory, packagePath)
+          path.join(screenshotsDirectory, packagePath),
+          deps
         )
       )
     );
@@ -164,11 +160,12 @@ export const downloadBaseImages = async () => {
   return downloadS3Directory(
     bucketName,
     `${BASE_IMAGES_DIRECTORY}/`,
-    screenshotsDirectory
+    screenshotsDirectory,
+    deps
   );
 };
 
-export const uploadAllImages = async (hash: string) => {
+export const uploadAllImages = async (hash: string, deps: Dependencies) => {
   const bucketName = getInput('bucket-name', { required: true });
   const screenshotsDirectory = getInput('screenshots-directory');
   const packagePaths = getInput('package-paths')?.split(',').filter(Boolean);
@@ -178,7 +175,8 @@ export const uploadAllImages = async (hash: string) => {
       uploadLocalDirectoryWithResize(
         path.join(screenshotsDirectory, packagePath),
         bucketName,
-        `${NEW_IMAGES_DIRECTORY}/${hash}/${packagePath}/`
+        `${NEW_IMAGES_DIRECTORY}/${hash}/${packagePath}/`,
+        deps
       )
     );
   }
@@ -186,16 +184,18 @@ export const uploadAllImages = async (hash: string) => {
   return uploadLocalDirectoryWithResize(
     screenshotsDirectory,
     bucketName,
-    `${NEW_IMAGES_DIRECTORY}/${hash}/`
+    `${NEW_IMAGES_DIRECTORY}/${hash}/`,
+    deps
   );
 };
 
 async function uploadOriginalNewPngs(
   localDir: string,
   bucketName: string,
-  s3Prefix: string
+  s3Prefix: string,
+  deps: Dependencies
 ): Promise<void> {
-  const files = await glob('**/new.png', {
+  const files = await deps.glob('**/new.png', {
     cwd: localDir,
     nodir: true,
     absolute: false
@@ -204,9 +204,9 @@ async function uploadOriginalNewPngs(
     const localFilePath = path.join(localDir, file);
     const s3Key = path.join(s3Prefix, file);
 
-    const fileBuffer = await fsPromises.readFile(localFilePath);
+    const fileBuffer = await deps.fs.readFile(localFilePath);
 
-    await putObject({
+    await deps.s3.putObject({
       Bucket: bucketName,
       Key: s3Key,
       Body: fileBuffer
@@ -220,7 +220,10 @@ async function uploadOriginalNewPngs(
   }
 }
 
-export const uploadOriginalNewImages = async (hash: string) => {
+export const uploadOriginalNewImages = async (
+  hash: string,
+  deps: Dependencies
+) => {
   const resizeWidth = getInput('resize-width');
   const resizeHeight = getInput('resize-height');
 
@@ -237,7 +240,8 @@ export const uploadOriginalNewImages = async (hash: string) => {
       uploadOriginalNewPngs(
         path.join(screenshotsDirectory, packagePath),
         bucketName,
-        `${ORIGINAL_NEW_IMAGES_DIRECTORY}/${hash}/${packagePath}/`
+        `${ORIGINAL_NEW_IMAGES_DIRECTORY}/${hash}/${packagePath}/`,
+        deps
       )
     );
   }
@@ -245,17 +249,18 @@ export const uploadOriginalNewImages = async (hash: string) => {
   return uploadOriginalNewPngs(
     screenshotsDirectory,
     bucketName,
-    `${ORIGINAL_NEW_IMAGES_DIRECTORY}/${hash}/`
+    `${ORIGINAL_NEW_IMAGES_DIRECTORY}/${hash}/`,
+    deps
   );
 };
 
-export const deleteHashImages = async (hash: string) => {
+export const deleteHashImages = async (hash: string, deps: Dependencies) => {
   const bucketName = getInput('bucket-name', { required: true });
   const packagePaths = getInput('package-paths')?.split(',').filter(Boolean);
 
   const [newImageKeys, originalImageKeys] = await Promise.all([
-    getKeysFromS3(NEW_IMAGES_DIRECTORY, hash, bucketName),
-    getKeysFromS3(ORIGINAL_NEW_IMAGES_DIRECTORY, hash, bucketName)
+    deps.s3.getKeysFromS3(NEW_IMAGES_DIRECTORY, hash, bucketName),
+    deps.s3.getKeysFromS3(ORIGINAL_NEW_IMAGES_DIRECTORY, hash, bucketName)
   ]);
 
   let keysToDelete = [...newImageKeys, ...originalImageKeys];
@@ -275,7 +280,7 @@ export const deleteHashImages = async (hash: string) => {
     return;
   }
 
-  await deleteObjects({
+  await deps.s3.deleteObjects({
     Bucket: bucketName,
     Delete: {
       Objects: keysToDelete.map(Key => ({ Key })),
@@ -286,10 +291,13 @@ export const deleteHashImages = async (hash: string) => {
   info(`Deleted ${keysToDelete.length} image(s) for ${hash}`);
 };
 
-export const uploadBaseImages = async (newFilePaths: string[]) => {
+export const uploadBaseImages = async (
+  newFilePaths: string[],
+  deps: Dependencies
+) => {
   info(`Uploading ${newFilePaths.length} base image(s)`);
   return map(newFilePaths, newFilePath =>
-    uploadSingleFile(newFilePath, buildBaseImagePath(newFilePath))
+    uploadSingleFile(newFilePath, buildBaseImagePath(newFilePath), deps)
   );
 };
 

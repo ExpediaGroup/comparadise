@@ -43,7 +43,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -71,13 +71,13 @@ jobs:
       - name: Publish
         working-directory: comparadise-utils
         run: |
-          pnpm version $NEW_VERSION --workspaces-update false
+          npm pkg set version=$NEW_VERSION
           pnpm publish --no-git-checks
 
   publish-tags:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Update Major Version
         run: |
           MAJOR_VERSION=$(echo "${GITHUB_REF}" | cut -d "/" -f3 | cut -d "." -f1)

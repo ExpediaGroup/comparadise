@@ -1,7 +1,7 @@
 import { getBooleanInput, getInput } from '@actions/core';
-import { context } from '@actions/github';
+import type { Dependencies } from './dependencies';
 
-export const buildComparadiseUrl = () => {
+export const buildComparadiseUrl = (context: Dependencies['context']) => {
   const bucketName = getInput('bucket-name', { required: true });
   const comparadiseHost = getInput('comparadise-host');
   const commitHash = getInput('commit-hash');

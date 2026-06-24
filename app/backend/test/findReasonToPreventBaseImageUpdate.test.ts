@@ -4,17 +4,18 @@ import {
   VISUAL_TESTS_FAILED_TO_EXECUTE
 } from 'shared/constants';
 import { describe, expect, it, mock } from 'bun:test';
+import type { Octokit } from '@octokit/rest';
 
 const listCommitStatusesForRefMock = mock();
-mock.module('../src/getOctokit', () => ({
-  getOctokit: mock(() => ({
+
+const makeOctokit = (): Octokit =>
+  ({
     rest: {
       repos: {
         listCommitStatusesForRef: listCommitStatusesForRefMock
       }
     }
-  }))
-}));
+  }) as unknown as Octokit;
 
 describe('findReasonToPreventVisualChangeAcceptance', () => {
   it('should return undefined when all non-visual pr checks pass', async () => {
@@ -41,7 +42,8 @@ describe('findReasonToPreventVisualChangeAcceptance', () => {
       'github-owner',
       'github-repo',
       'sha',
-      true
+      true,
+      makeOctokit()
     );
     expect(result).toBeUndefined();
   });
@@ -75,7 +77,8 @@ describe('findReasonToPreventVisualChangeAcceptance', () => {
       'github-owner',
       'github-repo',
       'sha',
-      true
+      true,
+      makeOctokit()
     );
     expect(result).toBe(
       'All other PR checks must pass before updating base images! These checks have not passed on your PR: other tests, even more tests'
@@ -106,7 +109,8 @@ describe('findReasonToPreventVisualChangeAcceptance', () => {
       'github-owner',
       'github-repo',
       'sha',
-      true
+      true,
+      makeOctokit()
     );
     expect(result).toBe(
       'All other PR checks must pass before updating base images! These checks have not passed on your PR: other tests'
@@ -137,7 +141,8 @@ describe('findReasonToPreventVisualChangeAcceptance', () => {
       'github-owner',
       'github-repo',
       'sha',
-      true
+      true,
+      makeOctokit()
     );
     expect(result).toBeUndefined();
   });
@@ -166,7 +171,8 @@ describe('findReasonToPreventVisualChangeAcceptance', () => {
       'github-owner',
       'github-repo',
       'sha',
-      true
+      true,
+      makeOctokit()
     );
     expect(result).toBe(
       'All other PR checks must pass before updating base images! These checks have not passed on your PR: unit tests'
@@ -193,7 +199,8 @@ describe('findReasonToPreventVisualChangeAcceptance', () => {
       'github-owner',
       'github-repo',
       'sha',
-      true
+      true,
+      makeOctokit()
     );
     expect(result).toBe(
       'At least one visual test job failed to take a screenshot. All jobs must take a screenshot before reviewing and updating base images!'
