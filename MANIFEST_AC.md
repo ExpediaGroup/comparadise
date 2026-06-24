@@ -68,7 +68,7 @@ This document is the authoritative acceptance criteria for the `manifest-generat
 - A `diff.png` is generated via pixelmatch
 - `base.png` and `diff.png` are uploaded to `new-images/{pr-sha}/path/base.png` and `new-images/{pr-sha}/path/diff.png`; if resize is enabled they are resized before upload
 
-_Note: "resized before upload" is satisfied implicitly when the source `base-images/` and `new-images/` objects are already at resized dimensions (both are written resized at merge/generate time), so no second resize is required here. Diff generation must tolerate a base/new dimension mismatch rather than assume identical dimensions._
+_Note: "resized before upload" is satisfied implicitly when the source `base-images/` and `new-images/` objects are already at resized dimensions (both are written resized at merge/generate time), so no second resize is required here. Diff generation must tolerate a base/new dimension mismatch (e.g. by padding to a common canvas before pixelmatch) rather than assume identical dimensions, since a real visual change frequently alters a screenshot's height._
 
 ### 2.3 PR Owns — new screenshot (not in HEAD or ancestor)
 
@@ -312,3 +312,15 @@ The window is normally seconds, but because merge workflows are serialized by th
 
 **Given** the implementation is complete  
 **Then** the documentation (README, `action.yml` input descriptions, or equivalent) explicitly states that consumers using `manifest-merge` must configure a `concurrency` group with `cancel-in-progress: false` on their merge workflow to prevent concurrent merge races
+
+### 4.7 Inputs are derived from the triggering event, not duplicated as overrides
+
+**Given** a manifest workflow mode runs on its documented trigger (`manifest-generate` and `manifest-compare` on `pull_request`; `manifest-merge` on `pull_request` with `types: [closed]`)  
+**When** the action resolves the SHAs, refs, and PR identifiers it needs  
+**Then** each value is derived from the GitHub event context rather than required as a dedicated input — the action does not define `head-sha`, `base-ref`, `pr-sha`, `pr-number`, or `merge-commit-sha` inputs:
+
+- `manifest-generate` resolves the differential-upload baseline from the base branch (e.g. the latest base-branch HEAD via `pull_request.base.ref`); if no baseline manifest exists it is treated as empty (all images upload). No `head-sha` input is required.
+- `manifest-compare` resolves the base branch ref from `pull_request.base.ref`. No `base-ref` input is required.
+- `manifest-merge` resolves the PR head SHA from `pull_request.head.sha`, the PR number from `pull_request.number`, and the merge commit SHA from `pull_request.merge_commit_sha`. No `pr-sha`, `pr-number`, or `merge-commit-sha` inputs are required.
+
+_Rationale: each mode runs on exactly one trigger, so an override input only duplicates a value already in the event payload. The per-commit merge core must remain parameter-driven (decoupled from the event source) so a future trigger — e.g. a `push`/merge-queue path that resolves the same values from the pushed commit range — can reuse it without these inputs._
