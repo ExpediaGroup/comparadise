@@ -68,6 +68,8 @@ This document is the authoritative acceptance criteria for the `manifest-generat
 - A `diff.png` is generated via pixelmatch
 - `base.png` and `diff.png` are uploaded to `new-images/{pr-sha}/path/base.png` and `new-images/{pr-sha}/path/diff.png`; if resize is enabled they are resized before upload
 
+_Note: "resized before upload" is satisfied implicitly when the source `base-images/` and `new-images/` objects are already at resized dimensions (both are written resized at merge/generate time), so no second resize is required here. Diff generation must tolerate a base/new dimension mismatch rather than assume identical dimensions._
+
 ### 2.3 PR Owns — new screenshot (not in HEAD or ancestor)
 
 **Given** a path exists in the PR manifest but does not exist in either the HEAD manifest or the ancestor manifest  
@@ -187,11 +189,20 @@ This document is the authoritative acceptance criteria for the `manifest-generat
 
 ## 3. `manifest-merge` mode
 
-### 3.1 Manifest always written for merge commit
+### 3.1 Manifest written for every successful merge run
 
 **Given** the `workflow` input is `manifest-merge`  
-**When** the action runs  
-**Then** a manifest is always written to `manifests/{merge-commit-sha}.json`, regardless of whether a changeset exists
+**When** the action completes successfully (no changeset, a valid changeset, or a non-overlapping stale changeset)  
+**Then** a manifest is written to `manifests/{merge-commit-sha}.json`, regardless of whether a changeset exists
+
+**Exception — stale-conflict hard failure:** when a stale changeset has overlapping conflicts (3.5), the action fails _before_ writing a manifest. This is intentional — a manifest just declared conflicting must not be published, and the correct baseline for the overlapping paths is genuinely ambiguous. The resulting chain gap on `main` is prevented in practice by requiring the `Visual Regression` status check, which blocks a stale/overlapping PR from merging at all. Only one specific race can still reach this path, given two PRs (A and B) that both changed the same screenshot path:
+
+1. A is PR-Owns against base X and its visual changes are accepted in the Comparadise UI, flipping its required `Visual Regression` status to `success` — A is now mergeable.
+2. B (also owning that path) merges; `main` advances to Y. B's merge run will overwrite A's status with `failure` via the overlap flag (3.3).
+3. **The window** is the interval between B's merge commit landing on `main` and B's merge workflow actually writing that `failure` status onto A's head. Until it lands, A's head still shows the stale `success`, so the required check passes.
+4. If A is merged inside that window (auto-merge firing, or a manual merge), A lands on top of Y; A's own merge run then sees `A.changeset._headSha` (X) ≠ A's merge parent (Y) with the shared path differing → stale conflict → fail before any manifest is written.
+
+The window is normally seconds, but because merge workflows are serialized by the required `concurrency` group (`cancel-in-progress: false`), a backlog of queued merges can delay B's flag and widen it. Once the flag lands, A's required check is red and A cannot merge until it rebases.
 
 ### 3.2 No changeset — copy parent manifest
 

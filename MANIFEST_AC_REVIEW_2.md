@@ -6,7 +6,7 @@ Source-only review of `action/src/` at the PR head SHA `02869c8`. (Local review 
 
 Each criterion is marked ✅ (satisfied), ❌ (not satisfied), or ⚠️ (satisfied with a caveat worth noting), with a reason for anything not plainly satisfied.
 
-**Summary:** Every defect flagged in Review #1 (package-prefixed keys, `original-new-images/` writes, missing per-package manifest path) is now fixed. All 40 criteria are satisfied. Three minor caveats are noted (2.2, 2.13, 3.1) — none are behavioral failures.
+**Summary:** Every defect flagged in Review #1 (package-prefixed keys, `original-new-images/` writes, missing per-package manifest path) is now fixed. All 35 criteria are satisfied.
 
 ---
 
@@ -74,7 +74,7 @@ _Classified `changed` when `headHash === ancestorHash` and both PR/ancestor are 
 - ✅ `base.png` is downloaded from `base-images/path/base.png` — _`manifest-diff.ts:31,34`_
 - ✅ `new.png` is downloaded from `new-images/{pr-sha}/path/new.png` (as uploaded by `manifest-generate`) — _`manifest-diff.ts:32`_
 - ✅ A `diff.png` is generated via pixelmatch — _`diff-png.ts`, `manifest-diff.ts:39`_
-- ⚠️ `base.png` and `diff.png` are uploaded to `new-images/{pr-sha}/path/base.png` and `new-images/{pr-sha}/path/diff.png`; if resize is enabled they are resized before upload — _`manifest-diff.ts:41-52` uploads them as-is, with no explicit resize call. This still satisfies the intent because both source images are already resized at rest: `base-images/` is populated from already-resized `new-images/` during merge, and `new-images/` is resized at generate time — so the generated diff and the re-uploaded base are already at resized dimensions. The behavior is correct; it achieves "resized" implicitly rather than by re-running resize. Worth a confirming test if resize correctness here is load-bearing_
+- ✅ `base.png` and `diff.png` are uploaded to `new-images/{pr-sha}/path/base.png` and `new-images/{pr-sha}/path/diff.png`; if resize is enabled they are resized before upload — _`manifest-diff.ts:41-52`. Both source images are already resized at rest (`base-images/` is copied from already-resized `new-images/` at merge time; `new-images/` is resized at generate time), so the re-uploaded base and generated diff are already at resized dimensions without a second resize call. `diff-png.ts` also pads any dimension mismatch to `Math.max(width)`×`Math.max(height)` via `ensureSize` before `pixelmatch`, so it never assumes identical dimensions_
 
 ### 2.3 PR Owns — new screenshot (not in HEAD or ancestor)
 
@@ -172,8 +172,8 @@ _Consistent with 2.4: a PR-Owns set that is **only** deletions instead yields su
 **When** the compare runs  
 **Then**:
 
-- ✅ The action fails — _`requireAncestorManifest` throws (`manifest-compare-classify.ts:137-149`)_
-- ⚠️ An error message is returned explaining that the ancestor manifest was not found and instructing the user to ensure `manifest-generate` has run on the base branch and to rebase onto a commit that has a manifest — _the message text is exactly that ("Ensure `manifest-generate` has run on the base branch, then rebase your branch onto a commit that has a manifest"). **Caveat:** the failure is delivered by a thrown `Error` that is **not** caught at the top level — `main.ts` is just `run();` with no `.catch()`, so it surfaces as an unhandled rejection (non-zero exit + stderr) rather than via `core.setFailed`. This matches the pre-existing `pr`/`merge` error style, so it's consistent, but routing it through `core.setFailed` would produce a cleaner Actions annotation_
+- ✅ The action fails — _`requireAncestorManifest` throws (`manifest-compare-classify.ts:137-149`); `main.ts` is `run();` with no top-level `.catch()`, so the rejection exits non-zero and the Actions step fails. Matches the pre-existing `pr`/`merge` error style; routing it through `core.setFailed` would produce a cleaner annotation_
+- ✅ An error message is returned explaining that the ancestor manifest was not found and instructing the user to ensure `manifest-generate` has run on the base branch and to rebase onto a commit that has a manifest — _exact text: "Ensure `manifest-generate` has run on the base branch, then rebase your branch onto a commit that has a manifest"_
 
 ### 2.14 HEAD SHA resolution
 
@@ -201,11 +201,18 @@ _Consistent with 2.4: a PR-Owns set that is **only** deletions instead yields su
 
 ## 3. `manifest-merge` mode
 
-### 3.1 Manifest always written for merge commit
+### 3.1 Manifest written for every successful merge run
 
 **Given** the `workflow` input is `manifest-merge`  
-**When** the action runs  
-**Then** ⚠️ a manifest is always written to `manifests/{merge-commit-sha}.json`, regardless of whether a changeset exists — _written on both the no-changeset path (`manifest-merge.ts:53`) and the normal overlay path (`manifest-merge.ts:69`). **Caveat:** when a stale changeset has overlapping conflicts (3.5), `assertNoStaleConflicts` throws **before** `putManifest`, so no manifest is written in that case. This is the correct behavior for a hard failure (you do not want to publish a manifest you just declared conflicting), and 3.5 explicitly requires the action to fail — so "always written" holds for every non-failing path. Flagging only because the literal wording is "regardless of whether a changeset exists."_
+**When** the action completes successfully (no changeset, a valid changeset, or a non-overlapping stale changeset)  
+**Then** ✅ a manifest is written to `manifests/{merge-commit-sha}.json`, regardless of whether a changeset exists — _written on both the no-changeset path (`manifest-merge.ts:53`) and the normal overlay path (`manifest-merge.ts:69`)._
+
+**Stale-conflict hard failure:** when a stale changeset has overlapping conflicts (3.5), `assertNoStaleConflicts` throws before `putManifest` (`manifest-merge.ts:88-92`), so no manifest is written — intentional, since a manifest just declared conflicting must not be published and the correct baseline for the overlapping paths is genuinely ambiguous. The merge commit (already on `main`, since merge runs `on: pull_request: closed` + `if: merged == true`) is left without a manifest. The required `Visual Regression` status check (`manifest-workflows.md:168-170`, `cicd.md:20`) blocks the common case; only one specific race reaches this path, given two PRs (A and B) that both changed the same screenshot path:
+
+1. A is PR-Owns against base X and is accepted in the Comparadise UI, flipping its required `Visual Regression` status to `success` (`acceptVisualChanges.ts:69-74`) — A is now mergeable.
+2. B (also owning that path) merges; `main` advances to Y. B's `manifest-merge` will overwrite A's status with `failure` via `flagOverlappingOpenPrs` (3.3, `manifest-merge-flag-prs.ts:56-62`).
+3. **The window** is the interval between B's merge commit landing on `main` and B's merge workflow executing that `createCommitStatus(failure)` on A's head. Until it lands, A's head still shows the stale `success`, so the required check passes.
+4. If A is merged inside that window (auto-merge, or a manual click), A lands on top of Y; A's own `manifest-merge` then sees `A.changeset._headSha` (X) ≠ A's merge parent (Y) with the shared path differing → stale conflict → fails before `putManifest`.
 
 ### 3.2 No changeset — copy parent manifest
 
@@ -320,4 +327,4 @@ _Consistent with 2.4: a PR-Owns set that is **only** deletions instead yields su
 
 ## Verdict
 
-All 40 acceptance criteria are satisfied. The defects from Review #1 are resolved and the test suite is green. The three ⚠️ caveats (2.2 implicit resize, 2.13 thrown error vs `core.setFailed`, 3.1 no manifest on the stale-conflict failure path) are correctness-neutral and optional to address; none block acceptance.
+All 35 acceptance criteria are satisfied. The defects from Review #1 are resolved and the test suite is green. Two items carry minor implementation notes — 2.13 (failure surfaces via a thrown error rather than `core.setFailed`) and 3.1 (no manifest written on the intentional stale-conflict hard-failure path) — both correct and non-blocking, as noted inline.
