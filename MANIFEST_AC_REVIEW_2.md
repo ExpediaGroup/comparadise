@@ -2,11 +2,11 @@
 
 This is `MANIFEST_AC.md` annotated with implementation status for PR [#786](https://github.com/ExpediaGroup/comparadise/pull/786).
 
-Source-only review of `action/src/` at the PR head SHA `02869c8`. (Local review HEAD was one commit ahead, `e8a6575`, whose only difference is an edit to `MANIFEST_AC.md` itself — the reviewed `action/src/` is byte-identical to the PR head.) The full test suite passes: **175 pass / 0 fail across 14 files** (`bunx nx test action`).
+Source-only review of `action/src/` at the PR head SHA `da406b5`.
 
 Each criterion is marked ✅ (satisfied), ❌ (not satisfied), or ⚠️ (satisfied with a caveat worth noting), with a reason for anything not plainly satisfied.
 
-**Summary:** Every defect flagged in Review #1 (package-prefixed keys, `original-new-images/` writes, missing per-package manifest path) is now fixed. All 35 criteria are satisfied.
+**Summary:** Every defect flagged in Review #1 (package-prefixed keys, `original-new-images/` writes, missing per-package manifest path) is now fixed. Of the 36 criteria, 35 are satisfied; the newly-added **4.7** (inputs derived from the triggering event, no override inputs) is **not** satisfied — the action still defines `head-sha`/`base-ref`/`pr-sha`/`pr-number`/`merge-commit-sha` and `manifest-generate` does not derive its baseline from the base branch.
 
 ---
 
@@ -323,8 +323,22 @@ _Consistent with 2.4: a PR-Owns set that is **only** deletions instead yields su
 **Given** the implementation is complete  
 **Then** ✅ the documentation (README, `action.yml` input descriptions, or equivalent) explicitly states that consumers using `manifest-merge` must configure a `concurrency` group with `cancel-in-progress: false` on their merge workflow to prevent concurrent merge races — _`docs/docs/setup/manifest-workflows.md:137-149` states the requirement, the rationale, and the example YAML includes it_
 
+### 4.7 Inputs are derived from the triggering event, not duplicated as overrides
+
+**Given** a manifest workflow mode runs on its documented trigger (`manifest-generate` and `manifest-compare` on `pull_request`; `manifest-merge` on `pull_request` with `types: [closed]`)  
+**When** the action resolves the SHAs, refs, and PR identifiers it needs  
+**Then** ❌ each value should be derived from the event context rather than required as a dedicated input, and the action should not define `head-sha`/`base-ref`/`pr-sha`/`pr-number`/`merge-commit-sha` inputs — _not satisfied. `action.yml` still defines all five inputs (`action.yml:56-68`). Per-bullet:_
+
+- ❌ `manifest-generate` does **not** derive the baseline from the base branch — it reads only `getInput('head-sha')` (`manifest-generate.ts:14`) and, when absent, treats the baseline as empty and uploads everything (`manifest-generate.ts:61-62`); it never resolves `base.ref`/`getBranch`. The `head-sha` input is still required to get differential upload.
+- ⚠️ `manifest-compare` does fall back to `pull_request.base.ref` (`run.ts:271`), so derivation works — but the `base-ref` input is still defined.
+- ⚠️ `manifest-merge` does fall back to `pull_request.head.sha` / `.number` / `.merge_commit_sha` (`run.ts:320-327`), so derivation works — but the `pr-sha`, `pr-number`, and `merge-commit-sha` inputs are still defined.
+
+_Net: the criterion fails because the inputs are still declared (and `manifest-generate` lacks the auto-derive). The compare/merge wrappers already read from the payload, so satisfying 4.7 there is removing the now-redundant input declarations; for generate it additionally requires deriving the baseline from `base.ref`._
+
 ---
 
 ## Verdict
 
-All 35 acceptance criteria are satisfied. The defects from Review #1 are resolved and the test suite is green. Two items carry minor implementation notes — 2.13 (failure surfaces via a thrown error rather than `core.setFailed`) and 3.1 (no manifest written on the intentional stale-conflict hard-failure path) — both correct and non-blocking, as noted inline.
+35 of the 36 acceptance criteria are satisfied. The defects from Review #1 are resolved and the test suite is green. Two satisfied items carry minor implementation notes — 2.13 (failure surfaces via a thrown error rather than `core.setFailed`) and 3.1 (no manifest written on the intentional stale-conflict hard-failure path) — both correct and non-blocking.
+
+The one unsatisfied criterion is **4.7** (inputs derived from the triggering event): the action still defines the five override inputs, and `manifest-generate` does not auto-derive its baseline from the base branch. This is a newly-added requirement rather than a regression — the compare and merge wrappers already read from the event payload, so closing it is largely removing the redundant input declarations (plus adding `base.ref`-based baseline resolution in generate).
