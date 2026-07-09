@@ -1,5 +1,5 @@
 import type { Dependencies } from './dependencies';
-import type { Manifest } from './manifest-s3';
+import { isNoSuchKey, type Manifest } from './manifest-s3';
 
 export interface PrOwnsEntry {
   path: string;
@@ -96,10 +96,6 @@ export async function classifyManifests(
     mainOwns,
     conflicts
   };
-}
-
-function isNoSuchKey(error: unknown): boolean {
-  return error instanceof Error && error.name === 'NoSuchKey';
 }
 
 async function getManifestFromS3(

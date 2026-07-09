@@ -3,6 +3,7 @@ import {
   VISUAL_TESTS_FAILED_TO_EXECUTE
 } from 'shared/constants';
 import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
+import { context as githubContext } from '@actions/github';
 import { EventEmitter } from 'events';
 import { Readable } from 'stream';
 import path from 'path';
@@ -229,6 +230,7 @@ describe('main', () => {
 
   afterEach(() => {
     mock.clearAllMocks();
+    githubContext.payload = {};
     clearEnv(
       'screenshots-directory',
       'bucket-name',
@@ -245,10 +247,7 @@ describe('main', () => {
       'resize-width',
       'resize-height',
       'head-sha',
-      'base-ref',
-      'pr-sha',
-      'pr-number',
-      'merge-commit-sha'
+      'base-ref'
     );
   });
 
@@ -998,12 +997,14 @@ describe('main', () => {
     });
 
     it('runs manifest-merge when workflow is manifest-merge', async () => {
-      setEnv({
-        workflow: 'manifest-merge',
-        'pr-sha': 'pr-sha',
-        'pr-number': '17',
-        'merge-commit-sha': 'merge-sha'
-      });
+      setEnv({ workflow: 'manifest-merge' });
+      githubContext.payload = {
+        pull_request: {
+          head: { sha: 'pr-sha' },
+          number: 17,
+          merge_commit_sha: 'merge-sha'
+        }
+      };
       getCommitMock.mockResolvedValue({
         data: { parents: [{ sha: 'parent-sha' }] }
       });

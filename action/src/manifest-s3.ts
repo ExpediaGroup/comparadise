@@ -3,6 +3,19 @@ import { defaultS3Operations, type S3Operations } from 'shared/s3';
 export type Manifest = Record<string, string>;
 export type Changeset = Record<string, string | null>;
 
+export function isNoSuchKey(error: unknown): boolean {
+  return error instanceof Error && error.name === 'NoSuchKey';
+}
+
+async function readBody(
+  response: { Body?: { transformToString(): Promise<string> } }
+): Promise<string> {
+  if (!response.Body) {
+    throw new Error('Unexpected empty S3 response body');
+  }
+  return response.Body.transformToString();
+}
+
 export function makeManifestS3(s3: S3Operations = defaultS3Operations) {
   async function putManifest(
     bucket: string,
@@ -26,12 +39,10 @@ export function makeManifestS3(s3: S3Operations = defaultS3Operations) {
         Bucket: bucket,
         Key: `manifests/${sha}.json`
       });
-      const body = await response.Body!.transformToString();
+      const body = await readBody(response);
       return JSON.parse(body) as Manifest;
     } catch (error: unknown) {
-      if (error instanceof Error && error.name === 'NoSuchKey') {
-        return null;
-      }
+      if (isNoSuchKey(error)) return null;
       throw error;
     }
   }
@@ -58,12 +69,10 @@ export function makeManifestS3(s3: S3Operations = defaultS3Operations) {
         Bucket: bucket,
         Key: `changesets/${sha}.json`
       });
-      const body = await response.Body!.transformToString();
+      const body = await readBody(response);
       return JSON.parse(body) as Changeset;
     } catch (error: unknown) {
-      if (error instanceof Error && error.name === 'NoSuchKey') {
-        return null;
-      }
+      if (isNoSuchKey(error)) return null;
       throw error;
     }
   }
@@ -91,7 +100,7 @@ export function makeManifestS3(s3: S3Operations = defaultS3Operations) {
     for (const part of parts) {
       if (!part.Key) continue;
       const response = await s3.getObject({ Bucket: bucket, Key: part.Key });
-      const body = await response.Body!.transformToString();
+      const body = await readBody(response);
       const partManifest = JSON.parse(body) as Manifest;
       for (const key of Object.keys(partManifest)) {
         if (key in merged) {

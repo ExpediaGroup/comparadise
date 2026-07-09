@@ -59,15 +59,6 @@ inputs:
   base-ref:
     description: 'Base branch name for manifest-compare (for example, "main").'
     required: false
-  pr-sha:
-    description: 'PR head SHA for manifest-merge. Falls back to github.event.pull_request.head.sha.'
-    required: false
-  pr-number:
-    description: 'PR number for manifest-merge. Falls back to github.event.pull_request.number.'
-    required: false
-  merge-commit-sha:
-    description: 'Merge commit SHA for manifest-merge. Falls back to github.event.pull_request.merge_commit_sha.'
-    required: false
   update-base-images-on-accept:
     description: 'Whether accepting visual changes in the web app should update base images in S3.'
     required: false
