@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, it, mock, beforeEach, afterEach } from 'bun:test';
+import { context as githubContext } from '@actions/github';
 import { manifestGenerate } from '../src/manifest-generate';
 import type { Dependencies } from '../src/dependencies';
 
@@ -12,6 +13,7 @@ const readFileMock = mock<any>();
 const jimpReadMock = mock<any>();
 const infoMock = mock<any>();
 const setFailedMock = mock<any>();
+const getBranchMock = mock<any>();
 
 function makeDeps(): Dependencies {
   return {
@@ -20,7 +22,9 @@ function makeDeps(): Dependencies {
       warning: mock(),
       info: infoMock
     },
-    octokit: {} as unknown as Dependencies['octokit'],
+    octokit: {
+      rest: { repos: { getBranch: getBranchMock } }
+    } as unknown as Dependencies['octokit'],
     exec: execMock,
     glob: globMock as unknown as Dependencies['glob'],
     jimp: { read: jimpReadMock },
@@ -65,7 +69,6 @@ const clearEnv = (...keys: string[]) => {
 const defaultInputs: Record<string, string> = {
   'bucket-name': 'test-bucket',
   'commit-hash': 'abc123',
-  'head-sha': '',
   'screenshots-directory': 'screenshots',
   'resize-width': '',
   'resize-height': '',
@@ -83,15 +86,17 @@ describe('manifestGenerate', () => {
     jimpReadMock.mockReset();
     infoMock.mockReset();
     setFailedMock.mockReset();
+    getBranchMock.mockReset();
+    githubContext.payload = {};
 
     setEnv(defaultInputs);
   });
 
   afterEach(() => {
+    githubContext.payload = {};
     clearEnv(
       'bucket-name',
       'commit-hash',
-      'head-sha',
       'screenshots-directory',
       'resize-width',
       'resize-height',
@@ -156,7 +161,10 @@ describe('manifestGenerate', () => {
   });
 
   it('uploads only changed images when HEAD manifest exists', async () => {
-    setEnv({ 'head-sha': 'base999' });
+    githubContext.payload = {
+      pull_request: { number: 1, base: { ref: 'main' } }
+    };
+    getBranchMock.mockResolvedValue({ data: { commit: { sha: 'base999' } } });
     globMock.mockResolvedValue([
       'screenshots/Button/new.png',
       'screenshots/Modal/new.png'
@@ -307,7 +315,11 @@ describe('manifestGenerate', () => {
     });
 
     it('only uploads images whose prefixed hash differs from the HEAD manifest', async () => {
-      setEnv({ 'package-paths': 'packages/ui', 'head-sha': 'base999' });
+      setEnv({ 'package-paths': 'packages/ui' });
+      githubContext.payload = {
+        pull_request: { number: 1, base: { ref: 'main' } }
+      };
+      getBranchMock.mockResolvedValue({ data: { commit: { sha: 'base999' } } });
       globMock.mockResolvedValue([
         'screenshots/Button/new.png',
         'screenshots/Modal/new.png'

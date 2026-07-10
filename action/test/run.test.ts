@@ -957,7 +957,13 @@ describe('main', () => {
     });
 
     it('runs manifest-compare when workflow is manifest-compare', async () => {
-      setEnv({ workflow: 'manifest-compare', 'base-ref': 'main' });
+      setEnv({ workflow: 'manifest-compare' });
+      githubContext.payload = {
+        pull_request: {
+          number: 1,
+          base: { ref: 'main' }
+        }
+      };
       getObjectMock.mockImplementation(({ Key }: { Key: string }) => {
         if (Key === 'manifests/sha.json') {
           return Promise.resolve({

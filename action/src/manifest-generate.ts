@@ -1,4 +1,5 @@
 import { getInput, getMultilineInput } from '@actions/core';
+import { context as githubContext } from '@actions/github';
 import { NEW_IMAGES_DIRECTORY } from 'shared/constants';
 import { resizeImageIfNeeded } from './resize';
 import { type Dependencies, makeDefaultDeps } from './dependencies';
@@ -11,7 +12,6 @@ export async function manifestGenerate(
   const commitHash = getInput('commit-hash');
   const bucket = getInput('bucket-name', { required: true });
   const screenshotsDirectory = getInput('screenshots-directory');
-  const headSha = getInput('head-sha');
   const resizeWidth = getInput('resize-width');
   const resizeHeight = getInput('resize-height');
   const resizeEnabled = Boolean(resizeWidth || resizeHeight);
@@ -58,6 +58,11 @@ export async function manifestGenerate(
     entries.push({ localKey, manifestKey, hash });
   }
 
+  // Resolve the live base-branch HEAD (not the possibly-stale payload value)
+  // to diff against for differential uploads. No base ref (non-PR trigger)
+  // means no meaningful prior HEAD, so upload everything.
+  const baseRef = githubContext.payload.pull_request?.base?.ref;
+  const headSha = baseRef ? await resolveBaseHeadSha(deps, baseRef) : '';
   const headManifest = headSha
     ? await fetchHeadManifest(deps, bucket, headSha)
     : null;
@@ -96,6 +101,17 @@ export async function manifestGenerate(
   deps.core.info(
     `Manifest uploaded for ${commitHash} with ${Object.keys(manifest).length} entries.`
   );
+}
+
+async function resolveBaseHeadSha(
+  deps: Pick<Dependencies, 'octokit' | 'context'>,
+  baseRef: string
+): Promise<string> {
+  const { data } = await deps.octokit.rest.repos.getBranch({
+    ...deps.context.repo,
+    branch: baseRef
+  });
+  return data.commit.sha;
 }
 
 async function fetchHeadManifest(

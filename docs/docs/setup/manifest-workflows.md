@@ -57,24 +57,7 @@ jobs:
 
 ### Differential uploads
 
-By default, `manifest-generate` uploads all screenshots on every push. To limit uploads to only images whose hash changed since the last base branch commit, pass `head-sha`:
-
-```yaml
-- name: Get HEAD SHA
-  id: head
-  run: |
-    echo "sha=$(git ls-remote origin refs/heads/main | cut -f1)" >> "$GITHUB_OUTPUT"
-
-- name: Generate Manifest
-  uses: ExpediaGroup/comparadise@v1
-  with:
-    workflow: manifest-generate
-    visual-test-command: npm run visual-tests
-    bucket-name: visual-regression-bucket
-    commit-hash: ${{ github.event.pull_request.head.sha }}
-    head-sha: ${{ steps.head.outputs.sha }}
-    comparadise-host: https://my-comparadise-url.com
-```
+On a `pull_request` trigger, `manifest-generate` automatically uploads only the screenshots whose hash changed since the base branch's current HEAD — it resolves the live base-branch HEAD from the event and diffs against that manifest, so no extra configuration is needed. When run outside a pull request (no base branch to diff against), it uploads all screenshots.
 
 ### Matrix jobs
 

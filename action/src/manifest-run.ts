@@ -21,11 +21,12 @@ export async function runManifestCompareWorkflow(
 ): Promise<void> {
   const bucket = getInput('bucket-name', { required: true });
   const prSha = getInput('commit-hash', { required: true });
-  const baseRef =
-    getInput('base-ref') || githubContext.payload.pull_request?.base?.ref;
+  const baseRef = githubContext.payload.pull_request?.base?.ref;
 
   if (!baseRef) {
-    deps.core.setFailed('base-ref is required for workflow manifest-compare.');
+    deps.core.setFailed(
+      'manifest-compare must run on a pull_request event; base ref could not be resolved from the event payload.'
+    );
     return;
   }
 
