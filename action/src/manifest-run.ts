@@ -73,8 +73,7 @@ export async function runManifestMergeWorkflow(
   const bucket = getInput('bucket-name', { required: true });
 
   const prSha = githubContext.payload.pull_request?.head?.sha;
-  const mergeCommitSha =
-    githubContext.payload.pull_request?.merge_commit_sha;
+  const mergeCommitSha = githubContext.payload.pull_request?.merge_commit_sha;
   const prNumber = githubContext.payload.pull_request?.number;
 
   if (!prSha || !mergeCommitSha || !prNumber) {

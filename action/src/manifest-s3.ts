@@ -7,18 +7,18 @@ export function isNoSuchKey(error: unknown): boolean {
   return error instanceof Error && error.name === 'NoSuchKey';
 }
 
-export async function readBody(
-  response: { Body?: { transformToString(): Promise<string> } }
-): Promise<string> {
+export async function readBody(response: {
+  Body?: { transformToString(): Promise<string> };
+}): Promise<string> {
   if (!response.Body) {
     throw new Error('Unexpected empty S3 response body');
   }
   return response.Body.transformToString();
 }
 
-export async function readBodyBytes(
-  response: { Body?: { transformToByteArray(): Promise<Uint8Array> } }
-): Promise<Uint8Array> {
+export async function readBodyBytes(response: {
+  Body?: { transformToByteArray(): Promise<Uint8Array> };
+}): Promise<Uint8Array> {
   if (!response.Body) {
     throw new Error('Unexpected empty S3 response body');
   }

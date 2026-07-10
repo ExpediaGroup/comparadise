@@ -253,4 +253,3 @@ export const run = async (deps: Dependencies = makeDefaultDeps()) => {
     deps.core.warning(pendingDescription);
   }
 };
-
