@@ -2,7 +2,7 @@ import { getInput, getMultilineInput } from '@actions/core';
 import { NEW_IMAGES_DIRECTORY } from 'shared/constants';
 import { resizeImageIfNeeded } from './resize';
 import { type Dependencies, makeDefaultDeps } from './dependencies';
-import type { Manifest } from './manifest-s3';
+import { readBody, type Manifest } from './manifest-s3';
 
 export async function manifestGenerate(
   deps: Dependencies = makeDefaultDeps()
@@ -108,7 +108,7 @@ async function fetchHeadManifest(
       Bucket: bucket,
       Key: `manifests/${sha}.json`
     });
-    const body = await response.Body!.transformToString();
+    const body = await readBody(response);
     return JSON.parse(body) as Manifest;
   } catch (error: unknown) {
     if (error instanceof Error && error.name === 'NoSuchKey') {

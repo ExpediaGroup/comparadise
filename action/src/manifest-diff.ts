@@ -1,6 +1,7 @@
 import { BASE_IMAGES_DIRECTORY, NEW_IMAGES_DIRECTORY } from 'shared/constants';
 import type { Dependencies } from './dependencies';
 import type { PrOwnsEntry } from './manifest-compare-classify';
+import { readBodyBytes } from './manifest-s3';
 
 export interface GenerateDiffsDeps {
   s3: Pick<Dependencies['s3'], 'getObject' | 'putObject'>;
@@ -59,6 +60,6 @@ async function downloadBuffer(
   key: string
 ): Promise<Buffer> {
   const response = await s3.getObject({ Bucket: bucket, Key: key });
-  const bytes = await response.Body!.transformToByteArray();
+  const bytes = await readBodyBytes(response);
   return Buffer.from(bytes);
 }

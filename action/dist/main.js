@@ -161212,79 +161212,6 @@ var makeDefaultDeps = () => ({
   }
 });
 
-// src/manifest-generate.ts
-async function manifestGenerate(deps = makeDefaultDeps()) {
-  const visualTestCommands = getMultilineInput("visual-test-command");
-  const commitHash = getInput("commit-hash");
-  const bucket = getInput("bucket-name", { required: true });
-  const screenshotsDirectory = getInput("screenshots-directory");
-  const headSha = getInput("head-sha");
-  const resizeWidth = getInput("resize-width");
-  const resizeHeight = getInput("resize-height");
-  const resizeEnabled = Boolean(resizeWidth || resizeHeight);
-  const packagePaths = getInput("package-paths").split(",").map((p) => p.trim()).filter(Boolean);
-  if (packagePaths.length > 1) {
-    deps.core.setFailed("manifest-generate expects a single package-paths value per matrix job; " + `received ${packagePaths.length}: ${packagePaths.join(", ")}.`);
-    return;
-  }
-  const packagePath = packagePaths[0] ?? "";
-  const exitCodes = await Promise.all(visualTestCommands.map((cmd) => deps.exec(cmd, [], { ignoreReturnCode: true })));
-  if (exitCodes.some((code) => code !== 0)) {
-    deps.core.setFailed("Visual test command failed.");
-    return;
-  }
-  const filePaths = await deps.glob(`${screenshotsDirectory}/**/new.png`, {
-    nodir: true,
-    absolute: false
-  });
-  const entries = [];
-  const manifest = {};
-  for (const filePath of filePaths) {
-    const relativePath = filePath.replace(`${screenshotsDirectory}/`, "");
-    const localKey = relativePath.replace(/\/new\.png$/, "");
-    const manifestKey = packagePath ? `${packagePath}/${localKey}` : localKey;
-    const hash = await deps.hashFile(filePath);
-    manifest[manifestKey] = hash;
-    entries.push({ localKey, manifestKey, hash });
-  }
-  const headManifest = headSha ? await fetchHeadManifest(deps, bucket, headSha) : null;
-  const changedEntries = entries.filter((e) => !headManifest || headManifest[e.manifestKey] !== e.hash);
-  deps.core.info(`${changedEntries.length} changed image(s) to upload.`);
-  await Promise.all(changedEntries.map(async ({ localKey, manifestKey }) => {
-    const localPath = `${screenshotsDirectory}/${localKey}/new.png`;
-    const fileBuffer = await deps.fs.readFile(localPath);
-    const body = resizeEnabled ? await resizeImageIfNeeded(fileBuffer, deps.jimp) : fileBuffer;
-    await deps.s3.putObject({
-      Bucket: bucket,
-      Key: `${NEW_IMAGES_DIRECTORY}/${commitHash}/${manifestKey}/new.png`,
-      Body: body
-    });
-  }));
-  const manifestObjectKey = packagePath ? `manifests/${commitHash}/${packagePath}.json` : `manifests/${commitHash}.json`;
-  await deps.s3.putObject({
-    Bucket: bucket,
-    Key: manifestObjectKey,
-    Body: JSON.stringify(manifest),
-    ContentType: "application/json"
-  });
-  deps.core.info(`Manifest uploaded for ${commitHash} with ${Object.keys(manifest).length} entries.`);
-}
-async function fetchHeadManifest(deps, bucket, sha) {
-  try {
-    const response = await deps.s3.getObject({
-      Bucket: bucket,
-      Key: `manifests/${sha}.json`
-    });
-    const body = await response.Body.transformToString();
-    return JSON.parse(body);
-  } catch (error2) {
-    if (error2 instanceof Error && error2.name === "NoSuchKey") {
-      return null;
-    }
-    throw error2;
-  }
-}
-
 // src/manifest-s3.ts
 function isNoSuchKey(error2) {
   return error2 instanceof Error && error2.name === "NoSuchKey";
@@ -161294,6 +161221,12 @@ async function readBody(response) {
     throw new Error("Unexpected empty S3 response body");
   }
   return response.Body.transformToString();
+}
+async function readBodyBytes(response) {
+  if (!response.Body) {
+    throw new Error("Unexpected empty S3 response body");
+  }
+  return response.Body.transformToByteArray();
 }
 function makeManifestS3(s3 = defaultS3Operations) {
   async function putManifest(bucket, sha, manifest) {
@@ -161379,6 +161312,79 @@ var {
   getChangeset,
   squashPrManifest
 } = makeManifestS3();
+
+// src/manifest-generate.ts
+async function manifestGenerate(deps = makeDefaultDeps()) {
+  const visualTestCommands = getMultilineInput("visual-test-command");
+  const commitHash = getInput("commit-hash");
+  const bucket = getInput("bucket-name", { required: true });
+  const screenshotsDirectory = getInput("screenshots-directory");
+  const headSha = getInput("head-sha");
+  const resizeWidth = getInput("resize-width");
+  const resizeHeight = getInput("resize-height");
+  const resizeEnabled = Boolean(resizeWidth || resizeHeight);
+  const packagePaths = getInput("package-paths").split(",").map((p) => p.trim()).filter(Boolean);
+  if (packagePaths.length > 1) {
+    deps.core.setFailed("manifest-generate expects a single package-paths value per matrix job; " + `received ${packagePaths.length}: ${packagePaths.join(", ")}.`);
+    return;
+  }
+  const packagePath = packagePaths[0] ?? "";
+  const exitCodes = await Promise.all(visualTestCommands.map((cmd) => deps.exec(cmd, [], { ignoreReturnCode: true })));
+  if (exitCodes.some((code) => code !== 0)) {
+    deps.core.setFailed("Visual test command failed.");
+    return;
+  }
+  const filePaths = await deps.glob(`${screenshotsDirectory}/**/new.png`, {
+    nodir: true,
+    absolute: false
+  });
+  const entries = [];
+  const manifest = {};
+  for (const filePath of filePaths) {
+    const relativePath = filePath.replace(`${screenshotsDirectory}/`, "");
+    const localKey = relativePath.replace(/\/new\.png$/, "");
+    const manifestKey = packagePath ? `${packagePath}/${localKey}` : localKey;
+    const hash = await deps.hashFile(filePath);
+    manifest[manifestKey] = hash;
+    entries.push({ localKey, manifestKey, hash });
+  }
+  const headManifest = headSha ? await fetchHeadManifest(deps, bucket, headSha) : null;
+  const changedEntries = entries.filter((e) => !headManifest || headManifest[e.manifestKey] !== e.hash);
+  deps.core.info(`${changedEntries.length} changed image(s) to upload.`);
+  await Promise.all(changedEntries.map(async ({ localKey, manifestKey }) => {
+    const localPath = `${screenshotsDirectory}/${localKey}/new.png`;
+    const fileBuffer = await deps.fs.readFile(localPath);
+    const body = resizeEnabled ? await resizeImageIfNeeded(fileBuffer, deps.jimp) : fileBuffer;
+    await deps.s3.putObject({
+      Bucket: bucket,
+      Key: `${NEW_IMAGES_DIRECTORY}/${commitHash}/${manifestKey}/new.png`,
+      Body: body
+    });
+  }));
+  const manifestObjectKey = packagePath ? `manifests/${commitHash}/${packagePath}.json` : `manifests/${commitHash}.json`;
+  await deps.s3.putObject({
+    Bucket: bucket,
+    Key: manifestObjectKey,
+    Body: JSON.stringify(manifest),
+    ContentType: "application/json"
+  });
+  deps.core.info(`Manifest uploaded for ${commitHash} with ${Object.keys(manifest).length} entries.`);
+}
+async function fetchHeadManifest(deps, bucket, sha) {
+  try {
+    const response = await deps.s3.getObject({
+      Bucket: bucket,
+      Key: `manifests/${sha}.json`
+    });
+    const body = await readBody(response);
+    return JSON.parse(body);
+  } catch (error2) {
+    if (error2 instanceof Error && error2.name === "NoSuchKey") {
+      return null;
+    }
+    throw error2;
+  }
+}
 
 // src/manifest-compare.ts
 async function manifestCompare(params, deps) {
@@ -161527,7 +161533,7 @@ async function getManifestFromS3(deps, bucket, sha) {
       Bucket: bucket,
       Key: `manifests/${sha}.json`
     });
-    const body = await response.Body.transformToString();
+    const body = await readBody(response);
     return JSON.parse(body);
   } catch (error2) {
     if (isNoSuchKey(error2))
@@ -161595,7 +161601,7 @@ async function generateDiffs(params, deps) {
 }
 async function downloadBuffer(s3, bucket, key) {
   const response = await s3.getObject({ Bucket: bucket, Key: key });
-  const bytes = await response.Body.transformToByteArray();
+  const bytes = await readBodyBytes(response);
   return Buffer.from(bytes);
 }
 
@@ -162259,5 +162265,5 @@ var run = async (deps = makeDefaultDeps()) => {
 // src/main.ts
 run();
 
-//# debugId=0B07C88224BFA28064756E2164756E21
+//# debugId=F2E8DA3955ABE25064756E2164756E21
 //# sourceMappingURL=main.js.map

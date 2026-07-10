@@ -1,5 +1,5 @@
 import type { Dependencies } from './dependencies';
-import { isNoSuchKey, type Manifest } from './manifest-s3';
+import { isNoSuchKey, readBody, type Manifest } from './manifest-s3';
 
 export interface PrOwnsEntry {
   path: string;
@@ -108,7 +108,7 @@ async function getManifestFromS3(
       Bucket: bucket,
       Key: `manifests/${sha}.json`
     });
-    const body = await response.Body!.transformToString();
+    const body = await readBody(response);
     return JSON.parse(body) as Manifest;
   } catch (error: unknown) {
     if (isNoSuchKey(error)) return null;
