@@ -10,6 +10,8 @@ Each criterion is marked ✅ (satisfied), ❌ (not satisfied), or ⚠️ (satisf
 
 All 102 existing manifest tests pass (`bun test`), consistent with the code matching its own (now-stale) tests rather than the current spec.
 
+_Re-verification note: this pass re-read every manifest source file end-to-end (`manifest-generate.ts`, `manifest-compare.ts`, `manifest-compare-classify.ts`, `manifest-merge.ts`, `manifest-merge-overlay.ts`, `manifest-merge-base-images.ts`, `manifest-merge-flag-prs.ts`, `manifest-s3.ts`, `manifest-diff.ts`, `manifest-run.ts`, `hash.ts`) rather than relying on Review #2's carry-forward, and ran a case-insensitive `md5|hash|sort|join|chunk` sweep across `action/src`, `shared/`, `comparadise-utils/`, and `app/` (excluding `node_modules`) to rule out chunk-id logic living somewhere unexpected — none exists. `action.yml`'s `package-paths` input description and `docs/docs/setup/manifest-workflows.md` corroborate this independently: both still document the one-package-per-job, literal-filename model end to end, so code, tests, `action.yml`, and docs are all consistently on the old model — only `MANIFEST_AC.md` reflects the new one. 2.1–2.15, 3.1–3.10, and 4.1/4.3/4.5/4.6 were each independently re-confirmed against the current source rather than assumed unchanged._
+
 ---
 
 ## 1. `manifest-generate` mode
