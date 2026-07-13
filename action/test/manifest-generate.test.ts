@@ -2,6 +2,7 @@
 import { describe, expect, it, mock, beforeEach, afterEach } from 'bun:test';
 import { context as githubContext } from '@actions/github';
 import { manifestGenerate } from '../src/manifest-generate';
+import { hashString } from '../src/hash';
 import type { Dependencies } from '../src/dependencies';
 
 const execMock = mock<any>(() => Promise.resolve(0));
@@ -261,9 +262,9 @@ describe('manifestGenerate', () => {
   });
 
   describe('monorepo (package-paths set)', () => {
-    it('prefixes manifest keys and the new-image path with the package path', async () => {
+    it('keys entries by their on-disk relative path and names the manifest by chunk-id', async () => {
       setEnv({ 'package-paths': 'packages/ui' });
-      globMock.mockResolvedValue(['screenshots/Button/new.png']);
+      globMock.mockResolvedValue(['screenshots/packages/ui/Button/new.png']);
       hashFileMock.mockResolvedValue('hash1');
       getObjectMock.mockRejectedValue(
         Object.assign(new Error(), { name: 'NoSuchKey' })
@@ -282,27 +283,60 @@ describe('manifestGenerate', () => {
       const manifestCall = putObjectMock.mock.calls.find((call: any) =>
         call[0].Key?.startsWith('manifests/')
       ) as any[];
-      expect(manifestCall![0].Key).toBe('manifests/abc123/packages/ui.json');
+      expect(manifestCall![0].Key).toBe(
+        `manifests/abc123/${hashString('packages/ui')}.json`
+      );
       expect(manifestCall![0].Body).toBe(
         JSON.stringify({ 'packages/ui/Button': 'hash1' })
       );
     });
 
-    it('fails when more than one package path is supplied to a single job', async () => {
+    it('accepts multiple packages in a single job (a chunk) and writes one manifest', async () => {
       setEnv({ 'package-paths': 'packages/ui,packages/core' });
-      globMock.mockResolvedValue(['screenshots/Button/new.png']);
+      globMock.mockResolvedValue([
+        'screenshots/packages/ui/Button/new.png',
+        'screenshots/packages/core/Widget/new.png'
+      ]);
+      hashFileMock
+        .mockResolvedValueOnce('hashUi')
+        .mockResolvedValueOnce('hashCore');
+      getObjectMock.mockRejectedValue(
+        Object.assign(new Error(), { name: 'NoSuchKey' })
+      );
+      readFileMock.mockResolvedValue(Buffer.from('fake-image'));
 
       await manifestGenerate(makeDeps());
 
-      expect(setFailedMock).toHaveBeenCalledWith(
-        expect.stringContaining('single package-paths value per matrix job')
+      expect(setFailedMock).not.toHaveBeenCalled();
+
+      const manifestCalls = putObjectMock.mock.calls.filter((call: any) =>
+        call[0].Key?.startsWith('manifests/')
+      ) as any[];
+      expect(manifestCalls).toHaveLength(1);
+      // chunk-id is order-independent: package-paths are sorted before hashing,
+      // so the reversed input here still yields the sorted-order hash.
+      expect(manifestCalls[0]![0].Key).toBe(
+        `manifests/abc123/${hashString('packages/core,packages/ui')}.json`
       );
-      expect(putObjectMock).not.toHaveBeenCalled();
+      expect(JSON.parse(manifestCalls[0]![0].Body)).toEqual({
+        'packages/ui/Button': 'hashUi',
+        'packages/core/Widget': 'hashCore'
+      });
+
+      const uploadedKeys = putObjectMock.mock.calls
+        .filter((call: any) => call[0].Key?.startsWith('new-images/'))
+        .map((call: any) => call[0].Key);
+      expect(uploadedKeys).toContain(
+        'new-images/abc123/packages/ui/Button/new.png'
+      );
+      expect(uploadedKeys).toContain(
+        'new-images/abc123/packages/core/Widget/new.png'
+      );
     });
 
-    it('reads the local screenshot path without the package prefix', async () => {
+    it('reads the local screenshot path as it exists on disk', async () => {
       setEnv({ 'package-paths': 'packages/ui' });
-      globMock.mockResolvedValue(['screenshots/Button/new.png']);
+      globMock.mockResolvedValue(['screenshots/packages/ui/Button/new.png']);
       hashFileMock.mockResolvedValue('hash1');
       getObjectMock.mockRejectedValue(
         Object.assign(new Error(), { name: 'NoSuchKey' })
@@ -311,18 +345,20 @@ describe('manifestGenerate', () => {
 
       await manifestGenerate(makeDeps());
 
-      expect(readFileMock).toHaveBeenCalledWith('screenshots/Button/new.png');
+      expect(readFileMock).toHaveBeenCalledWith(
+        'screenshots/packages/ui/Button/new.png'
+      );
     });
 
-    it('only uploads images whose prefixed hash differs from the HEAD manifest', async () => {
+    it('only uploads images whose hash differs from the HEAD manifest', async () => {
       setEnv({ 'package-paths': 'packages/ui' });
       githubContext.payload = {
         pull_request: { number: 1, base: { ref: 'main' } }
       };
       getBranchMock.mockResolvedValue({ data: { commit: { sha: 'base999' } } });
       globMock.mockResolvedValue([
-        'screenshots/Button/new.png',
-        'screenshots/Modal/new.png'
+        'screenshots/packages/ui/Button/new.png',
+        'screenshots/packages/ui/Modal/new.png'
       ]);
       hashFileMock
         .mockResolvedValueOnce('hash1')

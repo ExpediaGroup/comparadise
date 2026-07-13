@@ -4,6 +4,7 @@ import { NEW_IMAGES_DIRECTORY } from 'shared/constants';
 import { resizeImageIfNeeded } from './resize';
 import { type Dependencies, makeDefaultDeps } from './dependencies';
 import { readBody, type Manifest } from './manifest-s3';
+import { hashString } from './hash';
 
 export async function manifestGenerate(
   deps: Dependencies = makeDefaultDeps()
@@ -19,14 +20,6 @@ export async function manifestGenerate(
     .split(',')
     .map(p => p.trim())
     .filter(Boolean);
-  if (packagePaths.length > 1) {
-    deps.core.setFailed(
-      'manifest-generate expects a single package-paths value per matrix job; ' +
-        `received ${packagePaths.length}: ${packagePaths.join(', ')}.`
-    );
-    return;
-  }
-  const packagePath = packagePaths[0] ?? '';
 
   const exitCodes = await Promise.all(
     visualTestCommands.map(cmd =>
@@ -43,19 +36,19 @@ export async function manifestGenerate(
     absolute: false
   });
 
-  // `localKey` is the path on disk relative to the screenshots root; for
-  // monorepos `manifestKey` prefixes it with the package path so keys are
-  // globally unique across parallel matrix jobs. Images and manifest entries
-  // are keyed by `manifestKey`; only disk reads use `localKey`.
-  const entries: { localKey: string; manifestKey: string; hash: string }[] = [];
+  // Each key is the screenshot directory's path relative to the screenshots
+  // root. In a monorepo the test harness writes each package's screenshots
+  // under a package-named subdirectory, so the relative path already begins
+  // with the package path (e.g. `packages/ui/Button`) and is globally unique
+  // across parallel matrix jobs — no prefix is added here.
+  const entries: { key: string; hash: string }[] = [];
   const manifest: Manifest = {};
   for (const filePath of filePaths) {
     const relativePath = filePath.replace(`${screenshotsDirectory}/`, '');
-    const localKey = relativePath.replace(/\/new\.png$/, '');
-    const manifestKey = packagePath ? `${packagePath}/${localKey}` : localKey;
+    const key = relativePath.replace(/\/new\.png$/, '');
     const hash = await deps.hashFile(filePath);
-    manifest[manifestKey] = hash;
-    entries.push({ localKey, manifestKey, hash });
+    manifest[key] = hash;
+    entries.push({ key, hash });
   }
 
   // Resolve the live base-branch HEAD (not the possibly-stale payload value)
@@ -68,28 +61,29 @@ export async function manifestGenerate(
     : null;
 
   const changedEntries = entries.filter(
-    e => !headManifest || headManifest[e.manifestKey] !== e.hash
+    e => !headManifest || headManifest[e.key] !== e.hash
   );
 
   deps.core.info(`${changedEntries.length} changed image(s) to upload.`);
 
   await Promise.all(
-    changedEntries.map(async ({ localKey, manifestKey }) => {
-      const localPath = `${screenshotsDirectory}/${localKey}/new.png`;
+    changedEntries.map(async ({ key }) => {
+      const localPath = `${screenshotsDirectory}/${key}/new.png`;
       const fileBuffer = await deps.fs.readFile(localPath);
       const body = resizeEnabled
         ? await resizeImageIfNeeded(fileBuffer as Buffer, deps.jimp)
         : fileBuffer;
       await deps.s3.putObject({
         Bucket: bucket,
-        Key: `${NEW_IMAGES_DIRECTORY}/${commitHash}/${manifestKey}/new.png`,
+        Key: `${NEW_IMAGES_DIRECTORY}/${commitHash}/${key}/new.png`,
         Body: body
       });
     })
   );
 
-  const manifestObjectKey = packagePath
-    ? `manifests/${commitHash}/${packagePath}.json`
+  const chunkId = chunkIdFor(packagePaths);
+  const manifestObjectKey = chunkId
+    ? `manifests/${commitHash}/${chunkId}.json`
     : `manifests/${commitHash}.json`;
   await deps.s3.putObject({
     Bucket: bucket,
@@ -101,6 +95,17 @@ export async function manifestGenerate(
   deps.core.info(
     `Manifest uploaded for ${commitHash} with ${Object.keys(manifest).length} entries.`
   );
+}
+
+// A chunk-id names the per-job manifest of a monorepo matrix run, where a
+// single job may cover one or more packages (a "chunk"). It is the MD5 of the
+// job's `package-paths` — trimmed and empties dropped at the call site, then
+// sorted here so the same set of packages always hashes identically regardless
+// of input order. An empty list (non-monorepo) yields no chunk-id, and the
+// manifest is written to the flat `manifests/{sha}.json` instead.
+function chunkIdFor(packagePaths: string[]): string {
+  if (packagePaths.length === 0) return '';
+  return hashString([...packagePaths].sort().join(','));
 }
 
 async function resolveBaseHeadSha(

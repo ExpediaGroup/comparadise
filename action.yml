@@ -29,9 +29,12 @@ inputs:
   package-paths:
     description: >-
       Comma separated list of package paths for monorepos. For the
-      manifest-generate workflow, pass the single package path for that matrix
-      job; it is used as the manifest key prefix and the per-package manifest
-      filename (manifests/{commit-sha}/{package-path}.json).
+      manifest-generate workflow, pass the package(s) that matrix job covers (a
+      "chunk"); the paths are sorted and MD5-hashed into a chunk-id used as the
+      per-chunk manifest filename (manifests/{commit-sha}/{chunk-id}.json), so
+      parallel jobs never overwrite one another. Manifest keys are the
+      screenshot paths as they exist on disk (already package-prefixed by the
+      monorepo's directory layout); no prefix is added.
     required: false
   comparadise-host:
     description: 'The URL at which you are hosting Comparadise'

@@ -61,9 +61,9 @@ On a `pull_request` trigger, `manifest-generate` automatically uploads only the 
 
 ### Matrix jobs
 
-For monorepos running visual tests in parallel, run one `manifest-generate` job per package and a single `manifest-compare` job once all generate jobs complete.
+For monorepos running visual tests in parallel, split the packages across several `manifest-generate` jobs — one package per job, or several packages grouped into one job (a "chunk") — and run a single `manifest-compare` job once all generate jobs complete.
 
-Pass each package's path as `package-paths` on its generate job. `manifest-generate` then prefixes every manifest key with that path and writes a per-package manifest to `manifests/{commit-sha}/{package-path}.json`, so parallel jobs never overwrite one another. `manifest-compare` automatically discovers those per-package manifests, squashes them into the single `manifests/{commit-sha}.json`, and runs the comparison against it—so the compare and merge jobs need no extra configuration.
+Pass each job's package(s) as `package-paths` (comma separated for a chunk). `manifest-generate` sorts and MD5-hashes those paths into a chunk-id and writes that job's manifest to `manifests/{commit-sha}/{chunk-id}.json`, so parallel jobs never overwrite one another. Manifest keys are the screenshot paths exactly as they sit on disk — in a monorepo each package's screenshots already live under a package-named subdirectory, so keys are globally unique without any prefix being added. `manifest-compare` automatically discovers those per-chunk manifests, squashes them into the single `manifests/{commit-sha}.json`, and runs the comparison against it—so the compare and merge jobs need no extra configuration.
 
 ```yaml
 on:
