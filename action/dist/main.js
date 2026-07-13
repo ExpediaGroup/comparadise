@@ -160587,6 +160587,9 @@ async function hashFile(filePath) {
   const data = await readFile2(filePath);
   return createHash("md5").update(data).digest("hex");
 }
+function hashString(value) {
+  return createHash("md5").update(value).digest("hex");
+}
 
 // src/dependencies.ts
 var makeDefaultDeps = () => ({
@@ -160718,11 +160721,6 @@ async function manifestGenerate(deps = makeDefaultDeps()) {
   const resizeHeight = getInput("resize-height");
   const resizeEnabled = Boolean(resizeWidth || resizeHeight);
   const packagePaths = getInput("package-paths").split(",").map((p) => p.trim()).filter(Boolean);
-  if (packagePaths.length > 1) {
-    deps.core.setFailed("manifest-generate expects a single package-paths value per matrix job; " + `received ${packagePaths.length}: ${packagePaths.join(", ")}.`);
-    return;
-  }
-  const packagePath = packagePaths[0] ?? "";
   const exitCodes = await Promise.all(visualTestCommands.map((cmd) => deps.exec(cmd, [], { ignoreReturnCode: true })));
   if (exitCodes.some((code) => code !== 0)) {
     deps.core.setFailed("Visual test command failed.");
@@ -160736,28 +160734,28 @@ async function manifestGenerate(deps = makeDefaultDeps()) {
   const manifest = {};
   for (const filePath of filePaths) {
     const relativePath = filePath.replace(`${screenshotsDirectory}/`, "");
-    const localKey = relativePath.replace(/\/new\.png$/, "");
-    const manifestKey = packagePath ? `${packagePath}/${localKey}` : localKey;
+    const key = relativePath.replace(/\/new\.png$/, "");
     const hash = await deps.hashFile(filePath);
-    manifest[manifestKey] = hash;
-    entries.push({ localKey, manifestKey, hash });
+    manifest[key] = hash;
+    entries.push({ key, hash });
   }
   const baseRef = context2.payload.pull_request?.base?.ref;
   const headSha = baseRef ? await resolveBaseHeadSha(deps, baseRef) : "";
   const headManifest = headSha ? await fetchHeadManifest(deps, bucket, headSha) : null;
-  const changedEntries = entries.filter((e) => !headManifest || headManifest[e.manifestKey] !== e.hash);
+  const changedEntries = entries.filter((e) => !headManifest || headManifest[e.key] !== e.hash);
   deps.core.info(`${changedEntries.length} changed image(s) to upload.`);
-  await Promise.all(changedEntries.map(async ({ localKey, manifestKey }) => {
-    const localPath = `${screenshotsDirectory}/${localKey}/new.png`;
+  await Promise.all(changedEntries.map(async ({ key }) => {
+    const localPath = `${screenshotsDirectory}/${key}/new.png`;
     const fileBuffer = await deps.fs.readFile(localPath);
     const body = resizeEnabled ? await resizeImageIfNeeded(fileBuffer, deps.jimp) : fileBuffer;
     await deps.s3.putObject({
       Bucket: bucket,
-      Key: `${NEW_IMAGES_DIRECTORY}/${commitHash}/${manifestKey}/new.png`,
+      Key: `${NEW_IMAGES_DIRECTORY}/${commitHash}/${key}/new.png`,
       Body: body
     });
   }));
-  const manifestObjectKey = packagePath ? `manifests/${commitHash}/${packagePath}.json` : `manifests/${commitHash}.json`;
+  const chunkId = chunkIdFor(packagePaths);
+  const manifestObjectKey = chunkId ? `manifests/${commitHash}/${chunkId}.json` : `manifests/${commitHash}.json`;
   await deps.s3.putObject({
     Bucket: bucket,
     Key: manifestObjectKey,
@@ -160765,6 +160763,11 @@ async function manifestGenerate(deps = makeDefaultDeps()) {
     ContentType: "application/json"
   });
   deps.core.info(`Manifest uploaded for ${commitHash} with ${Object.keys(manifest).length} entries.`);
+}
+function chunkIdFor(packagePaths) {
+  if (packagePaths.length === 0)
+    return "";
+  return hashString([...packagePaths].sort().join(","));
 }
 async function resolveBaseHeadSha(deps, baseRef) {
   const { data } = await deps.octokit.rest.repos.getBranch({
@@ -161668,5 +161671,5 @@ var run = async (deps = makeDefaultDeps()) => {
 // src/main.ts
 run();
 
-//# debugId=C7C9ADDB34CA5F7E64756E2164756E21
+//# debugId=36653B8DA2FBA14B64756E2164756E21
 //# sourceMappingURL=main.js.map
