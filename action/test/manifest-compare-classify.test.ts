@@ -15,8 +15,9 @@ const infoMock = mock<any>();
 // getManifest is injected (see F5 dedupe); back it with the real makeManifestS3
 // over the same getObject mock so the ordered mockManifest/mockNoSuchKey
 // sequencing below drives it exactly as it did the removed local copy.
-const getManifest = makeManifestS3({ getObject: getObjectMock } as any)
-  .getManifest;
+const getManifest = makeManifestS3({
+  getObject: getObjectMock
+} as any).getManifest;
 
 function makeDeps(overrides: Partial<ClassifyDeps> = {}): ClassifyDeps {
   return {

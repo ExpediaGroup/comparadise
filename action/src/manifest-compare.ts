@@ -20,10 +20,7 @@ export type CommentArgs =
   | { kind: 'conflict'; commitHash: string; conflicts: string[] };
 
 export interface ManifestCompareDeps {
-  squashPrManifest: (
-    bucket: string,
-    sha: string
-  ) => Promise<Manifest | null>;
+  squashPrManifest: (bucket: string, sha: string) => Promise<Manifest | null>;
   classify: (params: ClassifyParams) => Promise<CompareResult>;
   generateDiffs: (params: GenerateDiffsParams) => Promise<void>;
   putChangeset: (
