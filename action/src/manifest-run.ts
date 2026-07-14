@@ -45,7 +45,8 @@ export async function runManifestCompareWorkflow(
         classifyManifests(params, {
           s3: deps.s3,
           octokit: deps.octokit,
-          core: deps.core
+          core: deps.core,
+          getManifest: manifestS3.getManifest
         }),
       generateDiffs: params =>
         generateDiffs(params, {

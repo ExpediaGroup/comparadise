@@ -193,7 +193,7 @@ describe('manifestMerge', () => {
       expect(applyChangesetToBaseImagesMock).toHaveBeenCalledTimes(1);
     });
 
-    it('fails the job and aborts when stale conflicts are detected', async () => {
+    it('throws and aborts (without writing a manifest) when stale conflicts are detected', async () => {
       getChangesetMock.mockResolvedValue(changeset);
       getMergeParentShaMock.mockResolvedValue('parent-sha-aaa');
       getManifestMock
@@ -205,7 +205,9 @@ describe('manifestMerge', () => {
         /stale|conflict|Button/i
       );
 
-      expect(setFailedMock).toHaveBeenCalled();
+      // The throw is the sole failure signal (main.ts routes it to setFailed
+      // once); manifestMerge must not also call setFailed itself.
+      expect(setFailedMock).not.toHaveBeenCalled();
       expect(overlayChangesetMock).not.toHaveBeenCalled();
       expect(putManifestMock).not.toHaveBeenCalled();
       expect(applyChangesetToBaseImagesMock).not.toHaveBeenCalled();

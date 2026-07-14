@@ -1,5 +1,5 @@
 import type { Dependencies } from './dependencies';
-import { isNoSuchKey, readBody, type Manifest } from './manifest-s3';
+import type { Manifest } from './manifest-s3';
 
 export interface PrOwnsEntry {
   path: string;
@@ -21,6 +21,7 @@ export interface ClassifyDeps {
   s3: Dependencies['s3'];
   octokit: Dependencies['octokit'];
   core: Dependencies['core'];
+  getManifest: (bucket: string, sha: string) => Promise<Manifest | null>;
 }
 
 export interface ClassifyParams {
@@ -39,7 +40,7 @@ export async function classifyManifests(
   const prManifest = await requirePrManifest(deps, bucket, prSha);
 
   const headSha = await resolveHeadSha(deps, repo, baseRef);
-  const headManifest = (await getManifestFromS3(deps, bucket, headSha)) ?? {};
+  const headManifest = (await deps.getManifest(bucket, headSha)) ?? {};
 
   const allPaths = new Set([
     ...Object.keys(prManifest),
@@ -98,30 +99,12 @@ export async function classifyManifests(
   };
 }
 
-async function getManifestFromS3(
-  deps: ClassifyDeps,
-  bucket: string,
-  sha: string
-): Promise<Manifest | null> {
-  try {
-    const response = await deps.s3.getObject({
-      Bucket: bucket,
-      Key: `manifests/${sha}.json`
-    });
-    const body = await readBody(response);
-    return JSON.parse(body) as Manifest;
-  } catch (error: unknown) {
-    if (isNoSuchKey(error)) return null;
-    throw error;
-  }
-}
-
 async function requirePrManifest(
   deps: ClassifyDeps,
   bucket: string,
   sha: string
 ): Promise<Manifest> {
-  const manifest = await getManifestFromS3(deps, bucket, sha);
+  const manifest = await deps.getManifest(bucket, sha);
   if (!manifest) {
     throw new Error(
       `PR manifest not found for ${sha}. Ensure manifest-generate ran successfully.`
@@ -135,7 +118,7 @@ async function requireAncestorManifest(
   bucket: string,
   sha: string
 ): Promise<Manifest> {
-  const manifest = await getManifestFromS3(deps, bucket, sha);
+  const manifest = await deps.getManifest(bucket, sha);
   if (!manifest) {
     throw new Error(
       `Ancestor manifest not found for ${sha}. Ensure manifest-generate has run on the base branch, then rebase your branch onto a commit that has a manifest.`

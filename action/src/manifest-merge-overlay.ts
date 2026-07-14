@@ -43,6 +43,10 @@ export function detectStaleConflicts(
   const conflicts: string[] = [];
   for (const path of Object.keys(changeset)) {
     if (path === HEAD_SHA_KEY) continue;
+    // The PR deletes this path and it is already absent from the merge target
+    // (main deleted it too). Both sides agree on removal, so there is nothing
+    // to clobber — not a conflict.
+    if (changeset[path] === null && !(path in parentManifest)) continue;
     if (headManifest[path] !== parentManifest[path]) {
       conflicts.push(path);
     }

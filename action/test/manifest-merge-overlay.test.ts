@@ -100,9 +100,36 @@ describe('detectStaleConflicts', () => {
     ).toEqual(['Button']);
   });
 
-  it('treats a path missing in one manifest as a conflict', () => {
+  it('does not flag a PR deletion that main also deleted (both agree on removal)', () => {
+    // Double-delete: the PR deletes Button, and it is already gone from the
+    // merge target because main deleted it too. There is nothing to clobber, so
+    // this must not force an unnecessary rebase.
     const headManifest: Manifest = { Button: 'h1' };
     const parentManifest: Manifest = {};
+    const changeset: Changeset = { _headSha: 'sha', Button: null };
+
+    expect(
+      detectStaleConflicts(headManifest, parentManifest, changeset)
+    ).toEqual([]);
+  });
+
+  it('flags a PR modification of a path that main deleted as a conflict', () => {
+    // The changeset entry is non-null (PR changed Button) while main deleted it
+    // since compare time, so the double-delete exemption does not apply.
+    const headManifest: Manifest = { Button: 'h1' };
+    const parentManifest: Manifest = {};
+    const changeset: Changeset = { _headSha: 'sha', Button: 'h-pr' };
+
+    expect(
+      detectStaleConflicts(headManifest, parentManifest, changeset)
+    ).toEqual(['Button']);
+  });
+
+  it('flags a deletion conflict when main modified the path the PR deletes', () => {
+    // PR deletes Button; main changed it (still present in parent, different
+    // hash). Removal would clobber main's change → real conflict.
+    const headManifest: Manifest = { Button: 'h1' };
+    const parentManifest: Manifest = { Button: 'h1-main' };
     const changeset: Changeset = { _headSha: 'sha', Button: null };
 
     expect(

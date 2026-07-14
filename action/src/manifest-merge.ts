@@ -87,7 +87,10 @@ async function assertNoStaleConflicts(
   );
   if (conflicts.length === 0) return;
 
-  const message = `Stale changeset: ${conflicts.length} path(s) changed on main since this PR was compared (${conflicts.join(', ')}). The merging PR must be rebased and re-checked.`;
-  deps.core.setFailed(message);
-  throw new Error(message);
+  // Throw as the sole failure signal (see main.ts) — and critically, abort
+  // before any manifest is written, since a manifest just declared conflicting
+  // must not be published.
+  throw new Error(
+    `Stale changeset: ${conflicts.length} path(s) changed on main since this PR was compared (${conflicts.join(', ')}). The merging PR must be rebased and re-checked.`
+  );
 }

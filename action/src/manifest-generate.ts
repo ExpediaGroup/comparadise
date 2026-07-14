@@ -3,14 +3,14 @@ import { context as githubContext } from '@actions/github';
 import { NEW_IMAGES_DIRECTORY } from 'shared/constants';
 import { resizeImageIfNeeded } from './resize';
 import { type Dependencies, makeDefaultDeps } from './dependencies';
-import { readBody, type Manifest } from './manifest-s3';
+import { makeManifestS3, type Manifest } from './manifest-s3';
 import { hashString } from './hash';
 
 export async function manifestGenerate(
   deps: Dependencies = makeDefaultDeps()
 ): Promise<void> {
   const visualTestCommands = getMultilineInput('visual-test-command');
-  const commitHash = getInput('commit-hash');
+  const commitHash = getInput('commit-hash', { required: true });
   const bucket = getInput('bucket-name', { required: true });
   const screenshotsDirectory = getInput('screenshots-directory');
   const resizeWidth = getInput('resize-width');
@@ -57,7 +57,7 @@ export async function manifestGenerate(
   const baseRef = githubContext.payload.pull_request?.base?.ref;
   const headSha = baseRef ? await resolveBaseHeadSha(deps, baseRef) : '';
   const headManifest = headSha
-    ? await fetchHeadManifest(deps, bucket, headSha)
+    ? await makeManifestS3(deps.s3).getManifest(bucket, headSha)
     : null;
 
   const changedEntries = entries.filter(
@@ -117,24 +117,4 @@ async function resolveBaseHeadSha(
     branch: baseRef
   });
   return data.commit.sha;
-}
-
-async function fetchHeadManifest(
-  deps: Pick<Dependencies, 's3'>,
-  bucket: string,
-  sha: string
-): Promise<Manifest | null> {
-  try {
-    const response = await deps.s3.getObject({
-      Bucket: bucket,
-      Key: `manifests/${sha}.json`
-    });
-    const body = await readBody(response);
-    return JSON.parse(body) as Manifest;
-  } catch (error: unknown) {
-    if (error instanceof Error && error.name === 'NoSuchKey') {
-      return null;
-    }
-    throw error;
-  }
 }

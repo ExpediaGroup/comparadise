@@ -20,7 +20,10 @@ export type CommentArgs =
   | { kind: 'conflict'; commitHash: string; conflicts: string[] };
 
 export interface ManifestCompareDeps {
-  squashPrManifest: (bucket: string, sha: string) => Promise<unknown>;
+  squashPrManifest: (
+    bucket: string,
+    sha: string
+  ) => Promise<Manifest | null>;
   classify: (params: ClassifyParams) => Promise<CompareResult>;
   generateDiffs: (params: GenerateDiffsParams) => Promise<void>;
   putChangeset: (
@@ -52,10 +55,11 @@ export async function manifestCompare(
 ): Promise<void> {
   const { bucket, prSha, repo, baseRef } = params;
 
-  // Monorepo matrix jobs each write a per-package manifest under
+  // Monorepo matrix jobs each write a per-chunk manifest under
   // manifests/{prSha}/. Squash them into the single manifests/{prSha}.json
-  // before comparing; a no-op for single-package PRs (nothing to squash).
-  await deps.squashPrManifest(bucket, prSha);
+  // before comparing; returns null for single-package PRs (nothing to squash),
+  // where manifests/{prSha}.json was already written directly by generate.
+  const squashedPrManifest = await deps.squashPrManifest(bucket, prSha);
 
   const result = await deps.classify({ bucket, prSha, repo, baseRef });
 
@@ -88,7 +92,7 @@ export async function manifestCompare(
     return;
   }
 
-  await handlePrOwns(deps, params, result);
+  await handlePrOwns(deps, params, result, squashedPrManifest);
 }
 
 async function handleConflicts(
@@ -115,7 +119,8 @@ async function handleConflicts(
 async function handlePrOwns(
   deps: ManifestCompareDeps,
   params: ManifestCompareParams,
-  result: Extract<CompareResult, { outcome: 'classified' }>
+  result: Extract<CompareResult, { outcome: 'classified' }>,
+  squashedPrManifest: Manifest | null
 ): Promise<void> {
   const { bucket, prSha } = params;
 
@@ -126,7 +131,10 @@ async function handlePrOwns(
     deps.core.info(`${deletions.length} screenshot(s) deleted by this PR.`);
   }
 
-  const prManifest = (await deps.getPrManifest(bucket, prSha)) ?? {};
+  // Reuse the squashed manifest when the monorepo path already produced it;
+  // fall back to fetching manifests/{prSha}.json for the single-package case.
+  const prManifest =
+    squashedPrManifest ?? (await deps.getPrManifest(bucket, prSha)) ?? {};
   const changeset = buildChangeset(result.headSha, result.prOwns, prManifest);
   await deps.putChangeset(bucket, prSha, changeset);
 

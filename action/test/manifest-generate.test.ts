@@ -126,6 +126,15 @@ describe('manifestGenerate', () => {
     );
   });
 
+  it('fails when commit-hash is not supplied', async () => {
+    clearEnv('commit-hash');
+    globMock.mockResolvedValue([]);
+
+    // getInput('commit-hash', { required: true }) throws before any S3 write,
+    // so a missing hash can never produce a malformed `manifests/.json` key.
+    await expect(manifestGenerate(makeDeps())).rejects.toThrow(/commit-hash/i);
+  });
+
   it('builds manifest by hashing new.png files keyed by containing directory', async () => {
     globMock.mockResolvedValue([
       'screenshots/Button/new.png',

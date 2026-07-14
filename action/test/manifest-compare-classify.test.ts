@@ -5,11 +5,18 @@ import {
   type CompareResult,
   type ClassifyDeps
 } from '../src/manifest-compare-classify';
+import { makeManifestS3 } from '../src/manifest-s3';
 
 const getObjectMock = mock<any>();
 const getBranchMock = mock<any>();
 const compareMock = mock<any>();
 const infoMock = mock<any>();
+
+// getManifest is injected (see F5 dedupe); back it with the real makeManifestS3
+// over the same getObject mock so the ordered mockManifest/mockNoSuchKey
+// sequencing below drives it exactly as it did the removed local copy.
+const getManifest = makeManifestS3({ getObject: getObjectMock } as any)
+  .getManifest;
 
 function makeDeps(overrides: Partial<ClassifyDeps> = {}): ClassifyDeps {
   return {
@@ -23,6 +30,7 @@ function makeDeps(overrides: Partial<ClassifyDeps> = {}): ClassifyDeps {
       }
     } as any,
     core: { info: infoMock, setFailed: mock() } as any,
+    getManifest,
     ...overrides
   };
 }
@@ -327,6 +335,33 @@ describe('classifyManifests', () => {
         makeDeps()
       )
     ).rejects.toThrow();
+  });
+
+  it('reads every manifest through the injected getManifest, not S3 directly', async () => {
+    const getManifestSpy = mock<any>()
+      .mockResolvedValueOnce({ Button: 'hash2' }) // PR
+      .mockResolvedValueOnce({ Button: 'hash1' }) // HEAD
+      .mockResolvedValueOnce({ Button: 'hash1' }); // ancestor
+    getBranchMock.mockResolvedValue({
+      data: { commit: { sha: 'head-sha-222' } }
+    });
+    compareMock.mockResolvedValue({
+      data: { merge_base_commit: { sha: 'ancestor-sha-333' } }
+    });
+
+    await classifyManifests(
+      { bucket: 'test-bucket', prSha, repo, baseRef },
+      makeDeps({ getManifest: getManifestSpy })
+    );
+
+    expect(getManifestSpy).toHaveBeenCalledWith('test-bucket', prSha);
+    expect(getManifestSpy).toHaveBeenCalledWith('test-bucket', 'head-sha-222');
+    expect(getManifestSpy).toHaveBeenCalledWith(
+      'test-bucket',
+      'ancestor-sha-333'
+    );
+    // The duplicated local getManifestFromS3 is gone — no direct S3 reads.
+    expect(getObjectMock).not.toHaveBeenCalled();
   });
 
   it('treats missing HEAD manifest as empty (first run on main)', async () => {

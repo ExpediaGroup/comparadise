@@ -250,6 +250,49 @@ describe('manifestCompare', () => {
     });
   });
 
+  describe('PR manifest source (squash result threading)', () => {
+    const result: CompareResult = {
+      outcome: 'classified',
+      headSha: 'head-sha-222',
+      prSha: 'pr-sha-111',
+      prOwns: [{ path: 'Button', type: 'changed' }],
+      mainOwns: [],
+      conflicts: []
+    };
+
+    it('reuses the squashed manifest and does not re-fetch it (monorepo)', async () => {
+      classifyMock.mockResolvedValue(result);
+      // Monorepo: squash returns the merged manifest it just uploaded.
+      squashPrManifestMock.mockResolvedValue({ Button: 'squashed-hash' });
+
+      await manifestCompare(params, makeDeps());
+
+      // The squashed result is threaded through — no redundant getPrManifest.
+      expect(getManifestMock).not.toHaveBeenCalled();
+      expect(putChangesetMock).toHaveBeenCalledWith(
+        'test-bucket',
+        'pr-sha-111',
+        { _headSha: 'head-sha-222', Button: 'squashed-hash' }
+      );
+    });
+
+    it('falls back to getPrManifest when there was nothing to squash (single package)', async () => {
+      classifyMock.mockResolvedValue(result);
+      // Single-package: squash finds no per-chunk parts and returns null.
+      squashPrManifestMock.mockResolvedValue(null);
+      getManifestMock.mockResolvedValue({ Button: 'fetched-hash' });
+
+      await manifestCompare(params, makeDeps());
+
+      expect(getManifestMock).toHaveBeenCalledWith('test-bucket', 'pr-sha-111');
+      expect(putChangesetMock).toHaveBeenCalledWith(
+        'test-bucket',
+        'pr-sha-111',
+        { _headSha: 'head-sha-222', Button: 'fetched-hash' }
+      );
+    });
+  });
+
   describe('outcome: classified — prOwns deleted only', () => {
     const result: CompareResult = {
       outcome: 'classified',
