@@ -6,6 +6,7 @@ import { Jimp } from 'jimp';
 import { unlinkSync, createWriteStream } from 'fs';
 import { mkdir, readFile } from 'fs/promises';
 import { defaultS3Operations, type S3Operations } from 'shared/s3';
+import { hashFile } from './hash';
 
 export type Octokit = ReturnType<typeof getOctokit>;
 
@@ -26,6 +27,7 @@ export interface Dependencies {
     mkdir: typeof mkdir;
     readFile: typeof readFile;
   };
+  hashFile: typeof hashFile;
   context: {
     runAttempt: number;
     runId: number;
@@ -43,6 +45,7 @@ export const makeDefaultDeps = (): Dependencies => ({
   jimp: { read: Jimp.read.bind(Jimp) },
   s3: defaultS3Operations,
   fs: { unlinkSync, createWriteStream, mkdir, readFile },
+  hashFile,
   context: {
     runAttempt: context.runAttempt,
     runId: context.runId,

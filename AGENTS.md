@@ -50,6 +50,43 @@ bunx nx build action
 
 Commit the updated `action/dist/` files — CI will fail if they are out of sync with source.
 
+## Testing: No `mock.module`
+
+Bun's `mock.module` replaces modules globally across all test files in a single run. This causes order-dependent failures when one file's mock doesn't include exports another file needs.
+
+Instead, structure production code as factory functions that accept dependencies, and inject mocks at test time.
+
+**Bad — uses `mock.module`, poisons other test files:**
+
+```typescript
+// manifest-s3.test.ts
+const putObjectMock = mock();
+const getObjectMock = mock();
+
+mock.module('shared/s3', () => ({
+  putObject: putObjectMock,
+  getObject: getObjectMock
+}));
+
+const { putManifest } = await import('../src/manifest-s3');
+```
+
+**Good — factory function with injected deps, fully isolated:**
+
+```typescript
+// manifest-s3.ts
+export function makeManifestS3(deps: ManifestS3Deps = defaultDeps) {
+  async function putManifest(bucket: string, sha: string, manifest: Manifest) {
+    await deps.putObject({ Bucket: bucket, Key: `manifests/${sha}.json`, ... });
+  }
+  return { putManifest, getManifest, putChangeset, getChangeset };
+}
+
+// manifest-s3.test.ts
+const putObjectMock = mock<any>();
+const { putManifest } = makeManifestS3({ getObject: getObjectMock, putObject: putObjectMock });
+```
+
 ## Key Architectural Notes
 
 - S3 stores images under `base-images/`, `new-images/`, and `original-new-images/` directories

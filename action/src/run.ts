@@ -15,9 +15,30 @@ import {
 import { buildComparadiseUrl } from './build-comparadise-url';
 import { disableAutoMerge } from './disable-auto-merge';
 import { type Dependencies, makeDefaultDeps } from './dependencies';
+import { manifestGenerate } from './manifest-generate';
+import {
+  runManifestCompareWorkflow,
+  runManifestMergeWorkflow
+} from './manifest-run';
 
 export const run = async (deps: Dependencies = makeDefaultDeps()) => {
   const workflow = getInput('workflow') || 'pr';
+
+  if (workflow === 'manifest-generate') {
+    await manifestGenerate(deps);
+    return;
+  }
+
+  if (workflow === 'manifest-compare') {
+    await runManifestCompareWorkflow(deps);
+    return;
+  }
+
+  if (workflow === 'manifest-merge') {
+    await runManifestMergeWorkflow(deps);
+    return;
+  }
+
   const commitHash = getInput('commit-hash');
   const diffId = getInput('diff-id');
 

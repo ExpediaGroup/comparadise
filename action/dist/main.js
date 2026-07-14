@@ -160463,7 +160463,7 @@ var Jimp = createJimp({
 
 // src/dependencies.ts
 import { unlinkSync, createWriteStream } from "fs";
-import { mkdir as mkdir2, readFile as readFile2 } from "fs/promises";
+import { mkdir as mkdir2, readFile as readFile3 } from "fs/promises";
 
 // ../shared/s3.ts
 var import_client_s3 = __toESM(require_dist_cjs22(), 1);
@@ -160580,6 +160580,17 @@ var getBaseImagePaths = defaultS3Operations.getBaseImagePaths;
 var getBaseImagePathsFromOriginal = defaultS3Operations.getBaseImagePathsFromOriginal;
 var updateBaseImages = defaultS3Operations.updateBaseImages;
 
+// src/hash.ts
+import { createHash } from "crypto";
+import { readFile as readFile2 } from "fs/promises";
+async function hashFile(filePath) {
+  const data = await readFile2(filePath);
+  return createHash("md5").update(data).digest("hex");
+}
+function hashString(value) {
+  return createHash("md5").update(value).digest("hex");
+}
+
 // src/dependencies.ts
 var makeDefaultDeps = () => ({
   core: { setFailed, warning, info },
@@ -160588,7 +160599,8 @@ var makeDefaultDeps = () => ({
   glob: Ze,
   jimp: { read: Jimp.read.bind(Jimp) },
   s3: defaultS3Operations,
-  fs: { unlinkSync, createWriteStream, mkdir: mkdir2, readFile: readFile2 },
+  fs: { unlinkSync, createWriteStream, mkdir: mkdir2, readFile: readFile3 },
+  hashFile,
   context: {
     runAttempt: context2.runAttempt,
     runId: context2.runId,
@@ -160598,9 +160610,896 @@ var makeDefaultDeps = () => ({
   }
 });
 
+// src/manifest-s3.ts
+function isNoSuchKey(error2) {
+  return error2 instanceof Error && error2.name === "NoSuchKey";
+}
+async function readBody(response) {
+  if (!response.Body) {
+    throw new Error("Unexpected empty S3 response body");
+  }
+  return response.Body.transformToString();
+}
+async function readBodyBytes(response) {
+  if (!response.Body) {
+    throw new Error("Unexpected empty S3 response body");
+  }
+  return response.Body.transformToByteArray();
+}
+function makeManifestS3(s3 = defaultS3Operations) {
+  async function putManifest(bucket, sha, manifest) {
+    await s3.putObject({
+      Bucket: bucket,
+      Key: `manifests/${sha}.json`,
+      Body: JSON.stringify(manifest),
+      ContentType: "application/json"
+    });
+  }
+  async function getManifest(bucket, sha) {
+    try {
+      const response = await s3.getObject({
+        Bucket: bucket,
+        Key: `manifests/${sha}.json`
+      });
+      const body = await readBody(response);
+      return JSON.parse(body);
+    } catch (error2) {
+      if (isNoSuchKey(error2))
+        return null;
+      throw error2;
+    }
+  }
+  async function putChangeset(bucket, sha, changeset) {
+    await s3.putObject({
+      Bucket: bucket,
+      Key: `changesets/${sha}.json`,
+      Body: JSON.stringify(changeset),
+      ContentType: "application/json"
+    });
+  }
+  async function getChangeset(bucket, sha) {
+    try {
+      const response = await s3.getObject({
+        Bucket: bucket,
+        Key: `changesets/${sha}.json`
+      });
+      const body = await readBody(response);
+      return JSON.parse(body);
+    } catch (error2) {
+      if (isNoSuchKey(error2))
+        return null;
+      throw error2;
+    }
+  }
+  async function squashPrManifest(bucket, sha) {
+    const parts = await s3.listAllObjects({
+      Bucket: bucket,
+      Prefix: `manifests/${sha}/`
+    });
+    if (parts.length === 0)
+      return null;
+    const merged = {};
+    for (const part of parts) {
+      if (!part.Key)
+        continue;
+      const response = await s3.getObject({ Bucket: bucket, Key: part.Key });
+      const body = await readBody(response);
+      const partManifest = JSON.parse(body);
+      for (const key of Object.keys(partManifest)) {
+        if (key in merged) {
+          throw new Error(`Duplicate manifest key "${key}" found while squashing per-package ` + `manifests under manifests/${sha}/. Check for overlapping package-paths.`);
+        }
+      }
+      Object.assign(merged, partManifest);
+    }
+    await putManifest(bucket, sha, merged);
+    return merged;
+  }
+  return {
+    putManifest,
+    getManifest,
+    putChangeset,
+    getChangeset,
+    squashPrManifest
+  };
+}
+var {
+  putManifest,
+  getManifest,
+  putChangeset,
+  getChangeset,
+  squashPrManifest
+} = makeManifestS3();
+
+// src/manifest-generate.ts
+async function manifestGenerate(deps = makeDefaultDeps()) {
+  const visualTestCommands = getMultilineInput("visual-test-command");
+  const commitHash = getInput("commit-hash", { required: true });
+  const bucket = getInput("bucket-name", { required: true });
+  const screenshotsDirectory = getInput("screenshots-directory");
+  const resizeWidth = getInput("resize-width");
+  const resizeHeight = getInput("resize-height");
+  const resizeEnabled = Boolean(resizeWidth || resizeHeight);
+  const packagePaths = getInput("package-paths").split(",").map((p) => p.trim()).filter(Boolean);
+  const exitCodes = await Promise.all(visualTestCommands.map((cmd) => deps.exec(cmd, [], { ignoreReturnCode: true })));
+  if (exitCodes.some((code) => code !== 0)) {
+    deps.core.setFailed("Visual test command failed.");
+    return;
+  }
+  const filePaths = await deps.glob(`${screenshotsDirectory}/**/new.png`, {
+    nodir: true,
+    absolute: false
+  });
+  const entries = [];
+  const manifest = {};
+  for (const filePath of filePaths) {
+    const relativePath = filePath.replace(`${screenshotsDirectory}/`, "");
+    const key = relativePath.replace(/\/new\.png$/, "");
+    const hash = await deps.hashFile(filePath);
+    manifest[key] = hash;
+    entries.push({ key, hash });
+  }
+  const baseRef = context2.payload.pull_request?.base?.ref;
+  const headSha = baseRef ? await resolveBaseHeadSha(deps, baseRef) : "";
+  const headManifest = headSha ? await makeManifestS3(deps.s3).getManifest(bucket, headSha) : null;
+  const changedEntries = entries.filter((e) => !headManifest || headManifest[e.key] !== e.hash);
+  deps.core.info(`${changedEntries.length} changed image(s) to upload.`);
+  await Promise.all(changedEntries.map(async ({ key }) => {
+    const localPath = `${screenshotsDirectory}/${key}/new.png`;
+    const fileBuffer = await deps.fs.readFile(localPath);
+    const body = resizeEnabled ? await resizeImageIfNeeded(fileBuffer, deps.jimp) : fileBuffer;
+    await deps.s3.putObject({
+      Bucket: bucket,
+      Key: `${NEW_IMAGES_DIRECTORY}/${commitHash}/${key}/new.png`,
+      Body: body
+    });
+  }));
+  const chunkId = chunkIdFor(packagePaths);
+  const manifestObjectKey = chunkId ? `manifests/${commitHash}/${chunkId}.json` : `manifests/${commitHash}.json`;
+  await deps.s3.putObject({
+    Bucket: bucket,
+    Key: manifestObjectKey,
+    Body: JSON.stringify(manifest),
+    ContentType: "application/json"
+  });
+  deps.core.info(`Manifest uploaded for ${commitHash} with ${Object.keys(manifest).length} entries.`);
+}
+function chunkIdFor(packagePaths) {
+  if (packagePaths.length === 0)
+    return "";
+  return hashString([...packagePaths].sort().join(","));
+}
+async function resolveBaseHeadSha(deps, baseRef) {
+  const { data } = await deps.octokit.rest.repos.getBranch({
+    ...deps.context.repo,
+    branch: baseRef
+  });
+  return data.commit.sha;
+}
+
+// src/manifest-compare.ts
+async function manifestCompare(params, deps) {
+  const { bucket, prSha, repo, baseRef } = params;
+  const squashedPrManifest = await deps.squashPrManifest(bucket, prSha);
+  const result = await deps.classify({ bucket, prSha, repo, baseRef });
+  if (result.outcome === "match") {
+    deps.core.info("Visual manifests match — no changes detected.");
+    await deps.setCommitStatus({
+      sha: prSha,
+      state: "success",
+      description: "Visual tests passed!",
+      context: VISUAL_REGRESSION_CONTEXT
+    });
+    return;
+  }
+  if (result.conflicts.length > 0) {
+    await handleConflicts(deps, prSha, result.conflicts);
+    return;
+  }
+  if (result.prOwns.length === 0) {
+    deps.core.info(`Visual changes on main only (${result.mainOwns.length} path(s)) — PR is clean.`);
+    await deps.setCommitStatus({
+      sha: prSha,
+      state: "success",
+      description: "Visual tests passed!",
+      context: VISUAL_REGRESSION_CONTEXT
+    });
+    return;
+  }
+  await handlePrOwns(deps, params, result, squashedPrManifest);
+}
+async function handleConflicts(deps, prSha, conflicts) {
+  deps.core.setFailed(`Visual diff conflicts detected on ${conflicts.length} screenshot(s). Please rebase.`);
+  await deps.setCommitStatus({
+    sha: prSha,
+    state: "failure",
+    description: "Visual diff conflicts — please rebase.",
+    context: VISUAL_REGRESSION_CONTEXT
+  });
+  await deps.postComment({
+    kind: "conflict",
+    commitHash: prSha,
+    conflicts
+  });
+}
+async function handlePrOwns(deps, params, result, squashedPrManifest) {
+  const { bucket, prSha } = params;
+  const reviewable = result.prOwns.filter((e) => e.type !== "deleted");
+  const deletions = result.prOwns.filter((e) => e.type === "deleted");
+  if (deletions.length > 0) {
+    deps.core.info(`${deletions.length} screenshot(s) deleted by this PR.`);
+  }
+  const prManifest = squashedPrManifest ?? await deps.getPrManifest(bucket, prSha) ?? {};
+  const changeset = buildChangeset(result.headSha, result.prOwns, prManifest);
+  await deps.putChangeset(bucket, prSha, changeset);
+  if (reviewable.length === 0) {
+    deps.core.info("No visual changes to review (deletions only) — marking success.");
+    await deps.setCommitStatus({
+      sha: prSha,
+      state: "success",
+      description: "Visual tests passed!",
+      context: VISUAL_REGRESSION_CONTEXT
+    });
+    return;
+  }
+  await deps.generateDiffs({ bucket, prSha, prOwns: reviewable });
+  await deps.setCommitStatus({
+    sha: prSha,
+    state: "pending",
+    description: "Visual diffs found.",
+    context: VISUAL_REGRESSION_CONTEXT,
+    target_url: deps.buildComparadiseUrl()
+  });
+  await deps.postComment({
+    kind: "diffs",
+    commitHash: prSha,
+    prOwns: reviewable
+  });
+}
+function buildChangeset(headSha, prOwns, prManifest) {
+  const changeset = { _headSha: headSha };
+  for (const entry of prOwns) {
+    if (entry.type === "deleted") {
+      changeset[entry.path] = null;
+    } else {
+      const hash = prManifest[entry.path];
+      if (!hash) {
+        throw new Error(`PR manifest is missing hash for ${entry.path} (type: ${entry.type})`);
+      }
+      changeset[entry.path] = hash;
+    }
+  }
+  return changeset;
+}
+
+// src/manifest-compare-classify.ts
+async function classifyManifests(params, deps) {
+  const { bucket, prSha, repo, baseRef } = params;
+  const prManifest = await requirePrManifest(deps, bucket, prSha);
+  const headSha = await resolveHeadSha(deps, repo, baseRef);
+  const headManifest = await deps.getManifest(bucket, headSha) ?? {};
+  const allPaths = new Set([
+    ...Object.keys(prManifest),
+    ...Object.keys(headManifest)
+  ]);
+  const differingPaths = [...allPaths].filter((p) => prManifest[p] !== headManifest[p]);
+  if (differingPaths.length === 0) {
+    return { outcome: "match" };
+  }
+  const ancestorSha = await resolveAncestorSha(deps, repo, headSha, prSha);
+  const ancestorManifest = await requireAncestorManifest(deps, bucket, ancestorSha);
+  const prOwns = [];
+  const mainOwns = [];
+  const conflicts = [];
+  for (const path5 of differingPaths) {
+    const ancestorHash = ancestorManifest[path5] ?? null;
+    const headHash = headManifest[path5] ?? null;
+    const prHash = prManifest[path5] ?? null;
+    if (headHash === ancestorHash) {
+      if (ancestorHash === null) {
+        prOwns.push({ path: path5, type: "added" });
+      } else if (prHash === null) {
+        prOwns.push({ path: path5, type: "deleted" });
+      } else {
+        prOwns.push({ path: path5, type: "changed" });
+      }
+    } else if (prHash === ancestorHash) {
+      mainOwns.push(path5);
+    } else {
+      conflicts.push(path5);
+    }
+  }
+  return {
+    outcome: "classified",
+    headSha,
+    prSha,
+    prOwns,
+    mainOwns,
+    conflicts
+  };
+}
+async function requirePrManifest(deps, bucket, sha) {
+  const manifest = await deps.getManifest(bucket, sha);
+  if (!manifest) {
+    throw new Error(`PR manifest not found for ${sha}. Ensure manifest-generate ran successfully.`);
+  }
+  return manifest;
+}
+async function requireAncestorManifest(deps, bucket, sha) {
+  const manifest = await deps.getManifest(bucket, sha);
+  if (!manifest) {
+    throw new Error(`Ancestor manifest not found for ${sha}. Ensure manifest-generate has run on the base branch, then rebase your branch onto a commit that has a manifest.`);
+  }
+  return manifest;
+}
+async function resolveHeadSha(deps, repo, baseRef) {
+  const { data } = await deps.octokit.rest.repos.getBranch({
+    ...repo,
+    branch: baseRef
+  });
+  return data.commit.sha;
+}
+async function resolveAncestorSha(deps, repo, headSha, prSha) {
+  const { data } = await deps.octokit.rest.repos.compareCommitsWithBasehead({
+    ...repo,
+    basehead: `${headSha}...${prSha}`
+  });
+  return data.merge_base_commit.sha;
+}
+
+// src/manifest-diff.ts
+async function generateDiffs(params, deps) {
+  const { bucket, prSha, prOwns } = params;
+  const changedEntries = prOwns.filter((e) => e.type === "changed");
+  if (changedEntries.length === 0)
+    return;
+  deps.core.info(`Generating diffs for ${changedEntries.length} changed screenshot(s).`);
+  for (const entry of changedEntries) {
+    const baseKey = `${BASE_IMAGES_DIRECTORY}/${entry.path}/base.png`;
+    const newKey = `${NEW_IMAGES_DIRECTORY}/${prSha}/${entry.path}/new.png`;
+    const [baseBuffer, newBuffer] = await Promise.all([
+      downloadBuffer(deps.s3, bucket, baseKey),
+      downloadBuffer(deps.s3, bucket, newKey)
+    ]);
+    const diffBuffer = deps.diffPng(baseBuffer, newBuffer);
+    await Promise.all([
+      deps.s3.putObject({
+        Bucket: bucket,
+        Key: `${NEW_IMAGES_DIRECTORY}/${prSha}/${entry.path}/base.png`,
+        Body: baseBuffer
+      }),
+      deps.s3.putObject({
+        Bucket: bucket,
+        Key: `${NEW_IMAGES_DIRECTORY}/${prSha}/${entry.path}/diff.png`,
+        Body: diffBuffer
+      })
+    ]);
+  }
+}
+async function downloadBuffer(s3, bucket, key) {
+  const response = await s3.getObject({ Bucket: bucket, Key: key });
+  const bytes = await readBodyBytes(response);
+  return Buffer.from(bytes);
+}
+
+// src/diff-png.ts
+var import_pngjs2 = __toESM(require_png(), 1);
+
+// ../node_modules/pixelmatch/index.js
+function pixelmatch(img1, img2, output, width, height, options = {}) {
+  const {
+    threshold = 0.1,
+    alpha = 0.1,
+    aaColor = [255, 255, 0],
+    diffColor = [255, 0, 0],
+    checkerboard = true,
+    includeAA,
+    diffColorAlt,
+    diffMask
+  } = options;
+  if (!isPixelData(img1) || !isPixelData(img2) || output && !isPixelData(output))
+    throw new Error("Image data: Uint8Array, Uint8ClampedArray or Buffer expected.");
+  if (img1.length !== img2.length || output && output.length !== img1.length)
+    throw new Error(`Image sizes do not match. Image 1 size: ${img1.length}, image 2 size: ${img2.length}`);
+  if (img1.length !== width * height * 4)
+    throw new Error(`Image data size does not match width/height. Expecting ${width * height * 4}. Got ${img1.length}`);
+  const len = width * height;
+  const a32 = new Uint32Array(img1.buffer, img1.byteOffset, len);
+  const b32 = new Uint32Array(img2.buffer, img2.byteOffset, len);
+  let identical = true;
+  for (let i = 0;i < len; i++) {
+    if (a32[i] !== b32[i]) {
+      identical = false;
+      break;
+    }
+  }
+  if (identical) {
+    if (output && !diffMask) {
+      for (let i = 0, pos = 0;i < len; i++, pos += 4)
+        drawGrayPixel(img1, pos, alpha, output);
+    }
+    return 0;
+  }
+  const maxDelta = 35215 * threshold * threshold;
+  const [aaR, aaG, aaB] = aaColor;
+  const [diffR, diffG, diffB] = diffColor;
+  const [altR, altG, altB] = diffColorAlt || diffColor;
+  let diff = 0;
+  for (let i = 0, pos = 0;i < len; i++, pos += 4) {
+    const delta = a32[i] === b32[i] ? 0 : colorDelta(img1, img2, pos, pos, checkerboard);
+    if (Math.abs(delta) > maxDelta) {
+      const x3 = i % width;
+      const y2 = i / width | 0;
+      const isExcludedAA = !includeAA && (antialiased(img1, x3, y2, width, height, a32, b32, checkerboard) || antialiased(img2, x3, y2, width, height, b32, a32, checkerboard));
+      if (isExcludedAA) {
+        if (output && !diffMask)
+          drawPixel(output, pos, aaR, aaG, aaB);
+      } else {
+        if (output) {
+          if (delta < 0) {
+            drawPixel(output, pos, altR, altG, altB);
+          } else {
+            drawPixel(output, pos, diffR, diffG, diffB);
+          }
+        }
+        diff++;
+      }
+    } else if (output && !diffMask) {
+      drawGrayPixel(img1, pos, alpha, output);
+    }
+  }
+  return diff;
+}
+function isPixelData(arr) {
+  return ArrayBuffer.isView(arr) && arr.BYTES_PER_ELEMENT === 1;
+}
+function antialiased(img, x1, y1, width, height, a32, b32, checkerboard) {
+  const x0 = Math.max(x1 - 1, 0);
+  const y0 = Math.max(y1 - 1, 0);
+  const x22 = Math.min(x1 + 1, width - 1);
+  const y2 = Math.min(y1 + 1, height - 1);
+  const pos4 = (y1 * width + x1) * 4;
+  const cr = img[pos4];
+  const cg = img[pos4 + 1];
+  const cb = img[pos4 + 2];
+  const ca = img[pos4 + 3];
+  let zeroes = x1 === x0 || x1 === x22 || y1 === y0 || y1 === y2 ? 1 : 0;
+  let min = 0;
+  let max = 0;
+  let minX = 0;
+  let minY = 0;
+  let maxX = 0;
+  let maxY = 0;
+  for (let x3 = x0;x3 <= x22; x3++) {
+    for (let y3 = y0;y3 <= y2; y3++) {
+      if (x3 === x1 && y3 === y1)
+        continue;
+      const delta = brightnessDelta(img, pos4, (y3 * width + x3) * 4, cr, cg, cb, ca, checkerboard);
+      if (delta === 0) {
+        zeroes++;
+        if (zeroes > 2)
+          return false;
+      } else if (delta < min) {
+        min = delta;
+        minX = x3;
+        minY = y3;
+      } else if (delta > max) {
+        max = delta;
+        maxX = x3;
+        maxY = y3;
+      }
+    }
+  }
+  if (min === 0 || max === 0)
+    return false;
+  return hasManySiblings(a32, minX, minY, width, height) && hasManySiblings(b32, minX, minY, width, height) || hasManySiblings(a32, maxX, maxY, width, height) && hasManySiblings(b32, maxX, maxY, width, height);
+}
+function hasManySiblings(img, x1, y1, width, height) {
+  const x0 = Math.max(x1 - 1, 0);
+  const y0 = Math.max(y1 - 1, 0);
+  const x22 = Math.min(x1 + 1, width - 1);
+  const y2 = Math.min(y1 + 1, height - 1);
+  const val = img[y1 * width + x1];
+  let zeroes = x1 === x0 || x1 === x22 || y1 === y0 || y1 === y2 ? 1 : 0;
+  for (let x3 = x0;x3 <= x22; x3++) {
+    for (let y3 = y0;y3 <= y2; y3++) {
+      if (x3 === x1 && y3 === y1)
+        continue;
+      zeroes += +(val === img[y3 * width + x3]);
+      if (zeroes > 2)
+        return true;
+    }
+  }
+  return false;
+}
+function colorDelta(img1, img2, k2, m, checkerboard) {
+  const r1 = img1[k2];
+  const g1 = img1[k2 + 1];
+  const b1 = img1[k2 + 2];
+  const a1 = img1[k2 + 3];
+  const r2 = img2[m];
+  const g2 = img2[m + 1];
+  const b2 = img2[m + 2];
+  const a2 = img2[m + 3];
+  let dr = r1 - r2;
+  let dg = g1 - g2;
+  let db = b1 - b2;
+  const da = a1 - a2;
+  if (a1 < 255 || a2 < 255) {
+    let rb = 255, gb = 255, bb = 255;
+    if (checkerboard) {
+      rb = 48 + 159 * (k2 % 2);
+      gb = 48 + 159 * ((k2 / 1.618033988749895 | 0) % 2);
+      bb = 48 + 159 * ((k2 / 2.618033988749895 | 0) % 2);
+    }
+    dr = (r1 * a1 - r2 * a2 - rb * da) / 255;
+    dg = (g1 * a1 - g2 * a2 - gb * da) / 255;
+    db = (b1 * a1 - b2 * a2 - bb * da) / 255;
+  }
+  const y2 = dr * 0.29889531 + dg * 0.58662247 + db * 0.11448223;
+  const i = dr * 0.59597799 - dg * 0.2741761 - db * 0.32180189;
+  const q2 = dr * 0.21147017 - dg * 0.52261711 + db * 0.31114694;
+  const delta = 0.5053 * y2 * y2 + 0.299 * i * i + 0.1957 * q2 * q2;
+  return y2 > 0 ? -delta : delta;
+}
+function brightnessDelta(img, k2, m, r1, g1, b1, a1, checkerboard) {
+  const r2 = img[m];
+  const g2 = img[m + 1];
+  const b2 = img[m + 2];
+  const a2 = img[m + 3];
+  let dr = r1 - r2;
+  let dg = g1 - g2;
+  let db = b1 - b2;
+  const da = a1 - a2;
+  if (!dr && !dg && !db && !da)
+    return 0;
+  if (a1 < 255 || a2 < 255) {
+    let rb = 255, gb = 255, bb = 255;
+    if (checkerboard) {
+      rb = 48 + 159 * (k2 % 2);
+      gb = 48 + 159 * ((k2 / 1.618033988749895 | 0) % 2);
+      bb = 48 + 159 * ((k2 / 2.618033988749895 | 0) % 2);
+    }
+    dr = (r1 * a1 - r2 * a2 - rb * da) / 255;
+    dg = (g1 * a1 - g2 * a2 - gb * da) / 255;
+    db = (b1 * a1 - b2 * a2 - bb * da) / 255;
+  }
+  return dr * 0.29889531 + dg * 0.58662247 + db * 0.11448223;
+}
+function drawPixel(output, pos, r, g, b) {
+  output[pos] = r;
+  output[pos + 1] = g;
+  output[pos + 2] = b;
+  output[pos + 3] = 255;
+}
+function drawGrayPixel(img, i, alpha, output) {
+  const val = 255 + (img[i] * 0.29889531 + img[i + 1] * 0.58662247 + img[i + 2] * 0.11448223 - 255) * alpha * img[i + 3] / 255;
+  drawPixel(output, i, val, val, val);
+}
+
+// src/diff-png.ts
+var PIXELMATCH_OPTIONS = {
+  alpha: 0.3,
+  threshold: 0.5,
+  includeAA: false
+};
+function diffPng(baseBuffer, actualBuffer) {
+  const rawBase = import_pngjs2.PNG.sync.read(baseBuffer);
+  const rawActual = import_pngjs2.PNG.sync.read(actualBuffer);
+  const width = Math.max(rawBase.width, rawActual.width);
+  const height = Math.max(rawBase.height, rawActual.height);
+  const base = ensureSize(rawBase, width, height);
+  const actual = ensureSize(rawActual, width, height);
+  const diff = new import_pngjs2.PNG({ width, height });
+  pixelmatch(actual.data, base.data, diff.data, width, height, PIXELMATCH_OPTIONS);
+  return import_pngjs2.PNG.sync.write(diff);
+}
+function ensureSize(image2, width, height) {
+  if (image2.width === width && image2.height === height)
+    return image2;
+  const resized = new import_pngjs2.PNG({ width, height, fill: true });
+  import_pngjs2.PNG.bitblt(image2, resized, 0, 0, image2.width, image2.height, 0, 0);
+  return resized;
+}
+
+// src/manifest-merge.ts
+async function manifestMerge(params, deps) {
+  const { bucket, prSha, mergeCommitSha } = params;
+  const changeset = await deps.getChangeset(bucket, prSha);
+  const parentSha = await deps.getMergeParentSha(mergeCommitSha);
+  const parentManifest = await deps.getManifest(bucket, parentSha) ?? {};
+  if (!changeset) {
+    deps.core.info(`No changeset found for PR ${prSha}; copying parent manifest unchanged.`);
+    await deps.putManifest(bucket, mergeCommitSha, parentManifest);
+    return;
+  }
+  await deps.flagOverlappingOpenPrs({
+    bucket,
+    repo: params.repo,
+    mergingPrNumber: params.prNumber,
+    mergingChangeset: changeset
+  });
+  if (changeset._headSha && changeset._headSha !== parentSha) {
+    await assertNoStaleConflicts(deps, params, changeset, parentManifest);
+  }
+  const merged = deps.overlayChangeset(parentManifest, changeset);
+  await deps.putManifest(bucket, mergeCommitSha, merged);
+  await deps.applyChangesetToBaseImages({ bucket, prSha, changeset });
+}
+async function assertNoStaleConflicts(deps, params, changeset, parentManifest) {
+  const headSha = changeset._headSha;
+  if (!headSha)
+    return;
+  const headManifest = await deps.getManifest(params.bucket, headSha) ?? {};
+  const conflicts = deps.detectStaleConflicts(headManifest, parentManifest, changeset);
+  if (conflicts.length === 0)
+    return;
+  throw new Error(`Stale changeset: ${conflicts.length} path(s) changed on main since this PR was compared (${conflicts.join(", ")}). The merging PR must be rebased and re-checked.`);
+}
+
+// src/manifest-merge-overlay.ts
+var HEAD_SHA_KEY = "_headSha";
+function overlayChangeset(parent, changeset) {
+  const result = { ...parent };
+  for (const [path5, hash] of Object.entries(changeset)) {
+    if (path5 === HEAD_SHA_KEY)
+      continue;
+    if (hash === null) {
+      delete result[path5];
+    } else {
+      result[path5] = hash;
+    }
+  }
+  return result;
+}
+function detectStaleConflicts(headManifest, parentManifest, changeset) {
+  const conflicts = [];
+  for (const path5 of Object.keys(changeset)) {
+    if (path5 === HEAD_SHA_KEY)
+      continue;
+    if (changeset[path5] === null && !(path5 in parentManifest))
+      continue;
+    if (headManifest[path5] !== parentManifest[path5]) {
+      conflicts.push(path5);
+    }
+  }
+  return conflicts;
+}
+
+// src/manifest-merge-base-images.ts
+var HEAD_SHA_KEY2 = "_headSha";
+async function applyChangesetToBaseImages(params, deps) {
+  const { bucket, prSha, changeset } = params;
+  const copies = [];
+  const deletes = [];
+  for (const [path5, hash] of Object.entries(changeset)) {
+    if (path5 === HEAD_SHA_KEY2)
+      continue;
+    if (hash === null) {
+      deletes.push(path5);
+    } else {
+      copies.push({ path: path5, hash });
+    }
+  }
+  if (copies.length === 0 && deletes.length === 0)
+    return;
+  deps.core.info(`Applying changeset to base images: ${copies.length} copy, ${deletes.length} delete.`);
+  await Promise.all([
+    ...copies.map(({ path: path5 }) => deps.s3.copyObject({
+      Bucket: bucket,
+      CopySource: encodeS3CopySource(bucket, `${NEW_IMAGES_DIRECTORY}/${prSha}/${path5}/${NEW_IMAGE_NAME}.png`),
+      Key: `${BASE_IMAGES_DIRECTORY}/${path5}/${BASE_IMAGE_NAME}.png`,
+      ACL: "bucket-owner-full-control"
+    })),
+    deletes.length > 0 ? deps.s3.deleteObjects({
+      Bucket: bucket,
+      Delete: {
+        Objects: deletes.map((path5) => ({
+          Key: `${BASE_IMAGES_DIRECTORY}/${path5}/${BASE_IMAGE_NAME}.png`
+        }))
+      }
+    }) : Promise.resolve()
+  ]);
+}
+function encodeS3CopySource(bucket, key) {
+  return `${bucket}/${key.split("/").map(encodeURIComponent).join("/")}`;
+}
+
+// src/manifest-merge-flag-prs.ts
+var HEAD_SHA_KEY3 = "_headSha";
+async function flagOverlappingOpenPrs(params, deps) {
+  const { bucket, repo, mergingPrNumber, mergingChangeset } = params;
+  const mergingPaths = changesetPaths(mergingChangeset);
+  if (mergingPaths.size === 0)
+    return [];
+  const openPrs = await deps.octokit.paginate(deps.octokit.rest.pulls.list, {
+    ...repo,
+    state: "open"
+  });
+  const flagged = [];
+  for (const pr of openPrs) {
+    if (pr.number === mergingPrNumber)
+      continue;
+    const otherChangeset = await deps.getChangeset(bucket, pr.head.sha);
+    if (!otherChangeset)
+      continue;
+    const overlapping = [...changesetPaths(otherChangeset)].filter((p) => mergingPaths.has(p));
+    if (overlapping.length === 0)
+      continue;
+    deps.core.info(`Flagging PR #${pr.number} as stale (overlapping paths: ${overlapping.join(", ")}).`);
+    await deps.octokit.rest.repos.createCommitStatus({
+      ...repo,
+      sha: pr.head.sha,
+      context: VISUAL_REGRESSION_CONTEXT,
+      state: "failure",
+      description: "Visual comparison outdated — please rebase."
+    });
+    flagged.push(pr.number);
+  }
+  return flagged;
+}
+function changesetPaths(changeset) {
+  return new Set(Object.keys(changeset).filter((key) => key !== HEAD_SHA_KEY3));
+}
+
+// src/manifest-run.ts
+async function runManifestCompareWorkflow(deps) {
+  const bucket = getInput("bucket-name", { required: true });
+  const prSha = getInput("commit-hash", { required: true });
+  const baseRef = context2.payload.pull_request?.base?.ref;
+  if (!baseRef) {
+    deps.core.setFailed("manifest-compare must run on a pull_request event; base ref could not be resolved from the event payload.");
+    return;
+  }
+  const manifestS3 = makeManifestS3(deps.s3);
+  await manifestCompare({
+    bucket,
+    prSha,
+    repo: deps.context.repo,
+    baseRef
+  }, {
+    squashPrManifest: manifestS3.squashPrManifest,
+    classify: (params) => classifyManifests(params, {
+      s3: deps.s3,
+      octokit: deps.octokit,
+      core: deps.core,
+      getManifest: manifestS3.getManifest
+    }),
+    generateDiffs: (params) => generateDiffs(params, {
+      s3: deps.s3,
+      core: deps.core,
+      diffPng
+    }),
+    putChangeset: manifestS3.putChangeset,
+    getPrManifest: manifestS3.getManifest,
+    setCommitStatus: async (params) => {
+      await deps.octokit.rest.repos.createCommitStatus({
+        ...deps.context.repo,
+        ...params
+      });
+    },
+    postComment: (args) => postManifestCompareComment(args, deps),
+    buildComparadiseUrl: () => buildComparadiseUrl(deps.context),
+    core: deps.core
+  });
+}
+async function runManifestMergeWorkflow(deps) {
+  const bucket = getInput("bucket-name", { required: true });
+  const prSha = context2.payload.pull_request?.head?.sha;
+  const mergeCommitSha = context2.payload.pull_request?.merge_commit_sha;
+  const prNumber = context2.payload.pull_request?.number;
+  if (!prSha || !mergeCommitSha || !prNumber) {
+    deps.core.setFailed("pr-sha, merge-commit-sha, and pr-number are required for workflow manifest-merge.");
+    return;
+  }
+  const manifestS3 = makeManifestS3(deps.s3);
+  await manifestMerge({
+    bucket,
+    prNumber,
+    prSha,
+    mergeCommitSha,
+    repo: deps.context.repo
+  }, {
+    getManifest: manifestS3.getManifest,
+    putManifest: manifestS3.putManifest,
+    getChangeset: manifestS3.getChangeset,
+    getMergeParentSha: async (mergeSha) => {
+      const { data } = await deps.octokit.rest.repos.getCommit({
+        ...deps.context.repo,
+        ref: mergeSha
+      });
+      const parentSha = data.parents[0]?.sha;
+      if (!parentSha) {
+        throw new Error(`Merge commit ${mergeSha} has no parent commit to use as manifest base.`);
+      }
+      return parentSha;
+    },
+    flagOverlappingOpenPrs: (params) => flagOverlappingOpenPrs(params, {
+      octokit: deps.octokit,
+      getChangeset: manifestS3.getChangeset,
+      core: deps.core
+    }),
+    applyChangesetToBaseImages: (params) => applyChangesetToBaseImages(params, {
+      s3: deps.s3,
+      core: deps.core
+    }),
+    overlayChangeset,
+    detectStaleConflicts,
+    core: deps.core
+  });
+}
+var MANIFEST_COMMENT_MARKER = "<!-- comparadise-manifest -->";
+async function postManifestCompareComment(args, deps) {
+  const prNumber = await resolvePrNumber(args.commitHash, deps);
+  if (!prNumber) {
+    deps.core.info("No PR number found, skipping manifest comment creation.");
+    return;
+  }
+  const { data: comments } = await deps.octokit.rest.issues.listComments({
+    ...deps.context.repo,
+    issue_number: prNumber
+  });
+  const existing = comments.find((comment) => comment.body?.includes(MANIFEST_COMMENT_MARKER));
+  const body = buildManifestCommentBody(args, deps);
+  if (!existing) {
+    await deps.octokit.rest.issues.createComment({
+      ...deps.context.repo,
+      issue_number: prNumber,
+      body
+    });
+    return;
+  }
+  await deps.octokit.rest.issues.updateComment({
+    ...deps.context.repo,
+    comment_id: existing.id,
+    body
+  });
+}
+function buildManifestCommentBody(args, deps) {
+  if (args.kind === "conflict") {
+    return `${MANIFEST_COMMENT_MARKER}
+## Visual Manifest Results
+Visual conflicts detected on ${args.conflicts.length} path(s). Please rebase this branch and rerun visual checks.
+
+Conflicting paths:
+${args.conflicts.map((path5) => `- \`${path5}\``).join(`
+`)}`;
+  }
+  const changedCount = args.prOwns.filter((entry) => entry.type === "changed").length;
+  const addedCount = args.prOwns.filter((entry) => entry.type === "added").length;
+  return `${MANIFEST_COMMENT_MARKER}
+## Visual Manifest Results
+Visual diffs found.
+
+- Changed screenshots: ${changedCount}
+- Added screenshots: ${addedCount}
+
+Check [Comparadise](${buildComparadiseUrl(deps.context)}) for image details.`;
+}
+async function resolvePrNumber(commitHash, deps) {
+  const { data } = await deps.octokit.rest.repos.listPullRequestsAssociatedWithCommit({
+    ...deps.context.repo,
+    commit_sha: commitHash
+  });
+  const prNumber = data.find(Boolean)?.number ?? deps.context.issue.number;
+  return prNumber || null;
+}
+
 // src/run.ts
 var run = async (deps = makeDefaultDeps()) => {
   const workflow = getInput("workflow") || "pr";
+  if (workflow === "manifest-generate") {
+    await manifestGenerate(deps);
+    return;
+  }
+  if (workflow === "manifest-compare") {
+    await runManifestCompareWorkflow(deps);
+    return;
+  }
+  if (workflow === "manifest-merge") {
+    await runManifestMergeWorkflow(deps);
+    return;
+  }
   const commitHash = getInput("commit-hash");
   const diffId = getInput("diff-id");
   if (!commitHash && !diffId) {
@@ -160742,7 +161641,7 @@ var run = async (deps = makeDefaultDeps()) => {
 };
 
 // src/main.ts
-run();
+run().catch(setFailed);
 
-//# debugId=14F080FDF0CD6F9D64756E2164756E21
+//# debugId=A90D21A3C68F9E8164756E2164756E21
 //# sourceMappingURL=main.js.map

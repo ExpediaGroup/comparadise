@@ -3,7 +3,7 @@ description: 'A Github Action for using Comparadise with visual regression tests
 author: 'Dan Adajian'
 inputs:
   workflow:
-    description: 'The workflow to run. "pr" (default) runs visual tests and sets commit status. "merge" updates base images in S3.'
+    description: 'The workflow to run. Supported values: "pr" (default), "merge", "manifest-generate", "manifest-compare", "manifest-merge".'
     required: false
     default: 'pr'
   visual-test-command:
@@ -13,7 +13,7 @@ inputs:
     description: 'The S3 bucket name'
     required: true
   commit-hash:
-    description: 'The commit hash'
+    description: 'The commit hash. Required for pr/merge/manifest-compare workflows.'
     required: false
   diff-id:
     description: 'Alternative to commit-hash as a unique identifier for visual tests. GitHub integration will be disabled if diff-id is used.'
@@ -27,7 +27,14 @@ inputs:
     required: false
     default: screenshots
   package-paths:
-    description: 'Comma separated list of package paths for monorepos'
+    description: >-
+      Comma separated list of package paths for monorepos. For the
+      manifest-generate workflow, pass the package(s) that matrix job covers (a
+      "chunk"); the paths are sorted and MD5-hashed into a chunk-id used as the
+      per-chunk manifest filename (manifests/{commit-sha}/{chunk-id}.json), so
+      parallel jobs never overwrite one another. Manifest keys are the
+      screenshot paths as they exist on disk (already package-prefixed by the
+      monorepo's directory layout); no prefix is added.
     required: false
   comparadise-host:
     description: 'The URL at which you are hosting Comparadise'
