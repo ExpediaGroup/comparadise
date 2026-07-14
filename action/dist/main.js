@@ -160714,7 +160714,7 @@ var {
 // src/manifest-generate.ts
 async function manifestGenerate(deps = makeDefaultDeps()) {
   const visualTestCommands = getMultilineInput("visual-test-command");
-  const commitHash = getInput("commit-hash");
+  const commitHash = getInput("commit-hash", { required: true });
   const bucket = getInput("bucket-name", { required: true });
   const screenshotsDirectory = getInput("screenshots-directory");
   const resizeWidth = getInput("resize-width");
@@ -160741,7 +160741,7 @@ async function manifestGenerate(deps = makeDefaultDeps()) {
   }
   const baseRef = context2.payload.pull_request?.base?.ref;
   const headSha = baseRef ? await resolveBaseHeadSha(deps, baseRef) : "";
-  const headManifest = headSha ? await fetchHeadManifest(deps, bucket, headSha) : null;
+  const headManifest = headSha ? await makeManifestS3(deps.s3).getManifest(bucket, headSha) : null;
   const changedEntries = entries.filter((e) => !headManifest || headManifest[e.key] !== e.hash);
   deps.core.info(`${changedEntries.length} changed image(s) to upload.`);
   await Promise.all(changedEntries.map(async ({ key }) => {
@@ -160776,26 +160776,11 @@ async function resolveBaseHeadSha(deps, baseRef) {
   });
   return data.commit.sha;
 }
-async function fetchHeadManifest(deps, bucket, sha) {
-  try {
-    const response = await deps.s3.getObject({
-      Bucket: bucket,
-      Key: `manifests/${sha}.json`
-    });
-    const body = await readBody(response);
-    return JSON.parse(body);
-  } catch (error2) {
-    if (error2 instanceof Error && error2.name === "NoSuchKey") {
-      return null;
-    }
-    throw error2;
-  }
-}
 
 // src/manifest-compare.ts
 async function manifestCompare(params, deps) {
   const { bucket, prSha, repo, baseRef } = params;
-  await deps.squashPrManifest(bucket, prSha);
+  const squashedPrManifest = await deps.squashPrManifest(bucket, prSha);
   const result = await deps.classify({ bucket, prSha, repo, baseRef });
   if (result.outcome === "match") {
     deps.core.info("Visual manifests match — no changes detected.");
@@ -160821,7 +160806,7 @@ async function manifestCompare(params, deps) {
     });
     return;
   }
-  await handlePrOwns(deps, params, result);
+  await handlePrOwns(deps, params, result, squashedPrManifest);
 }
 async function handleConflicts(deps, prSha, conflicts) {
   deps.core.setFailed(`Visual diff conflicts detected on ${conflicts.length} screenshot(s). Please rebase.`);
@@ -160837,14 +160822,14 @@ async function handleConflicts(deps, prSha, conflicts) {
     conflicts
   });
 }
-async function handlePrOwns(deps, params, result) {
+async function handlePrOwns(deps, params, result, squashedPrManifest) {
   const { bucket, prSha } = params;
   const reviewable = result.prOwns.filter((e) => e.type !== "deleted");
   const deletions = result.prOwns.filter((e) => e.type === "deleted");
   if (deletions.length > 0) {
     deps.core.info(`${deletions.length} screenshot(s) deleted by this PR.`);
   }
-  const prManifest = await deps.getPrManifest(bucket, prSha) ?? {};
+  const prManifest = squashedPrManifest ?? await deps.getPrManifest(bucket, prSha) ?? {};
   const changeset = buildChangeset(result.headSha, result.prOwns, prManifest);
   await deps.putChangeset(bucket, prSha, changeset);
   if (reviewable.length === 0) {
@@ -160892,7 +160877,7 @@ async function classifyManifests(params, deps) {
   const { bucket, prSha, repo, baseRef } = params;
   const prManifest = await requirePrManifest(deps, bucket, prSha);
   const headSha = await resolveHeadSha(deps, repo, baseRef);
-  const headManifest = await getManifestFromS3(deps, bucket, headSha) ?? {};
+  const headManifest = await deps.getManifest(bucket, headSha) ?? {};
   const allPaths = new Set([
     ...Object.keys(prManifest),
     ...Object.keys(headManifest)
@@ -160933,29 +160918,15 @@ async function classifyManifests(params, deps) {
     conflicts
   };
 }
-async function getManifestFromS3(deps, bucket, sha) {
-  try {
-    const response = await deps.s3.getObject({
-      Bucket: bucket,
-      Key: `manifests/${sha}.json`
-    });
-    const body = await readBody(response);
-    return JSON.parse(body);
-  } catch (error2) {
-    if (isNoSuchKey(error2))
-      return null;
-    throw error2;
-  }
-}
 async function requirePrManifest(deps, bucket, sha) {
-  const manifest = await getManifestFromS3(deps, bucket, sha);
+  const manifest = await deps.getManifest(bucket, sha);
   if (!manifest) {
     throw new Error(`PR manifest not found for ${sha}. Ensure manifest-generate ran successfully.`);
   }
   return manifest;
 }
 async function requireAncestorManifest(deps, bucket, sha) {
-  const manifest = await getManifestFromS3(deps, bucket, sha);
+  const manifest = await deps.getManifest(bucket, sha);
   if (!manifest) {
     throw new Error(`Ancestor manifest not found for ${sha}. Ensure manifest-generate has run on the base branch, then rebase your branch onto a commit that has a manifest.`);
   }
@@ -161263,9 +161234,7 @@ async function assertNoStaleConflicts(deps, params, changeset, parentManifest) {
   const conflicts = deps.detectStaleConflicts(headManifest, parentManifest, changeset);
   if (conflicts.length === 0)
     return;
-  const message = `Stale changeset: ${conflicts.length} path(s) changed on main since this PR was compared (${conflicts.join(", ")}). The merging PR must be rebased and re-checked.`;
-  deps.core.setFailed(message);
-  throw new Error(message);
+  throw new Error(`Stale changeset: ${conflicts.length} path(s) changed on main since this PR was compared (${conflicts.join(", ")}). The merging PR must be rebased and re-checked.`);
 }
 
 // src/manifest-merge-overlay.ts
@@ -161287,6 +161256,8 @@ function detectStaleConflicts(headManifest, parentManifest, changeset) {
   const conflicts = [];
   for (const path5 of Object.keys(changeset)) {
     if (path5 === HEAD_SHA_KEY)
+      continue;
+    if (changeset[path5] === null && !(path5 in parentManifest))
       continue;
     if (headManifest[path5] !== parentManifest[path5]) {
       conflicts.push(path5);
@@ -161391,7 +161362,8 @@ async function runManifestCompareWorkflow(deps) {
     classify: (params) => classifyManifests(params, {
       s3: deps.s3,
       octokit: deps.octokit,
-      core: deps.core
+      core: deps.core,
+      getManifest: manifestS3.getManifest
     }),
     generateDiffs: (params) => generateDiffs(params, {
       s3: deps.s3,
@@ -161669,7 +161641,7 @@ var run = async (deps = makeDefaultDeps()) => {
 };
 
 // src/main.ts
-run();
+run().catch(setFailed);
 
-//# debugId=36653B8DA2FBA14B64756E2164756E21
+//# debugId=A90D21A3C68F9E8164756E2164756E21
 //# sourceMappingURL=main.js.map
