@@ -304,7 +304,7 @@ describe('classifyManifests', () => {
     expect(result.conflicts).toEqual(['Card']);
   });
 
-  it('fails when ancestor manifest is missing', async () => {
+  it('classifies as a conflict when ancestor manifest is missing but PR and HEAD differ', async () => {
     const headManifest = { Button: 'hash1' };
     const prManifest = { Button: 'hash2' };
 
@@ -319,12 +319,14 @@ describe('classifyManifests', () => {
     // Ancestor manifest missing
     mockNoSuchKey();
 
-    await expect(
-      classifyManifests(
-        { bucket: 'test-bucket', prSha, repo, baseRef },
-        makeDeps()
-      )
-    ).rejects.toThrow(/rebase/i);
+    const result = (await classifyManifests(
+      { bucket: 'test-bucket', prSha, repo, baseRef },
+      makeDeps()
+    )) as Extract<CompareResult, { outcome: 'classified' }>;
+
+    expect(result.conflicts).toEqual(['Button']);
+    expect(result.prOwns).toEqual([]);
+    expect(result.mainOwns).toEqual([]);
   });
 
   it('fails when PR manifest is missing', async () => {
@@ -365,7 +367,7 @@ describe('classifyManifests', () => {
     expect(getObjectMock).not.toHaveBeenCalled();
   });
 
-  it('treats missing HEAD manifest as empty (first run on main)', async () => {
+  it('treats missing HEAD and ancestor manifests as an empty baseline (first run of manifest mode)', async () => {
     const prManifest = { Button: 'hash1' };
 
     // PR manifest
@@ -383,11 +385,13 @@ describe('classifyManifests', () => {
     // Ancestor manifest missing too
     mockNoSuchKey();
 
-    await expect(
-      classifyManifests(
-        { bucket: 'test-bucket', prSha, repo, baseRef },
-        makeDeps()
-      )
-    ).rejects.toThrow(/rebase/i);
+    const result = (await classifyManifests(
+      { bucket: 'test-bucket', prSha, repo, baseRef },
+      makeDeps()
+    )) as Extract<CompareResult, { outcome: 'classified' }>;
+
+    expect(result.prOwns).toEqual([{ path: 'Button', type: 'added' }]);
+    expect(result.mainOwns).toEqual([]);
+    expect(result.conflicts).toEqual([]);
   });
 });
