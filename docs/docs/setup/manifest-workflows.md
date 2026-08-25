@@ -148,6 +148,34 @@ jobs:
 
 The `pr-sha`, `merge-commit-sha`, and `pr-number` inputs are automatically read from the `pull_request` event payload and do not need to be set explicitly.
 
+### Merge queues that batch pull requests
+
+If your merge queue is configured to batch multiple pull requests' checks together (e.g. GitHub's merge queue with a maximum group size greater than one), their squash commits can be delivered as a single `push` event instead of separate `pull_request: closed` events — and GitHub does not guarantee the relative delivery order of separate webhook events, which the `concurrency` group above can't fix on its own since it only serializes execution, not ordering.
+
+`manifest-merge` handles this automatically: when there's no `pull_request` payload to read (i.e. it's running on `push`), it falls back to the push event's own `commits` list — already ordered oldest-first — resolves each commit's pull request via the GitHub API, and merges them one at a time, in that order, within a single job run. Trigger on `push` instead of `pull_request: closed` for this case:
+
+```yaml
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  manifest-merge:
+    name: Update Manifest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # AWS authentication
+      - name: Update Manifest
+        uses: ExpediaGroup/comparadise@v1
+        with:
+          workflow: manifest-merge
+          bucket-name: visual-regression-bucket
+```
+
+No `concurrency` group is needed here — there's exactly one job run per push, and it processes that push's commits sequentially itself.
+
 ## Required status check
 
 `manifest-compare` sets the `Visual Regression` commit status on the PR head SHA–the same context as the standard `pr` mode. Add it as a required status check in your branch protection settings to block merges until visual changes are reviewed.

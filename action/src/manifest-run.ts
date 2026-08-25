@@ -69,30 +69,99 @@ export async function runManifestCompareWorkflow(
   );
 }
 
+interface MergeEntry {
+  prSha: string;
+  mergeCommitSha: string;
+  prNumber: number;
+}
+
 export async function runManifestMergeWorkflow(
   deps: Dependencies
 ): Promise<void> {
   const bucket = getInput('bucket-name', { required: true });
 
-  const prSha = githubContext.payload.pull_request?.head?.sha;
-  const mergeCommitSha = githubContext.payload.pull_request?.merge_commit_sha;
-  const prNumber = githubContext.payload.pull_request?.number;
+  // The common case: one PR merged via `pull_request: closed`, read straight from the event
+  // payload. A merge queue batching multiple PRs' checks together can still deliver their squash
+  // commits as a single `push` event though, in which case there's no pull_request payload to
+  // read at all — fall back to push's own already-ordered (oldest first) commits list, resolving
+  // each one's PR and awaiting the merges strictly in that order. That avoids relying on separate
+  // pull_request events (whose relative delivery order GitHub does not guarantee) to fire and get
+  // processed in landing order.
+  const pullRequestEntry = resolvePullRequestEventEntry();
+  if (pullRequestEntry) {
+    await mergeEntry(bucket, pullRequestEntry, deps);
+    return;
+  }
 
-  if (!prSha || !mergeCommitSha || !prNumber) {
+  const pushCommitShas = resolvePushEventCommitShas();
+  if (pushCommitShas.length === 0) {
     deps.core.setFailed(
-      'pr-sha, merge-commit-sha, and pr-number are required for workflow manifest-merge.'
+      'manifest-merge requires a pull_request (closed) event or a push event with commits.'
     );
     return;
   }
 
+  for (const mergeCommitSha of pushCommitShas) {
+    const entry = await resolveMergeEntryFromCommit(mergeCommitSha, deps);
+    if (!entry) {
+      deps.core.info(
+        `No pull request associated with commit ${mergeCommitSha}; skipping.`
+      );
+      continue;
+    }
+    await mergeEntry(bucket, entry, deps);
+  }
+}
+
+function resolvePullRequestEventEntry(): MergeEntry | null {
+  const prSha = githubContext.payload.pull_request?.head?.sha;
+  const mergeCommitSha = githubContext.payload.pull_request?.merge_commit_sha;
+  const prNumber = githubContext.payload.pull_request?.number;
+
+  if (!prSha || !mergeCommitSha || !prNumber) return null;
+  return { prSha, mergeCommitSha, prNumber };
+}
+
+function resolvePushEventCommitShas(): string[] {
+  const commits = githubContext.payload.commits as
+    | Array<{ id: string }>
+    | undefined;
+  return commits?.map(commit => commit.id) ?? [];
+}
+
+async function resolveMergeEntryFromCommit(
+  mergeCommitSha: string,
+  deps: Dependencies
+): Promise<MergeEntry | null> {
+  const { data: associatedPrs } =
+    await deps.octokit.rest.repos.listPullRequestsAssociatedWithCommit({
+      ...deps.context.repo,
+      commit_sha: mergeCommitSha
+    });
+  const prNumber = associatedPrs.find(Boolean)?.number;
+  if (!prNumber) return null;
+
+  const { data: pr } = await deps.octokit.rest.pulls.get({
+    ...deps.context.repo,
+    pull_number: prNumber
+  });
+
+  return { prSha: pr.head.sha, mergeCommitSha, prNumber };
+}
+
+async function mergeEntry(
+  bucket: string,
+  entry: MergeEntry,
+  deps: Dependencies
+): Promise<void> {
   const manifestS3 = makeManifestS3(deps.s3);
 
   await manifestMerge(
     {
       bucket,
-      prNumber,
-      prSha,
-      mergeCommitSha,
+      prNumber: entry.prNumber,
+      prSha: entry.prSha,
+      mergeCommitSha: entry.mergeCommitSha,
       repo: deps.context.repo
     },
     {
