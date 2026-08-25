@@ -161386,14 +161386,9 @@ async function runManifestCompareWorkflow(deps) {
 }
 async function runManifestMergeWorkflow(deps) {
   const bucket = getInput("bucket-name", { required: true });
-  const pullRequestEntry = resolvePullRequestEventEntry();
-  if (pullRequestEntry) {
-    await mergeEntry(bucket, pullRequestEntry, deps);
-    return;
-  }
   const pushCommitShas = resolvePushEventCommitShas();
   if (pushCommitShas.length === 0) {
-    deps.core.setFailed("manifest-merge requires a pull_request (closed) event or a push event with commits.");
+    deps.core.setFailed("manifest-merge must run on a push event; no commits could be resolved from the event payload.");
     return;
   }
   for (const mergeCommitSha of pushCommitShas) {
@@ -161404,14 +161399,6 @@ async function runManifestMergeWorkflow(deps) {
     }
     await mergeEntry(bucket, entry, deps);
   }
-}
-function resolvePullRequestEventEntry() {
-  const prSha = context2.payload.pull_request?.head?.sha;
-  const mergeCommitSha = context2.payload.pull_request?.merge_commit_sha;
-  const prNumber = context2.payload.pull_request?.number;
-  if (!prSha || !mergeCommitSha || !prNumber)
-    return null;
-  return { prSha, mergeCommitSha, prNumber };
 }
 function resolvePushEventCommitShas() {
   const commits = context2.payload.commits;
@@ -161683,5 +161670,5 @@ var run = async (deps = makeDefaultDeps()) => {
 // src/main.ts
 run().catch(setFailed);
 
-//# debugId=B45CE847A615279B64756E2164756E21
+//# debugId=E7E4B52B9B49329464756E2164756E21
 //# sourceMappingURL=main.js.map
