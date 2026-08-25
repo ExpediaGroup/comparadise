@@ -72,6 +72,9 @@ const compareCommitsWithBaseheadMock = mock<
 const getCommitMock = mock<
   () => Promise<{ data: { parents: Array<{ sha: string }> } }>
 >(() => Promise.resolve({ data: { parents: [{ sha: 'parent-sha' }] } }));
+const pullsGetMock = mock<() => Promise<{ data: { head: { sha: string } } }>>(
+  () => Promise.resolve({ data: { head: { sha: 'pr-sha' } } })
+);
 const listOpenPullsMock = mock<() => Promise<{ data: unknown[] }>>(() =>
   Promise.resolve({ data: [] })
 );
@@ -104,7 +107,8 @@ function makeDeps(): Dependencies {
           updateComment: updateCommentMock
         },
         pulls: {
-          list: listOpenPullsMock
+          list: listOpenPullsMock,
+          get: pullsGetMock
         }
       },
       graphql: graphqlMock
@@ -1004,13 +1008,13 @@ describe('main', () => {
 
     it('runs manifest-merge when workflow is manifest-merge', async () => {
       setEnv({ workflow: 'manifest-merge' });
-      githubContext.payload = {
-        pull_request: {
-          head: { sha: 'pr-sha' },
-          number: 17,
-          merge_commit_sha: 'merge-sha'
-        }
-      };
+      githubContext.payload = { commits: [{ id: 'merge-sha' }] };
+      listPullRequestsAssociatedWithCommitMock.mockResolvedValueOnce({
+        data: [{ number: 17 }]
+      });
+      pullsGetMock.mockResolvedValueOnce({
+        data: { head: { sha: 'pr-sha' } }
+      });
       getCommitMock.mockResolvedValue({
         data: { parents: [{ sha: 'parent-sha' }] }
       });

@@ -83,14 +83,12 @@ describe('runManifestMergeWorkflow', () => {
     setEnv({ 'bucket-name': 'test-bucket' });
   });
 
-  it('merges a single pull_request event as before', async () => {
-    githubContext.payload = {
-      pull_request: {
-        number: 42,
-        head: { sha: 'pr-head-sha' },
-        merge_commit_sha: 'merge-sha-1'
-      }
-    };
+  it('merges a single-commit push event', async () => {
+    githubContext.payload = { commits: [{ id: 'merge-sha-1' }] };
+    listPullRequestsAssociatedWithCommitMock.mockResolvedValue({
+      data: [{ number: 42 }]
+    });
+    pullsGetMock.mockResolvedValue({ data: { head: { sha: 'pr-head-sha' } } });
     getCommitMock.mockResolvedValue({
       data: { parents: [{ sha: 'parent-sha' }] }
     });
@@ -100,19 +98,18 @@ describe('runManifestMergeWorkflow', () => {
     await runManifestMergeWorkflow(makeDeps());
 
     expect(setFailedMock).not.toHaveBeenCalled();
-    expect(listPullRequestsAssociatedWithCommitMock).not.toHaveBeenCalled();
     expect(putObjectMock).toHaveBeenCalledWith(
       expect.objectContaining({ Key: 'manifests/merge-sha-1.json' })
     );
   });
 
-  it('fails when triggered by neither a pull_request nor a push event', async () => {
+  it('fails when not triggered by a push event with commits', async () => {
     githubContext.payload = {};
 
     await runManifestMergeWorkflow(makeDeps());
 
     expect(setFailedMock).toHaveBeenCalledWith(
-      expect.stringContaining('pull_request')
+      expect.stringContaining('push event')
     );
     expect(putObjectMock).not.toHaveBeenCalled();
   });
