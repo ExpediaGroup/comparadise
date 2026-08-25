@@ -139,8 +139,6 @@ jobs:
 
 `manifest-merge` reads the triggering push event's own `commits` list — already ordered oldest-first — resolves each commit's pull request via the GitHub API, and merges them one at a time, awaited in that order, within this single job run. No `pr-sha`, `merge-commit-sha`, or `pr-number` inputs, and no `concurrency` group, are needed: there's exactly one job run per push, and it processes that push's commits sequentially itself.
 
-This matters, and isn't just a style preference: a `pull_request: closed`-triggered job only ever sees one PR's merge commit, which breaks down the moment a merge queue batches multiple pull requests' checks together (e.g. GitHub's merge queue with a maximum group size greater than one) — their squash commits can still land as a single `push` event, and GitHub does not guarantee the relative delivery order of separate webhook events. A `concurrency` group only serializes _execution_ of separate `pull_request: closed`-triggered runs, not the _order_ they run in — so a later commit's job could run before its own parent's, and the missing-parent-manifest fallback (which exists to support onboarding a repo with no prior manifests at all) can't tell that apart from a genuine first run, silently dropping the parent's changes from the recorded baseline. Reading commits directly from one ordered `push` payload avoids the ordering assumption entirely rather than trying to guarantee it at the workflow-YAML level.
-
 ## Required status check
 
 `manifest-compare` sets the `Visual Regression` commit status on the PR head SHA–the same context as the standard `pr` mode. Add it as a required status check in your branch protection settings to block merges until visual changes are reviewed.
