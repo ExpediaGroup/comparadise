@@ -4,7 +4,7 @@ import {
   MatchScreenshotArgs,
   PREFIX_DIFFERENTIATOR,
   verifyImages
-} from './match-screenshot';
+} from './screenshot-actions';
 
 export function createBaseImage(
   subject: Cypress.JQueryWithSelector | Window | Document | void,

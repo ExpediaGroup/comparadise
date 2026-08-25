@@ -3,7 +3,7 @@ import {
   compareScreenshots,
   onAfterScreenshot
 } from './screenshots';
-import { MatchScreenshotArgs } from './match-screenshot';
+import { MatchScreenshotArgs, TakeScreenshotArgs } from './screenshot-actions';
 
 export function setupVisualTests(
   on: Cypress.PluginEvents,
@@ -26,6 +26,7 @@ declare global {
   namespace Cypress {
     interface Chainable {
       matchScreenshot(args?: MatchScreenshotArgs): Chainable;
+      takeScreenshot(args?: TakeScreenshotArgs): Chainable;
       createBaseImage(args?: MatchScreenshotArgs): Chainable;
     }
   }
