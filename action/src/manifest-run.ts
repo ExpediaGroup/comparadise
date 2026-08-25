@@ -69,30 +69,77 @@ export async function runManifestCompareWorkflow(
   );
 }
 
+interface MergeEntry {
+  prSha: string;
+  mergeCommitSha: string;
+  prNumber: number;
+}
+
 export async function runManifestMergeWorkflow(
   deps: Dependencies
 ): Promise<void> {
   const bucket = getInput('bucket-name', { required: true });
 
-  const prSha = githubContext.payload.pull_request?.head?.sha;
-  const mergeCommitSha = githubContext.payload.pull_request?.merge_commit_sha;
-  const prNumber = githubContext.payload.pull_request?.number;
-
-  if (!prSha || !mergeCommitSha || !prNumber) {
+  const pushCommitShas = resolvePushEventCommitShas();
+  if (pushCommitShas.length === 0) {
     deps.core.setFailed(
-      'pr-sha, merge-commit-sha, and pr-number are required for workflow manifest-merge.'
+      'manifest-merge must run on a push event; no commits could be resolved from the event payload.'
     );
     return;
   }
 
+  for (const mergeCommitSha of pushCommitShas) {
+    const entry = await resolveMergeEntryFromCommit(mergeCommitSha, deps);
+    if (!entry) {
+      deps.core.info(
+        `No pull request associated with commit ${mergeCommitSha}; skipping.`
+      );
+      continue;
+    }
+    await mergeEntry(bucket, entry, deps);
+  }
+}
+
+function resolvePushEventCommitShas(): string[] {
+  const commits = githubContext.payload.commits as
+    | Array<{ id: string }>
+    | undefined;
+  return commits?.map(commit => commit.id) ?? [];
+}
+
+async function resolveMergeEntryFromCommit(
+  mergeCommitSha: string,
+  deps: Dependencies
+): Promise<MergeEntry | null> {
+  const { data: associatedPrs } =
+    await deps.octokit.rest.repos.listPullRequestsAssociatedWithCommit({
+      ...deps.context.repo,
+      commit_sha: mergeCommitSha
+    });
+  const prNumber = associatedPrs.find(Boolean)?.number;
+  if (!prNumber) return null;
+
+  const { data: pr } = await deps.octokit.rest.pulls.get({
+    ...deps.context.repo,
+    pull_number: prNumber
+  });
+
+  return { prSha: pr.head.sha, mergeCommitSha, prNumber };
+}
+
+async function mergeEntry(
+  bucket: string,
+  entry: MergeEntry,
+  deps: Dependencies
+): Promise<void> {
   const manifestS3 = makeManifestS3(deps.s3);
 
   await manifestMerge(
     {
       bucket,
-      prNumber,
-      prSha,
-      mergeCommitSha,
+      prNumber: entry.prNumber,
+      prSha: entry.prSha,
+      mergeCommitSha: entry.mergeCommitSha,
       repo: deps.context.repo
     },
     {

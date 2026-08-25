@@ -10,11 +10,11 @@ Three workflow modes work together:
 
 ![Manifest workflow sequence diagram](/img/manifest-workflow.svg)
 
-| Mode                | Trigger                  | What it does                                                                                     |
-| ------------------- | ------------------------ | ------------------------------------------------------------------------------------------------ |
-| `manifest-generate` | PR push                  | Runs visual tests, hashes screenshots, uploads only changed images and a manifest to S3          |
-| `manifest-compare`  | PR push (after generate) | 3-way hash comparison against base branch; generates diffs, sets commit status, posts PR comment |
-| `manifest-merge`    | PR merged                | Overlays the PR's changeset onto the base manifest; updates base images in S3                    |
+| Mode                | Trigger                  | What it does                                                                                            |
+| ------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------- |
+| `manifest-generate` | PR push                  | Runs visual tests, hashes screenshots, uploads only changed images and a manifest to S3                 |
+| `manifest-compare`  | PR push (after generate) | 3-way hash comparison against base branch; generates diffs, sets commit status, posts PR comment        |
+| `manifest-merge`    | push to base branch      | Overlays each merged PR's changeset onto the base manifest, in landing order; updates base images in S3 |
 
 ## PR Workflow
 
@@ -115,15 +115,15 @@ jobs:
 
 ## Merge Workflow
 
-When a PR merges, `manifest-merge` updates the base manifest and base images in S3 so future comparisons are based on the latest merged state.
+When a PR merges, `manifest-merge` updates the base manifest and base images in S3 so future comparisons are based on the latest merged state. Trigger it on `push`, not `pull_request: closed`:
 
-**Important:** You must set a `concurrency` group with `cancel-in-progress: false` on this workflow. Without it, two PRs merging simultaneously can race to update overlapping base images, producing a corrupted state that future `manifest-compare` runs will read incorrect diffs against.
+**Important:** Restrict the base branch to **squash merge only** (GitHub branch protection: "Allow squash merging" enabled, "Allow merge commits" and "Allow rebase merging" disabled). `manifest-merge` maps each commit in the push payload to the PR it came from; a squash merge guarantees exactly one commit per PR, so that mapping — and the changeset applied to base images — stays one-to-one. A regular merge or rebase merge can land multiple commits for the same PR in one push, which would replay that PR's changeset against the base images once per commit instead of once per PR.
+
+**Important:** You must still set a `concurrency` group with `cancel-in-progress: false` on this workflow. Processing a batched push's commits sequentially, in-job, only serializes _within_ that one push event — it does not serialize _across_ separate push events. Two PRs merged moments apart (even without a merge queue batching them) still fire two independent `push` events with no guaranteed run order or mutual exclusion, and without a concurrency group they can race to update overlapping base images the same way non-batched `pull_request: closed` runs could.
 
 ```yaml
 on:
-  pull_request:
-    types:
-      - closed
+  push:
     branches:
       - main
 
@@ -134,7 +134,6 @@ concurrency:
 jobs:
   manifest-merge:
     name: Update Manifest
-    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -146,7 +145,7 @@ jobs:
           bucket-name: visual-regression-bucket
 ```
 
-The `pr-sha`, `merge-commit-sha`, and `pr-number` inputs are automatically read from the `pull_request` event payload and do not need to be set explicitly.
+`manifest-merge` reads the triggering push event's own `commits` list — already ordered oldest-first — resolves each commit's pull request via the GitHub API, and merges them one at a time, awaited in that order, within this single job run. No `pr-sha`, `merge-commit-sha`, or `pr-number` inputs need to be set explicitly; the `concurrency` group above still is, to serialize across pushes.
 
 ## Required status check
 
