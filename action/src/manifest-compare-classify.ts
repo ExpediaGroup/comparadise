@@ -56,7 +56,7 @@ export async function classifyManifests(
   }
 
   const ancestorSha = await resolveAncestorSha(deps, repo, headSha, prSha);
-  const ancestorManifest = await requireAncestorManifest(
+  const ancestorManifest = await resolveAncestorManifest(
     deps,
     bucket,
     ancestorSha
@@ -113,16 +113,17 @@ async function requirePrManifest(
   return manifest;
 }
 
-async function requireAncestorManifest(
+async function resolveAncestorManifest(
   deps: ClassifyDeps,
   bucket: string,
   sha: string
 ): Promise<Manifest> {
   const manifest = await deps.getManifest(bucket, sha);
   if (!manifest) {
-    throw new Error(
-      `Ancestor manifest not found for ${sha}. Ensure manifest-generate has run on the base branch, then rebase your branch onto a commit that has a manifest.`
+    deps.core.info(
+      `No ancestor manifest found for ${sha} — treating as an empty baseline (first run of manifest mode reachable from this branch's history).`
     );
+    return {};
   }
   return manifest;
 }

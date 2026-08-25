@@ -160887,7 +160887,7 @@ async function classifyManifests(params, deps) {
     return { outcome: "match" };
   }
   const ancestorSha = await resolveAncestorSha(deps, repo, headSha, prSha);
-  const ancestorManifest = await requireAncestorManifest(deps, bucket, ancestorSha);
+  const ancestorManifest = await resolveAncestorManifest(deps, bucket, ancestorSha);
   const prOwns = [];
   const mainOwns = [];
   const conflicts = [];
@@ -160925,10 +160925,11 @@ async function requirePrManifest(deps, bucket, sha) {
   }
   return manifest;
 }
-async function requireAncestorManifest(deps, bucket, sha) {
+async function resolveAncestorManifest(deps, bucket, sha) {
   const manifest = await deps.getManifest(bucket, sha);
   if (!manifest) {
-    throw new Error(`Ancestor manifest not found for ${sha}. Ensure manifest-generate has run on the base branch, then rebase your branch onto a commit that has a manifest.`);
+    deps.core.info(`No ancestor manifest found for ${sha} — treating as an empty baseline (first run of manifest mode reachable from this branch's history).`);
+    return {};
   }
   return manifest;
 }
@@ -161643,5 +161644,5 @@ var run = async (deps = makeDefaultDeps()) => {
 // src/main.ts
 run().catch(setFailed);
 
-//# debugId=A90D21A3C68F9E8164756E2164756E21
+//# debugId=B5E99F4FC7ED3A1F64756E2164756E21
 //# sourceMappingURL=main.js.map
