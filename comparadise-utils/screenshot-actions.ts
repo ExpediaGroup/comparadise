@@ -140,6 +140,37 @@ Cypress.Commands.add(
   matchScreenshot
 );
 
+export type TakeScreenshotArgs = {
+  rawName?: string;
+  options?: Partial<Cypress.ScreenshotOptions>;
+};
+
+export function takeScreenshot(
+  subject: Cypress.JQueryWithSelector | Window | Document | void,
+  args?: TakeScreenshotArgs
+) {
+  const { rawName, options } = args || {};
+  // Set up screen
+  forceFont();
+
+  // Making sure each image is visible before taking screenshots
+  verifyImages();
+
+  const { screenshotsFolder } = getTestFolderPathFromScripts(rawName);
+  const target = subject ? cy.wrap(subject) : cy;
+  // For easy slicing of path ignoring the root screenshot folder
+  target.screenshot(
+    `${PREFIX_DIFFERENTIATOR}${screenshotsFolder}/new`,
+    options
+  );
+}
+
+Cypress.Commands.add(
+  'takeScreenshot',
+  { prevSubject: ['optional', 'element', 'window', 'document'] },
+  takeScreenshot
+);
+
 interface ExtendedCurrentRunnable extends Mocha.Runnable {
   currentRunnable?: {
     order?: unknown;
