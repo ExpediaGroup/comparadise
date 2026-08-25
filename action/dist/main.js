@@ -161386,19 +161386,58 @@ async function runManifestCompareWorkflow(deps) {
 }
 async function runManifestMergeWorkflow(deps) {
   const bucket = getInput("bucket-name", { required: true });
+  const pullRequestEntry = resolvePullRequestEventEntry();
+  if (pullRequestEntry) {
+    await mergeEntry(bucket, pullRequestEntry, deps);
+    return;
+  }
+  const pushCommitShas = resolvePushEventCommitShas();
+  if (pushCommitShas.length === 0) {
+    deps.core.setFailed("manifest-merge requires a pull_request (closed) event or a push event with commits.");
+    return;
+  }
+  for (const mergeCommitSha of pushCommitShas) {
+    const entry = await resolveMergeEntryFromCommit(mergeCommitSha, deps);
+    if (!entry) {
+      deps.core.info(`No pull request associated with commit ${mergeCommitSha}; skipping.`);
+      continue;
+    }
+    await mergeEntry(bucket, entry, deps);
+  }
+}
+function resolvePullRequestEventEntry() {
   const prSha = context2.payload.pull_request?.head?.sha;
   const mergeCommitSha = context2.payload.pull_request?.merge_commit_sha;
   const prNumber = context2.payload.pull_request?.number;
-  if (!prSha || !mergeCommitSha || !prNumber) {
-    deps.core.setFailed("pr-sha, merge-commit-sha, and pr-number are required for workflow manifest-merge.");
-    return;
-  }
+  if (!prSha || !mergeCommitSha || !prNumber)
+    return null;
+  return { prSha, mergeCommitSha, prNumber };
+}
+function resolvePushEventCommitShas() {
+  const commits = context2.payload.commits;
+  return commits?.map((commit) => commit.id) ?? [];
+}
+async function resolveMergeEntryFromCommit(mergeCommitSha, deps) {
+  const { data: associatedPrs } = await deps.octokit.rest.repos.listPullRequestsAssociatedWithCommit({
+    ...deps.context.repo,
+    commit_sha: mergeCommitSha
+  });
+  const prNumber = associatedPrs.find(Boolean)?.number;
+  if (!prNumber)
+    return null;
+  const { data: pr } = await deps.octokit.rest.pulls.get({
+    ...deps.context.repo,
+    pull_number: prNumber
+  });
+  return { prSha: pr.head.sha, mergeCommitSha, prNumber };
+}
+async function mergeEntry(bucket, entry, deps) {
   const manifestS3 = makeManifestS3(deps.s3);
   await manifestMerge({
     bucket,
-    prNumber,
-    prSha,
-    mergeCommitSha,
+    prNumber: entry.prNumber,
+    prSha: entry.prSha,
+    mergeCommitSha: entry.mergeCommitSha,
     repo: deps.context.repo
   }, {
     getManifest: manifestS3.getManifest,
@@ -161644,5 +161683,5 @@ var run = async (deps = makeDefaultDeps()) => {
 // src/main.ts
 run().catch(setFailed);
 
-//# debugId=B5E99F4FC7ED3A1F64756E2164756E21
+//# debugId=B45CE847A615279B64756E2164756E21
 //# sourceMappingURL=main.js.map
