@@ -161629,7 +161629,7 @@ var run = async (deps = makeDefaultDeps()) => {
     if (isRetry) {
       deps.core.warning("Disabling auto merge because this is a retry attempt. This is to avoid auto merging prematurely.");
       await disableAutoMerge(commitHash, deps);
-    } else if (latestVisualRegressionStatus?.state) {
+    } else if (latestVisualRegressionStatus?.state && (latestVisualRegressionStatus.state !== "pending" || latestVisualRegressionStatus.description?.startsWith("Visual diffs found"))) {
       deps.core.info("Skipping status update since Visual Regression status has already been set.");
       return;
     }
@@ -161691,5 +161691,5 @@ var run = async (deps = makeDefaultDeps()) => {
 // src/main.ts
 run().catch(setFailed);
 
-//# debugId=D1C7C0781E6BFE6E64756E2164756E21
+//# debugId=C8DF0B4543E45F7264756E2164756E21
 //# sourceMappingURL=main.js.map
