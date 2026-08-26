@@ -171,7 +171,13 @@ export const run = async (deps: Dependencies = makeDefaultDeps()) => {
         'Disabling auto merge because this is a retry attempt. This is to avoid auto merging prematurely.'
       );
       await disableAutoMerge(commitHash, deps);
-    } else if (latestVisualRegressionStatus?.state) {
+    } else if (
+      latestVisualRegressionStatus?.state &&
+      (latestVisualRegressionStatus.state !== 'pending' ||
+        latestVisualRegressionStatus.description?.startsWith(
+          'Visual diffs found'
+        ))
+    ) {
       deps.core.info(
         'Skipping status update since Visual Regression status has already been set.'
       );
