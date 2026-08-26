@@ -4,6 +4,7 @@ import type { FlagOverlappingPrsParams } from './manifest-merge-flag-prs';
 
 export interface ManifestMergeDeps {
   getManifest: (bucket: string, sha: string) => Promise<Manifest | null>;
+  getAncestorManifest: (bucket: string, startSha: string) => Promise<Manifest>;
   putManifest: (
     bucket: string,
     sha: string,
@@ -44,7 +45,7 @@ export async function manifestMerge(
 
   const changeset = await deps.getChangeset(bucket, prSha);
   const parentSha = await deps.getMergeParentSha(mergeCommitSha);
-  const parentManifest = (await deps.getManifest(bucket, parentSha)) ?? {};
+  const parentManifest = await deps.getAncestorManifest(bucket, parentSha);
 
   if (!changeset) {
     deps.core.info(

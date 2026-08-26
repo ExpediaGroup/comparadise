@@ -89,9 +89,11 @@ describe('runManifestMergeWorkflow', () => {
       data: [{ number: 42 }]
     });
     pullsGetMock.mockResolvedValue({ data: { head: { sha: 'pr-head-sha' } } });
-    getCommitMock.mockResolvedValue({
-      data: { parents: [{ sha: 'parent-sha' }] }
-    });
+    // 'parent-sha' itself has no further parent, so the ancestor walk stops
+    // there (bootstrap case) rather than looping.
+    getCommitMock.mockImplementation(async ({ ref }: { ref: string }) => ({
+      data: { parents: ref === 'merge-sha-1' ? [{ sha: 'parent-sha' }] : [] }
+    }));
     // No changeset or parent manifest recorded — takes the "copy parent forward" path.
     getObjectMock.mockRejectedValue(noSuchKeyError());
 
@@ -129,8 +131,15 @@ describe('runManifestMergeWorkflow', () => {
         data: { head: { sha: `pr-head-${pull_number}` } }
       })
     );
+    // Each merge commit has exactly one parent, and that parent has no
+    // further parent — so the ancestor walk stops after one hop per commit.
     getCommitMock.mockImplementation(async ({ ref }: { ref: string }) => ({
-      data: { parents: [{ sha: `parent-of-${ref}` }] }
+      data: {
+        parents:
+          ref === 'commit-a' || ref === 'commit-b'
+            ? [{ sha: `parent-of-${ref}` }]
+            : []
+      }
     }));
 
     const callOrder: string[] = [];
@@ -183,9 +192,9 @@ describe('runManifestMergeWorkflow', () => {
       })
     );
     pullsGetMock.mockResolvedValue({ data: { head: { sha: 'pr-head-20' } } });
-    getCommitMock.mockResolvedValue({
-      data: { parents: [{ sha: 'parent-sha' }] }
-    });
+    getCommitMock.mockImplementation(async ({ ref }: { ref: string }) => ({
+      data: { parents: ref === 'commit-b' ? [{ sha: 'parent-sha' }] : [] }
+    }));
     getObjectMock.mockRejectedValue(noSuchKeyError());
 
     await runManifestMergeWorkflow(makeDeps());
@@ -199,6 +208,48 @@ describe('runManifestMergeWorkflow', () => {
     );
     expect(putObjectMock).not.toHaveBeenCalledWith(
       expect.objectContaining({ Key: 'manifests/commit-a.json' })
+    );
+  });
+
+  it('carries forward a grandparent manifest when the immediate parent has none (bridges a manifest-merge gap)', async () => {
+    // Reproduces: two commits land on master whose pushes never trigger
+    // manifest-merge (e.g. their diff didn't touch a relevant path), so
+    // neither ever gets a manifests/<sha>.json written. A later commit that
+    // does trigger manifest-merge must still find the last real baseline
+    // several hops back, not collapse to {}.
+    githubContext.payload = { commits: [{ id: 'commit-x' }] };
+
+    listPullRequestsAssociatedWithCommitMock.mockResolvedValue({
+      data: [{ number: 30 }]
+    });
+    pullsGetMock.mockResolvedValue({ data: { head: { sha: 'pr-head-30' } } });
+
+    getCommitMock.mockImplementation(async ({ ref }: { ref: string }) => {
+      if (ref === 'commit-x') return { data: { parents: [{ sha: 'gap-1' }] } };
+      if (ref === 'gap-1') return { data: { parents: [{ sha: 'gap-2' }] } };
+      if (ref === 'gap-2')
+        return { data: { parents: [{ sha: 'good-grandparent' }] } };
+      return { data: { parents: [] } };
+    });
+
+    const goodManifest = { Button: 'h-button-good' };
+    getObjectMock.mockImplementation(async ({ Key }: { Key: string }) => {
+      if (Key === 'manifests/good-grandparent.json') {
+        return {
+          Body: { transformToString: async () => JSON.stringify(goodManifest) }
+        };
+      }
+      throw noSuchKeyError();
+    });
+
+    await runManifestMergeWorkflow(makeDeps());
+
+    expect(setFailedMock).not.toHaveBeenCalled();
+    expect(putObjectMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        Key: 'manifests/commit-x.json',
+        Body: JSON.stringify(goodManifest)
+      })
     );
   });
 });

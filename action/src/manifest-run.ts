@@ -6,6 +6,7 @@ import { classifyManifests } from './manifest-compare-classify';
 import { generateDiffs } from './manifest-diff';
 import { diffPng } from './diff-png';
 import { manifestMerge } from './manifest-merge';
+import { findAncestorManifest } from './manifest-merge-ancestor';
 import {
   overlayChangeset,
   detectStaleConflicts
@@ -127,6 +128,17 @@ async function resolveMergeEntryFromCommit(
   return { prSha: pr.head.sha, mergeCommitSha, prNumber };
 }
 
+async function getParentSha(
+  sha: string,
+  deps: Dependencies
+): Promise<string | null> {
+  const { data } = await deps.octokit.rest.repos.getCommit({
+    ...deps.context.repo,
+    ref: sha
+  });
+  return data.parents[0]?.sha ?? null;
+}
+
 async function mergeEntry(
   bucket: string,
   entry: MergeEntry,
@@ -144,14 +156,16 @@ async function mergeEntry(
     },
     {
       getManifest: manifestS3.getManifest,
+      getAncestorManifest: (bucket, startSha) =>
+        findAncestorManifest(bucket, startSha, {
+          getManifest: manifestS3.getManifest,
+          getParentSha: sha => getParentSha(sha, deps),
+          core: deps.core
+        }),
       putManifest: manifestS3.putManifest,
       getChangeset: manifestS3.getChangeset,
       getMergeParentSha: async mergeSha => {
-        const { data } = await deps.octokit.rest.repos.getCommit({
-          ...deps.context.repo,
-          ref: mergeSha
-        });
-        const parentSha = data.parents[0]?.sha;
+        const parentSha = await getParentSha(mergeSha, deps);
         if (!parentSha) {
           throw new Error(
             `Merge commit ${mergeSha} has no parent commit to use as manifest base.`

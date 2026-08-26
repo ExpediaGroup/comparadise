@@ -161208,7 +161208,7 @@ async function manifestMerge(params, deps) {
   const { bucket, prSha, mergeCommitSha } = params;
   const changeset = await deps.getChangeset(bucket, prSha);
   const parentSha = await deps.getMergeParentSha(mergeCommitSha);
-  const parentManifest = await deps.getManifest(bucket, parentSha) ?? {};
+  const parentManifest = await deps.getAncestorManifest(bucket, parentSha);
   if (!changeset) {
     deps.core.info(`No changeset found for PR ${prSha}; copying parent manifest unchanged.`);
     await deps.putManifest(bucket, mergeCommitSha, parentManifest);
@@ -161236,6 +161236,22 @@ async function assertNoStaleConflicts(deps, params, changeset, parentManifest) {
   if (conflicts.length === 0)
     return;
   throw new Error(`Stale changeset: ${conflicts.length} path(s) changed on main since this PR was compared (${conflicts.join(", ")}). The merging PR must be rebased and re-checked.`);
+}
+
+// src/manifest-merge-ancestor.ts
+var MAX_WALK_DEPTH = 100;
+async function findAncestorManifest(bucket, startSha, deps) {
+  let sha = startSha;
+  for (let hops = 0;sha && hops < MAX_WALK_DEPTH; hops++) {
+    const manifest = await deps.getManifest(bucket, sha);
+    if (manifest)
+      return manifest;
+    sha = await deps.getParentSha(sha);
+  }
+  if (sha) {
+    deps.core.warning(`No manifest found within ${MAX_WALK_DEPTH} commit(s) of ${startSha}; ` + "treating as empty. This may indicate a much larger-than-expected gap " + "in manifest-merge history.");
+  }
+  return {};
 }
 
 // src/manifest-merge-overlay.ts
@@ -161418,6 +161434,13 @@ async function resolveMergeEntryFromCommit(mergeCommitSha, deps) {
   });
   return { prSha: pr.head.sha, mergeCommitSha, prNumber };
 }
+async function getParentSha(sha, deps) {
+  const { data } = await deps.octokit.rest.repos.getCommit({
+    ...deps.context.repo,
+    ref: sha
+  });
+  return data.parents[0]?.sha ?? null;
+}
 async function mergeEntry(bucket, entry, deps) {
   const manifestS3 = makeManifestS3(deps.s3);
   await manifestMerge({
@@ -161428,14 +161451,15 @@ async function mergeEntry(bucket, entry, deps) {
     repo: deps.context.repo
   }, {
     getManifest: manifestS3.getManifest,
+    getAncestorManifest: (bucket2, startSha) => findAncestorManifest(bucket2, startSha, {
+      getManifest: manifestS3.getManifest,
+      getParentSha: (sha) => getParentSha(sha, deps),
+      core: deps.core
+    }),
     putManifest: manifestS3.putManifest,
     getChangeset: manifestS3.getChangeset,
     getMergeParentSha: async (mergeSha) => {
-      const { data } = await deps.octokit.rest.repos.getCommit({
-        ...deps.context.repo,
-        ref: mergeSha
-      });
-      const parentSha = data.parents[0]?.sha;
+      const parentSha = await getParentSha(mergeSha, deps);
       if (!parentSha) {
         throw new Error(`Merge commit ${mergeSha} has no parent commit to use as manifest base.`);
       }
@@ -161670,5 +161694,5 @@ var run = async (deps = makeDefaultDeps()) => {
 // src/main.ts
 run().catch(setFailed);
 
-//# debugId=E7E4B52B9B49329464756E2164756E21
+//# debugId=9A622C33675C6AF364756E2164756E21
 //# sourceMappingURL=main.js.map
