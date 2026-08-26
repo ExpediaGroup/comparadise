@@ -47,7 +47,13 @@ export async function runManifestCompareWorkflow(
           s3: deps.s3,
           octokit: deps.octokit,
           core: deps.core,
-          getManifest: manifestS3.getManifest
+          getManifest: manifestS3.getManifest,
+          getAncestorManifest: (bucket, startSha) =>
+            findAncestorManifest(bucket, startSha, {
+              getManifest: manifestS3.getManifest,
+              getParentSha: sha => getParentSha(sha, deps),
+              core: deps.core
+            })
         }),
       generateDiffs: params =>
         generateDiffs(params, {

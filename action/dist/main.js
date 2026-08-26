@@ -160877,7 +160877,7 @@ async function classifyManifests(params, deps) {
   const { bucket, prSha, repo, baseRef } = params;
   const prManifest = await requirePrManifest(deps, bucket, prSha);
   const headSha = await resolveHeadSha(deps, repo, baseRef);
-  const headManifest = await deps.getManifest(bucket, headSha) ?? {};
+  const headManifest = await deps.getAncestorManifest(bucket, headSha);
   const allPaths = new Set([
     ...Object.keys(prManifest),
     ...Object.keys(headManifest)
@@ -160887,7 +160887,7 @@ async function classifyManifests(params, deps) {
     return { outcome: "match" };
   }
   const ancestorSha = await resolveAncestorSha(deps, repo, headSha, prSha);
-  const ancestorManifest = await resolveAncestorManifest(deps, bucket, ancestorSha);
+  const ancestorManifest = await deps.getAncestorManifest(bucket, ancestorSha);
   const prOwns = [];
   const mainOwns = [];
   const conflicts = [];
@@ -160922,14 +160922,6 @@ async function requirePrManifest(deps, bucket, sha) {
   const manifest = await deps.getManifest(bucket, sha);
   if (!manifest) {
     throw new Error(`PR manifest not found for ${sha}. Ensure manifest-generate ran successfully.`);
-  }
-  return manifest;
-}
-async function resolveAncestorManifest(deps, bucket, sha) {
-  const manifest = await deps.getManifest(bucket, sha);
-  if (!manifest) {
-    deps.core.info(`No ancestor manifest found for ${sha} — treating as an empty baseline (first run of manifest mode reachable from this branch's history).`);
-    return {};
   }
   return manifest;
 }
@@ -161380,7 +161372,12 @@ async function runManifestCompareWorkflow(deps) {
       s3: deps.s3,
       octokit: deps.octokit,
       core: deps.core,
-      getManifest: manifestS3.getManifest
+      getManifest: manifestS3.getManifest,
+      getAncestorManifest: (bucket2, startSha) => findAncestorManifest(bucket2, startSha, {
+        getManifest: manifestS3.getManifest,
+        getParentSha: (sha) => getParentSha(sha, deps),
+        core: deps.core
+      })
     }),
     generateDiffs: (params) => generateDiffs(params, {
       s3: deps.s3,
@@ -161694,5 +161691,5 @@ var run = async (deps = makeDefaultDeps()) => {
 // src/main.ts
 run().catch(setFailed);
 
-//# debugId=9A622C33675C6AF364756E2164756E21
+//# debugId=D1C7C0781E6BFE6E64756E2164756E21
 //# sourceMappingURL=main.js.map

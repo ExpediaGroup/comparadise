@@ -6,6 +6,7 @@ import {
   type ClassifyDeps
 } from '../src/manifest-compare-classify';
 import { makeManifestS3 } from '../src/manifest-s3';
+import { findAncestorManifest } from '../src/manifest-merge-ancestor';
 
 const getObjectMock = mock<any>();
 const getBranchMock = mock<any>();
@@ -20,6 +21,7 @@ const getManifest = makeManifestS3({
 } as any).getManifest;
 
 function makeDeps(overrides: Partial<ClassifyDeps> = {}): ClassifyDeps {
+  const resolvedGetManifest = overrides.getManifest ?? getManifest;
   return {
     s3: { getObject: getObjectMock } as any,
     octokit: {
@@ -30,8 +32,13 @@ function makeDeps(overrides: Partial<ClassifyDeps> = {}): ClassifyDeps {
         }
       }
     } as any,
-    core: { info: infoMock, setFailed: mock() } as any,
-    getManifest,
+    core: { info: infoMock, setFailed: mock(), warning: mock() } as any,
+    getManifest: resolvedGetManifest,
+    // No gap-bridging in these tests — the exact sha's manifest either
+    // exists or the walk immediately bottoms out at {} (see
+    // manifest-merge-ancestor.test.ts for the walk itself).
+    getAncestorManifest: async (bucket, sha) =>
+      (await resolvedGetManifest(bucket, sha)) ?? {},
     ...overrides
   };
 }
@@ -393,5 +400,40 @@ describe('classifyManifests', () => {
     expect(result.prOwns).toEqual([{ path: 'Button', type: 'added' }]);
     expect(result.mainOwns).toEqual([]);
     expect(result.conflicts).toEqual([]);
+  });
+
+  it('bridges a manifest-merge gap at HEAD via a real ancestor walk instead of seeing it as an empty baseline', async () => {
+    // main's current tip commit never got a manifest written (e.g. its push
+    // didn't touch a comparadise-relevant path), but its parent has the real,
+    // still-current baseline. Wiring the real findAncestorManifest in (rather
+    // than the test's default single-hop wrapper) must find it.
+    const realBaseline = { Button: 'hash1' };
+    const prManifest = { Button: 'hash1' };
+
+    mockManifest(prManifest); // PR manifest
+    getBranchMock.mockResolvedValue({
+      data: { commit: { sha: 'head-sha-with-gap' } }
+    });
+    mockNoSuchKey(); // no manifest at head-sha-with-gap itself
+    mockManifest(realBaseline); // its parent has the real baseline
+
+    const getParentSha = mock<any>().mockImplementation(async (sha: string) =>
+      sha === 'head-sha-with-gap' ? 'good-parent' : null
+    );
+
+    const result = await classifyManifests(
+      { bucket: 'test-bucket', prSha, repo, baseRef },
+      makeDeps({
+        getAncestorManifest: (bucket, startSha) =>
+          findAncestorManifest(bucket, startSha, {
+            getManifest,
+            getParentSha,
+            core: { warning: mock() } as any
+          })
+      })
+    );
+
+    // PR manifest matches the real (walked-back) baseline exactly — no diff.
+    expect(result).toEqual({ outcome: 'match' });
   });
 });
