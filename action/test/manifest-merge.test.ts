@@ -4,6 +4,7 @@ import { manifestMerge, type ManifestMergeDeps } from '../src/manifest-merge';
 import type { Changeset, Manifest } from '../src/manifest-s3';
 
 const getManifestMock = mock<any>();
+const getAncestorManifestMock = mock<any>();
 const putManifestMock = mock<any>();
 const getChangesetMock = mock<any>();
 const getMergeParentShaMock = mock<any>();
@@ -20,6 +21,7 @@ function makeDeps(
 ): ManifestMergeDeps {
   return {
     getManifest: getManifestMock,
+    getAncestorManifest: getAncestorManifestMock,
     putManifest: putManifestMock,
     getChangeset: getChangesetMock,
     getMergeParentSha: getMergeParentShaMock,
@@ -49,6 +51,7 @@ const parentManifest: Manifest = { Button: 'h-button', Modal: 'h-modal' };
 describe('manifestMerge', () => {
   beforeEach(() => {
     getManifestMock.mockReset();
+    getAncestorManifestMock.mockReset();
     putManifestMock.mockReset().mockResolvedValue(undefined);
     getChangesetMock.mockReset();
     getMergeParentShaMock.mockReset();
@@ -65,7 +68,7 @@ describe('manifestMerge', () => {
     beforeEach(() => {
       getChangesetMock.mockResolvedValue(null);
       getMergeParentShaMock.mockResolvedValue('parent-sha-aaa');
-      getManifestMock.mockResolvedValue(parentManifest);
+      getAncestorManifestMock.mockResolvedValue(parentManifest);
     });
 
     it('writes parent manifest unchanged at the merge commit SHA', async () => {
@@ -98,7 +101,7 @@ describe('manifestMerge', () => {
     beforeEach(() => {
       getChangesetMock.mockResolvedValue(changeset);
       getMergeParentShaMock.mockResolvedValue('parent-sha-aaa');
-      getManifestMock.mockResolvedValue(parentManifest);
+      getAncestorManifestMock.mockResolvedValue(parentManifest);
       overlayChangesetMock.mockReturnValue(overlaid);
     });
 
@@ -159,10 +162,9 @@ describe('manifestMerge', () => {
     function setupHappyPath() {
       getChangesetMock.mockResolvedValue(changeset);
       getMergeParentShaMock.mockResolvedValue('parent-sha-aaa');
-      // First getManifest call: parent. Second: head (for stale check).
-      getManifestMock
-        .mockResolvedValueOnce(parentManifest)
-        .mockResolvedValueOnce(headManifest);
+      getAncestorManifestMock.mockResolvedValue(parentManifest);
+      // getManifest is only used directly for the head lookup (stale check).
+      getManifestMock.mockResolvedValueOnce(headManifest);
       overlayChangesetMock.mockReturnValue(overlaid);
       detectStaleConflictsMock.mockReturnValue([]);
     }
@@ -196,9 +198,8 @@ describe('manifestMerge', () => {
     it('throws and aborts (without writing a manifest) when stale conflicts are detected', async () => {
       getChangesetMock.mockResolvedValue(changeset);
       getMergeParentShaMock.mockResolvedValue('parent-sha-aaa');
-      getManifestMock
-        .mockResolvedValueOnce(parentManifest)
-        .mockResolvedValueOnce(headManifest);
+      getAncestorManifestMock.mockResolvedValue(parentManifest);
+      getManifestMock.mockResolvedValueOnce(headManifest);
       detectStaleConflictsMock.mockReturnValue(['Button']);
 
       await expect(manifestMerge(params, makeDeps())).rejects.toThrow(
@@ -214,14 +215,14 @@ describe('manifestMerge', () => {
     });
   });
 
-  it('treats a missing parent manifest as an empty manifest', async () => {
+  it('treats no ancestor manifest (bootstrap case) as an empty manifest', async () => {
     const changeset: Changeset = {
       _headSha: 'parent-sha-aaa',
       NewThing: 'h-new'
     };
     getChangesetMock.mockResolvedValue(changeset);
     getMergeParentShaMock.mockResolvedValue('parent-sha-aaa');
-    getManifestMock.mockResolvedValue(null);
+    getAncestorManifestMock.mockResolvedValue({});
     overlayChangesetMock.mockReturnValue({ NewThing: 'h-new' });
 
     await manifestMerge(params, makeDeps());
