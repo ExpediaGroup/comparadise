@@ -670,6 +670,45 @@ describe('main', () => {
     expect(createCommitStatusMock).not.toHaveBeenCalled();
   });
 
+  it('should not set successful commit status if the latest Visual Regression status is pending because diffs were found', async () => {
+    execMock.mockResolvedValue(0);
+    mockScreenshotFiles(deps, ['path/to/screenshots/base.png']);
+    listCommitStatusesForRefMock.mockImplementationOnce(() => ({
+      data: [
+        {
+          context: VISUAL_REGRESSION_CONTEXT,
+          created_at: '2023-05-21T16:51:29Z',
+          state: 'pending',
+          description: 'Visual diffs found.'
+        }
+      ]
+    }));
+    await runAction(deps);
+    expect(createCommitStatusMock).not.toHaveBeenCalled();
+  });
+
+  it('should set successful commit status if the latest Visual Regression status is only pending because an in-progress job set it', async () => {
+    execMock.mockResolvedValue(0);
+    mockScreenshotFiles(deps, ['path/to/screenshots/base.png']);
+    listCommitStatusesForRefMock.mockImplementationOnce(() => ({
+      data: [
+        {
+          context: VISUAL_REGRESSION_CONTEXT,
+          created_at: '2023-05-21T16:51:29Z',
+          state: 'pending',
+          description: 'Visual tests are running...'
+        }
+      ]
+    }));
+    await runAction(deps);
+    expect(createCommitStatusMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        state: 'success',
+        description: 'Visual tests passed!'
+      })
+    );
+  });
+
   it('should not set commit status or create comment if the latest Visual Regression status is failure because tests failed to execute successfully', async () => {
     execMock.mockResolvedValue(1);
     mockScreenshotFiles(deps, [
