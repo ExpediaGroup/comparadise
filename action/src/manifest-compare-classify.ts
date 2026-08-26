@@ -22,6 +22,7 @@ export interface ClassifyDeps {
   octokit: Dependencies['octokit'];
   core: Dependencies['core'];
   getManifest: (bucket: string, sha: string) => Promise<Manifest | null>;
+  getAncestorManifest: (bucket: string, startSha: string) => Promise<Manifest>;
 }
 
 export interface ClassifyParams {
@@ -40,7 +41,10 @@ export async function classifyManifests(
   const prManifest = await requirePrManifest(deps, bucket, prSha);
 
   const headSha = await resolveHeadSha(deps, repo, baseRef);
-  const headManifest = (await deps.getManifest(bucket, headSha)) ?? {};
+  // headSha itself may never have gotten a manifest written (e.g. its push
+  // didn't touch a comparadise-relevant path) — walk back to the nearest
+  // ancestor that has one rather than treating main as having no baseline.
+  const headManifest = await deps.getAncestorManifest(bucket, headSha);
 
   const allPaths = new Set([
     ...Object.keys(prManifest),
@@ -56,11 +60,7 @@ export async function classifyManifests(
   }
 
   const ancestorSha = await resolveAncestorSha(deps, repo, headSha, prSha);
-  const ancestorManifest = await resolveAncestorManifest(
-    deps,
-    bucket,
-    ancestorSha
-  );
+  const ancestorManifest = await deps.getAncestorManifest(bucket, ancestorSha);
 
   const prOwns: PrOwnsEntry[] = [];
   const mainOwns: string[] = [];
@@ -109,21 +109,6 @@ async function requirePrManifest(
     throw new Error(
       `PR manifest not found for ${sha}. Ensure manifest-generate ran successfully.`
     );
-  }
-  return manifest;
-}
-
-async function resolveAncestorManifest(
-  deps: ClassifyDeps,
-  bucket: string,
-  sha: string
-): Promise<Manifest> {
-  const manifest = await deps.getManifest(bucket, sha);
-  if (!manifest) {
-    deps.core.info(
-      `No ancestor manifest found for ${sha} — treating as an empty baseline (first run of manifest mode reachable from this branch's history).`
-    );
-    return {};
   }
   return manifest;
 }
