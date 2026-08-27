@@ -147,6 +147,15 @@ jobs:
 
 `manifest-merge` reads the triggering push event's own `commits` list — already ordered oldest-first — resolves each commit's pull request via the GitHub API, and merges them one at a time, awaited in that order, within this single job run. No `pr-sha`, `merge-commit-sha`, or `pr-number` inputs need to be set explicitly; the `concurrency` group above still is, to serialize across pushes.
 
+Accepting in the app does not write base images in manifest mode — the link
+`manifest-compare` posts carries `useBaseImages=false`, so accepting only moves
+the commit status, and `manifest-merge` applies the accepted changeset to
+`base-images/` when the PR lands. `manifest-merge` is therefore the sole writer,
+and a PR that is accepted but never merged leaves the baseline untouched. As in
+the standard workflows, that also means accepting no longer waits on the other
+PR checks: that gate exists because accepting used to mutate the baseline
+immediately.
+
 ## Required status check
 
 `manifest-compare` sets the `Visual Regression` commit status on the PR head SHA–the same context as the standard `pr` mode. Add it as a required status check in your branch protection settings to block merges until visual changes are reviewed.
