@@ -3,7 +3,7 @@ import type {
   CompareResult,
   PrOwnsEntry
 } from './manifest-compare-classify';
-import type { GenerateDiffsParams } from './manifest-diff';
+import type { DiffOutcome, GenerateDiffsParams } from './manifest-diff';
 import type { Changeset, Manifest } from './manifest-s3';
 import { VISUAL_REGRESSION_CONTEXT } from 'shared/constants';
 
@@ -22,7 +22,7 @@ export type CommentArgs =
 export interface ManifestCompareDeps {
   squashPrManifest: (bucket: string, sha: string) => Promise<Manifest | null>;
   classify: (params: ClassifyParams) => Promise<CompareResult>;
-  generateDiffs: (params: GenerateDiffsParams) => Promise<void>;
+  generateDiffs: (params: GenerateDiffsParams) => Promise<DiffOutcome>;
   putChangeset: (
     bucket: string,
     sha: string,
@@ -121,18 +121,47 @@ async function handlePrOwns(
 ): Promise<void> {
   const { bucket, prSha } = params;
 
-  const reviewable = result.prOwns.filter(e => e.type !== 'deleted');
+  const candidates = result.prOwns.filter(e => e.type !== 'deleted');
   const deletions = result.prOwns.filter(e => e.type === 'deleted');
 
   if (deletions.length > 0) {
     deps.core.info(`${deletions.length} screenshot(s) deleted by this PR.`);
   }
 
+  const identical =
+    candidates.length > 0
+      ? (await deps.generateDiffs({ bucket, prSha, prOwns: candidates }))
+          .identical
+      : [];
+
+  if (identical.length > 0) {
+    deps.core.warning(
+      `${identical.length} screenshot(s) are byte-identical to their base image despite differing manifest hashes, so base-images/ has drifted from the manifest baseline. Treating them as unchanged: ${identical.join(', ')}`
+    );
+  }
+
+  const identicalPaths = new Set(identical);
+  const owned = result.prOwns.filter(e => !identicalPaths.has(e.path));
+  const reviewable = candidates.filter(e => !identicalPaths.has(e.path));
+
+  if (owned.length === 0) {
+    deps.core.info(
+      'Every differing screenshot matches its base image — PR is clean.'
+    );
+    await deps.setCommitStatus({
+      sha: prSha,
+      state: 'success',
+      description: 'Visual tests passed!',
+      context: VISUAL_REGRESSION_CONTEXT
+    });
+    return;
+  }
+
   // Reuse the squashed manifest when the monorepo path already produced it;
   // fall back to fetching manifests/{prSha}.json for the single-package case.
   const prManifest =
     squashedPrManifest ?? (await deps.getPrManifest(bucket, prSha)) ?? {};
-  const changeset = buildChangeset(result.headSha, result.prOwns, prManifest);
+  const changeset = buildChangeset(result.headSha, owned, prManifest);
   await deps.putChangeset(bucket, prSha, changeset);
 
   if (reviewable.length === 0) {
@@ -147,8 +176,6 @@ async function handlePrOwns(
     });
     return;
   }
-
-  await deps.generateDiffs({ bucket, prSha, prOwns: reviewable });
 
   await deps.setCommitStatus({
     sha: prSha,

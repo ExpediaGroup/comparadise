@@ -50,7 +50,9 @@ describe('manifestCompare', () => {
   beforeEach(() => {
     squashPrManifestMock.mockReset().mockResolvedValue(undefined);
     classifyMock.mockReset();
-    generateDiffsMock.mockReset().mockResolvedValue(undefined);
+    generateDiffsMock
+      .mockReset()
+      .mockResolvedValue({ diffed: [], identical: [] });
     putChangesetMock.mockReset().mockResolvedValue(undefined);
     getManifestMock.mockReset();
     setCommitStatusMock.mockReset().mockResolvedValue(undefined);
@@ -246,6 +248,119 @@ describe('manifestCompare', () => {
           _headSha: 'head-sha-222',
           Button: 'pr-hash-button'
         }
+      );
+    });
+  });
+
+  describe('outcome: classified — base image identical despite hash mismatch', () => {
+    const result: CompareResult = {
+      outcome: 'classified',
+      headSha: 'head-sha-222',
+      prSha: 'pr-sha-111',
+      prOwns: [{ path: 'Button', type: 'changed' }],
+      mainOwns: [],
+      conflicts: []
+    };
+
+    beforeEach(() => {
+      classifyMock.mockResolvedValue(result);
+      getManifestMock.mockResolvedValue({ Button: 'pr-hash-button' });
+      generateDiffsMock.mockResolvedValue({
+        diffed: [],
+        identical: ['Button']
+      });
+    });
+
+    it('sets a success commit status', async () => {
+      await manifestCompare(params, makeDeps());
+
+      expect(setCommitStatusMock).toHaveBeenCalledTimes(1);
+      expect(setCommitStatusMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sha: 'pr-sha-111',
+          state: 'success',
+          description: 'Visual tests passed!'
+        })
+      );
+    });
+
+    it('does not write a changeset — a merge would otherwise copy the identical image over base-images/', async () => {
+      await manifestCompare(params, makeDeps());
+
+      expect(putChangesetMock).not.toHaveBeenCalled();
+    });
+
+    it('does not post a comment', async () => {
+      await manifestCompare(params, makeDeps());
+
+      expect(postCommentMock).not.toHaveBeenCalled();
+    });
+
+    it('warns that base-images/ has drifted from the manifest baseline', async () => {
+      await manifestCompare(params, makeDeps());
+
+      expect(warningMock).toHaveBeenCalledTimes(1);
+      expect(warningMock.mock.calls[0]?.[0]).toContain('Button');
+    });
+
+    it('diffs before writing the changeset so identical paths can be excluded', async () => {
+      generateDiffsMock.mockImplementation(() => {
+        expect(putChangesetMock).not.toHaveBeenCalled();
+        return Promise.resolve({ diffed: ['Button'], identical: [] });
+      });
+
+      await manifestCompare(params, makeDeps());
+
+      expect(generateDiffsMock).toHaveBeenCalledTimes(1);
+      expect(putChangesetMock).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('outcome: classified — mix of identical and genuinely changed', () => {
+    const result: CompareResult = {
+      outcome: 'classified',
+      headSha: 'head-sha-222',
+      prSha: 'pr-sha-111',
+      prOwns: [
+        { path: 'Button', type: 'changed' },
+        { path: 'Modal', type: 'changed' }
+      ],
+      mainOwns: [],
+      conflicts: []
+    };
+
+    beforeEach(() => {
+      classifyMock.mockResolvedValue(result);
+      getManifestMock.mockResolvedValue({
+        Button: 'pr-hash-button',
+        Modal: 'pr-hash-modal'
+      });
+      generateDiffsMock.mockResolvedValue({
+        diffed: ['Modal'],
+        identical: ['Button']
+      });
+    });
+
+    it('omits the identical path from the changeset', async () => {
+      await manifestCompare(params, makeDeps());
+
+      expect(putChangesetMock).toHaveBeenCalledWith(
+        'test-bucket',
+        'pr-sha-111',
+        {
+          _headSha: 'head-sha-222',
+          Modal: 'pr-hash-modal'
+        }
+      );
+    });
+
+    it('omits the identical path from the comment and sets pending', async () => {
+      await manifestCompare(params, makeDeps());
+
+      const arg = postCommentMock.mock.calls[0]?.[0] as any;
+      expect(arg.prOwns).toEqual([{ path: 'Modal', type: 'changed' }]);
+      expect(setCommitStatusMock).toHaveBeenCalledWith(
+        expect.objectContaining({ state: 'pending' })
       );
     });
   });
