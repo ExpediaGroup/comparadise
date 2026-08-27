@@ -160912,11 +160912,11 @@ async function classifyManifests(params, deps) {
     const prHash = prManifest[path5] ?? null;
     if (headHash === ancestorHash) {
       if (ancestorHash === null) {
-        prOwns.push({ path: path5, type: "added" });
+        prOwns.push({ path: path5, type: "added", baseHash: null });
       } else if (prHash === null) {
-        prOwns.push({ path: path5, type: "deleted" });
+        prOwns.push({ path: path5, type: "deleted", baseHash: headHash });
       } else {
-        prOwns.push({ path: path5, type: "changed" });
+        prOwns.push({ path: path5, type: "changed", baseHash: headHash });
       }
     } else if (prHash === ancestorHash) {
       mainOwns.push(path5);
@@ -160965,12 +160965,12 @@ async function generateDiffs(params, deps) {
   const diffed = [];
   const identical = [];
   for (const entry of changedEntries) {
-    const baseKey = `${BASE_IMAGES_DIRECTORY}/${entry.path}/base.png`;
     const newKey = `${NEW_IMAGES_DIRECTORY}/${prSha}/${entry.path}/new.png`;
-    const [baseBuffer, newBuffer] = await Promise.all([
-      downloadBuffer(deps.s3, bucket, baseKey),
+    const [base, newBuffer] = await Promise.all([
+      deps.getBaseImage(bucket, entry.path, entry.baseHash),
       downloadBuffer(deps.s3, bucket, newKey)
     ]);
+    const baseBuffer = base.buffer;
     if (baseBuffer.equals(newBuffer)) {
       identical.push(entry.path);
       continue;
@@ -160996,6 +160996,39 @@ async function downloadBuffer(s3, bucket, key) {
   const response = await s3.getObject({ Bucket: bucket, Key: key });
   const bytes = await readBodyBytes(response);
   return Buffer.from(bytes);
+}
+
+// src/manifest-base-images.ts
+function baseImageKey(path5, hash) {
+  return `${BASE_IMAGES_DIRECTORY}/${path5}/${hash}.png`;
+}
+function legacyBaseImageKey(path5) {
+  return `${BASE_IMAGES_DIRECTORY}/${path5}/${BASE_IMAGE_NAME}.png`;
+}
+function makeBaseImageReader(deps) {
+  async function download(bucket, key) {
+    const response = await deps.s3.getObject({ Bucket: bucket, Key: key });
+    return Buffer.from(await readBodyBytes(response));
+  }
+  const getBaseImage = async (bucket, path5, hash) => {
+    if (hash) {
+      const key2 = baseImageKey(path5, hash);
+      try {
+        return {
+          buffer: await download(bucket, key2),
+          key: key2,
+          resolvedBy: "hash"
+        };
+      } catch (error2) {
+        if (!isNoSuchKey(error2))
+          throw error2;
+        deps.core.info(`No content-addressed base image at ${key2} — falling back to ${legacyBaseImageKey(path5)}.`);
+      }
+    }
+    const key = legacyBaseImageKey(path5);
+    return { buffer: await download(bucket, key), key, resolvedBy: "legacy" };
+  };
+  return { getBaseImage };
 }
 
 // src/diff-png.ts
@@ -161317,17 +161350,20 @@ async function applyChangesetToBaseImages(params, deps) {
     return;
   deps.core.info(`Applying changeset to base images: ${copies.length} copy, ${deletes.length} delete.`);
   await Promise.all([
-    ...copies.map(({ path: path5 }) => deps.s3.copyObject({
-      Bucket: bucket,
-      CopySource: encodeS3CopySource(bucket, `${NEW_IMAGES_DIRECTORY}/${prSha}/${path5}/${NEW_IMAGE_NAME}.png`),
-      Key: `${BASE_IMAGES_DIRECTORY}/${path5}/${BASE_IMAGE_NAME}.png`,
-      ACL: "bucket-owner-full-control"
-    })),
+    ...copies.flatMap(({ path: path5, hash }) => {
+      const copySource = encodeS3CopySource(bucket, `${NEW_IMAGES_DIRECTORY}/${prSha}/${path5}/${NEW_IMAGE_NAME}.png`);
+      return [baseImageKey(path5, hash), legacyBaseImageKey(path5)].map((key) => deps.s3.copyObject({
+        Bucket: bucket,
+        CopySource: copySource,
+        Key: key,
+        ACL: "bucket-owner-full-control"
+      }));
+    }),
     deletes.length > 0 ? deps.s3.deleteObjects({
       Bucket: bucket,
       Delete: {
         Objects: deletes.map((path5) => ({
-          Key: `${BASE_IMAGES_DIRECTORY}/${path5}/${BASE_IMAGE_NAME}.png`
+          Key: legacyBaseImageKey(path5)
         }))
       }
     }) : Promise.resolve()
@@ -161405,7 +161441,11 @@ async function runManifestCompareWorkflow(deps) {
     generateDiffs: (params) => generateDiffs(params, {
       s3: deps.s3,
       core: deps.core,
-      diffPng
+      diffPng,
+      getBaseImage: makeBaseImageReader({
+        s3: deps.s3,
+        core: deps.core
+      }).getBaseImage
     }),
     putChangeset: manifestS3.putChangeset,
     getPrManifest: manifestS3.getManifest,
@@ -161714,5 +161754,5 @@ var run = async (deps = makeDefaultDeps()) => {
 // src/main.ts
 run().catch(setFailed);
 
-//# debugId=BF9D1FAB10BD0FB764756E2164756E21
+//# debugId=F0968CE0698A6C5B64756E2164756E21
 //# sourceMappingURL=main.js.map
