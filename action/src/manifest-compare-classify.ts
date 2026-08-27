@@ -4,6 +4,13 @@ import type { Manifest } from './manifest-s3';
 export interface PrOwnsEntry {
   path: string;
   type: 'changed' | 'added' | 'deleted';
+  /**
+   * The hash of the image this entry should be reviewed against: the base
+   * branch's recorded hash for the path, which for an entry the PR owns is
+   * also the merge base's — `headHash === ancestorHash` is precisely what
+   * makes the PR the owner. Null for an added path, which has no base image.
+   */
+  baseHash: string | null;
 }
 
 export type CompareResult =
@@ -74,11 +81,11 @@ export async function classifyManifests(
     if (headHash === ancestorHash) {
       // PR introduced the change
       if (ancestorHash === null) {
-        prOwns.push({ path, type: 'added' });
+        prOwns.push({ path, type: 'added', baseHash: null });
       } else if (prHash === null) {
-        prOwns.push({ path, type: 'deleted' });
+        prOwns.push({ path, type: 'deleted', baseHash: headHash });
       } else {
-        prOwns.push({ path, type: 'changed' });
+        prOwns.push({ path, type: 'changed', baseHash: headHash });
       }
     } else if (prHash === ancestorHash) {
       // Main changed, PR is clean

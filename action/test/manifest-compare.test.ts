@@ -144,7 +144,7 @@ describe('manifestCompare', () => {
       outcome: 'classified',
       headSha: 'head-sha-222',
       prSha: 'pr-sha-111',
-      prOwns: [{ path: 'Button', type: 'changed' }],
+      prOwns: [{ path: 'Button', type: 'changed', baseHash: 'h-base' }],
       mainOwns: [],
       conflicts: ['Card', 'Modal']
     };
@@ -187,7 +187,7 @@ describe('manifestCompare', () => {
       outcome: 'classified',
       headSha: 'head-sha-222',
       prSha: 'pr-sha-111',
-      prOwns: [{ path: 'Button', type: 'changed' }],
+      prOwns: [{ path: 'Button', type: 'changed', baseHash: 'h-base' }],
       mainOwns: [],
       conflicts: []
     };
@@ -203,7 +203,7 @@ describe('manifestCompare', () => {
       expect(generateDiffsMock).toHaveBeenCalledWith({
         bucket: 'test-bucket',
         prSha: 'pr-sha-111',
-        prOwns: [{ path: 'Button', type: 'changed' }]
+        prOwns: [{ path: 'Button', type: 'changed', baseHash: 'h-base' }]
       });
     });
 
@@ -257,7 +257,7 @@ describe('manifestCompare', () => {
       outcome: 'classified',
       headSha: 'head-sha-222',
       prSha: 'pr-sha-111',
-      prOwns: [{ path: 'Button', type: 'changed' }],
+      prOwns: [{ path: 'Button', type: 'changed', baseHash: 'h-base' }],
       mainOwns: [],
       conflicts: []
     };
@@ -324,8 +324,8 @@ describe('manifestCompare', () => {
       headSha: 'head-sha-222',
       prSha: 'pr-sha-111',
       prOwns: [
-        { path: 'Button', type: 'changed' },
-        { path: 'Modal', type: 'changed' }
+        { path: 'Button', type: 'changed', baseHash: 'h-base' },
+        { path: 'Modal', type: 'changed', baseHash: 'h-modal' }
       ],
       mainOwns: [],
       conflicts: []
@@ -360,7 +360,9 @@ describe('manifestCompare', () => {
       await manifestCompare(params, makeDeps());
 
       const arg = postCommentMock.mock.calls[0]?.[0] as any;
-      expect(arg.prOwns).toEqual([{ path: 'Modal', type: 'changed' }]);
+      expect(arg.prOwns).toEqual([
+        { path: 'Modal', type: 'changed', baseHash: 'h-modal' }
+      ]);
       expect(setCommitStatusMock).toHaveBeenCalledWith(
         expect.objectContaining({ state: 'pending' })
       );
@@ -372,7 +374,7 @@ describe('manifestCompare', () => {
       outcome: 'classified',
       headSha: 'head-sha-222',
       prSha: 'pr-sha-111',
-      prOwns: [{ path: 'Button', type: 'changed' }],
+      prOwns: [{ path: 'Button', type: 'changed', baseHash: 'h-base' }],
       mainOwns: [],
       conflicts: []
     };
@@ -415,7 +417,7 @@ describe('manifestCompare', () => {
       outcome: 'classified',
       headSha: 'head-sha-222',
       prSha: 'pr-sha-111',
-      prOwns: [{ path: 'Removed', type: 'deleted' }],
+      prOwns: [{ path: 'Removed', type: 'deleted', baseHash: 'h-removed' }],
       mainOwns: [],
       conflicts: []
     };
@@ -464,7 +466,7 @@ describe('manifestCompare', () => {
       outcome: 'classified',
       headSha: 'head-sha-222',
       prSha: 'pr-sha-111',
-      prOwns: [{ path: 'NewThing', type: 'added' }],
+      prOwns: [{ path: 'NewThing', type: 'added', baseHash: null }],
       mainOwns: [],
       conflicts: []
     };
@@ -492,8 +494,8 @@ describe('manifestCompare', () => {
       headSha: 'head-sha-222',
       prSha: 'pr-sha-111',
       prOwns: [
-        { path: 'Button', type: 'changed' },
-        { path: 'Removed', type: 'deleted' }
+        { path: 'Button', type: 'changed', baseHash: 'h-base' },
+        { path: 'Removed', type: 'deleted', baseHash: 'h-removed' }
       ],
       mainOwns: ['Modal', 'Card'],
       conflicts: []
@@ -536,11 +538,13 @@ describe('manifestCompare', () => {
 
       expect(generateDiffsMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          prOwns: [{ path: 'Button', type: 'changed' }]
+          prOwns: [{ path: 'Button', type: 'changed', baseHash: 'h-base' }]
         })
       );
       const commentArg = postCommentMock.mock.calls[0]?.[0] as any;
-      expect(commentArg.prOwns).toEqual([{ path: 'Button', type: 'changed' }]);
+      expect(commentArg.prOwns).toEqual([
+        { path: 'Button', type: 'changed', baseHash: 'h-base' }
+      ]);
     });
   });
 });

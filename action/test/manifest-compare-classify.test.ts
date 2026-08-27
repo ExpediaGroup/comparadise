@@ -118,7 +118,7 @@ describe('classifyManifests', () => {
       outcome: 'classified',
       headSha: 'head-sha-222',
       prSha,
-      prOwns: [{ path: 'Button', type: 'changed' }],
+      prOwns: [{ path: 'Button', type: 'changed', baseHash: 'hash1' }],
       mainOwns: [],
       conflicts: []
     });
@@ -148,7 +148,7 @@ describe('classifyManifests', () => {
       outcome: 'classified',
       headSha: 'head-sha-222',
       prSha,
-      prOwns: [{ path: 'NewComponent', type: 'added' }],
+      prOwns: [{ path: 'NewComponent', type: 'added', baseHash: null }],
       mainOwns: [],
       conflicts: []
     });
@@ -178,7 +178,7 @@ describe('classifyManifests', () => {
       outcome: 'classified',
       headSha: 'head-sha-222',
       prSha,
-      prOwns: [{ path: 'Removed', type: 'deleted' }],
+      prOwns: [{ path: 'Removed', type: 'deleted', baseHash: 'hash1' }],
       mainOwns: [],
       conflicts: []
     });
@@ -306,7 +306,9 @@ describe('classifyManifests', () => {
       makeDeps()
     )) as Extract<CompareResult, { outcome: 'classified' }>;
 
-    expect(result.prOwns).toEqual([{ path: 'Button', type: 'changed' }]);
+    expect(result.prOwns).toEqual([
+      { path: 'Button', type: 'changed', baseHash: 'hash1' }
+    ]);
     expect(result.mainOwns).toEqual(['Modal']);
     expect(result.conflicts).toEqual(['Card']);
   });
@@ -397,7 +399,9 @@ describe('classifyManifests', () => {
       makeDeps()
     )) as Extract<CompareResult, { outcome: 'classified' }>;
 
-    expect(result.prOwns).toEqual([{ path: 'Button', type: 'added' }]);
+    expect(result.prOwns).toEqual([
+      { path: 'Button', type: 'added', baseHash: null }
+    ]);
     expect(result.mainOwns).toEqual([]);
     expect(result.conflicts).toEqual([]);
   });

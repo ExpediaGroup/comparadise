@@ -147,6 +147,33 @@ jobs:
 
 `manifest-merge` reads the triggering push event's own `commits` list — already ordered oldest-first — resolves each commit's pull request via the GitHub API, and merges them one at a time, awaited in that order, within this single job run. No `pr-sha`, `merge-commit-sha`, or `pr-number` inputs need to be set explicitly; the `concurrency` group above still is, to serialize across pushes.
 
+## How base images are stored
+
+A manifest records an md5 per screenshot; the image itself lives under that md5:
+
+```
+base-images/{screenshot-path}/{md5}.png
+```
+
+A manifest entry is therefore a pointer to one exact image. `manifest-compare`
+resolves the base image for a screenshot through the hash the base branch
+recorded for it — which, for a screenshot the PR owns, is also the hash its
+merge base recorded — so a PR behind the base branch is reviewed against the
+image its own branch point named, and an accept on one PR cannot change the
+image another PR is compared against.
+
+`manifest-merge` also writes each accepted image to `base-images/{path}/base.png`,
+the single mutable object per screenshot that the standard `pr`/`merge`
+workflows and the app's accept path address. That key remains the fallback when
+no hash-named object exists yet, which is the case for any screenshot in an
+existing bucket that has not been merged through since content addressing
+landed. Buckets therefore need no migration: the first merge that touches a
+screenshot writes its hash-named object, and the fallback covers it until then.
+
+Hash-named objects accumulate as a screenshot changes over time, and the ones a
+deleted screenshot leaves behind are not tracked — set an expiry lifecycle rule
+on the `base-images/` prefix to age them out.
+
 ## Required status check
 
 `manifest-compare` sets the `Visual Regression` commit status on the PR head SHA–the same context as the standard `pr` mode. Add it as a required status check in your branch protection settings to block merges until visual changes are reviewed.

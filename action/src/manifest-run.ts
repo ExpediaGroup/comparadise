@@ -4,6 +4,7 @@ import { makeManifestS3 } from './manifest-s3';
 import { manifestCompare } from './manifest-compare';
 import { classifyManifests } from './manifest-compare-classify';
 import { generateDiffs } from './manifest-diff';
+import { makeBaseImageReader } from './manifest-base-images';
 import { diffPng } from './diff-png';
 import { manifestMerge } from './manifest-merge';
 import { findAncestorManifest } from './manifest-merge-ancestor';
@@ -59,7 +60,11 @@ export async function runManifestCompareWorkflow(
         generateDiffs(params, {
           s3: deps.s3,
           core: deps.core,
-          diffPng
+          diffPng,
+          getBaseImage: makeBaseImageReader({
+            s3: deps.s3,
+            core: deps.core
+          }).getBaseImage
         }),
       putChangeset: manifestS3.putChangeset,
       getPrManifest: manifestS3.getManifest,

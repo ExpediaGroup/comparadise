@@ -1,12 +1,14 @@
-import { BASE_IMAGES_DIRECTORY, NEW_IMAGES_DIRECTORY } from 'shared/constants';
+import { NEW_IMAGES_DIRECTORY } from 'shared/constants';
 import type { Dependencies } from './dependencies';
 import type { PrOwnsEntry } from './manifest-compare-classify';
+import type { GetBaseImage } from './manifest-base-images';
 import { readBodyBytes } from './manifest-s3';
 
 export interface GenerateDiffsDeps {
   s3: Pick<Dependencies['s3'], 'getObject' | 'putObject'>;
   core: Pick<Dependencies['core'], 'info'>;
   diffPng: (base: Buffer, actual: Buffer) => Buffer;
+  getBaseImage: GetBaseImage;
 }
 
 export interface GenerateDiffsParams {
@@ -37,13 +39,16 @@ export async function generateDiffs(
   const identical: string[] = [];
 
   for (const entry of changedEntries) {
-    const baseKey = `${BASE_IMAGES_DIRECTORY}/${entry.path}/base.png`;
     const newKey = `${NEW_IMAGES_DIRECTORY}/${prSha}/${entry.path}/new.png`;
 
-    const [baseBuffer, newBuffer] = await Promise.all([
-      downloadBuffer(deps.s3, bucket, baseKey),
+    // The base image is addressed by the hash the base branch recorded for
+    // this path, so the comparison is against the image that entry actually
+    // names — not whatever was last written to a shared per-path slot.
+    const [base, newBuffer] = await Promise.all([
+      deps.getBaseImage(bucket, entry.path, entry.baseHash),
       downloadBuffer(deps.s3, bucket, newKey)
     ]);
+    const baseBuffer = base.buffer;
 
     if (baseBuffer.equals(newBuffer)) {
       identical.push(entry.path);

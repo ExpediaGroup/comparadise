@@ -39,7 +39,7 @@ describe('applyChangesetToBaseImages', () => {
     expect(deleteObjectsMock).not.toHaveBeenCalled();
   });
 
-  it('copies new.png to base.png for non-null entries', async () => {
+  it('copies new.png to the hash-named base image and the legacy base.png', async () => {
     const changeset: Changeset = {
       _headSha: 'sha',
       'components/Button': 'h-button'
@@ -47,15 +47,22 @@ describe('applyChangesetToBaseImages', () => {
 
     await applyChangesetToBaseImages({ bucket, prSha, changeset }, makeDeps());
 
-    expect(copyObjectMock).toHaveBeenCalledTimes(1);
-    expect(copyObjectMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        Bucket: bucket,
-        CopySource:
-          'test-bucket/new-images/pr-sha-111/components/Button/new.png',
-        Key: 'base-images/components/Button/base.png'
-      })
+    expect(copyObjectMock).toHaveBeenCalledTimes(2);
+    expect(copyObjectMock.mock.calls.map(call => (call[0] as any).Key)).toEqual(
+      [
+        'base-images/components/Button/h-button.png',
+        'base-images/components/Button/base.png'
+      ]
     );
+    for (const call of copyObjectMock.mock.calls) {
+      expect(call[0]).toEqual(
+        expect.objectContaining({
+          Bucket: bucket,
+          CopySource:
+            'test-bucket/new-images/pr-sha-111/components/Button/new.png'
+        })
+      );
+    }
     expect(deleteObjectsMock).not.toHaveBeenCalled();
   });
 
@@ -102,7 +109,15 @@ describe('applyChangesetToBaseImages', () => {
 
     await applyChangesetToBaseImages({ bucket, prSha, changeset }, makeDeps());
 
-    expect(copyObjectMock).toHaveBeenCalledTimes(2);
+    // Two copies per surviving path: hash-named plus the legacy base.png.
+    expect(copyObjectMock.mock.calls.map(call => (call[0] as any).Key)).toEqual(
+      [
+        'base-images/A/h-a.png',
+        'base-images/A/base.png',
+        'base-images/C/h-c.png',
+        'base-images/C/base.png'
+      ]
+    );
     expect(deleteObjectsMock).toHaveBeenCalledTimes(1);
     const deleteCall = deleteObjectsMock.mock.calls[0]?.[0] as any;
     expect(deleteCall.Delete.Objects).toEqual([
