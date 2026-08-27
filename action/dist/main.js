@@ -160796,8 +160796,9 @@ async function manifestCompare(params, deps) {
     await handleConflicts(deps, prSha, result.conflicts);
     return;
   }
-  if (result.prOwns.length === 0) {
-    deps.core.info(`Visual changes on main only (${result.mainOwns.length} path(s)) — PR is clean.`);
+  const prOwns = await dropPathsMatchingBase(deps, params, result.prOwns);
+  if (prOwns.length === 0) {
+    deps.core.info(`No visual changes owned by this PR (${result.mainOwns.length} path(s) changed on main) — PR is clean.`);
     await deps.setCommitStatus({
       sha: prSha,
       state: "success",
@@ -160806,7 +160807,22 @@ async function manifestCompare(params, deps) {
     });
     return;
   }
-  await handlePrOwns(deps, params, result, squashedPrManifest);
+  await handlePrOwns(deps, params, { ...result, prOwns }, squashedPrManifest);
+}
+async function dropPathsMatchingBase(deps, params, prOwns) {
+  const candidates = prOwns.filter((e) => e.type !== "deleted");
+  if (candidates.length === 0)
+    return prOwns;
+  const { identical } = await deps.generateDiffs({
+    bucket: params.bucket,
+    prSha: params.prSha,
+    prOwns: candidates
+  });
+  if (identical.length === 0)
+    return prOwns;
+  deps.core.info(`${identical.length} screenshot(s) match their base image byte-for-byte — treating as unchanged: ${identical.join(", ")}`);
+  const identicalPaths = new Set(identical);
+  return prOwns.filter((e) => !identicalPaths.has(e.path));
 }
 async function handleConflicts(deps, prSha, conflicts) {
   deps.core.setFailed(`Visual diff conflicts detected on ${conflicts.length} screenshot(s). Please rebase.`);
@@ -160824,30 +160840,13 @@ async function handleConflicts(deps, prSha, conflicts) {
 }
 async function handlePrOwns(deps, params, result, squashedPrManifest) {
   const { bucket, prSha } = params;
-  const candidates = result.prOwns.filter((e) => e.type !== "deleted");
+  const reviewable = result.prOwns.filter((e) => e.type !== "deleted");
   const deletions = result.prOwns.filter((e) => e.type === "deleted");
   if (deletions.length > 0) {
     deps.core.info(`${deletions.length} screenshot(s) deleted by this PR.`);
   }
-  const identical = candidates.length > 0 ? (await deps.generateDiffs({ bucket, prSha, prOwns: candidates })).identical : [];
-  if (identical.length > 0) {
-    deps.core.warning(`${identical.length} screenshot(s) are byte-identical to their base image despite differing manifest hashes, so base-images/ has drifted from the manifest baseline. Treating them as unchanged: ${identical.join(", ")}`);
-  }
-  const identicalPaths = new Set(identical);
-  const owned = result.prOwns.filter((e) => !identicalPaths.has(e.path));
-  const reviewable = candidates.filter((e) => !identicalPaths.has(e.path));
-  if (owned.length === 0) {
-    deps.core.info("Every differing screenshot matches its base image — PR is clean.");
-    await deps.setCommitStatus({
-      sha: prSha,
-      state: "success",
-      description: "Visual tests passed!",
-      context: VISUAL_REGRESSION_CONTEXT
-    });
-    return;
-  }
   const prManifest = squashedPrManifest ?? await deps.getPrManifest(bucket, prSha) ?? {};
-  const changeset = buildChangeset(result.headSha, owned, prManifest);
+  const changeset = buildChangeset(result.headSha, result.prOwns, prManifest);
   await deps.putChangeset(bucket, prSha, changeset);
   if (reviewable.length === 0) {
     deps.core.info("No visual changes to review (deletions only) — marking success.");
@@ -161715,5 +161714,5 @@ var run = async (deps = makeDefaultDeps()) => {
 // src/main.ts
 run().catch(setFailed);
 
-//# debugId=3CB45F26B526EA1264756E2164756E21
+//# debugId=BF9D1FAB10BD0FB764756E2164756E21
 //# sourceMappingURL=main.js.map
