@@ -70,7 +70,8 @@ export async function runManifestCompareWorkflow(
         });
       },
       postComment: args => postManifestCompareComment(args, deps),
-      buildComparadiseUrl: () => buildComparadiseUrl(deps.context),
+      buildComparadiseUrl: () =>
+        buildComparadiseUrl(deps.context, { useBaseImages: false }),
       core: deps.core
     }
   );
@@ -249,7 +250,7 @@ function buildManifestCommentBody(
   ).length;
   const addedCount = args.prOwns.filter(entry => entry.type === 'added').length;
 
-  return `${MANIFEST_COMMENT_MARKER}\n## Visual Manifest Results\nVisual diffs found.\n\n- Changed screenshots: ${changedCount}\n- Added screenshots: ${addedCount}\n\nCheck [Comparadise](${buildComparadiseUrl(deps.context)}) for image details.`;
+  return `${MANIFEST_COMMENT_MARKER}\n## Visual Manifest Results\nVisual diffs found.\n\n- Changed screenshots: ${changedCount}\n- Added screenshots: ${addedCount}\n\nCheck [Comparadise](${buildComparadiseUrl(deps.context, { useBaseImages: false })}) for image details.`;
 }
 
 async function resolvePrNumber(
