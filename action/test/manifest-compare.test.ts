@@ -296,11 +296,13 @@ describe('manifestCompare', () => {
       expect(postCommentMock).not.toHaveBeenCalled();
     });
 
-    it('warns that base-images/ has drifted from the manifest baseline', async () => {
+    it('logs the identical paths without raising a warning annotation', async () => {
       await manifestCompare(params, makeDeps());
 
-      expect(warningMock).toHaveBeenCalledTimes(1);
-      expect(warningMock.mock.calls[0]?.[0]).toContain('Button');
+      expect(warningMock).not.toHaveBeenCalled();
+      expect(
+        infoMock.mock.calls.some(call => String(call[0]).includes('Button'))
+      ).toBe(true);
     });
 
     it('diffs before writing the changeset so identical paths can be excluded', async () => {

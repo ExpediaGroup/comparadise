@@ -135,8 +135,8 @@ async function handlePrOwns(
       : [];
 
   if (identical.length > 0) {
-    deps.core.warning(
-      `${identical.length} screenshot(s) are byte-identical to their base image despite differing manifest hashes, so base-images/ has drifted from the manifest baseline. Treating them as unchanged: ${identical.join(', ')}`
+    deps.core.info(
+      `${identical.length} screenshot(s) match their base image byte-for-byte — treating as unchanged: ${identical.join(', ')}`
     );
   }
 
