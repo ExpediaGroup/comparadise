@@ -81924,14 +81924,14 @@ var deleteHashImages = async (hash, deps) => {
 import * as path5 from "path";
 
 // src/build-comparadise-url.ts
-var buildComparadiseUrl = (context) => {
+var buildComparadiseUrl = (context, options = {}) => {
   const bucketName = getInput("bucket-name", { required: true });
   const comparadiseHost = getInput("comparadise-host");
   const commitHash = getInput("commit-hash");
   const diffId = getInput("diff-id");
   const hashParam = commitHash ? `commitHash=${commitHash}` : `diffId=${diffId}`;
   const updateBaseImagesOnAccept = getBooleanInput("update-base-images-on-accept");
-  const useBaseImages = updateBaseImagesOnAccept && getBooleanInput("use-base-images");
+  const useBaseImages = options.useBaseImages ?? (updateBaseImagesOnAccept && getBooleanInput("use-base-images"));
   const { owner, repo } = context.repo;
   return `${comparadiseHost}/?${hashParam}&owner=${owner}&repo=${repo}&bucket=${bucketName}&useBaseImages=${useBaseImages}`;
 };
@@ -161416,7 +161416,7 @@ async function runManifestCompareWorkflow(deps) {
       });
     },
     postComment: (args) => postManifestCompareComment(args, deps),
-    buildComparadiseUrl: () => buildComparadiseUrl(deps.context),
+    buildComparadiseUrl: () => buildComparadiseUrl(deps.context, { useBaseImages: false }),
     core: deps.core
   });
 }
@@ -161545,7 +161545,7 @@ Visual diffs found.
 - Changed screenshots: ${changedCount}
 - Added screenshots: ${addedCount}
 
-Check [Comparadise](${buildComparadiseUrl(deps.context)}) for image details.`;
+Check [Comparadise](${buildComparadiseUrl(deps.context, { useBaseImages: false })}) for image details.`;
 }
 async function resolvePrNumber(commitHash, deps) {
   const { data } = await deps.octokit.rest.repos.listPullRequestsAssociatedWithCommit({
@@ -161714,5 +161714,5 @@ var run = async (deps = makeDefaultDeps()) => {
 // src/main.ts
 run().catch(setFailed);
 
-//# debugId=BF9D1FAB10BD0FB764756E2164756E21
+//# debugId=47EDA57FE58EAD5764756E2164756E21
 //# sourceMappingURL=main.js.map
