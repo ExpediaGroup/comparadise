@@ -160796,8 +160796,9 @@ async function manifestCompare(params, deps) {
     await handleConflicts(deps, prSha, result.conflicts);
     return;
   }
-  if (result.prOwns.length === 0) {
-    deps.core.info(`Visual changes on main only (${result.mainOwns.length} path(s)) — PR is clean.`);
+  const prOwns = await dropPathsMatchingBase(deps, params, result.prOwns);
+  if (prOwns.length === 0) {
+    deps.core.info(`No visual changes owned by this PR (${result.mainOwns.length} path(s) changed on main) — PR is clean.`);
     await deps.setCommitStatus({
       sha: prSha,
       state: "success",
@@ -160806,7 +160807,22 @@ async function manifestCompare(params, deps) {
     });
     return;
   }
-  await handlePrOwns(deps, params, result, squashedPrManifest);
+  await handlePrOwns(deps, params, { ...result, prOwns }, squashedPrManifest);
+}
+async function dropPathsMatchingBase(deps, params, prOwns) {
+  const candidates = prOwns.filter((e) => e.type !== "deleted");
+  if (candidates.length === 0)
+    return prOwns;
+  const { identical } = await deps.generateDiffs({
+    bucket: params.bucket,
+    prSha: params.prSha,
+    prOwns: candidates
+  });
+  if (identical.length === 0)
+    return prOwns;
+  deps.core.info(`${identical.length} screenshot(s) match their base image byte-for-byte — treating as unchanged: ${identical.join(", ")}`);
+  const identicalPaths = new Set(identical);
+  return prOwns.filter((e) => !identicalPaths.has(e.path));
 }
 async function handleConflicts(deps, prSha, conflicts) {
   deps.core.setFailed(`Visual diff conflicts detected on ${conflicts.length} screenshot(s). Please rebase.`);
@@ -160842,7 +160858,6 @@ async function handlePrOwns(deps, params, result, squashedPrManifest) {
     });
     return;
   }
-  await deps.generateDiffs({ bucket, prSha, prOwns: reviewable });
   await deps.setCommitStatus({
     sha: prSha,
     state: "pending",
@@ -160945,8 +160960,10 @@ async function generateDiffs(params, deps) {
   const { bucket, prSha, prOwns } = params;
   const changedEntries = prOwns.filter((e) => e.type === "changed");
   if (changedEntries.length === 0)
-    return;
+    return { diffed: [], identical: [] };
   deps.core.info(`Generating diffs for ${changedEntries.length} changed screenshot(s).`);
+  const diffed = [];
+  const identical = [];
   for (const entry of changedEntries) {
     const baseKey = `${BASE_IMAGES_DIRECTORY}/${entry.path}/base.png`;
     const newKey = `${NEW_IMAGES_DIRECTORY}/${prSha}/${entry.path}/new.png`;
@@ -160954,6 +160971,10 @@ async function generateDiffs(params, deps) {
       downloadBuffer(deps.s3, bucket, baseKey),
       downloadBuffer(deps.s3, bucket, newKey)
     ]);
+    if (baseBuffer.equals(newBuffer)) {
+      identical.push(entry.path);
+      continue;
+    }
     const diffBuffer = deps.diffPng(baseBuffer, newBuffer);
     await Promise.all([
       deps.s3.putObject({
@@ -160967,7 +160988,9 @@ async function generateDiffs(params, deps) {
         Body: diffBuffer
       })
     ]);
+    diffed.push(entry.path);
   }
+  return { diffed, identical };
 }
 async function downloadBuffer(s3, bucket, key) {
   const response = await s3.getObject({ Bucket: bucket, Key: key });
@@ -161691,5 +161714,5 @@ var run = async (deps = makeDefaultDeps()) => {
 // src/main.ts
 run().catch(setFailed);
 
-//# debugId=C8DF0B4543E45F7264756E2164756E21
+//# debugId=BF9D1FAB10BD0FB764756E2164756E21
 //# sourceMappingURL=main.js.map

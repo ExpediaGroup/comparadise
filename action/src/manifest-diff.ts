@@ -15,18 +15,26 @@ export interface GenerateDiffsParams {
   prOwns: PrOwnsEntry[];
 }
 
+export interface DiffOutcome {
+  diffed: string[];
+  identical: string[];
+}
+
 export async function generateDiffs(
   params: GenerateDiffsParams,
   deps: GenerateDiffsDeps
-): Promise<void> {
+): Promise<DiffOutcome> {
   const { bucket, prSha, prOwns } = params;
 
   const changedEntries = prOwns.filter(e => e.type === 'changed');
-  if (changedEntries.length === 0) return;
+  if (changedEntries.length === 0) return { diffed: [], identical: [] };
 
   deps.core.info(
     `Generating diffs for ${changedEntries.length} changed screenshot(s).`
   );
+
+  const diffed: string[] = [];
+  const identical: string[] = [];
 
   for (const entry of changedEntries) {
     const baseKey = `${BASE_IMAGES_DIRECTORY}/${entry.path}/base.png`;
@@ -36,6 +44,11 @@ export async function generateDiffs(
       downloadBuffer(deps.s3, bucket, baseKey),
       downloadBuffer(deps.s3, bucket, newKey)
     ]);
+
+    if (baseBuffer.equals(newBuffer)) {
+      identical.push(entry.path);
+      continue;
+    }
 
     const diffBuffer = deps.diffPng(baseBuffer, newBuffer);
 
@@ -51,7 +64,11 @@ export async function generateDiffs(
         Body: diffBuffer
       })
     ]);
+
+    diffed.push(entry.path);
   }
+
+  return { diffed, identical };
 }
 
 async function downloadBuffer(

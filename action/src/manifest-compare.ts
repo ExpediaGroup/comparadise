@@ -3,7 +3,7 @@ import type {
   CompareResult,
   PrOwnsEntry
 } from './manifest-compare-classify';
-import type { GenerateDiffsParams } from './manifest-diff';
+import type { DiffOutcome, GenerateDiffsParams } from './manifest-diff';
 import type { Changeset, Manifest } from './manifest-s3';
 import { VISUAL_REGRESSION_CONTEXT } from 'shared/constants';
 
@@ -22,7 +22,7 @@ export type CommentArgs =
 export interface ManifestCompareDeps {
   squashPrManifest: (bucket: string, sha: string) => Promise<Manifest | null>;
   classify: (params: ClassifyParams) => Promise<CompareResult>;
-  generateDiffs: (params: GenerateDiffsParams) => Promise<void>;
+  generateDiffs: (params: GenerateDiffsParams) => Promise<DiffOutcome>;
   putChangeset: (
     bucket: string,
     sha: string,
@@ -76,9 +76,11 @@ export async function manifestCompare(
     return;
   }
 
-  if (result.prOwns.length === 0) {
+  const prOwns = await dropPathsMatchingBase(deps, params, result.prOwns);
+
+  if (prOwns.length === 0) {
     deps.core.info(
-      `Visual changes on main only (${result.mainOwns.length} path(s)) — PR is clean.`
+      `No visual changes owned by this PR (${result.mainOwns.length} path(s) changed on main) — PR is clean.`
     );
     await deps.setCommitStatus({
       sha: prSha,
@@ -89,7 +91,30 @@ export async function manifestCompare(
     return;
   }
 
-  await handlePrOwns(deps, params, result, squashedPrManifest);
+  await handlePrOwns(deps, params, { ...result, prOwns }, squashedPrManifest);
+}
+
+async function dropPathsMatchingBase(
+  deps: ManifestCompareDeps,
+  params: ManifestCompareParams,
+  prOwns: PrOwnsEntry[]
+): Promise<PrOwnsEntry[]> {
+  const candidates = prOwns.filter(e => e.type !== 'deleted');
+  if (candidates.length === 0) return prOwns;
+
+  const { identical } = await deps.generateDiffs({
+    bucket: params.bucket,
+    prSha: params.prSha,
+    prOwns: candidates
+  });
+  if (identical.length === 0) return prOwns;
+
+  deps.core.info(
+    `${identical.length} screenshot(s) match their base image byte-for-byte — treating as unchanged: ${identical.join(', ')}`
+  );
+
+  const identicalPaths = new Set(identical);
+  return prOwns.filter(e => !identicalPaths.has(e.path));
 }
 
 async function handleConflicts(
@@ -147,8 +172,6 @@ async function handlePrOwns(
     });
     return;
   }
-
-  await deps.generateDiffs({ bucket, prSha, prOwns: reviewable });
 
   await deps.setCommitStatus({
     sha: prSha,
