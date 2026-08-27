@@ -76,9 +76,11 @@ export async function manifestCompare(
     return;
   }
 
-  if (result.prOwns.length === 0) {
+  const prOwns = await dropPathsMatchingBase(deps, params, result.prOwns);
+
+  if (prOwns.length === 0) {
     deps.core.info(
-      `Visual changes on main only (${result.mainOwns.length} path(s)) — PR is clean.`
+      `No visual changes owned by this PR (${result.mainOwns.length} path(s) changed on main) — PR is clean.`
     );
     await deps.setCommitStatus({
       sha: prSha,
@@ -89,7 +91,30 @@ export async function manifestCompare(
     return;
   }
 
-  await handlePrOwns(deps, params, result, squashedPrManifest);
+  await handlePrOwns(deps, params, { ...result, prOwns }, squashedPrManifest);
+}
+
+async function dropPathsMatchingBase(
+  deps: ManifestCompareDeps,
+  params: ManifestCompareParams,
+  prOwns: PrOwnsEntry[]
+): Promise<PrOwnsEntry[]> {
+  const candidates = prOwns.filter(e => e.type !== 'deleted');
+  if (candidates.length === 0) return prOwns;
+
+  const { identical } = await deps.generateDiffs({
+    bucket: params.bucket,
+    prSha: params.prSha,
+    prOwns: candidates
+  });
+  if (identical.length === 0) return prOwns;
+
+  deps.core.info(
+    `${identical.length} screenshot(s) match their base image byte-for-byte — treating as unchanged: ${identical.join(', ')}`
+  );
+
+  const identicalPaths = new Set(identical);
+  return prOwns.filter(e => !identicalPaths.has(e.path));
 }
 
 async function handleConflicts(
@@ -121,47 +146,18 @@ async function handlePrOwns(
 ): Promise<void> {
   const { bucket, prSha } = params;
 
-  const candidates = result.prOwns.filter(e => e.type !== 'deleted');
+  const reviewable = result.prOwns.filter(e => e.type !== 'deleted');
   const deletions = result.prOwns.filter(e => e.type === 'deleted');
 
   if (deletions.length > 0) {
     deps.core.info(`${deletions.length} screenshot(s) deleted by this PR.`);
   }
 
-  const identical =
-    candidates.length > 0
-      ? (await deps.generateDiffs({ bucket, prSha, prOwns: candidates }))
-          .identical
-      : [];
-
-  if (identical.length > 0) {
-    deps.core.info(
-      `${identical.length} screenshot(s) match their base image byte-for-byte — treating as unchanged: ${identical.join(', ')}`
-    );
-  }
-
-  const identicalPaths = new Set(identical);
-  const owned = result.prOwns.filter(e => !identicalPaths.has(e.path));
-  const reviewable = candidates.filter(e => !identicalPaths.has(e.path));
-
-  if (owned.length === 0) {
-    deps.core.info(
-      'Every differing screenshot matches its base image — PR is clean.'
-    );
-    await deps.setCommitStatus({
-      sha: prSha,
-      state: 'success',
-      description: 'Visual tests passed!',
-      context: VISUAL_REGRESSION_CONTEXT
-    });
-    return;
-  }
-
   // Reuse the squashed manifest when the monorepo path already produced it;
   // fall back to fetching manifests/{prSha}.json for the single-package case.
   const prManifest =
     squashedPrManifest ?? (await deps.getPrManifest(bucket, prSha)) ?? {};
-  const changeset = buildChangeset(result.headSha, owned, prManifest);
+  const changeset = buildChangeset(result.headSha, result.prOwns, prManifest);
   await deps.putChangeset(bucket, prSha, changeset);
 
   if (reviewable.length === 0) {
