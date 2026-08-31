@@ -1,12 +1,13 @@
 import { BASE_IMAGES_DIRECTORY, NEW_IMAGES_DIRECTORY } from 'shared/constants';
 import type { Dependencies } from './dependencies';
+import type { DiffPngResult } from './diff-png';
 import type { PrOwnsEntry } from './manifest-compare-classify';
 import { readBodyBytes } from './manifest-s3';
 
 export interface GenerateDiffsDeps {
   s3: Pick<Dependencies['s3'], 'getObject' | 'putObject'>;
   core: Pick<Dependencies['core'], 'info'>;
-  diffPng: (base: Buffer, actual: Buffer) => Buffer;
+  diffPng: (base: Buffer, actual: Buffer) => DiffPngResult;
 }
 
 export interface GenerateDiffsParams {
@@ -50,7 +51,12 @@ export async function generateDiffs(
       continue;
     }
 
-    const diffBuffer = deps.diffPng(baseBuffer, newBuffer);
+    const { diffBuffer, diffPixels } = deps.diffPng(baseBuffer, newBuffer);
+
+    if (diffPixels === 0) {
+      identical.push(entry.path);
+      continue;
+    }
 
     await Promise.all([
       deps.s3.putObject({

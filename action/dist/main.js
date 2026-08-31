@@ -160820,7 +160820,7 @@ async function dropPathsMatchingBase(deps, params, prOwns) {
   });
   if (identical.length === 0)
     return prOwns;
-  deps.core.info(`${identical.length} screenshot(s) match their base image byte-for-byte — treating as unchanged: ${identical.join(", ")}`);
+  deps.core.info(`${identical.length} screenshot(s) are visually identical to their base image — treating as unchanged: ${identical.join(", ")}`);
   const identicalPaths = new Set(identical);
   return prOwns.filter((e) => !identicalPaths.has(e.path));
 }
@@ -160975,7 +160975,11 @@ async function generateDiffs(params, deps) {
       identical.push(entry.path);
       continue;
     }
-    const diffBuffer = deps.diffPng(baseBuffer, newBuffer);
+    const { diffBuffer, diffPixels } = deps.diffPng(baseBuffer, newBuffer);
+    if (diffPixels === 0) {
+      identical.push(entry.path);
+      continue;
+    }
     await Promise.all([
       deps.s3.putObject({
         Bucket: bucket,
@@ -161207,8 +161211,8 @@ function diffPng(baseBuffer, actualBuffer) {
   const base = ensureSize(rawBase, width, height);
   const actual = ensureSize(rawActual, width, height);
   const diff = new import_pngjs2.PNG({ width, height });
-  pixelmatch(actual.data, base.data, diff.data, width, height, PIXELMATCH_OPTIONS);
-  return import_pngjs2.PNG.sync.write(diff);
+  const diffPixels = pixelmatch(actual.data, base.data, diff.data, width, height, PIXELMATCH_OPTIONS);
+  return { diffBuffer: import_pngjs2.PNG.sync.write(diff), diffPixels };
 }
 function ensureSize(image2, width, height) {
   if (image2.width === width && image2.height === height)
@@ -161714,5 +161718,5 @@ var run = async (deps = makeDefaultDeps()) => {
 // src/main.ts
 run().catch(setFailed);
 
-//# debugId=47EDA57FE58EAD5764756E2164756E21
+//# debugId=FF7AF4E1891982FA64756E2164756E21
 //# sourceMappingURL=main.js.map

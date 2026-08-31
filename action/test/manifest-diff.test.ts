@@ -50,7 +50,7 @@ describe('generateDiffs', () => {
     // Download new
     mockS3Download(newBuffer);
     // Pixelmatch produces diff
-    diffPngMock.mockReturnValue(diffBuffer);
+    diffPngMock.mockReturnValue({ diffBuffer, diffPixels: 42 });
 
     const outcome = await generateDiffs({ bucket, prSha, prOwns }, makeDeps());
 
@@ -113,7 +113,10 @@ describe('generateDiffs', () => {
     mockS3Download(Buffer.from('button-new'));
     mockS3Download(Buffer.from('modal-base'));
     mockS3Download(Buffer.from('modal-new'));
-    diffPngMock.mockReturnValue(Buffer.from('diff'));
+    diffPngMock.mockReturnValue({
+      diffBuffer: Buffer.from('diff'),
+      diffPixels: 42
+    });
 
     const outcome = await generateDiffs({ bucket, prSha, prOwns }, makeDeps());
 
@@ -122,7 +125,7 @@ describe('generateDiffs', () => {
     expect(putCalls).toHaveLength(4); // 2 base + 2 diff uploads
   });
 
-  describe('base image byte-identical to new image', () => {
+  describe('new image visually identical to base image', () => {
     it('reports the path as identical and uploads nothing', async () => {
       const prOwns: PrOwnsEntry[] = [
         { path: 'components/Button', type: 'changed' }
@@ -155,7 +158,10 @@ describe('generateDiffs', () => {
       mockS3Download(Buffer.from('drifted')); // Button new — identical
       mockS3Download(Buffer.from('modal-base'));
       mockS3Download(Buffer.from('modal-new'));
-      diffPngMock.mockReturnValue(Buffer.from('diff'));
+      diffPngMock.mockReturnValue({
+        diffBuffer: Buffer.from('diff'),
+        diffPixels: 42
+      });
 
       const outcome = await generateDiffs(
         { bucket, prSha, prOwns },
@@ -164,6 +170,65 @@ describe('generateDiffs', () => {
 
       expect(outcome).toEqual({ diffed: ['Modal'], identical: ['Button'] });
       expect(diffPngMock).toHaveBeenCalledTimes(1);
+      expect(
+        putObjectMock.mock.calls.map(call => (call[0] as any).Key)
+      ).toEqual([
+        'new-images/pr-sha-111/Modal/base.png',
+        'new-images/pr-sha-111/Modal/diff.png'
+      ]);
+    });
+
+    it('reports the path as identical when the bytes differ but no pixel does', async () => {
+      const prOwns: PrOwnsEntry[] = [
+        { path: 'components/Button', type: 'changed' }
+      ];
+
+      mockS3Download(Buffer.from('base-image'));
+      mockS3Download(Buffer.from('new-image'));
+      diffPngMock.mockReturnValue({
+        diffBuffer: Buffer.from('empty-diff'),
+        diffPixels: 0
+      });
+
+      const outcome = await generateDiffs(
+        { bucket, prSha, prOwns },
+        makeDeps()
+      );
+
+      expect(outcome).toEqual({
+        diffed: [],
+        identical: ['components/Button']
+      });
+      expect(diffPngMock).toHaveBeenCalledTimes(1);
+      expect(putObjectMock).not.toHaveBeenCalled();
+    });
+
+    it('separates pixel-identical paths from genuinely changed ones', async () => {
+      const prOwns: PrOwnsEntry[] = [
+        { path: 'Button', type: 'changed' },
+        { path: 'Modal', type: 'changed' }
+      ];
+
+      mockS3Download(Buffer.from('button-base'));
+      mockS3Download(Buffer.from('button-new'));
+      mockS3Download(Buffer.from('modal-base'));
+      mockS3Download(Buffer.from('modal-new'));
+      diffPngMock
+        .mockReturnValueOnce({
+          diffBuffer: Buffer.from('empty-diff'),
+          diffPixels: 0
+        })
+        .mockReturnValueOnce({
+          diffBuffer: Buffer.from('diff'),
+          diffPixels: 42
+        });
+
+      const outcome = await generateDiffs(
+        { bucket, prSha, prOwns },
+        makeDeps()
+      );
+
+      expect(outcome).toEqual({ diffed: ['Modal'], identical: ['Button'] });
       expect(
         putObjectMock.mock.calls.map(call => (call[0] as any).Key)
       ).toEqual([
