@@ -7,7 +7,15 @@ const PIXELMATCH_OPTIONS = {
   includeAA: false
 };
 
-export function diffPng(baseBuffer: Buffer, actualBuffer: Buffer): Buffer {
+export interface DiffPngResult {
+  diffBuffer: Buffer;
+  diffPixels: number;
+}
+
+export function diffPng(
+  baseBuffer: Buffer,
+  actualBuffer: Buffer
+): DiffPngResult {
   const rawBase = PNG.sync.read(baseBuffer);
   const rawActual = PNG.sync.read(actualBuffer);
 
@@ -19,7 +27,7 @@ export function diffPng(baseBuffer: Buffer, actualBuffer: Buffer): Buffer {
 
   const diff = new PNG({ width, height });
 
-  pixelmatch(
+  const diffPixels = pixelmatch(
     actual.data,
     base.data,
     diff.data,
@@ -28,7 +36,7 @@ export function diffPng(baseBuffer: Buffer, actualBuffer: Buffer): Buffer {
     PIXELMATCH_OPTIONS
   );
 
-  return PNG.sync.write(diff);
+  return { diffBuffer: PNG.sync.write(diff), diffPixels };
 }
 
 function ensureSize(image: PNG, width: number, height: number): PNG {

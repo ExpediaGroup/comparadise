@@ -110,7 +110,7 @@ async function dropPathsMatchingBase(
   if (identical.length === 0) return prOwns;
 
   deps.core.info(
-    `${identical.length} screenshot(s) match their base image byte-for-byte — treating as unchanged: ${identical.join(', ')}`
+    `${identical.length} screenshot(s) are visually identical to their base image — treating as unchanged: ${identical.join(', ')}`
   );
 
   const identicalPaths = new Set(identical);

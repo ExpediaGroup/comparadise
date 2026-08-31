@@ -59,6 +59,10 @@ jobs:
 
 On a `pull_request` trigger, `manifest-generate` automatically uploads only the screenshots whose hash changed since the base branch's current HEAD — it resolves the live base-branch HEAD from the event and diffs against that manifest, so no extra configuration is needed. When run outside a pull request (no base branch to diff against), it uploads all screenshots.
 
+### Anti-aliasing tolerance
+
+Manifest hashes are exact, so a screenshot that re-rasterizes non-deterministically — anti-aliasing on a border-radius, a subpixel-shifted glyph edge — produces a new hash even though nothing changed visually. `manifest-compare` therefore re-checks every path the hashes flagged with the same pixelmatch tolerance it uses to render diffs (`threshold: 0.5`, `includeAA: false`); paths with zero differing pixels are logged and dropped before the commit status is set. The hash stays the cheap pre-filter, and only the handful of flagged paths pay for a pixel comparison.
+
 ### Matrix jobs
 
 For monorepos running visual tests in parallel, split the packages across several `manifest-generate` jobs — one package per job, or several packages grouped into one job (a "chunk") — and run a single `manifest-compare` job once all generate jobs complete.
