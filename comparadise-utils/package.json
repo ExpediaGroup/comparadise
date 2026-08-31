@@ -28,7 +28,7 @@
   },
   "scripts": {
     "build": "tsdown index.ts screenshot-actions.ts create-base-image.ts --deps.neverBundle shared",
-    "postbuild": "echo \"require('./dist/screenshot-actions');\nrequire('./dist/create-base-image');\" > commands.js",
+    "postbuild": "echo \"require('./dist/screenshot-actions.mjs');\nrequire('./dist/create-base-image.mjs');\" > commands.js",
     "prepack": "bun run build",
     "test": "bun test"
   }
