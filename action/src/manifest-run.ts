@@ -162,7 +162,6 @@ async function mergeEntry(
       repo: deps.context.repo
     },
     {
-      getManifest: manifestS3.getManifest,
       getAncestorManifest: (bucket, startSha) =>
         findAncestorManifest(bucket, startSha, {
           getManifest: manifestS3.getManifest,

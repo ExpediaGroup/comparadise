@@ -161200,7 +161200,7 @@ async function assertNoStaleConflicts(deps, params, changeset, parentManifest) {
   const headSha = changeset._headSha;
   if (!headSha)
     return;
-  const headManifest = await deps.getManifest(params.bucket, headSha) ?? {};
+  const headManifest = await deps.getAncestorManifest(params.bucket, headSha);
   const conflicts = deps.detectStaleConflicts(headManifest, parentManifest, changeset);
   if (conflicts.length === 0)
     return;
@@ -161408,7 +161408,6 @@ async function mergeEntry(bucket, entry, deps) {
     mergeCommitSha: entry.mergeCommitSha,
     repo: deps.context.repo
   }, {
-    getManifest: manifestS3.getManifest,
     getAncestorManifest: (bucket2, startSha) => findAncestorManifest(bucket2, startSha, {
       getManifest: manifestS3.getManifest,
       getParentSha: (sha) => getParentSha(sha, deps),
@@ -161722,5 +161721,5 @@ var run = async (deps = makeDefaultDeps()) => {
 // src/main.ts
 run().catch(setFailed);
 
-//# debugId=A5AE0BF770981C1964756E2164756E21
+//# debugId=F2C949254C440F8064756E2164756E21
 //# sourceMappingURL=main.js.map

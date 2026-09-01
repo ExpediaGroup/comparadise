@@ -3,7 +3,6 @@ import type { ApplyBaseImagesParams } from './manifest-merge-base-images';
 import type { FlagOverlappingPrsParams } from './manifest-merge-flag-prs';
 
 export interface ManifestMergeDeps {
-  getManifest: (bucket: string, sha: string) => Promise<Manifest | null>;
   getAncestorManifest: (bucket: string, startSha: string) => Promise<Manifest>;
   putManifest: (
     bucket: string,
@@ -80,7 +79,10 @@ async function assertNoStaleConflicts(
   const headSha = changeset._headSha;
   if (!headSha) return;
 
-  const headManifest = (await deps.getManifest(params.bucket, headSha)) ?? {};
+  // The _headSha commit itself may have no manifest (its push didn't run
+  // manifest-merge), so resolve via the nearest ancestor rather than treating
+  // it as {} — which would flag every changeset path as a false conflict.
+  const headManifest = await deps.getAncestorManifest(params.bucket, headSha);
   const conflicts = deps.detectStaleConflicts(
     headManifest,
     parentManifest,
