@@ -108,6 +108,43 @@ describe('flagOverlappingOpenPrs', () => {
     expect(createCommitStatusMock).not.toHaveBeenCalled();
   });
 
+  it('does not flag PRs whose overlapping paths carry the same values as the merging changeset', async () => {
+    paginateMock.mockResolvedValue([
+      { number: 200, head: { sha: 'pr-200-head' } }
+    ]);
+    getChangesetMock.mockResolvedValue({
+      _headSha: 'sha',
+      Button: 'h-button',
+      Modal: null,
+      OtherThing: 'h-other'
+    } as Changeset);
+
+    const flagged = await flagOverlappingOpenPrs(
+      { bucket, repo, mergingPrNumber, mergingChangeset },
+      makeDeps()
+    );
+
+    expect(flagged).toEqual([]);
+    expect(createCommitStatusMock).not.toHaveBeenCalled();
+  });
+
+  it('flags a PR that deletes a path the merging changeset updates', async () => {
+    paginateMock.mockResolvedValue([
+      { number: 200, head: { sha: 'pr-200-head' } }
+    ]);
+    getChangesetMock.mockResolvedValue({
+      _headSha: 'sha',
+      Button: null
+    } as Changeset);
+
+    const flagged = await flagOverlappingOpenPrs(
+      { bucket, repo, mergingPrNumber, mergingChangeset },
+      makeDeps()
+    );
+
+    expect(flagged).toEqual([200]);
+  });
+
   it('flags PRs whose changesets overlap on at least one path', async () => {
     paginateMock.mockResolvedValue([
       { number: 200, head: { sha: 'pr-200-head' } }
