@@ -29,6 +29,11 @@ export interface ManifestCompareDeps {
     changeset: Changeset
   ) => Promise<void>;
   getPrManifest: (bucket: string, sha: string) => Promise<Manifest | null>;
+  cleanupOrphanedNewImages: (
+    bucket: string,
+    prSha: string,
+    keepPaths: string[]
+  ) => Promise<void>;
   setCommitStatus: (params: SetCommitStatusParams) => Promise<void>;
   postComment: (args: CommentArgs) => Promise<void>;
   buildComparadiseUrl: () => string;
@@ -62,6 +67,7 @@ export async function manifestCompare(
 
   if (result.outcome === 'match') {
     deps.core.info('Visual manifests match — no changes detected.');
+    await deps.cleanupOrphanedNewImages(bucket, prSha, []);
     await deps.setCommitStatus({
       sha: prSha,
       state: 'success',
@@ -82,6 +88,7 @@ export async function manifestCompare(
     deps.core.info(
       `No visual changes owned by this PR (${result.mainOwns.length} path(s) changed on main) — PR is clean.`
     );
+    await deps.cleanupOrphanedNewImages(bucket, prSha, []);
     await deps.setCommitStatus({
       sha: prSha,
       state: 'success',
@@ -152,6 +159,12 @@ async function handlePrOwns(
   if (deletions.length > 0) {
     deps.core.info(`${deletions.length} screenshot(s) deleted by this PR.`);
   }
+
+  await deps.cleanupOrphanedNewImages(
+    bucket,
+    prSha,
+    reviewable.map(e => e.path)
+  );
 
   // Reuse the squashed manifest when the monorepo path already produced it;
   // fall back to fetching manifests/{prSha}.json for the single-package case.

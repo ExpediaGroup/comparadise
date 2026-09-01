@@ -160734,6 +160734,7 @@ async function manifestCompare(params, deps) {
   const result = await deps.classify({ bucket, prSha, repo, baseRef });
   if (result.outcome === "match") {
     deps.core.info("Visual manifests match — no changes detected.");
+    await deps.cleanupOrphanedNewImages(bucket, prSha, []);
     await deps.setCommitStatus({
       sha: prSha,
       state: "success",
@@ -160749,6 +160750,7 @@ async function manifestCompare(params, deps) {
   const prOwns = await dropPathsMatchingBase(deps, params, result.prOwns);
   if (prOwns.length === 0) {
     deps.core.info(`No visual changes owned by this PR (${result.mainOwns.length} path(s) changed on main) — PR is clean.`);
+    await deps.cleanupOrphanedNewImages(bucket, prSha, []);
     await deps.setCommitStatus({
       sha: prSha,
       state: "success",
@@ -160795,6 +160797,7 @@ async function handlePrOwns(deps, params, result, squashedPrManifest) {
   if (deletions.length > 0) {
     deps.core.info(`${deletions.length} screenshot(s) deleted by this PR.`);
   }
+  await deps.cleanupOrphanedNewImages(bucket, prSha, reviewable.map((e) => e.path));
   const prManifest = squashedPrManifest ?? await deps.getPrManifest(bucket, prSha) ?? {};
   const changeset = buildChangeset(result.headSha, result.prOwns, prManifest);
   await deps.putChangeset(bucket, prSha, changeset);
@@ -161275,6 +161278,32 @@ function encodeS3CopySource(bucket, key) {
   return `${bucket}/${key.split("/").map(encodeURIComponent).join("/")}`;
 }
 
+// src/manifest-compare-cleanup.ts
+var DELETE_BATCH_SIZE = 1000;
+async function cleanupOrphanedNewImages(bucket, prSha, keepPaths, deps) {
+  const prefix = `${NEW_IMAGES_DIRECTORY}/${prSha}/`;
+  const objects = await deps.s3.listAllObjects({
+    Bucket: bucket,
+    Prefix: prefix
+  });
+  const keep = new Set(keepPaths);
+  const orphanedKeys = objects.map((object) => object.Key).filter((key) => Boolean(key)).filter((key) => {
+    const screenshotPath = key.slice(prefix.length, key.lastIndexOf("/"));
+    return !keep.has(screenshotPath);
+  });
+  if (orphanedKeys.length === 0)
+    return;
+  deps.core.info(`Deleting ${orphanedKeys.length} uploaded image file(s) for paths outside the review set.`);
+  for (let i = 0;i < orphanedKeys.length; i += DELETE_BATCH_SIZE) {
+    await deps.s3.deleteObjects({
+      Bucket: bucket,
+      Delete: {
+        Objects: orphanedKeys.slice(i, i + DELETE_BATCH_SIZE).map((Key) => ({ Key }))
+      }
+    });
+  }
+}
+
 // src/manifest-merge-flag-prs.ts
 var HEAD_SHA_KEY3 = "_headSha";
 async function flagOverlappingOpenPrs(params, deps) {
@@ -161347,6 +161376,10 @@ async function runManifestCompareWorkflow(deps) {
     }),
     putChangeset: manifestS3.putChangeset,
     getPrManifest: manifestS3.getManifest,
+    cleanupOrphanedNewImages: (bucket2, prSha2, keepPaths) => cleanupOrphanedNewImages(bucket2, prSha2, keepPaths, {
+      s3: deps.s3,
+      core: deps.core
+    }),
     setCommitStatus: async (params) => {
       await deps.octokit.rest.repos.createCommitStatus({
         ...deps.context.repo,
@@ -161721,5 +161754,5 @@ var run = async (deps = makeDefaultDeps()) => {
 // src/main.ts
 run().catch(setFailed);
 
-//# debugId=429E3D62D8B7EB0464756E2164756E21
+//# debugId=54996A1EB9AFC4DB64756E2164756E21
 //# sourceMappingURL=main.js.map
