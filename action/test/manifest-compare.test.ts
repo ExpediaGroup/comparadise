@@ -11,6 +11,7 @@ const classifyMock = mock<any>();
 const generateDiffsMock = mock<any>();
 const putChangesetMock = mock<any>();
 const getManifestMock = mock<any>();
+const cleanupOrphanedNewImagesMock = mock<any>();
 const setCommitStatusMock = mock<any>();
 const postCommentMock = mock<any>();
 const buildUrlMock = mock<any>();
@@ -27,6 +28,7 @@ function makeDeps(
     generateDiffs: generateDiffsMock,
     putChangeset: putChangesetMock,
     getPrManifest: getManifestMock,
+    cleanupOrphanedNewImages: cleanupOrphanedNewImagesMock,
     setCommitStatus: setCommitStatusMock,
     postComment: postCommentMock,
     buildComparadiseUrl: buildUrlMock,
@@ -55,6 +57,7 @@ describe('manifestCompare', () => {
       .mockResolvedValue({ diffed: [], identical: [] });
     putChangesetMock.mockReset().mockResolvedValue(undefined);
     getManifestMock.mockReset();
+    cleanupOrphanedNewImagesMock.mockReset().mockResolvedValue(undefined);
     setCommitStatusMock.mockReset().mockResolvedValue(undefined);
     postCommentMock.mockReset().mockResolvedValue(undefined);
     buildUrlMock.mockReset().mockReturnValue('https://comparadise.example/run');
@@ -105,6 +108,18 @@ describe('manifestCompare', () => {
       expect(postCommentMock).not.toHaveBeenCalled();
       expect(putChangesetMock).not.toHaveBeenCalled();
     });
+
+    it('cleans up all uploaded images (empty review set)', async () => {
+      classifyMock.mockResolvedValue({ outcome: 'match' } as CompareResult);
+
+      await manifestCompare(params, makeDeps());
+
+      expect(cleanupOrphanedNewImagesMock).toHaveBeenCalledWith(
+        'test-bucket',
+        'pr-sha-111',
+        []
+      );
+    });
   });
 
   describe('outcome: classified — only mainOwns', () => {
@@ -136,6 +151,18 @@ describe('manifestCompare', () => {
       expect(generateDiffsMock).not.toHaveBeenCalled();
       expect(postCommentMock).not.toHaveBeenCalled();
       expect(putChangesetMock).not.toHaveBeenCalled();
+    });
+
+    it('cleans up all uploaded images (main-owned paths are not reviewable)', async () => {
+      classifyMock.mockResolvedValue(result);
+
+      await manifestCompare(params, makeDeps());
+
+      expect(cleanupOrphanedNewImagesMock).toHaveBeenCalledWith(
+        'test-bucket',
+        'pr-sha-111',
+        []
+      );
     });
   });
 
@@ -363,6 +390,16 @@ describe('manifestCompare', () => {
       expect(arg.prOwns).toEqual([{ path: 'Modal', type: 'changed' }]);
       expect(setCommitStatusMock).toHaveBeenCalledWith(
         expect.objectContaining({ state: 'pending' })
+      );
+    });
+
+    it('cleans up uploaded images outside the final review set (identical path deleted from new-images/)', async () => {
+      await manifestCompare(params, makeDeps());
+
+      expect(cleanupOrphanedNewImagesMock).toHaveBeenCalledWith(
+        'test-bucket',
+        'pr-sha-111',
+        ['Modal']
       );
     });
   });

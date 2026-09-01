@@ -48,8 +48,11 @@ export async function flagOverlappingOpenPrs(
     const otherChangeset = await deps.getChangeset(bucket, pr.head.sha);
     if (!otherChangeset) continue;
 
-    const overlapping = [...changesetPaths(otherChangeset)].filter(p =>
-      mergingPaths.has(p)
+    // A path only conflicts when the two changesets disagree on its value —
+    // an open PR whose hash (or deletion) matches what just merged would not
+    // clobber the new baseline, so it doesn't need a rebase.
+    const overlapping = [...changesetPaths(otherChangeset)].filter(
+      p => mergingPaths.has(p) && otherChangeset[p] !== mergingChangeset[p]
     );
     if (overlapping.length === 0) continue;
 
