@@ -160711,70 +160711,20 @@ var {
   squashPrManifest
 } = makeManifestS3();
 
-// src/manifest-generate.ts
-async function manifestGenerate(deps = makeDefaultDeps()) {
-  const visualTestCommands = getMultilineInput("visual-test-command");
-  const commitHash = getInput("commit-hash", { required: true });
-  const bucket = getInput("bucket-name", { required: true });
-  const screenshotsDirectory = getInput("screenshots-directory");
-  const resizeWidth = getInput("resize-width");
-  const resizeHeight = getInput("resize-height");
-  const resizeEnabled = Boolean(resizeWidth || resizeHeight);
-  const packagePaths = getInput("package-paths").split(",").map((p) => p.trim()).filter(Boolean);
-  const exitCodes = await Promise.all(visualTestCommands.map((cmd) => deps.exec(cmd, [], { ignoreReturnCode: true })));
-  if (exitCodes.some((code) => code !== 0)) {
-    deps.core.setFailed("Visual test command failed.");
-    return;
+// src/manifest-merge-ancestor.ts
+var MAX_WALK_DEPTH = 100;
+async function findAncestorManifest(bucket, startSha, deps) {
+  let sha = startSha;
+  for (let hops = 0;sha && hops < MAX_WALK_DEPTH; hops++) {
+    const manifest = await deps.getManifest(bucket, sha);
+    if (manifest)
+      return manifest;
+    sha = await deps.getParentSha(sha);
   }
-  const filePaths = await deps.glob(`${screenshotsDirectory}/**/new.png`, {
-    nodir: true,
-    absolute: false
-  });
-  const entries = [];
-  const manifest = {};
-  for (const filePath of filePaths) {
-    const relativePath = filePath.replace(`${screenshotsDirectory}/`, "");
-    const key = relativePath.replace(/\/new\.png$/, "");
-    const hash = await deps.hashFile(filePath);
-    manifest[key] = hash;
-    entries.push({ key, hash });
+  if (sha) {
+    deps.core.warning(`No manifest found within ${MAX_WALK_DEPTH} commit(s) of ${startSha}; ` + "treating as empty. This may indicate a much larger-than-expected gap " + "in manifest-merge history.");
   }
-  const baseRef = context2.payload.pull_request?.base?.ref;
-  const headSha = baseRef ? await resolveBaseHeadSha(deps, baseRef) : "";
-  const headManifest = headSha ? await makeManifestS3(deps.s3).getManifest(bucket, headSha) : null;
-  const changedEntries = entries.filter((e) => !headManifest || headManifest[e.key] !== e.hash);
-  deps.core.info(`${changedEntries.length} changed image(s) to upload.`);
-  await Promise.all(changedEntries.map(async ({ key }) => {
-    const localPath = `${screenshotsDirectory}/${key}/new.png`;
-    const fileBuffer = await deps.fs.readFile(localPath);
-    const body = resizeEnabled ? await resizeImageIfNeeded(fileBuffer, deps.jimp) : fileBuffer;
-    await deps.s3.putObject({
-      Bucket: bucket,
-      Key: `${NEW_IMAGES_DIRECTORY}/${commitHash}/${key}/new.png`,
-      Body: body
-    });
-  }));
-  const chunkId = chunkIdFor(packagePaths);
-  const manifestObjectKey = chunkId ? `manifests/${commitHash}/${chunkId}.json` : `manifests/${commitHash}.json`;
-  await deps.s3.putObject({
-    Bucket: bucket,
-    Key: manifestObjectKey,
-    Body: JSON.stringify(manifest),
-    ContentType: "application/json"
-  });
-  deps.core.info(`Manifest uploaded for ${commitHash} with ${Object.keys(manifest).length} entries.`);
-}
-function chunkIdFor(packagePaths) {
-  if (packagePaths.length === 0)
-    return "";
-  return hashString([...packagePaths].sort().join(","));
-}
-async function resolveBaseHeadSha(deps, baseRef) {
-  const { data } = await deps.octokit.rest.repos.getBranch({
-    ...deps.context.repo,
-    branch: baseRef
-  });
-  return data.commit.sha;
+  return {};
 }
 
 // src/manifest-compare.ts
@@ -161257,22 +161207,6 @@ async function assertNoStaleConflicts(deps, params, changeset, parentManifest) {
   throw new Error(`Stale changeset: ${conflicts.length} path(s) changed on main since this PR was compared (${conflicts.join(", ")}). The merging PR must be rebased and re-checked.`);
 }
 
-// src/manifest-merge-ancestor.ts
-var MAX_WALK_DEPTH = 100;
-async function findAncestorManifest(bucket, startSha, deps) {
-  let sha = startSha;
-  for (let hops = 0;sha && hops < MAX_WALK_DEPTH; hops++) {
-    const manifest = await deps.getManifest(bucket, sha);
-    if (manifest)
-      return manifest;
-    sha = await deps.getParentSha(sha);
-  }
-  if (sha) {
-    deps.core.warning(`No manifest found within ${MAX_WALK_DEPTH} commit(s) of ${startSha}; ` + "treating as empty. This may indicate a much larger-than-expected gap " + "in manifest-merge history.");
-  }
-  return {};
-}
-
 // src/manifest-merge-overlay.ts
 var HEAD_SHA_KEY = "_headSha";
 function overlayChangeset(parent, changeset) {
@@ -161560,6 +161494,76 @@ async function resolvePrNumber(commitHash, deps) {
   return prNumber || null;
 }
 
+// src/manifest-generate.ts
+async function manifestGenerate(deps = makeDefaultDeps()) {
+  const visualTestCommands = getMultilineInput("visual-test-command");
+  const commitHash = getInput("commit-hash", { required: true });
+  const bucket = getInput("bucket-name", { required: true });
+  const screenshotsDirectory = getInput("screenshots-directory");
+  const resizeWidth = getInput("resize-width");
+  const resizeHeight = getInput("resize-height");
+  const resizeEnabled = Boolean(resizeWidth || resizeHeight);
+  const packagePaths = getInput("package-paths").split(",").map((p) => p.trim()).filter(Boolean);
+  const exitCodes = await Promise.all(visualTestCommands.map((cmd) => deps.exec(cmd, [], { ignoreReturnCode: true })));
+  if (exitCodes.some((code) => code !== 0)) {
+    deps.core.setFailed("Visual test command failed.");
+    return;
+  }
+  const filePaths = await deps.glob(`${screenshotsDirectory}/**/new.png`, {
+    nodir: true,
+    absolute: false
+  });
+  const entries = [];
+  const manifest = {};
+  for (const filePath of filePaths) {
+    const relativePath = filePath.replace(`${screenshotsDirectory}/`, "");
+    const key = relativePath.replace(/\/new\.png$/, "");
+    const hash = await deps.hashFile(filePath);
+    manifest[key] = hash;
+    entries.push({ key, hash });
+  }
+  const baseRef = context2.payload.pull_request?.base?.ref;
+  const headSha = baseRef ? await resolveBaseHeadSha(deps, baseRef) : "";
+  const headManifest = headSha ? await findAncestorManifest(bucket, headSha, {
+    getManifest: makeManifestS3(deps.s3).getManifest,
+    getParentSha: (sha) => getParentSha(sha, deps),
+    core: deps.core
+  }) : {};
+  const changedEntries = entries.filter((e) => headManifest[e.key] !== e.hash);
+  deps.core.info(`${changedEntries.length} changed image(s) to upload.`);
+  await Promise.all(changedEntries.map(async ({ key }) => {
+    const localPath = `${screenshotsDirectory}/${key}/new.png`;
+    const fileBuffer = await deps.fs.readFile(localPath);
+    const body = resizeEnabled ? await resizeImageIfNeeded(fileBuffer, deps.jimp) : fileBuffer;
+    await deps.s3.putObject({
+      Bucket: bucket,
+      Key: `${NEW_IMAGES_DIRECTORY}/${commitHash}/${key}/new.png`,
+      Body: body
+    });
+  }));
+  const chunkId = chunkIdFor(packagePaths);
+  const manifestObjectKey = chunkId ? `manifests/${commitHash}/${chunkId}.json` : `manifests/${commitHash}.json`;
+  await deps.s3.putObject({
+    Bucket: bucket,
+    Key: manifestObjectKey,
+    Body: JSON.stringify(manifest),
+    ContentType: "application/json"
+  });
+  deps.core.info(`Manifest uploaded for ${commitHash} with ${Object.keys(manifest).length} entries.`);
+}
+function chunkIdFor(packagePaths) {
+  if (packagePaths.length === 0)
+    return "";
+  return hashString([...packagePaths].sort().join(","));
+}
+async function resolveBaseHeadSha(deps, baseRef) {
+  const { data } = await deps.octokit.rest.repos.getBranch({
+    ...deps.context.repo,
+    branch: baseRef
+  });
+  return data.commit.sha;
+}
+
 // src/run.ts
 var run = async (deps = makeDefaultDeps()) => {
   const workflow = getInput("workflow") || "pr";
@@ -161718,5 +161722,5 @@ var run = async (deps = makeDefaultDeps()) => {
 // src/main.ts
 run().catch(setFailed);
 
-//# debugId=FF7AF4E1891982FA64756E2164756E21
+//# debugId=A5AE0BF770981C1964756E2164756E21
 //# sourceMappingURL=main.js.map

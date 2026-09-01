@@ -15,6 +15,7 @@ const jimpReadMock = mock<any>();
 const infoMock = mock<any>();
 const setFailedMock = mock<any>();
 const getBranchMock = mock<any>();
+const getCommitMock = mock<any>();
 
 function makeDeps(): Dependencies {
   return {
@@ -24,7 +25,7 @@ function makeDeps(): Dependencies {
       info: infoMock
     },
     octokit: {
-      rest: { repos: { getBranch: getBranchMock } }
+      rest: { repos: { getBranch: getBranchMock, getCommit: getCommitMock } }
     } as unknown as Dependencies['octokit'],
     exec: execMock,
     glob: globMock as unknown as Dependencies['glob'],
@@ -88,6 +89,7 @@ describe('manifestGenerate', () => {
     infoMock.mockReset();
     setFailedMock.mockReset();
     getBranchMock.mockReset();
+    getCommitMock.mockReset();
     githubContext.payload = {};
 
     setEnv(defaultInputs);
@@ -196,6 +198,49 @@ describe('manifestGenerate', () => {
 
     await manifestGenerate(makeDeps());
 
+    const uploadCalls = putObjectMock.mock.calls.filter((call: any) =>
+      call[0].Key?.startsWith('new-images/')
+    ) as any[];
+    expect(uploadCalls).toHaveLength(1);
+    expect(uploadCalls[0]![0].Key).toBe('new-images/abc123/Modal/new.png');
+  });
+
+  it('walks back to the nearest ancestor manifest when HEAD has none', async () => {
+    githubContext.payload = {
+      pull_request: { number: 1, base: { ref: 'main' } }
+    };
+    getBranchMock.mockResolvedValue({ data: { commit: { sha: 'base999' } } });
+    getCommitMock.mockResolvedValue({
+      data: { parents: [{ sha: 'parent888' }] }
+    });
+    globMock.mockResolvedValue([
+      'screenshots/Button/new.png',
+      'screenshots/Modal/new.png'
+    ]);
+    hashFileMock
+      .mockResolvedValueOnce('hash1')
+      .mockResolvedValueOnce('newHash2');
+
+    getObjectMock.mockImplementation(({ Key }: { Key: string }) => {
+      if (Key === 'manifests/parent888.json') {
+        return Promise.resolve({
+          Body: {
+            transformToString: () =>
+              Promise.resolve(
+                JSON.stringify({ Button: 'hash1', Modal: 'oldHash2' })
+              )
+          }
+        });
+      }
+      return Promise.reject(Object.assign(new Error(), { name: 'NoSuchKey' }));
+    });
+    readFileMock.mockResolvedValue(Buffer.from('modal-image'));
+
+    await manifestGenerate(makeDeps());
+
+    expect(getCommitMock).toHaveBeenCalledWith(
+      expect.objectContaining({ ref: 'base999' })
+    );
     const uploadCalls = putObjectMock.mock.calls.filter((call: any) =>
       call[0].Key?.startsWith('new-images/')
     ) as any[];

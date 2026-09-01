@@ -135,9 +135,9 @@ async function resolveMergeEntryFromCommit(
   return { prSha: pr.head.sha, mergeCommitSha, prNumber };
 }
 
-async function getParentSha(
+export async function getParentSha(
   sha: string,
-  deps: Dependencies
+  deps: Pick<Dependencies, 'octokit' | 'context'>
 ): Promise<string | null> {
   const { data } = await deps.octokit.rest.repos.getCommit({
     ...deps.context.repo,

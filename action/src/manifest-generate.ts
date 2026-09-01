@@ -4,6 +4,8 @@ import { NEW_IMAGES_DIRECTORY } from 'shared/constants';
 import { resizeImageIfNeeded } from './resize';
 import { type Dependencies, makeDefaultDeps } from './dependencies';
 import { makeManifestS3, type Manifest } from './manifest-s3';
+import { findAncestorManifest } from './manifest-merge-ancestor';
+import { getParentSha } from './manifest-run';
 import { hashString } from './hash';
 
 export async function manifestGenerate(
@@ -52,17 +54,21 @@ export async function manifestGenerate(
   }
 
   // Resolve the live base-branch HEAD (not the possibly-stale payload value)
-  // to diff against for differential uploads. No base ref (non-PR trigger)
-  // means no meaningful prior HEAD, so upload everything.
+  // to diff against for differential uploads. HEAD itself may have no manifest
+  // (its push didn't touch a comparadise-relevant path), so walk back to the
+  // nearest ancestor that has one, as compare and merge do. No base ref
+  // (non-PR trigger) means no meaningful prior HEAD, so upload everything.
   const baseRef = githubContext.payload.pull_request?.base?.ref;
   const headSha = baseRef ? await resolveBaseHeadSha(deps, baseRef) : '';
   const headManifest = headSha
-    ? await makeManifestS3(deps.s3).getManifest(bucket, headSha)
-    : null;
+    ? await findAncestorManifest(bucket, headSha, {
+        getManifest: makeManifestS3(deps.s3).getManifest,
+        getParentSha: sha => getParentSha(sha, deps),
+        core: deps.core
+      })
+    : {};
 
-  const changedEntries = entries.filter(
-    e => !headManifest || headManifest[e.key] !== e.hash
-  );
+  const changedEntries = entries.filter(e => headManifest[e.key] !== e.hash);
 
   deps.core.info(`${changedEntries.length} changed image(s) to upload.`);
 
