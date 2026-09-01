@@ -12,6 +12,7 @@ import {
   detectStaleConflicts
 } from './manifest-merge-overlay';
 import { applyChangesetToBaseImages } from './manifest-merge-base-images';
+import { cleanupOrphanedNewImages } from './manifest-compare-cleanup';
 import { flagOverlappingOpenPrs } from './manifest-merge-flag-prs';
 import { buildComparadiseUrl } from './build-comparadise-url';
 import { type Dependencies } from './dependencies';
@@ -63,6 +64,11 @@ export async function runManifestCompareWorkflow(
         }),
       putChangeset: manifestS3.putChangeset,
       getPrManifest: manifestS3.getManifest,
+      cleanupOrphanedNewImages: (bucket, prSha, keepPaths) =>
+        cleanupOrphanedNewImages(bucket, prSha, keepPaths, {
+          s3: deps.s3,
+          core: deps.core
+        }),
       setCommitStatus: async params => {
         await deps.octokit.rest.repos.createCommitStatus({
           ...deps.context.repo,
