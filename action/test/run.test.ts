@@ -176,7 +176,8 @@ const inputMap: Record<string, string> = {
   'github-token': 'some-token',
   'comparadise-host': 'https://comparadise.app',
   'use-base-images': 'true',
-  'update-base-images-on-accept': 'false'
+  'update-base-images-on-accept': 'false',
+  'strict-edge-detection': 'false'
 };
 
 const diffIdInputMap: Record<string, string | undefined> = {
@@ -251,7 +252,8 @@ describe('main', () => {
       'resize-width',
       'resize-height',
       'head-sha',
-      'base-ref'
+      'base-ref',
+      'strict-edge-detection'
     );
   });
 

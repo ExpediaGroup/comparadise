@@ -1,4 +1,4 @@
-import { getInput } from '@actions/core';
+import { getInput, getBooleanInput } from '@actions/core';
 import { context as githubContext } from '@actions/github';
 import { makeManifestS3 } from './manifest-s3';
 import { manifestCompare } from './manifest-compare';
@@ -23,6 +23,8 @@ export async function runManifestCompareWorkflow(
   const bucket = getInput('bucket-name', { required: true });
   const prSha = getInput('commit-hash', { required: true });
   const baseRef = githubContext.payload.pull_request?.base?.ref;
+  const pixelDiffThreshold = getInput('pixel-diff-threshold');
+  const strictEdgeDetection = getBooleanInput('strict-edge-detection');
 
   if (!baseRef) {
     deps.core.setFailed(
@@ -59,7 +61,13 @@ export async function runManifestCompareWorkflow(
         generateDiffs(params, {
           s3: deps.s3,
           core: deps.core,
-          diffPng
+          diffPng: (base, actual) =>
+            diffPng(base, actual, {
+              threshold: pixelDiffThreshold
+                ? Number(pixelDiffThreshold)
+                : undefined,
+              strictEdgeDetection
+            })
         }),
       putChangeset: manifestS3.putChangeset,
       getPrManifest: manifestS3.getManifest,
