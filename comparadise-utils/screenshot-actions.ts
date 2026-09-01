@@ -5,10 +5,7 @@ export const PREFIX_DIFFERENTIATOR = '___';
 const SUFFIX_TEST_IDENTIFIER = '.spec.ts';
 const SCREENSHOTS_FOLDER_NAME = 'screenshots';
 
-export function forceFont() {
-  const iframe = window.parent.document.querySelector('iframe');
-  const contentDocument = iframe && iframe.contentDocument;
-
+export function forceFont(contentDocument: Document) {
   if (contentDocument) {
     const style = contentDocument.createElement('style');
     style.type = 'text/css';
@@ -88,7 +85,7 @@ export function matchScreenshot(
 ) {
   const { rawName, options } = args || {};
   // Set up screen
-  forceFont();
+  cy.document().then(forceFont);
 
   // Making sure each image is visible before taking screenshots
   verifyImages();
@@ -151,7 +148,7 @@ export function takeScreenshot(
 ) {
   const { rawName, options } = args || {};
   // Set up screen
-  forceFont();
+  cy.document().then(forceFont);
 
   // Making sure each image is visible before taking screenshots
   verifyImages();
