@@ -1,6 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, it, mock, beforeEach } from 'bun:test';
 import { manifestMerge, type ManifestMergeDeps } from '../src/manifest-merge';
+import { findAncestorManifest } from '../src/manifest-merge-ancestor';
+import {
+  overlayChangeset,
+  detectStaleConflicts
+} from '../src/manifest-merge-overlay';
 import type { Changeset, Manifest } from '../src/manifest-s3';
 
 const getAncestorManifestMock = mock<any>();
@@ -221,6 +226,47 @@ describe('manifestMerge', () => {
       expect(putManifestMock).not.toHaveBeenCalled();
       expect(applyChangesetToBaseImagesMock).not.toHaveBeenCalled();
     });
+  });
+
+  it('merges cleanly when _headSha has no manifest but an ancestor does (regression: false stale conflict)', async () => {
+    const baseline: Manifest = { Button: 'h-button', Modal: 'h-modal' };
+    const changeset: Changeset = {
+      _headSha: 'old-head-sha',
+      Button: 'h-button-new',
+      NewTest: 'h-new'
+    };
+    const manifests: Record<string, Manifest> = {
+      'ancestor-sha': baseline,
+      'parent-sha-aaa': baseline
+    };
+    const parentShas: Record<string, string | null> = {
+      'old-head-sha': 'ancestor-sha',
+      'ancestor-sha': null
+    };
+
+    getChangesetMock.mockResolvedValue(changeset);
+    getMergeParentShaMock.mockResolvedValue('parent-sha-aaa');
+
+    await manifestMerge(
+      params,
+      makeDeps({
+        getAncestorManifest: (bucket, startSha) =>
+          findAncestorManifest(bucket, startSha, {
+            getManifest: async (_bucket, sha) => manifests[sha] ?? null,
+            getParentSha: async sha => parentShas[sha] ?? null,
+            core: { warning: warningMock }
+          }),
+        overlayChangeset,
+        detectStaleConflicts
+      })
+    );
+
+    expect(putManifestMock).toHaveBeenCalledWith(
+      'test-bucket',
+      'merge-sha-999',
+      { Button: 'h-button-new', Modal: 'h-modal', NewTest: 'h-new' }
+    );
+    expect(applyChangesetToBaseImagesMock).toHaveBeenCalledTimes(1);
   });
 
   it('treats no ancestor manifest (bootstrap case) as an empty manifest', async () => {
