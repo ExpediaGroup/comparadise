@@ -161151,12 +161151,7 @@ function drawGrayPixel(img, i, alpha, output) {
 }
 
 // src/diff-png.ts
-var PIXELMATCH_OPTIONS = {
-  alpha: 0.3,
-  threshold: 0.5,
-  includeAA: false
-};
-function diffPng(baseBuffer, actualBuffer) {
+function diffPng(baseBuffer, actualBuffer, options = {}) {
   const rawBase = import_pngjs2.PNG.sync.read(baseBuffer);
   const rawActual = import_pngjs2.PNG.sync.read(actualBuffer);
   const width = Math.max(rawBase.width, rawActual.width);
@@ -161164,7 +161159,10 @@ function diffPng(baseBuffer, actualBuffer) {
   const base = ensureSize(rawBase, width, height);
   const actual = ensureSize(rawActual, width, height);
   const diff = new import_pngjs2.PNG({ width, height });
-  const diffPixels = pixelmatch(actual.data, base.data, diff.data, width, height, PIXELMATCH_OPTIONS);
+  const diffPixels = pixelmatch(actual.data, base.data, diff.data, width, height, {
+    ...options.threshold !== undefined && { threshold: options.threshold },
+    includeAA: options.strictEdgeDetection ?? false
+  });
   return { diffBuffer: import_pngjs2.PNG.sync.write(diff), diffPixels };
 }
 function ensureSize(image2, width, height) {
@@ -161346,6 +161344,8 @@ async function runManifestCompareWorkflow(deps) {
   const bucket = getInput("bucket-name", { required: true });
   const prSha = getInput("commit-hash", { required: true });
   const baseRef = context2.payload.pull_request?.base?.ref;
+  const pixelDiffThreshold = getInput("pixel-diff-threshold");
+  const strictEdgeDetection = getBooleanInput("strict-edge-detection");
   if (!baseRef) {
     deps.core.setFailed("manifest-compare must run on a pull_request event; base ref could not be resolved from the event payload.");
     return;
@@ -161372,7 +161372,10 @@ async function runManifestCompareWorkflow(deps) {
     generateDiffs: (params) => generateDiffs(params, {
       s3: deps.s3,
       core: deps.core,
-      diffPng
+      diffPng: (base, actual) => diffPng(base, actual, {
+        threshold: pixelDiffThreshold ? Number(pixelDiffThreshold) : undefined,
+        strictEdgeDetection
+      })
     }),
     putChangeset: manifestS3.putChangeset,
     getPrManifest: manifestS3.getManifest,
@@ -161754,5 +161757,5 @@ var run = async (deps = makeDefaultDeps()) => {
 // src/main.ts
 run().catch(setFailed);
 
-//# debugId=FF48DF39D478DED264756E2164756E21
+//# debugId=B535D4C5044CC8CD64756E2164756E21
 //# sourceMappingURL=main.js.map
