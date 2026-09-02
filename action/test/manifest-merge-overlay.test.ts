@@ -137,6 +137,46 @@ describe('detectStaleConflicts', () => {
     ).toEqual(['Button']);
   });
 
+  it('does not flag a drifted path when the changeset matches the merge target', () => {
+    // Main changed Button since compare time, but landed on the same hash the
+    // PR would write, so the overlay is a no-op and no rebase is needed.
+    const headManifest: Manifest = { Button: 'h1' };
+    const parentManifest: Manifest = { Button: 'h-pr' };
+    const changeset: Changeset = { _headSha: 'sha', Button: 'h-pr' };
+
+    expect(
+      detectStaleConflicts(headManifest, parentManifest, changeset)
+    ).toEqual([]);
+  });
+
+  it('flags only the paths where the changeset disagrees with the merge target', () => {
+    // Both paths drifted on main; the PR agrees with main on Modal and
+    // disagrees on Button, so only Button needs a rebase.
+    const headManifest: Manifest = { Button: 'h1', Modal: 'h2' };
+    const parentManifest: Manifest = { Button: 'h1-main', Modal: 'h2-main' };
+    const changeset: Changeset = {
+      _headSha: 'sha',
+      Button: 'h-pr',
+      Modal: 'h2-main'
+    };
+
+    expect(
+      detectStaleConflicts(headManifest, parentManifest, changeset)
+    ).toEqual(['Button']);
+  });
+
+  it('flags a drifted path the PR adds that main added with a different hash', () => {
+    // Neither manifest agrees and the path is absent from head, so a matching
+    // value cannot be inferred from `undefined` — still a conflict.
+    const headManifest: Manifest = {};
+    const parentManifest: Manifest = { Button: 'h-main' };
+    const changeset: Changeset = { _headSha: 'sha', Button: 'h-pr' };
+
+    expect(
+      detectStaleConflicts(headManifest, parentManifest, changeset)
+    ).toEqual(['Button']);
+  });
+
   it('only checks paths included in the changeset (not all manifest paths)', () => {
     const headManifest: Manifest = { Button: 'h1', Other: 'o1' };
     const parentManifest: Manifest = { Button: 'h1', Other: 'o2-different' };
