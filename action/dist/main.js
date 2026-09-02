@@ -161230,6 +161230,8 @@ function detectStaleConflicts(headManifest, parentManifest, changeset) {
       continue;
     if (changeset[path5] === null && !(path5 in parentManifest))
       continue;
+    if (changeset[path5] === parentManifest[path5])
+      continue;
     if (headManifest[path5] !== parentManifest[path5]) {
       conflicts.push(path5);
     }
@@ -161757,5 +161759,5 @@ var run = async (deps = makeDefaultDeps()) => {
 // src/main.ts
 run().catch(setFailed);
 
-//# debugId=B535D4C5044CC8CD64756E2164756E21
+//# debugId=28B811463C93EAB064756E2164756E21
 //# sourceMappingURL=main.js.map
