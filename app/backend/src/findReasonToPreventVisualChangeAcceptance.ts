@@ -18,11 +18,16 @@ export const findReasonToPreventVisualChangeAcceptance = async (
     repo,
     ref: sha
   });
-  const visualRegressionContextDescription = data.find(
-    ({ context }) => context === VISUAL_REGRESSION_CONTEXT
-  )?.description;
-  if (visualRegressionContextDescription === VISUAL_TESTS_FAILED_TO_EXECUTE)
+  const latestVisualRegressionStatus = sortBy(
+    data.filter(({ context }) => context === VISUAL_REGRESSION_CONTEXT),
+    'created_at'
+  ).reverse()[0];
+  if (
+    latestVisualRegressionStatus?.description === VISUAL_TESTS_FAILED_TO_EXECUTE
+  )
     return 'At least one visual test job failed to take a screenshot. All jobs must take a screenshot before reviewing and updating base images!';
+  if (latestVisualRegressionStatus?.state === 'failure')
+    return `The latest ${VISUAL_REGRESSION_CONTEXT} status on this commit is failing: "${latestVisualRegressionStatus.description}" Rebase and re-run the visual tests before accepting.`;
   const nonVisualStatuses = data.filter(
     ({ context }) => context !== VISUAL_REGRESSION_CONTEXT
   );

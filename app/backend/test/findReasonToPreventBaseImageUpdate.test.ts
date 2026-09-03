@@ -28,7 +28,8 @@ describe('findReasonToPreventVisualChangeAcceptance', () => {
         },
         {
           context: VISUAL_REGRESSION_CONTEXT,
-          state: 'failure',
+          state: 'pending',
+          description: 'Visual diffs found.',
           created_at: '2023-05-02T19:11:02Z'
         },
         {
@@ -58,7 +59,8 @@ describe('findReasonToPreventVisualChangeAcceptance', () => {
         },
         {
           context: VISUAL_REGRESSION_CONTEXT,
-          state: 'failure',
+          state: 'pending',
+          description: 'Visual diffs found.',
           created_at: '2023-05-02T19:11:02Z'
         },
         {
@@ -95,7 +97,8 @@ describe('findReasonToPreventVisualChangeAcceptance', () => {
         },
         {
           context: VISUAL_REGRESSION_CONTEXT,
-          state: 'failure',
+          state: 'pending',
+          description: 'Visual diffs found.',
           created_at: '2023-05-02T19:11:02Z'
         },
         {
@@ -132,7 +135,8 @@ describe('findReasonToPreventVisualChangeAcceptance', () => {
         },
         {
           context: VISUAL_REGRESSION_CONTEXT,
-          state: 'failure',
+          state: 'pending',
+          description: 'Visual diffs found.',
           created_at: '2023-05-02T19:11:02Z'
         }
       ]
@@ -162,7 +166,8 @@ describe('findReasonToPreventVisualChangeAcceptance', () => {
         },
         {
           context: VISUAL_REGRESSION_CONTEXT,
-          state: 'failure',
+          state: 'pending',
+          description: 'Visual diffs found.',
           created_at: '2023-05-02T19:11:02Z'
         }
       ]
@@ -205,5 +210,71 @@ describe('findReasonToPreventVisualChangeAcceptance', () => {
     expect(result).toBe(
       'At least one visual test job failed to take a screenshot. All jobs must take a screenshot before reviewing and updating base images!'
     );
+  });
+
+  it('should return a reason to prevent update when the latest visual regression status is failing', async () => {
+    listCommitStatusesForRefMock.mockImplementationOnce(() => ({
+      data: [
+        {
+          context: 'unit tests',
+          state: 'success',
+          created_at: '2023-05-02T19:11:02Z'
+        },
+        {
+          context: VISUAL_REGRESSION_CONTEXT,
+          state: 'failure',
+          description: 'Visual comparison outdated — please rebase.',
+          created_at: '2023-05-02T19:12:02Z'
+        },
+        {
+          context: VISUAL_REGRESSION_CONTEXT,
+          state: 'success',
+          description: 'Base images updated successfully.',
+          created_at: '2023-05-02T19:11:02Z'
+        }
+      ]
+    }));
+    const result = await findReasonToPreventVisualChangeAcceptance(
+      'github-owner',
+      'github-repo',
+      'sha',
+      false,
+      makeOctokit()
+    );
+    expect(result).toBe(
+      `The latest ${VISUAL_REGRESSION_CONTEXT} status on this commit is failing: "Visual comparison outdated — please rebase." Rebase and re-run the visual tests before accepting.`
+    );
+  });
+
+  it('should return undefined when a failing visual regression status was superseded by a newer non-failing one', async () => {
+    listCommitStatusesForRefMock.mockImplementationOnce(() => ({
+      data: [
+        {
+          context: 'unit tests',
+          state: 'success',
+          created_at: '2023-05-02T19:11:02Z'
+        },
+        {
+          context: VISUAL_REGRESSION_CONTEXT,
+          state: 'failure',
+          description: 'Visual comparison outdated — please rebase.',
+          created_at: '2023-05-02T19:11:02Z'
+        },
+        {
+          context: VISUAL_REGRESSION_CONTEXT,
+          state: 'pending',
+          description: 'Visual diffs found.',
+          created_at: '2023-05-02T19:12:02Z'
+        }
+      ]
+    }));
+    const result = await findReasonToPreventVisualChangeAcceptance(
+      'github-owner',
+      'github-repo',
+      'sha',
+      true,
+      makeOctokit()
+    );
+    expect(result).toBeUndefined();
   });
 });
