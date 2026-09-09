@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # Updating Base Images
 
-If your visual tests fail, it could be due to one of three things:
+If your visual tests fail, it could be due to one of four things:
 
 ### You have written a brand new visual test, and the base image does not yet exist.
 
@@ -22,3 +22,11 @@ caused by a component not rendering properly or your test failing to match a sel
 
 This is the case where there was a visual difference detected on your PR. This should be reviewed in the Comparadise UI,
 and if the change is acceptable, base images should be updated.
+
+### Your visual comparison is outdated.
+
+When another PR merges and changes a base image that your PR also changes, Comparadise sets the `Visual Regression`
+status to failing with a message asking you to rebase. Comparadise will not accept visual changes while the latest
+`Visual Regression` status on your commit is failing, because the screenshots you reviewed were compared against a
+baseline that no longer exists. Rebase onto the default branch and re-run the visual tests, then review and accept
+the fresh comparison.

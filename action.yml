@@ -60,6 +60,19 @@ inputs:
     description: 'Whether accepting visual changes in the web app should update base images in S3.'
     required: false
     default: 'true'
+  pixel-diff-threshold:
+    description: >-
+      Pixelmatch color-difference threshold (0 to 1) used when comparing
+      manifest screenshots; smaller is more sensitive. Defaults to
+      pixelmatch's own default of 0.1.
+    required: false
+  strict-edge-detection:
+    description: >-
+      Treat anti-aliased edge pixels as diffs instead of ignoring them
+      (maps to pixelmatch's includeAA option) when comparing manifest
+      screenshots.
+    required: false
+    default: 'false'
 runs:
   using: 'node24'
   main: 'action/dist/main.js'

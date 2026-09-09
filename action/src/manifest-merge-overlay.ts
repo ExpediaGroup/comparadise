@@ -30,8 +30,10 @@ export function overlayChangeset(
  * changeset was computed against, on any path the changeset touches.
  *
  * Used as a safeguard at merge time when a changeset's `_headSha` differs from
- * the actual merge parent. If any changeset path has a different hash in the
- * two manifests, applying the changeset would clobber an intervening change.
+ * the actual merge parent. A path conflicts when it drifted between the two
+ * manifests *and* the changeset would write something other than what the merge
+ * target already holds — otherwise applying it cannot clobber the intervening
+ * change.
  *
  * Returns the list of conflicting paths (excluding the `_headSha` metadata).
  */
@@ -47,6 +49,10 @@ export function detectStaleConflicts(
     // (main deleted it too). Both sides agree on removal, so there is nothing
     // to clobber — not a conflict.
     if (changeset[path] === null && !(path in parentManifest)) continue;
+    // The PR writes exactly what the merge target already holds, so the overlay
+    // is a no-op. Main drifted, but it converged on the same hash — there is
+    // nothing to clobber, so this must not force an unnecessary rebase.
+    if (changeset[path] === parentManifest[path]) continue;
     if (headManifest[path] !== parentManifest[path]) {
       conflicts.push(path);
     }

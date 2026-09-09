@@ -1,11 +1,10 @@
 import { PNG } from 'pngjs';
 import pixelmatch from 'pixelmatch';
 
-const PIXELMATCH_OPTIONS = {
-  alpha: 0.3,
-  threshold: 0.5,
-  includeAA: false
-};
+export interface DiffPngOptions {
+  threshold?: number;
+  strictEdgeDetection?: boolean;
+}
 
 export interface DiffPngResult {
   diffBuffer: Buffer;
@@ -14,7 +13,8 @@ export interface DiffPngResult {
 
 export function diffPng(
   baseBuffer: Buffer,
-  actualBuffer: Buffer
+  actualBuffer: Buffer,
+  options: DiffPngOptions = {}
 ): DiffPngResult {
   const rawBase = PNG.sync.read(baseBuffer);
   const rawActual = PNG.sync.read(actualBuffer);
@@ -33,7 +33,10 @@ export function diffPng(
     diff.data,
     width,
     height,
-    PIXELMATCH_OPTIONS
+    {
+      ...(options.threshold !== undefined && { threshold: options.threshold }),
+      includeAA: options.strictEdgeDetection ?? false
+    }
   );
 
   return { diffBuffer: PNG.sync.write(diff), diffPixels };
