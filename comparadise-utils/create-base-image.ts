@@ -12,7 +12,7 @@ export function createBaseImage(
 ) {
   const { rawName, options } = args || {};
   // Set up screen
-  forceFont();
+  cy.document().then(forceFont);
   // Making sure each image is visible before taking screenshots
   verifyImages();
 
