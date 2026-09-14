@@ -160611,6 +160611,7 @@ var makeDefaultDeps = () => ({
 });
 
 // src/manifest-s3.ts
+var MANIFEST_COVERAGE_DIRECTORY = "manifest-coverage";
 function isNoSuchKey(error2) {
   return error2 instanceof Error && error2.name === "NoSuchKey";
 }
@@ -160671,6 +160672,34 @@ function makeManifestS3(s3 = defaultS3Operations) {
       throw error2;
     }
   }
+  async function putCoverage(bucket, sha, chunkId, coverage) {
+    await s3.putObject({
+      Bucket: bucket,
+      Key: `${MANIFEST_COVERAGE_DIRECTORY}/${sha}/${chunkId}.json`,
+      Body: JSON.stringify(coverage),
+      ContentType: "application/json"
+    });
+  }
+  async function getPrCoverage(bucket, sha) {
+    const parts = await s3.listAllObjects({
+      Bucket: bucket,
+      Prefix: `${MANIFEST_COVERAGE_DIRECTORY}/${sha}/`
+    });
+    if (parts.length === 0)
+      return null;
+    const packagePaths = new Set;
+    for (const part of parts) {
+      if (!part.Key)
+        continue;
+      const response = await s3.getObject({ Bucket: bucket, Key: part.Key });
+      const body = await readBody(response);
+      const coverage = JSON.parse(body);
+      for (const packagePath of coverage.packagePaths ?? []) {
+        packagePaths.add(packagePath);
+      }
+    }
+    return [...packagePaths].sort();
+  }
   async function squashPrManifest(bucket, sha) {
     const parts = await s3.listAllObjects({
       Bucket: bucket,
@@ -160700,6 +160729,8 @@ function makeManifestS3(s3 = defaultS3Operations) {
     getManifest,
     putChangeset,
     getChangeset,
+    putCoverage,
+    getPrCoverage,
     squashPrManifest
   };
 }
@@ -160708,6 +160739,8 @@ var {
   getManifest,
   putChangeset,
   getChangeset,
+  putCoverage,
+  getPrCoverage,
   squashPrManifest
 } = makeManifestS3();
 
@@ -160731,7 +160764,14 @@ async function findAncestorManifest(bucket, startSha, deps) {
 async function manifestCompare(params, deps) {
   const { bucket, prSha, repo, baseRef } = params;
   const squashedPrManifest = await deps.squashPrManifest(bucket, prSha);
-  const result = await deps.classify({ bucket, prSha, repo, baseRef });
+  const coveredPackagePaths = await deps.getPrCoverage(bucket, prSha);
+  const result = await deps.classify({
+    bucket,
+    prSha,
+    repo,
+    baseRef,
+    coveredPackagePaths
+  });
   if (result.outcome === "match") {
     deps.core.info("Visual manifests match — no changes detected.");
     await deps.cleanupOrphanedNewImages(bucket, prSha, []);
@@ -160842,7 +160882,7 @@ function buildChangeset(headSha, prOwns, prManifest) {
 
 // src/manifest-compare-classify.ts
 async function classifyManifests(params, deps) {
-  const { bucket, prSha, repo, baseRef } = params;
+  const { bucket, prSha, repo, baseRef, coveredPackagePaths } = params;
   const prManifest = await requirePrManifest(deps, bucket, prSha);
   const headSha = await resolveHeadSha(deps, repo, baseRef);
   const headManifest = await deps.getAncestorManifest(bucket, headSha);
@@ -160850,7 +160890,20 @@ async function classifyManifests(params, deps) {
     ...Object.keys(prManifest),
     ...Object.keys(headManifest)
   ]);
-  const differingPaths = [...allPaths].filter((p) => prManifest[p] !== headManifest[p]);
+  const isCovered = makeCoverageMatcher(coveredPackagePaths);
+  const outOfScope = [];
+  const differingPaths = [...allPaths].filter((p) => {
+    if (prManifest[p] === headManifest[p])
+      return false;
+    if (!(p in prManifest) && !isCovered(p)) {
+      outOfScope.push(p);
+      return false;
+    }
+    return true;
+  });
+  if (outOfScope.length > 0) {
+    deps.core.info(`${outOfScope.length} baseline path(s) belong to packages this PR did not run visual tests for — leaving them unchanged.`);
+  }
   if (differingPaths.length === 0) {
     return { outcome: "match" };
   }
@@ -160885,6 +160938,12 @@ async function classifyManifests(params, deps) {
     mainOwns,
     conflicts
   };
+}
+function makeCoverageMatcher(coveredPackagePaths) {
+  if (!coveredPackagePaths)
+    return () => true;
+  const prefixes = coveredPackagePaths.map((p) => p.replace(/^\/+|\/+$/g, "")).filter(Boolean);
+  return (path5) => prefixes.some((prefix) => path5 === prefix || path5.startsWith(`${prefix}/`));
 }
 async function requirePrManifest(deps, bucket, sha) {
   const manifest = await deps.getManifest(bucket, sha);
@@ -161360,6 +161419,7 @@ async function runManifestCompareWorkflow(deps) {
     baseRef
   }, {
     squashPrManifest: manifestS3.squashPrManifest,
+    getPrCoverage: manifestS3.getPrCoverage,
     classify: (params) => classifyManifests(params, {
       s3: deps.s3,
       octokit: deps.octokit,
@@ -161586,6 +161646,11 @@ async function manifestGenerate(deps = makeDefaultDeps()) {
     Body: JSON.stringify(manifest),
     ContentType: "application/json"
   });
+  if (chunkId) {
+    await makeManifestS3(deps.s3).putCoverage(bucket, commitHash, chunkId, {
+      packagePaths
+    });
+  }
   deps.core.info(`Manifest uploaded for ${commitHash} with ${Object.keys(manifest).length} entries.`);
 }
 function chunkIdFor(packagePaths) {

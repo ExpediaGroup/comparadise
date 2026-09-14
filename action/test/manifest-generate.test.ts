@@ -315,6 +315,22 @@ describe('manifestGenerate', () => {
     expect(originalCalls).toHaveLength(0);
   });
 
+  it('does not record coverage when package-paths is not set', async () => {
+    globMock.mockResolvedValue(['screenshots/Button/new.png']);
+    hashFileMock.mockResolvedValue('hash1');
+    getObjectMock.mockRejectedValue(
+      Object.assign(new Error(), { name: 'NoSuchKey' })
+    );
+    readFileMock.mockResolvedValue(Buffer.from('fake-image'));
+
+    await manifestGenerate(makeDeps());
+
+    const coverageCalls = putObjectMock.mock.calls.filter((call: any) =>
+      call[0].Key?.startsWith('manifest-coverage/')
+    );
+    expect(coverageCalls).toHaveLength(0);
+  });
+
   describe('monorepo (package-paths set)', () => {
     it('keys entries by their on-disk relative path and names the manifest by chunk-id', async () => {
       setEnv({ 'package-paths': 'packages/ui' });
@@ -343,6 +359,28 @@ describe('manifestGenerate', () => {
       expect(manifestCall![0].Body).toBe(
         JSON.stringify({ 'packages/ui/Button': 'hash1' })
       );
+    });
+
+    it("records the chunk's package coverage alongside its manifest", async () => {
+      setEnv({ 'package-paths': 'packages/ui, packages/core' });
+      globMock.mockResolvedValue(['screenshots/packages/ui/Button/new.png']);
+      hashFileMock.mockResolvedValue('hash1');
+      getObjectMock.mockRejectedValue(
+        Object.assign(new Error(), { name: 'NoSuchKey' })
+      );
+      readFileMock.mockResolvedValue(Buffer.from('fake-image'));
+
+      await manifestGenerate(makeDeps());
+
+      const coverageCall = putObjectMock.mock.calls.find((call: any) =>
+        call[0].Key?.startsWith('manifest-coverage/')
+      ) as any[];
+      expect(coverageCall![0].Key).toBe(
+        `manifest-coverage/abc123/${hashString('packages/core,packages/ui')}.json`
+      );
+      expect(JSON.parse(coverageCall![0].Body)).toEqual({
+        packagePaths: ['packages/ui', 'packages/core']
+      });
     });
 
     it('accepts multiple packages in a single job (a chunk) and writes one manifest', async () => {

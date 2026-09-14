@@ -30,13 +30,14 @@ export interface ClassifyParams {
   prSha: string;
   repo: { owner: string; repo: string };
   baseRef: string;
+  coveredPackagePaths?: string[] | null;
 }
 
 export async function classifyManifests(
   params: ClassifyParams,
   deps: ClassifyDeps
 ): Promise<CompareResult> {
-  const { bucket, prSha, repo, baseRef } = params;
+  const { bucket, prSha, repo, baseRef, coveredPackagePaths } = params;
 
   const prManifest = await requirePrManifest(deps, bucket, prSha);
 
@@ -51,9 +52,23 @@ export async function classifyManifests(
     ...Object.keys(headManifest)
   ]);
 
-  const differingPaths = [...allPaths].filter(
-    p => prManifest[p] !== headManifest[p]
-  );
+  const isCovered = makeCoverageMatcher(coveredPackagePaths);
+  const outOfScope: string[] = [];
+
+  const differingPaths = [...allPaths].filter(p => {
+    if (prManifest[p] === headManifest[p]) return false;
+    if (!(p in prManifest) && !isCovered(p)) {
+      outOfScope.push(p);
+      return false;
+    }
+    return true;
+  });
+
+  if (outOfScope.length > 0) {
+    deps.core.info(
+      `${outOfScope.length} baseline path(s) belong to packages this PR did not run visual tests for — leaving them unchanged.`
+    );
+  }
 
   if (differingPaths.length === 0) {
     return { outcome: 'match' };
@@ -97,6 +112,17 @@ export async function classifyManifests(
     mainOwns,
     conflicts
   };
+}
+
+function makeCoverageMatcher(
+  coveredPackagePaths: string[] | null | undefined
+): (path: string) => boolean {
+  if (!coveredPackagePaths) return () => true;
+  const prefixes = coveredPackagePaths
+    .map(p => p.replace(/^\/+|\/+$/g, ''))
+    .filter(Boolean);
+  return path =>
+    prefixes.some(prefix => path === prefix || path.startsWith(`${prefix}/`));
 }
 
 async function requirePrManifest(

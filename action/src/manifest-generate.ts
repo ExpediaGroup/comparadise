@@ -98,6 +98,12 @@ export async function manifestGenerate(
     ContentType: 'application/json'
   });
 
+  if (chunkId) {
+    await makeManifestS3(deps.s3).putCoverage(bucket, commitHash, chunkId, {
+      packagePaths
+    });
+  }
+
   deps.core.info(
     `Manifest uploaded for ${commitHash} with ${Object.keys(manifest).length} entries.`
   );

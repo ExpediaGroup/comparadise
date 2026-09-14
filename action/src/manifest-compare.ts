@@ -21,6 +21,7 @@ export type CommentArgs =
 
 export interface ManifestCompareDeps {
   squashPrManifest: (bucket: string, sha: string) => Promise<Manifest | null>;
+  getPrCoverage: (bucket: string, sha: string) => Promise<string[] | null>;
   classify: (params: ClassifyParams) => Promise<CompareResult>;
   generateDiffs: (params: GenerateDiffsParams) => Promise<DiffOutcome>;
   putChangeset: (
@@ -63,7 +64,15 @@ export async function manifestCompare(
   // where manifests/{prSha}.json was already written directly by generate.
   const squashedPrManifest = await deps.squashPrManifest(bucket, prSha);
 
-  const result = await deps.classify({ bucket, prSha, repo, baseRef });
+  const coveredPackagePaths = await deps.getPrCoverage(bucket, prSha);
+
+  const result = await deps.classify({
+    bucket,
+    prSha,
+    repo,
+    baseRef,
+    coveredPackagePaths
+  });
 
   if (result.outcome === 'match') {
     deps.core.info('Visual manifests match — no changes detected.');

@@ -2,6 +2,9 @@ import { defaultS3Operations, type S3Operations } from 'shared/s3';
 
 export type Manifest = Record<string, string>;
 export type Changeset = Record<string, string | null>;
+export type Coverage = { packagePaths: string[] };
+
+export const MANIFEST_COVERAGE_DIRECTORY = 'manifest-coverage';
 
 export function isNoSuchKey(error: unknown): boolean {
   return error instanceof Error && error.name === 'NoSuchKey';
@@ -86,6 +89,43 @@ export function makeManifestS3(s3: S3Operations = defaultS3Operations) {
     }
   }
 
+  async function putCoverage(
+    bucket: string,
+    sha: string,
+    chunkId: string,
+    coverage: Coverage
+  ): Promise<void> {
+    await s3.putObject({
+      Bucket: bucket,
+      Key: `${MANIFEST_COVERAGE_DIRECTORY}/${sha}/${chunkId}.json`,
+      Body: JSON.stringify(coverage),
+      ContentType: 'application/json'
+    });
+  }
+
+  async function getPrCoverage(
+    bucket: string,
+    sha: string
+  ): Promise<string[] | null> {
+    const parts = await s3.listAllObjects({
+      Bucket: bucket,
+      Prefix: `${MANIFEST_COVERAGE_DIRECTORY}/${sha}/`
+    });
+    if (parts.length === 0) return null;
+
+    const packagePaths = new Set<string>();
+    for (const part of parts) {
+      if (!part.Key) continue;
+      const response = await s3.getObject({ Bucket: bucket, Key: part.Key });
+      const body = await readBody(response);
+      const coverage = JSON.parse(body) as Coverage;
+      for (const packagePath of coverage.packagePaths ?? []) {
+        packagePaths.add(packagePath);
+      }
+    }
+    return [...packagePaths].sort();
+  }
+
   /**
    * Squash the per-package manifests a monorepo's matrix `manifest-generate`
    * jobs wrote under `manifests/{sha}/` into the single combined manifest at
@@ -131,6 +171,8 @@ export function makeManifestS3(s3: S3Operations = defaultS3Operations) {
     getManifest,
     putChangeset,
     getChangeset,
+    putCoverage,
+    getPrCoverage,
     squashPrManifest
   };
 }
@@ -140,5 +182,7 @@ export const {
   getManifest,
   putChangeset,
   getChangeset,
+  putCoverage,
+  getPrCoverage,
   squashPrManifest
 } = makeManifestS3();
