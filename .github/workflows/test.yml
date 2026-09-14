@@ -49,10 +49,15 @@ jobs:
           if [[ $(git status --porcelain) ]]; then
             echo "Detected uncommitted changes after build. See status below:"
             git status
-            git config user.name "${{ github.actor }}"
-            git config user.email "${{ github.actor }}@users.noreply.github.com"
-            git add .
-            git commit -m "chore: committing generated code" --no-verify
-            git push
+            git --no-pager diff --stat
+            if [[ "${{ github.event.pull_request.head.repo.fork }}" == "false" ]]; then
+              git config user.name "${{ github.actor }}"
+              git config user.email "${{ github.actor }}@users.noreply.github.com"
+              git add .
+              git commit -m "chore: committing generated code" --no-verify
+              git push
+            else
+              echo "Run 'bun run build' in action/ and commit the result."
+            fi
             exit 1
           fi
