@@ -55103,7 +55103,7 @@ var require_es52 = __commonJS((exports, module) => {
 
 // ../node_modules/@aws-sdk/core/dist-cjs/submodules/client/index.js
 var require_client3 = __commonJS((exports) => {
-  var __dirname = "/private/tmp/comparadise/node_modules/@aws-sdk/core/dist-cjs/submodules/client";
+  var __dirname = "/comparadise/node_modules/@aws-sdk/core/dist-cjs/submodules/client";
   var { Retry, RETRY_MODES } = require_retry2();
   var { HttpRequest, parseUrl: parseUrl2 } = require_protocols();
   var { InvokeStore } = require_invoke_store();
@@ -161759,5 +161759,4 @@ var run = async (deps = makeDefaultDeps()) => {
 // src/main.ts
 run().catch(setFailed);
 
-//# debugId=EDA718B66698772964756E2164756E21
 //# sourceMappingURL=main.js.map
