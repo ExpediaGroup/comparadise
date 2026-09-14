@@ -7,6 +7,7 @@ import {
 import type { CompareResult } from '../src/manifest-compare-classify';
 
 const squashPrManifestMock = mock<any>();
+const getPrCoverageMock = mock<any>();
 const classifyMock = mock<any>();
 const generateDiffsMock = mock<any>();
 const putChangesetMock = mock<any>();
@@ -24,6 +25,7 @@ function makeDeps(
 ): ManifestCompareDeps {
   return {
     squashPrManifest: squashPrManifestMock,
+    getPrCoverage: getPrCoverageMock,
     classify: classifyMock,
     generateDiffs: generateDiffsMock,
     putChangeset: putChangesetMock,
@@ -51,6 +53,7 @@ const params = {
 describe('manifestCompare', () => {
   beforeEach(() => {
     squashPrManifestMock.mockReset().mockResolvedValue(undefined);
+    getPrCoverageMock.mockReset().mockResolvedValue(null);
     classifyMock.mockReset();
     generateDiffsMock
       .mockReset()
@@ -64,6 +67,35 @@ describe('manifestCompare', () => {
     infoMock.mockReset();
     setFailedMock.mockReset();
     warningMock.mockReset();
+  });
+
+  describe('coverage scoping', () => {
+    it('passes the recorded package coverage through to classify', async () => {
+      classifyMock.mockResolvedValue({ outcome: 'match' } as CompareResult);
+      getPrCoverageMock.mockResolvedValue(['packages/ui', 'packages/core']);
+
+      await manifestCompare(params, makeDeps());
+
+      expect(getPrCoverageMock).toHaveBeenCalledWith(
+        'test-bucket',
+        'pr-sha-111'
+      );
+      expect(classifyMock).toHaveBeenCalledWith({
+        ...params,
+        coveredPackagePaths: ['packages/ui', 'packages/core']
+      });
+    });
+
+    it('passes null coverage (whole baseline in scope) when none was recorded', async () => {
+      classifyMock.mockResolvedValue({ outcome: 'match' } as CompareResult);
+
+      await manifestCompare(params, makeDeps());
+
+      expect(classifyMock).toHaveBeenCalledWith({
+        ...params,
+        coveredPackagePaths: null
+      });
+    });
   });
 
   describe('squash step', () => {

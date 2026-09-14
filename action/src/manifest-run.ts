@@ -45,6 +45,7 @@ export async function runManifestCompareWorkflow(
     },
     {
       squashPrManifest: manifestS3.squashPrManifest,
+      getPrCoverage: manifestS3.getPrCoverage,
       classify: params =>
         classifyManifests(params, {
           s3: deps.s3,

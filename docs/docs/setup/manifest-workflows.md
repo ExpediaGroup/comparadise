@@ -69,6 +69,8 @@ For monorepos running visual tests in parallel, split the packages across severa
 
 Pass each job's package(s) as `package-paths` (comma separated for a chunk). `manifest-generate` sorts and MD5-hashes those paths into a chunk-id and writes that job's manifest to `manifests/{commit-sha}/{chunk-id}.json`, so parallel jobs never overwrite one another. Manifest keys are the screenshot paths exactly as they sit on disk — in a monorepo each package's screenshots already live under a package-named subdirectory, so keys are globally unique without any prefix being added. `manifest-compare` automatically discovers those per-chunk manifests, squashes them into the single `manifests/{commit-sha}.json`, and runs the comparison against it—so the compare and merge jobs need no extra configuration.
 
+Each generate job also records the `package-paths` it covered at `manifest-coverage/{commit-sha}/{chunk-id}.json`. `manifest-compare` unions those records and only treats a baseline screenshot as **deleted** when it sits under a covered package. This lets a matrix run a subset of packages (for example, only the projects a PR affects) without every untouched package's screenshots being reported as removed and later wiped from the baseline on merge. Pass the real on-disk package directories as `package-paths` so genuine deletions inside a package still propagate; any value that does not prefix a screenshot path simply keeps deletions out of scope for that run. When no `package-paths` is given, the whole baseline is in scope as before.
+
 ```yaml
 on:
   pull_request:

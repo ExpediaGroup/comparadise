@@ -17,6 +17,8 @@ const {
   getManifest,
   putChangeset,
   getChangeset,
+  putCoverage,
+  getPrCoverage,
   squashPrManifest
 } = makeManifestS3(s3Mock);
 
@@ -196,5 +198,62 @@ describe('squashPrManifest', () => {
       /Duplicate manifest key "packages\/ui\/Button"/
     );
     expect(putObjectMock).not.toHaveBeenCalled();
+  });
+});
+
+describe('putCoverage', () => {
+  afterEach(() => putObjectMock.mockClear());
+
+  it('uploads the chunk coverage JSON under manifest-coverage/{sha}/{chunkId}.json', async () => {
+    await putCoverage(bucket, sha, 'chunk-1', {
+      packagePaths: ['packages/ui']
+    });
+
+    expect(putObjectMock).toHaveBeenCalledWith({
+      Bucket: bucket,
+      Key: `manifest-coverage/${sha}/chunk-1.json`,
+      Body: JSON.stringify({ packagePaths: ['packages/ui'] }),
+      ContentType: 'application/json'
+    });
+  });
+});
+
+describe('getPrCoverage', () => {
+  afterEach(() => {
+    getObjectMock.mockClear();
+    listAllObjectsMock.mockClear();
+  });
+
+  const coveragePart = (packagePaths: string[]) => ({
+    Body: {
+      transformToString: () => Promise.resolve(JSON.stringify({ packagePaths }))
+    }
+  });
+
+  it('unions and sorts the package paths recorded by every chunk', async () => {
+    listAllObjectsMock.mockResolvedValueOnce([
+      { Key: `manifest-coverage/${sha}/chunk-a.json` },
+      { Key: `manifest-coverage/${sha}/chunk-b.json` }
+    ]);
+    getObjectMock
+      .mockResolvedValueOnce(coveragePart(['packages/ui', 'packages/core']))
+      .mockResolvedValueOnce(coveragePart(['packages/core', 'packages/api']));
+
+    const result = await getPrCoverage(bucket, sha);
+
+    expect(listAllObjectsMock).toHaveBeenCalledWith({
+      Bucket: bucket,
+      Prefix: `manifest-coverage/${sha}/`
+    });
+    expect(result).toEqual(['packages/api', 'packages/core', 'packages/ui']);
+  });
+
+  it('returns null when no chunk recorded coverage', async () => {
+    listAllObjectsMock.mockResolvedValueOnce([]);
+
+    const result = await getPrCoverage(bucket, sha);
+
+    expect(result).toBeNull();
+    expect(getObjectMock).not.toHaveBeenCalled();
   });
 });

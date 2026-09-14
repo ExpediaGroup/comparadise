@@ -214,6 +214,165 @@ describe('classifyManifests', () => {
     });
   });
 
+  describe('deletion scoping by covered packages', () => {
+    const headManifest = {
+      'packages/ui/Button': 'hash-ui',
+      'packages/listing/Card': 'hash-listing',
+      'packages/listing/Grid': 'hash-grid'
+    };
+
+    it('leaves baseline paths of packages the PR did not run out of the comparison', async () => {
+      const prManifest = { 'packages/ui/Button': 'hash-ui-2' };
+
+      mockManifest(prManifest);
+      getBranchMock.mockResolvedValue({
+        data: { commit: { sha: 'head-sha-222' } }
+      });
+      mockManifest(headManifest);
+      compareMock.mockResolvedValue({
+        data: { merge_base_commit: { sha: 'ancestor-sha-333' } }
+      });
+      mockManifest(headManifest);
+
+      const result = await classifyManifests(
+        {
+          bucket: 'test-bucket',
+          prSha,
+          repo,
+          baseRef,
+          coveredPackagePaths: ['packages/ui']
+        },
+        makeDeps()
+      );
+
+      expect(result).toEqual({
+        outcome: 'classified',
+        headSha: 'head-sha-222',
+        prSha,
+        prOwns: [{ path: 'packages/ui/Button', type: 'changed' }],
+        mainOwns: [],
+        conflicts: []
+      });
+      expect(infoMock).toHaveBeenCalledWith(
+        expect.stringContaining(
+          '2 baseline path(s) belong to packages this PR did not run visual tests for'
+        )
+      );
+    });
+
+    it('returns match when the only differences are in packages the PR did not run', async () => {
+      const prManifest = { 'packages/ui/Button': 'hash-ui' };
+
+      mockManifest(prManifest);
+      getBranchMock.mockResolvedValue({
+        data: { commit: { sha: 'head-sha-222' } }
+      });
+      mockManifest(headManifest);
+
+      const result = await classifyManifests(
+        {
+          bucket: 'test-bucket',
+          prSha,
+          repo,
+          baseRef,
+          coveredPackagePaths: ['packages/ui']
+        },
+        makeDeps()
+      );
+
+      expect(result).toEqual({ outcome: 'match' });
+      expect(compareMock).not.toHaveBeenCalled();
+    });
+
+    it('still reports a deletion when the missing path is under a covered package', async () => {
+      const prManifest = { 'packages/listing/Card': 'hash-listing' };
+
+      mockManifest(prManifest);
+      getBranchMock.mockResolvedValue({
+        data: { commit: { sha: 'head-sha-222' } }
+      });
+      mockManifest(headManifest);
+      compareMock.mockResolvedValue({
+        data: { merge_base_commit: { sha: 'ancestor-sha-333' } }
+      });
+      mockManifest(headManifest);
+
+      const result = await classifyManifests(
+        {
+          bucket: 'test-bucket',
+          prSha,
+          repo,
+          baseRef,
+          coveredPackagePaths: ['packages/listing/']
+        },
+        makeDeps()
+      );
+
+      expect(result).toEqual({
+        outcome: 'classified',
+        headSha: 'head-sha-222',
+        prSha,
+        prOwns: [{ path: 'packages/listing/Grid', type: 'deleted' }],
+        mainOwns: [],
+        conflicts: []
+      });
+    });
+
+    it('does not treat a package-name prefix match as coverage', async () => {
+      const prManifest = {};
+      const head = { 'packages/ui-icons/Star': 'hash-star' };
+
+      mockManifest(prManifest);
+      getBranchMock.mockResolvedValue({
+        data: { commit: { sha: 'head-sha-222' } }
+      });
+      mockManifest(head);
+
+      const result = await classifyManifests(
+        {
+          bucket: 'test-bucket',
+          prSha,
+          repo,
+          baseRef,
+          coveredPackagePaths: ['packages/ui']
+        },
+        makeDeps()
+      );
+
+      expect(result).toEqual({ outcome: 'match' });
+    });
+
+    it('treats the whole baseline as in scope when no coverage was recorded', async () => {
+      const prManifest = {};
+
+      mockManifest(prManifest);
+      getBranchMock.mockResolvedValue({
+        data: { commit: { sha: 'head-sha-222' } }
+      });
+      mockManifest(headManifest);
+      compareMock.mockResolvedValue({
+        data: { merge_base_commit: { sha: 'ancestor-sha-333' } }
+      });
+      mockManifest(headManifest);
+
+      const result = await classifyManifests(
+        {
+          bucket: 'test-bucket',
+          prSha,
+          repo,
+          baseRef,
+          coveredPackagePaths: null
+        },
+        makeDeps()
+      );
+
+      expect(result).toMatchObject({ outcome: 'classified' });
+      expect(
+        (result as Extract<CompareResult, { outcome: 'classified' }>).prOwns
+      ).toHaveLength(3);
+    });
+  });
+
   it('classifies as mainOwns when screenshot was added on main only', async () => {
     const ancestorManifest = {};
     const headManifest = { MainOnly: 'hash1' };
