@@ -15,7 +15,7 @@
     "prettier": "3.8.4",
     "prettier-plugin-tailwindcss": "0.8.0",
     "shared": "workspace:*",
-    "typescript": "6.0.3",
+    "typescript": "7.0.2",
     "typescript-eslint": "8.61.1"
   },
   "scripts": {
