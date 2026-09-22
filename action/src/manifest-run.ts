@@ -125,8 +125,7 @@ export async function runManifestMergeWorkflow(
 
 function resolvePushEventCommitShas(): string[] {
   const commits = githubContext.payload.commits as
-    | Array<{ id: string }>
-    | undefined;
+    Array<{ id: string }> | undefined;
   return commits?.map(commit => commit.id) ?? [];
 }
 
