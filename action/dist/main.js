@@ -62654,10 +62654,10 @@ var require_protocols2 = __commonJS((exports) => {
 var require_s3 = __commonJS((exports) => {
   var { NoOpLogger, getSmithyContext } = require_client2();
   var { HttpRequest, HttpResponse } = require_protocols();
+  var { setFeature } = require_client3();
   var { parseRfc7231DateTime } = require_serde();
   var { SignatureV4SignWithCredentials } = require_dist_cjs4();
   var { booleanSelector, SelectorType } = require_config();
-  var { setFeature } = require_client3();
   var { httpSigningMiddlewareOptions } = require_dist_cjs2();
   var { Readable: Readable3 } = __require("node:stream");
   var { validate, parse: parse2 } = require_util10();
@@ -62747,6 +62747,7 @@ var require_s3 = __commonJS((exports) => {
                 const actualRegion = bucketRegionHeader;
                 context3.logger?.debug(`Redirecting from ${await clientConfig.region()} to ${actualRegion}`);
                 context3.__s3RegionRedirect = actualRegion;
+                setFeature(context3, "S3_REGION_REDIRECT", "Ah");
               } catch (e) {
                 throw new Error("Region redirect failed: " + e);
               }
@@ -65404,7 +65405,7 @@ var require_sso_oidc = __commonJS((exports) => {
     Region: { type: "builtInParams", name: "region" },
     UseDualStack: { type: "builtInParams", name: "useDualstackEndpoint" }
   };
-  var version = "3.997.44";
+  var version = "3.997.45";
   var packageInfo = {
     version
   };
@@ -65743,10 +65744,10 @@ var require_sso_oidc = __commonJS((exports) => {
   var _se = "server";
   var _tT = "tokenType";
   var n0 = "com.amazonaws.ssooidc";
-  var _s_registry = TypeRegistry.for(_s2);
+  var _s_registry = new TypeRegistry(_s2);
   var SSOOIDCServiceException$ = [-3, _s2, "SSOOIDCServiceException", 0, [], []];
   _s_registry.registerError(SSOOIDCServiceException$, SSOOIDCServiceException);
-  var n0_registry = TypeRegistry.for(n0);
+  var n0_registry = new TypeRegistry(n0);
   var AccessDeniedException$ = [
     -3,
     n0,
@@ -66305,7 +66306,7 @@ var require_sso = __commonJS((exports) => {
     Region: { type: "builtInParams", name: "region" },
     UseDualStack: { type: "builtInParams", name: "useDualstackEndpoint" }
   };
-  var version = "3.997.44";
+  var version = "3.997.45";
   var packageInfo = {
     version
   };
@@ -66495,10 +66496,10 @@ var require_sso = __commonJS((exports) => {
   var _sT = "sessionToken";
   var _xasbt = "x-amz-sso_bearer_token";
   var n0 = "com.amazonaws.sso";
-  var _s_registry = TypeRegistry.for(_s2);
+  var _s_registry = new TypeRegistry(_s2);
   var SSOServiceException$ = [-3, _s2, "SSOServiceException", 0, [], []];
   _s_registry.registerError(SSOServiceException$, SSOServiceException);
-  var n0_registry = TypeRegistry.for(n0);
+  var n0_registry = new TypeRegistry(n0);
   var InvalidRequestException$ = [
     -3,
     n0,
@@ -67267,7 +67268,7 @@ var require_sts = __commonJS((exports) => {
     Region: { type: "builtInParams", name: "region" },
     UseDualStack: { type: "builtInParams", name: "useDualstackEndpoint" }
   };
-  var version = "3.997.44";
+  var version = "3.997.45";
   var packageInfo = {
     version
   };
@@ -67392,6 +67393,7 @@ var require_sts = __commonJS((exports) => {
   var _IITE = "InvalidIdentityTokenException";
   var _K = "Key";
   var _MPDE = "MalformedPolicyDocumentException";
+  var _MSTS = "MinimumSessionTokenSize";
   var _P = "Policy";
   var _PA = "PolicyArns";
   var _PAr = "ProviderArn";
@@ -67411,6 +67413,8 @@ var require_sts = __commonJS((exports) => {
   var _SI = "SourceIdentity";
   var _SN = "SerialNumber";
   var _ST = "SessionToken";
+  var _STS = "SessionTokenSize";
+  var _STU = "SessionTokenUtilization";
   var _T = "Tags";
   var _TC = "TokenCode";
   var _TTK = "TransitiveTagKeys";
@@ -67429,10 +67433,10 @@ var require_sts = __commonJS((exports) => {
   var _s2 = "smithy.ts.sdk.synthetic.com.amazonaws.sts";
   var _tLT = "tagListType";
   var n0 = "com.amazonaws.sts";
-  var _s_registry = TypeRegistry.for(_s2);
+  var _s_registry = new TypeRegistry(_s2);
   var STSServiceException$ = [-3, _s2, "STSServiceException", 0, [], []];
   _s_registry.registerError(STSServiceException$, STSServiceException);
-  var n0_registry = TypeRegistry.for(n0);
+  var n0_registry = new TypeRegistry(n0);
   var ExpiredTokenException$ = [
     -3,
     n0,
@@ -67516,8 +67520,8 @@ var require_sts = __commonJS((exports) => {
     n0,
     _ARR,
     0,
-    [_RA, _RSN, _PA, _P, _DS, _T, _TTK, _EI, _SN, _TC, _SI, _PC],
-    [0, 0, () => policyDescriptorListType, 0, 1, () => tagListType, 64 | 0, 0, 0, 0, 0, () => ProvidedContextsListType],
+    [_RA, _RSN, _PA, _P, _DS, _T, _TTK, _EI, _SN, _TC, _SI, _PC, _MSTS],
+    [0, 0, () => policyDescriptorListType, 0, 1, () => tagListType, 64 | 0, 0, 0, 0, 0, () => ProvidedContextsListType, 1],
     2
   ];
   var AssumeRoleResponse$ = [
@@ -67525,16 +67529,16 @@ var require_sts = __commonJS((exports) => {
     n0,
     _ARRs,
     0,
-    [_C, _ARU, _PPS, _SI],
-    [[() => Credentials$, 0], () => AssumedRoleUser$, 1, 0]
+    [_C, _ARU, _PPS, _SI, _STU, _STS],
+    [[() => Credentials$, 0], () => AssumedRoleUser$, 1, 0, 1, 1]
   ];
   var AssumeRoleWithWebIdentityRequest$ = [
     3,
     n0,
     _ARWWIR,
     0,
-    [_RA, _RSN, _WIT, _PI, _PA, _P, _DS],
-    [0, 0, [() => clientTokenType, 0], 0, () => policyDescriptorListType, 0, 1],
+    [_RA, _RSN, _WIT, _PI, _PA, _P, _DS, _MSTS],
+    [0, 0, [() => clientTokenType, 0], 0, () => policyDescriptorListType, 0, 1, 1],
     3
   ];
   var AssumeRoleWithWebIdentityResponse$ = [
@@ -67542,8 +67546,8 @@ var require_sts = __commonJS((exports) => {
     n0,
     _ARWWIRs,
     0,
-    [_C, _SFWIT, _ARU, _PPS, _Pr, _Au, _SI],
-    [[() => Credentials$, 0], 0, () => AssumedRoleUser$, 1, 0, 0, 0]
+    [_C, _SFWIT, _ARU, _PPS, _Pr, _Au, _SI, _STU, _STS],
+    [[() => Credentials$, 0], 0, () => AssumedRoleUser$, 1, 0, 0, 0, 1, 1]
   ];
   var Credentials$ = [
     3,
@@ -68036,7 +68040,7 @@ var require_signin = __commonJS((exports) => {
     Region: { type: "builtInParams", name: "region" },
     UseDualStack: { type: "builtInParams", name: "useDualstackEndpoint" }
   };
-  var version = "3.997.44";
+  var version = "3.997.45";
   var packageInfo = {
     version
   };
@@ -68357,10 +68361,10 @@ var require_signin = __commonJS((exports) => {
   var _tT = "tokenType";
   var _tt = "token_type";
   var n0 = "com.amazonaws.signin";
-  var _s_registry = TypeRegistry.for(_s2);
+  var _s_registry = new TypeRegistry(_s2);
   var SigninServiceException$ = [-3, _s2, "SigninServiceException", 0, [], []];
   _s_registry.registerError(SigninServiceException$, SigninServiceException);
-  var n0_registry = TypeRegistry.for(n0);
+  var n0_registry = new TypeRegistry(n0);
   var AccessDeniedException$ = [
     -3,
     n0,
@@ -153141,10 +153145,10 @@ var _xawob = "x-amz-write-offset-bytes";
 var _xawrl = "x-amz-website-redirect-location";
 var _xs = "xsi:type";
 var n0 = "com.amazonaws.s3";
-var _s_registry = TypeRegistry.for(_s2);
+var _s_registry = new TypeRegistry(_s2);
 var S3ServiceException$ = [-3, _s2, "S3ServiceException", 0, [], []];
 _s_registry.registerError(S3ServiceException$, S3ServiceException);
-var n0_registry = TypeRegistry.for(n0);
+var n0_registry = new TypeRegistry(n0);
 var AccessDenied$ = [
   -3,
   n0,
@@ -157522,7 +157526,7 @@ var WriteGetObjectResponse$ = [
 
 class CreateSessionCommand extends command(_ep4, _mw0, "CreateSession", CreateSession$) {
 }
-var version = "3.1136.0";
+var version = "3.1140.0";
 var packageInfo = {
   version
 };
