@@ -159163,7 +159163,10 @@ async function flagOverlappingOpenPrs(params, deps) {
     const overlapping = [...changesetPaths(otherChangeset)].filter((p2) => mergingPaths.has(p2) && otherChangeset[p2] !== mergingChangeset[p2]);
     if (overlapping.length === 0)
       continue;
-    deps.core.info(`Flagging PR #${pr.number} as stale (overlapping paths: ${overlapping.join(", ")}).`);
+    const stale = await dropStackedPaths(deps, bucket, pr.number, otherChangeset, mergingChangeset, overlapping);
+    if (stale.length === 0)
+      continue;
+    deps.core.info(`Flagging PR #${pr.number} as stale (overlapping paths: ${stale.join(", ")}).`);
     await deps.octokit.rest.repos.createCommitStatus({
       ...repo,
       sha: pr.head.sha,
@@ -159174,6 +159177,18 @@ async function flagOverlappingOpenPrs(params, deps) {
     flagged.push(pr.number);
   }
   return flagged;
+}
+async function dropStackedPaths(deps, bucket, prNumber, otherChangeset, mergingChangeset, overlapping) {
+  const otherHeadSha = otherChangeset[HEAD_SHA_KEY3];
+  if (!otherHeadSha)
+    return overlapping;
+  const otherBaseline = await deps.getAncestorManifest(bucket, otherHeadSha);
+  const stacked = overlapping.filter((p2) => (otherBaseline[p2] ?? null) === mergingChangeset[p2]);
+  if (stacked.length === 0)
+    return overlapping;
+  deps.core.info(`PR #${prNumber} was compared against a baseline that already includes the merging changes for ${stacked.join(", ")} — not stale for those paths.`);
+  const stackedPaths = new Set(stacked);
+  return overlapping.filter((p2) => !stackedPaths.has(p2));
 }
 function changesetPaths(changeset) {
   return new Set(Object.keys(changeset).filter((key) => key !== HEAD_SHA_KEY3));
@@ -159302,6 +159317,11 @@ async function mergeEntry(bucket, entry, deps) {
     flagOverlappingOpenPrs: (params) => flagOverlappingOpenPrs(params, {
       octokit: deps.octokit,
       getChangeset: manifestS3.getChangeset,
+      getAncestorManifest: (bucket2, startSha) => findAncestorManifest(bucket2, startSha, {
+        getManifest: manifestS3.getManifest,
+        getParentSha: (sha) => getParentSha(sha, deps),
+        core: deps.core
+      }),
       core: deps.core
     }),
     applyChangesetToBaseImages: (params) => applyChangesetToBaseImages(params, {

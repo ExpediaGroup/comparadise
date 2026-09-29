@@ -30,3 +30,9 @@ status to failing with a message asking you to rebase. Comparadise will not acce
 `Visual Regression` status on your commit is failing, because the screenshots you reviewed were compared against a
 baseline that no longer exists. Rebase onto the default branch and re-run the visual tests, then review and accept
 the fresh comparison.
+
+Stacked PRs are exempt. If your PR targets another PR's branch and both change the same screenshot, your
+comparison already ran against the other PR's version of that screenshot, so nothing you reviewed is invalidated when
+it merges. Comparadise checks the baseline your PR was compared against and only asks you to rebase when that baseline
+disagrees with what actually landed — for example, when the other PR changed the screenshot again after your last
+visual test run.
