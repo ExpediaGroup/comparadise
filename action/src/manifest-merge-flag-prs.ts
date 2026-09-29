@@ -1,12 +1,13 @@
 import { VISUAL_REGRESSION_CONTEXT } from 'shared/constants';
 import type { Dependencies } from './dependencies';
-import type { Changeset } from './manifest-s3';
+import type { Changeset, Manifest } from './manifest-s3';
 
 const HEAD_SHA_KEY = '_headSha';
 
 export interface FlagOverlappingPrsDeps {
   octokit: Dependencies['octokit'];
   getChangeset: (bucket: string, sha: string) => Promise<Changeset | null>;
+  getAncestorManifest: (bucket: string, startSha: string) => Promise<Manifest>;
   core: Pick<Dependencies['core'], 'info'>;
 }
 
@@ -56,8 +57,18 @@ export async function flagOverlappingOpenPrs(
     );
     if (overlapping.length === 0) continue;
 
+    const stale = await dropStackedPaths(
+      deps,
+      bucket,
+      pr.number,
+      otherChangeset,
+      mergingChangeset,
+      overlapping
+    );
+    if (stale.length === 0) continue;
+
     deps.core.info(
-      `Flagging PR #${pr.number} as stale (overlapping paths: ${overlapping.join(', ')}).`
+      `Flagging PR #${pr.number} as stale (overlapping paths: ${stale.join(', ')}).`
     );
     await deps.octokit.rest.repos.createCommitStatus({
       ...repo,
@@ -70,6 +81,30 @@ export async function flagOverlappingOpenPrs(
   }
 
   return flagged;
+}
+
+async function dropStackedPaths(
+  deps: FlagOverlappingPrsDeps,
+  bucket: string,
+  prNumber: number,
+  otherChangeset: Changeset,
+  mergingChangeset: Changeset,
+  overlapping: string[]
+): Promise<string[]> {
+  const otherHeadSha = otherChangeset[HEAD_SHA_KEY];
+  if (!otherHeadSha) return overlapping;
+
+  const otherBaseline = await deps.getAncestorManifest(bucket, otherHeadSha);
+  const stacked = overlapping.filter(
+    p => (otherBaseline[p] ?? null) === mergingChangeset[p]
+  );
+  if (stacked.length === 0) return overlapping;
+
+  deps.core.info(
+    `PR #${prNumber} was compared against a baseline that already includes the merging changes for ${stacked.join(', ')} — not stale for those paths.`
+  );
+  const stackedPaths = new Set(stacked);
+  return overlapping.filter(p => !stackedPaths.has(p));
 }
 
 function changesetPaths(changeset: Changeset): Set<string> {
