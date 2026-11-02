@@ -6,6 +6,8 @@
   "files": [
     "dist",
     "commands.js",
+    "compare.js",
+    "compare.d.ts",
     "README.md"
   ],
   "repository": {
@@ -26,8 +28,13 @@
   "peerDependencies": {
     "cypress": ">=12"
   },
+  "peerDependenciesMeta": {
+    "cypress": {
+      "optional": true
+    }
+  },
   "scripts": {
-    "build": "tsdown index.ts screenshot-actions.ts create-base-image.ts --deps.neverBundle shared",
+    "build": "tsdown index.ts screenshot-actions.ts create-base-image.ts compare.ts --deps.neverBundle shared",
     "postbuild": "echo \"require('./dist/screenshot-actions.mjs');\nrequire('./dist/create-base-image.mjs');\" > commands.js",
     "prepack": "bun run build",
     "test": "bun test"

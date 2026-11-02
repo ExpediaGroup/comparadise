@@ -86,6 +86,9 @@
       "peerDependencies": {
         "cypress": ">=12",
       },
+      "optionalPeers": [
+        "cypress",
+      ],
     },
     "docs": {
       "name": "docs",
