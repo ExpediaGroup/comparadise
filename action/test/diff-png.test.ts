@@ -111,4 +111,126 @@ describe('diffPng', () => {
       expect(diffPng(base, actual).diffPixels).toBe(0);
     });
   });
+
+  describe('comparison options', () => {
+    it('controls diff-image opacity independently of padding', () => {
+      const image = makeSolidPng(3, 3, [0, 0, 0, 255]);
+      const transparent = diffPng(image, image, { alpha: 0 });
+      const opaque = diffPng(image, image, { alpha: 1 });
+      expect([
+        ...PNG.sync.read(transparent.diffBuffer).data.subarray(0, 4)
+      ]).toEqual([255, 255, 255, 255]);
+      expect([...PNG.sync.read(opaque.diffBuffer).data.subarray(0, 4)]).toEqual(
+        [0, 0, 0, 255]
+      );
+    });
+
+    it('supports a white background instead of checkerboard transparency', () => {
+      const base = makeSolidPng(3, 3, [100, 100, 100, 255]);
+      const actual = makeSolidPng(3, 3, [100, 100, 100, 64]);
+      expect(
+        diffPng(base, actual, { threshold: 0.3, checkerboard: false })
+          .diffPixels
+      ).toBe(9);
+      expect(
+        diffPng(base, actual, { threshold: 0.3, checkerboard: true }).diffPixels
+      ).toBe(0);
+    });
+  });
+
+  describe('padding options', () => {
+    it.each([
+      { opacity: 0, boundaryOffset: 0, pixels: 0 },
+      { opacity: 64 / 255, boundaryOffset: 0, pixels: 9 },
+      { opacity: 64 / 255, boundaryOffset: 1, pixels: 6 },
+      { opacity: 64 / 255, boundaryOffset: 3, pixels: 0 },
+      { opacity: 64 / 255, pixels: 9 }
+    ])(
+      'uses opacity $opacity and boundary offset $boundaryOffset',
+      ({ pixels, ...padding }) => {
+        const base = makeSolidPng(3, 3, [255, 255, 255, 255]);
+        const actual = makeSolidPng(6, 3, [255, 255, 255, 255]);
+        expect(
+          diffPng(base, actual, {
+            threshold: 0.1,
+            checkerboard: false,
+            strictEdgeDetection: true,
+            padding
+          }).diffPixels
+        ).toBe(pixels);
+      }
+    );
+
+    it('preserves the fill boundary at the configured comparison threshold', () => {
+      const base = makeSolidPng(3, 3, [255, 255, 255, 255]);
+      const actual = PNG.sync.read(makeSolidPng(6, 3, [255, 255, 255, 255]));
+      for (let y = 0; y < 3; y++) {
+        for (let x = 4; x < 6; x++) {
+          actual.data.set([128, 128, 128, 255], (y * 6 + x) * 4);
+        }
+      }
+      const captured = PNG.sync.write(actual);
+      const options = { threshold: 0.3, alpha: 0.1, checkerboard: false };
+      expect(diffPng(base, captured, options).diffPixels).toBe(6);
+      expect(
+        diffPng(base, captured, {
+          ...options,
+          padding: { opacity: 64 / 255, boundaryOffset: 1 }
+        }).diffPixels
+      ).toBe(0);
+    });
+
+    it('does not apply padding to equal-sized images', () => {
+      const base = makeSolidPng(3, 3, [0, 0, 0, 255]);
+      const actual = makeSolidPng(3, 3, [255, 255, 255, 255]);
+      expect(
+        diffPng(base, actual, {
+          padding: { opacity: 1, boundaryOffset: 0 }
+        })
+      ).toEqual(diffPng(base, actual));
+    });
+
+    it.each([-0.1, 1.1, NaN, Infinity])(
+      'rejects invalid padding opacity %s when resizing',
+      opacity => {
+        const image = makeSolidPng(3, 3, [0, 0, 0, 255]);
+        const actual = makeSolidPng(6, 3, [0, 0, 0, 255]);
+        expect(() => diffPng(image, actual, { padding: { opacity } })).toThrow(
+          RangeError
+        );
+      }
+    );
+
+    it.each([-1, 0.5, NaN, Infinity])(
+      'rejects invalid padding boundary offset %s when resizing',
+      boundaryOffset => {
+        const image = makeSolidPng(3, 3, [0, 0, 0, 255]);
+        const actual = makeSolidPng(6, 3, [0, 0, 0, 255]);
+        expect(() =>
+          diffPng(image, actual, { padding: { boundaryOffset } })
+        ).toThrow(RangeError);
+      }
+    );
+
+    it.each([
+      { opacity: NaN },
+      { boundaryOffset: -1 },
+      { opacity: 2, boundaryOffset: 0.5 }
+    ])('ignores padding settings when image dimensions match', padding => {
+      const base = makeSolidPng(3, 3, [0, 0, 0, 255]);
+      const actual = makeSolidPng(3, 3, [255, 255, 255, 255]);
+      expect(diffPng(base, actual, { padding })).toEqual(diffPng(base, actual));
+    });
+
+    it.each([{}, { opacity: 0 }, { boundaryOffset: 1 }])(
+      'defaults omitted padding fields to transparent fill',
+      padding => {
+        const base = makeSolidPng(3, 3, [0, 0, 0, 255]);
+        const actual = makeSolidPng(6, 3, [255, 255, 255, 255]);
+        expect(diffPng(base, actual, { padding })).toEqual(
+          diffPng(base, actual)
+        );
+      }
+    );
+  });
 });

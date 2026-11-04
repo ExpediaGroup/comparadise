@@ -1,35 +1,19 @@
 import { afterEach, describe, expect, it } from 'bun:test';
-import {
-  mkdtempSync,
-  readFileSync,
-  readdirSync,
-  rmSync,
-  writeFileSync
-} from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { PNG } from 'pngjs';
-import { compareImages } from '../compare';
+import { diffPng } from '../../action/src/diff-png';
 import { getDiffPixels } from '../images';
 
 const folders: string[] = [];
 
-function fixture(value = 0, width = 3) {
-  const folder = mkdtempSync(path.join(tmpdir(), 'comparadise-compare-'));
-  folders.push(folder);
-  const base = path.join(folder, 'base.png');
-  const actual = path.join(folder, 'new.png');
-  for (const [file, color, size] of [
-    [base, 0, 3],
-    [actual, value, width]
-  ] as const) {
-    const png = new PNG({ width: size, height: 3 });
-    for (let offset = 0; offset < png.data.length; offset += 4) {
-      png.data.set([color, color, color, 255], offset);
-    }
-    writeFileSync(file, PNG.sync.write(png));
+function image(value = 0, width = 3, height = 3, alpha = 255) {
+  const png = new PNG({ width, height });
+  for (let offset = 0; offset < png.data.length; offset += 4) {
+    png.data.set([value, value, value, alpha], offset);
   }
-  return { folder, base, actual };
+  return PNG.sync.write(png);
 }
 
 afterEach(() => {
@@ -39,49 +23,92 @@ afterEach(() => {
 
 describe('runner-independent image comparison', () => {
   it('reports changed pixels and returns an encoded PNG', () => {
-    const { base, actual } = fixture(255);
-    const result = compareImages(base, actual);
+    const result = diffPng(image(), image(255));
     expect(result.diffPixels).toBe(9);
-    expect(result.diffImage).toBeInstanceOf(Uint8Array);
-    expect(PNG.sync.read(Buffer.from(result.diffImage)).width).toBe(3);
+    expect(result.diffBuffer).toBeInstanceOf(Buffer);
+    expect(PNG.sync.read(result.diffBuffer).width).toBe(3);
   });
 
-  it('reports matching images without changing either input or writing output files', () => {
-    const { folder, base, actual } = fixture();
-    const before = [readFileSync(base), readFileSync(actual)] as const;
-    expect(compareImages(base, actual).diffPixels).toBe(0);
-    expect(readFileSync(base)).toEqual(before[0]);
-    expect(readFileSync(actual)).toEqual(before[1]);
-    expect(readdirSync(folder).sort()).toEqual(['base.png', 'new.png']);
+  it('reports matching images without changing either input buffer', () => {
+    const base = image();
+    const actual = image();
+    const before = [Buffer.from(base), Buffer.from(actual)] as const;
+    expect(diffPng(base, actual).diffPixels).toBe(0);
+    expect(base).toEqual(before[0]);
+    expect(actual).toEqual(before[1]);
   });
 
-  it('preserves the existing engine defaults and encoded diff', () => {
-    const { base, actual } = fixture(100);
-    const existing = getDiffPixels(base, actual);
-    const result = compareImages(base, actual);
-    expect(result.diffPixels).toBe(existing.diffPixels);
-    expect(
-      Buffer.from(result.diffImage).equals(PNG.sync.write(existing.diff))
-    ).toBe(true);
+  it('uses the action comparison defaults', () => {
+    const base = image();
+    const actual = image(100);
+    expect(diffPng(base, actual).diffPixels).toBe(9);
+    expect(diffPng(base, actual)).toEqual(
+      diffPng(base, actual, {
+        threshold: 0.1,
+        alpha: 0.1,
+        checkerboard: true,
+        strictEdgeDetection: false,
+        padding: { opacity: 0, boundaryOffset: 0 }
+      })
+    );
   });
 
-  it('passes explicit comparison options to the engine', () => {
-    const { base, actual } = fixture(100);
-    expect(compareImages(base, actual, { threshold: 0 }).diffPixels).toBe(9);
-    expect(compareImages(base, actual, { threshold: 1 }).diffPixels).toBe(0);
+  it('accepts explicit comparison thresholds', () => {
+    const base = image();
+    const actual = image(100);
+    expect(diffPng(base, actual, { threshold: 0 }).diffPixels).toBe(9);
+    expect(diffPng(base, actual, { threshold: 1 }).diffPixels).toBe(0);
   });
 
-  it('preserves different-size image comparison', () => {
-    const { base, actual } = fixture(0, 4);
-    const result = compareImages(base, actual);
+  it('expands different-sized images without scaling', () => {
+    const result = diffPng(image(), image(0, 4));
     expect(result.diffPixels).toBeGreaterThan(0);
-    expect(PNG.sync.read(Buffer.from(result.diffImage)).width).toBe(4);
+    expect(PNG.sync.read(result.diffBuffer).width).toBe(4);
   });
 
-  it('propagates missing and invalid image errors', () => {
-    const { base, actual } = fixture();
-    expect(() => compareImages(`${base}.missing`, actual)).toThrow();
-    writeFileSync(base, 'invalid PNG');
-    expect(() => compareImages(base, actual)).toThrow();
+  it('propagates invalid PNG errors from either input', () => {
+    const valid = image();
+    const invalid = Buffer.from('invalid PNG');
+    expect(() => diffPng(invalid, valid)).toThrow();
+    expect(() => diffPng(valid, invalid)).toThrow();
+  });
+
+  it('matches existing counts and diff pixels with explicit padding settings', () => {
+    const folder = mkdtempSync(path.join(tmpdir(), 'comparadise-compare-'));
+    folders.push(folder);
+    const basePath = path.join(folder, 'base.png');
+    const actualPath = path.join(folder, 'new.png');
+    const options = {
+      threshold: 0.3,
+      alpha: 0.1,
+      includeAA: false,
+      checkerboard: false
+    };
+    for (const [width, height] of [
+      [3, 3],
+      [4, 3],
+      [6, 3],
+      [3, 6],
+      [6, 5],
+      [2, 2],
+      [2, 6]
+    ]) {
+      for (const alpha of [64, 255]) {
+        const base = image(180);
+        const actual = image(180, width, height, alpha);
+        writeFileSync(basePath, base);
+        writeFileSync(actualPath, actual);
+        const existing = getDiffPixels(basePath, actualPath, options);
+        const result = diffPng(base, actual, {
+          threshold: options.threshold,
+          alpha: options.alpha,
+          checkerboard: options.checkerboard,
+          strictEdgeDetection: options.includeAA,
+          padding: { opacity: 64 / 255, boundaryOffset: 1 }
+        });
+        expect(result.diffPixels).toBe(existing.diffPixels);
+        expect(result.diffBuffer).toEqual(PNG.sync.write(existing.diff));
+      }
+    }
   });
 });

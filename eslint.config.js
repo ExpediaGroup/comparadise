@@ -44,7 +44,6 @@ export default [
       'docs',
       '**/public',
       'comparadise-utils/**/*.js',
-      'comparadise-utils/compare.d.ts',
       '.nx/**'
     ]
   }
