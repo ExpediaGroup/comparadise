@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { PNG } from 'pngjs';
-import { diffPng } from '../../action/src/diff-png';
+import { diffPng } from '../compare';
 import { getDiffPixels } from '../images';
 
 const folders: string[] = [];

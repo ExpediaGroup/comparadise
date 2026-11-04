@@ -41,7 +41,7 @@ type PaddingOptions = NonNullable<DiffPngOptions['padding']>;
  * @throws If either PNG is invalid, or resizing uses invalid padding options.
  * @example
  * import { readFileSync, writeFileSync } from 'node:fs';
- * import { diffPng } from 'comparadise-utils/diff-png';
+ * import { diffPng } from 'comparadise-utils/compare';
  *
  * const { diffPixels, diffBuffer } = diffPng(
  *   readFileSync('base.png'),
