@@ -158793,7 +158793,7 @@ async function downloadBuffer(s3, bucket, key) {
   return Buffer.from(bytes);
 }
 
-// src/diff-png.ts
+// ../shared/diff-png.ts
 var import_pngjs2 = __toESM(require_png(), 1);
 
 // ../node_modules/pixelmatch/index.js
@@ -158988,7 +158988,7 @@ function drawGrayPixel(img, i2, alpha, output) {
   drawPixel(output, i2, val, val, val);
 }
 
-// src/diff-png.ts
+// ../shared/diff-png.ts
 function diffPng(baseBuffer, actualBuffer, options = {}) {
   const {
     padding = {},

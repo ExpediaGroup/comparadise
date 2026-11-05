@@ -2,7 +2,10 @@ import { describe, expect, it } from 'bun:test';
 import path from 'path';
 import { hashFile } from '../src/hash';
 
-const fixturePath = path.join(__dirname, 'fixtures', 'expedia.png');
+const fixturePath = path.join(
+  __dirname,
+  '../../shared/test/fixtures/expedia.png'
+);
 
 describe('hashFile', () => {
   it('returns the MD5 hex digest of a file', async () => {

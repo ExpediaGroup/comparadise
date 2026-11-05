@@ -30,12 +30,9 @@
         "bluebird": "3.7.2",
         "glob": "13.0.6",
         "jimp": "1.6.1",
-        "pixelmatch": "7.2.0",
-        "pngjs": "7.0.0",
       },
       "devDependencies": {
         "@types/bluebird": "3.5.42",
-        "@types/pngjs": "6.0.5",
       },
     },
     "app": {
@@ -109,6 +106,11 @@
       "name": "shared",
       "dependencies": {
         "@aws-sdk/client-s3": "3.1137.0",
+        "pixelmatch": "7.2.0",
+        "pngjs": "7.0.0",
+      },
+      "devDependencies": {
+        "@types/pngjs": "6.0.5",
       },
     },
   },

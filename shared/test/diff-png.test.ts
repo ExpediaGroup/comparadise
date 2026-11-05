@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { diffPng } from '../src/diff-png';
+import { diffPng } from '../diff-png';
 import { PNG } from 'pngjs';
 import { readFileSync } from 'fs';
 import { join } from 'path';

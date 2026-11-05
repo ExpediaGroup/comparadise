@@ -1,6 +1,6 @@
 import { BASE_IMAGES_DIRECTORY, NEW_IMAGES_DIRECTORY } from 'shared/constants';
 import type { Dependencies } from './dependencies';
-import type { DiffPngResult } from './diff-png';
+import type { DiffPngResult } from 'shared/diff-png';
 import type { PrOwnsEntry } from './manifest-compare-classify';
 import { readBodyBytes } from './manifest-s3';
 
