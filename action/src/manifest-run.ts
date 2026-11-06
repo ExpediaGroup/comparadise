@@ -197,6 +197,12 @@ async function mergeEntry(
         flagOverlappingOpenPrs(params, {
           octokit: deps.octokit,
           getChangeset: manifestS3.getChangeset,
+          getAncestorManifest: (bucket, startSha) =>
+            findAncestorManifest(bucket, startSha, {
+              getManifest: manifestS3.getManifest,
+              getParentSha: sha => getParentSha(sha, deps),
+              core: deps.core
+            }),
           core: deps.core
         }),
       applyChangesetToBaseImages: params =>
