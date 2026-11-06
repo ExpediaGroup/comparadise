@@ -158793,7 +158793,7 @@ async function downloadBuffer(s3, bucket, key) {
   return Buffer.from(bytes);
 }
 
-// src/diff-png.ts
+// ../shared/diff-png.ts
 var import_pngjs2 = __toESM(require_png(), 1);
 
 // ../node_modules/pixelmatch/index.js
@@ -158988,18 +158988,30 @@ function drawGrayPixel(img, i2, alpha, output) {
   drawPixel(output, i2, val, val, val);
 }
 
-// src/diff-png.ts
+// ../shared/diff-png.ts
 function diffPng(baseBuffer, actualBuffer, options = {}) {
+  const {
+    padding = {},
+    strictEdgeDetection = false,
+    ...pixelmatchOptions
+  } = options;
   const rawBase = import_pngjs2.PNG.sync.read(baseBuffer);
   const rawActual = import_pngjs2.PNG.sync.read(actualBuffer);
   const width = Math.max(rawBase.width, rawActual.width);
   const height = Math.max(rawBase.height, rawActual.height);
-  const base = ensureSize(rawBase, width, height);
-  const actual = ensureSize(rawActual, width, height);
+  const prepareImage = (image2) => {
+    const resized = ensureSize(image2, width, height);
+    if (resized !== image2) {
+      fillPadding(resized, image2, padding);
+    }
+    return resized;
+  };
+  const base = prepareImage(rawBase);
+  const actual = prepareImage(rawActual);
   const diff = new import_pngjs2.PNG({ width, height });
   const diffPixels = pixelmatch(actual.data, base.data, diff.data, width, height, {
-    ...options.threshold !== undefined && { threshold: options.threshold },
-    includeAA: options.strictEdgeDetection ?? false
+    ...pixelmatchOptions,
+    includeAA: strictEdgeDetection
   });
   return { diffBuffer: import_pngjs2.PNG.sync.write(diff), diffPixels };
 }
@@ -159009,6 +159021,24 @@ function ensureSize(image2, width, height) {
   const resized = new import_pngjs2.PNG({ width, height, fill: true });
   import_pngjs2.PNG.bitblt(image2, resized, 0, 0, image2.width, image2.height, 0, 0);
   return resized;
+}
+function fillPadding(target, source, padding) {
+  const { opacity = 0, boundaryOffset = 0 } = padding;
+  if (!Number.isFinite(opacity) || opacity < 0 || opacity > 1) {
+    throw new RangeError("padding.opacity must be between 0 and 1.");
+  }
+  if (!Number.isInteger(boundaryOffset) || boundaryOffset < 0) {
+    throw new RangeError("padding.boundaryOffset must be a non-negative integer.");
+  }
+  if (opacity === 0)
+    return;
+  const fillPixel = Buffer.from([0, 0, 0, Math.round(opacity * 255)]);
+  for (let y3 = 0;y3 < target.height; y3++) {
+    const startX = y3 >= source.height + boundaryOffset ? 0 : source.width + boundaryOffset;
+    if (startX < target.width) {
+      target.data.fill(fillPixel, (y3 * target.width + startX) * 4, (y3 + 1) * target.width * 4);
+    }
+  }
 }
 
 // src/manifest-merge.ts
