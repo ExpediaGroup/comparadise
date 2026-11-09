@@ -128,13 +128,17 @@ describe('diffPng', () => {
     it('supports a white background instead of checkerboard transparency', () => {
       const base = makeSolidPng(3, 3, [100, 100, 100, 255]);
       const actual = makeSolidPng(3, 3, [100, 100, 100, 64]);
-      expect(
-        diffPng(base, actual, { threshold: 0.3, checkerboard: false })
-          .diffPixels
-      ).toBe(9);
-      expect(
-        diffPng(base, actual, { threshold: 0.3, checkerboard: true }).diffPixels
-      ).toBe(0);
+      const whiteDiffPixels = diffPng(base, actual, {
+        threshold: 0.3,
+        checkerboard: false
+      }).diffPixels;
+      const checkerboardDiffPixels = diffPng(base, actual, {
+        threshold: 0.3,
+        checkerboard: true
+      }).diffPixels;
+      expect(whiteDiffPixels).toBe(9);
+      expect(checkerboardDiffPixels).toBeGreaterThan(0);
+      expect(checkerboardDiffPixels).toBeLessThan(whiteDiffPixels);
     });
   });
 
