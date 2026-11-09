@@ -23075,13 +23075,13 @@ var require_omggif = __commonJS((exports) => {
       buf[p++] = 0;
     }
     var ended = false;
-    this.addFrame = function(x2, y, w, h, indexed_pixels, opts) {
+    this.addFrame = function(x, y, w, h, indexed_pixels, opts) {
       if (ended === true) {
         --p;
         ended = false;
       }
       opts = opts === undefined ? {} : opts;
-      if (x2 < 0 || y < 0 || x2 > 65535 || y > 65535)
+      if (x < 0 || y < 0 || x > 65535 || y > 65535)
         throw new Error("x/y invalid.");
       if (w <= 0 || h <= 0 || w > 65535 || h > 65535)
         throw new Error("Width/Height invalid.");
@@ -23123,8 +23123,8 @@ var require_omggif = __commonJS((exports) => {
         buf[p++] = 0;
       }
       buf[p++] = 44;
-      buf[p++] = x2 & 255;
-      buf[p++] = x2 >> 8 & 255;
+      buf[p++] = x & 255;
+      buf[p++] = x >> 8 & 255;
       buf[p++] = y & 255;
       buf[p++] = y >> 8 & 255;
       buf[p++] = w & 255;
@@ -23309,7 +23309,7 @@ var require_omggif = __commonJS((exports) => {
           }
           break;
         case 44:
-          var x2 = buf[p++] | buf[p++] << 8;
+          var x = buf[p++] | buf[p++] << 8;
           var y = buf[p++] | buf[p++] << 8;
           var w = buf[p++] | buf[p++] << 8;
           var h = buf[p++] | buf[p++] << 8;
@@ -23338,7 +23338,7 @@ var require_omggif = __commonJS((exports) => {
             p += block_size;
           }
           frames.push({
-            x: x2,
+            x,
             y,
             width: w,
             height: h,
@@ -23406,12 +23406,12 @@ var require_omggif = __commonJS((exports) => {
         if (index === trans) {
           op += 4;
         } else {
-          var r = buf[palette_offset2 + index * 3];
+          var r7 = buf[palette_offset2 + index * 3];
           var g = buf[palette_offset2 + index * 3 + 1];
           var b = buf[palette_offset2 + index * 3 + 2];
           pixels[op++] = b;
           pixels[op++] = g;
-          pixels[op++] = r;
+          pixels[op++] = r7;
           pixels[op++] = 255;
         }
         --xleft;
@@ -23451,10 +23451,10 @@ var require_omggif = __commonJS((exports) => {
         if (index === trans) {
           op += 4;
         } else {
-          var r = buf[palette_offset2 + index * 3];
+          var r7 = buf[palette_offset2 + index * 3];
           var g = buf[palette_offset2 + index * 3 + 1];
           var b = buf[palette_offset2 + index * 3 + 2];
-          pixels[op++] = r;
+          pixels[op++] = r7;
           pixels[op++] = g;
           pixels[op++] = b;
           pixels[op++] = 255;
@@ -23626,8 +23626,8 @@ var require_bitmapimage = __commonJS((exports, module) => {
       }
       return this;
     }
-    getRGBA(x2, y) {
-      const bi2 = (y * this.bitmap.width + x2) * 4;
+    getRGBA(x, y) {
+      const bi2 = (y * this.bitmap.width + x) * 4;
       return this.bitmap.data.readUInt32BE(bi2);
     }
     getRGBASet() {
@@ -23640,7 +23640,7 @@ var require_bitmapimage = __commonJS((exports, module) => {
     }
     greyscale() {
       const buf = this.bitmap.data;
-      this.scan(0, 0, this.bitmap.width, this.bitmap.height, (x2, y, idx) => {
+      this.scan(0, 0, this.bitmap.width, this.bitmap.height, (x, y, idx) => {
         const grey = Math.round(0.299 * buf[idx] + 0.587 * buf[idx + 1] + 0.114 * buf[idx + 2]);
         buf[idx] = grey;
         buf[idx + 1] = grey;
@@ -23685,7 +23685,7 @@ var require_bitmapimage = __commonJS((exports, module) => {
       let destIndex = 0;
       for (let y = 0;y < sourceHeight; ++y) {
         priorDestRowIndex = destIndex;
-        for (let x2 = 0;x2 < sourceWidth; ++x2) {
+        for (let x = 0;x < sourceWidth; ++x) {
           const color = sourceBuf.readUInt32BE(sourceIndex, true);
           for (let cx = 0;cx < factor; ++cx) {
             destBuf.writeUInt32BE(color, destIndex);
@@ -23709,12 +23709,12 @@ var require_bitmapimage = __commonJS((exports, module) => {
     scanAllCoords(scanHandler) {
       const width = this.bitmap.width;
       const bufferLength = this.bitmap.data.length;
-      let x2 = 0;
+      let x = 0;
       let y = 0;
       for (let bi2 = 0;bi2 < bufferLength; bi2 += 4) {
-        scanHandler(x2, y, bi2);
-        if (++x2 === width) {
-          x2 = 0;
+        scanHandler(x, y, bi2);
+        if (++x === width) {
+          x = 0;
           ++y;
         }
       }
@@ -23808,7 +23808,7 @@ var require_image_q = __commonJS((exports, module) => {
   var bt709_exports = {};
   __export2(bt709_exports, {
     Y: () => Y2,
-    x: () => x2,
+    x: () => x,
     y: () => y
   });
   var Y2 = /* @__PURE__ */ ((Y22) => {
@@ -23818,13 +23818,13 @@ var require_image_q = __commonJS((exports, module) => {
     Y22[Y22["WHITE"] = 1] = "WHITE";
     return Y22;
   })(Y2 || {});
-  var x2 = /* @__PURE__ */ ((x22) => {
-    x22[x22["RED"] = 0.64] = "RED";
-    x22[x22["GREEN"] = 0.3] = "GREEN";
-    x22[x22["BLUE"] = 0.15] = "BLUE";
-    x22[x22["WHITE"] = 0.3127] = "WHITE";
-    return x22;
-  })(x2 || {});
+  var x = /* @__PURE__ */ ((x2) => {
+    x2[x2["RED"] = 0.64] = "RED";
+    x2[x2["GREEN"] = 0.3] = "GREEN";
+    x2[x2["BLUE"] = 0.15] = "BLUE";
+    x2[x2["WHITE"] = 0.3127] = "WHITE";
+    return x2;
+  })(x || {});
   var y = /* @__PURE__ */ ((y2) => {
     y2[y2["RED"] = 0.33] = "RED";
     y2[y2["GREEN"] = 0.6] = "GREEN";
@@ -23842,17 +23842,17 @@ var require_image_q = __commonJS((exports, module) => {
     xyz2lab: () => xyz2lab,
     xyz2rgb: () => xyz2rgb
   });
-  function correctGamma(n7) {
-    return n7 > 0.04045 ? ((n7 + 0.055) / 1.055) ** 2.4 : n7 / 12.92;
+  function correctGamma(n) {
+    return n > 0.04045 ? ((n + 0.055) / 1.055) ** 2.4 : n / 12.92;
   }
-  function rgb2xyz(r, g, b) {
-    r = correctGamma(r / 255);
+  function rgb2xyz(r7, g, b) {
+    r7 = correctGamma(r7 / 255);
     g = correctGamma(g / 255);
     b = correctGamma(b / 255);
     return {
-      x: r * 0.4124 + g * 0.3576 + b * 0.1805,
-      y: r * 0.2126 + g * 0.7152 + b * 0.0722,
-      z: r * 0.0193 + g * 0.1192 + b * 0.9505
+      x: r7 * 0.4124 + g * 0.3576 + b * 0.1805,
+      y: r7 * 0.2126 + g * 0.7152 + b * 0.0722,
+      z: r7 * 0.0193 + g * 0.1192 + b * 0.9505
     };
   }
   var arithmetic_exports = {};
@@ -23865,8 +23865,8 @@ var require_image_q = __commonJS((exports, module) => {
     min3: () => min3,
     stableSort: () => stableSort
   });
-  function degrees2radians(n7) {
-    return n7 * (Math.PI / 180);
+  function degrees2radians(n) {
+    return n * (Math.PI / 180);
   }
   function max3(a, b, c) {
     let m = a;
@@ -23891,20 +23891,20 @@ var require_image_q = __commonJS((exports, module) => {
       value = low;
     return value | 0;
   }
-  function inRange0to255Rounded(n7) {
-    n7 = Math.round(n7);
-    if (n7 > 255)
-      n7 = 255;
-    else if (n7 < 0)
-      n7 = 0;
-    return n7;
+  function inRange0to255Rounded(n) {
+    n = Math.round(n);
+    if (n > 255)
+      n = 255;
+    else if (n < 0)
+      n = 0;
+    return n;
   }
-  function inRange0to255(n7) {
-    if (n7 > 255)
-      n7 = 255;
-    else if (n7 < 0)
-      n7 = 0;
-    return n7;
+  function inRange0to255(n) {
+    if (n > 255)
+      n = 255;
+    else if (n < 0)
+      n = 0;
+    return n;
   }
   function stableSort(arrayToSort, callback) {
     const type = typeof arrayToSort[0];
@@ -23924,9 +23924,9 @@ var require_image_q = __commonJS((exports, module) => {
     }
     return sorted;
   }
-  function rgb2hsl(r, g, b) {
-    const min = min3(r, g, b);
-    const max = max3(r, g, b);
+  function rgb2hsl(r7, g, b) {
+    const min = min3(r7, g, b);
+    const max = max3(r7, g, b);
     const delta = max - min;
     const l = (min + max) / 510;
     let s = 0;
@@ -23934,12 +23934,12 @@ var require_image_q = __commonJS((exports, module) => {
       s = delta / (l < 0.5 ? max + min : 510 - max - min);
     let h = 0;
     if (delta > 0) {
-      if (max === r) {
+      if (max === r7) {
         h = (g - b) / delta;
       } else if (max === g) {
-        h = 2 + (b - r) / delta;
+        h = 2 + (b - r7) / delta;
       } else {
-        h = 4 + (r - g) / delta;
+        h = 4 + (r7 - g) / delta;
       }
       h *= 60;
       if (h < 0)
@@ -23950,50 +23950,50 @@ var require_image_q = __commonJS((exports, module) => {
   var refX = 0.95047;
   var refY = 1;
   var refZ = 1.08883;
-  function pivot(n7) {
-    return n7 > 0.008856 ? n7 ** (1 / 3) : 7.787 * n7 + 16 / 116;
+  function pivot(n) {
+    return n > 0.008856 ? n ** (1 / 3) : 7.787 * n + 16 / 116;
   }
-  function xyz2lab(x22, y2, z) {
-    x22 = pivot(x22 / refX);
+  function xyz2lab(x2, y2, z2) {
+    x2 = pivot(x2 / refX);
     y2 = pivot(y2 / refY);
-    z = pivot(z / refZ);
+    z2 = pivot(z2 / refZ);
     if (116 * y2 - 16 < 0)
       throw new Error("xxx");
     return {
       L: Math.max(0, 116 * y2 - 16),
-      a: 500 * (x22 - y2),
-      b: 200 * (y2 - z)
+      a: 500 * (x2 - y2),
+      b: 200 * (y2 - z2)
     };
   }
-  function rgb2lab(r, g, b) {
-    const xyz = rgb2xyz(r, g, b);
+  function rgb2lab(r7, g, b) {
+    const xyz = rgb2xyz(r7, g, b);
     return xyz2lab(xyz.x, xyz.y, xyz.z);
   }
   var refX2 = 0.95047;
   var refY2 = 1;
   var refZ2 = 1.08883;
-  function pivot2(n7) {
-    return n7 > 0.206893034 ? n7 ** 3 : (n7 - 16 / 116) / 7.787;
+  function pivot2(n) {
+    return n > 0.206893034 ? n ** 3 : (n - 16 / 116) / 7.787;
   }
   function lab2xyz(L2, a, b) {
     const y2 = (L2 + 16) / 116;
-    const x22 = a / 500 + y2;
-    const z = y2 - b / 200;
+    const x2 = a / 500 + y2;
+    const z2 = y2 - b / 200;
     return {
-      x: refX2 * pivot2(x22),
+      x: refX2 * pivot2(x2),
       y: refY2 * pivot2(y2),
-      z: refZ2 * pivot2(z)
+      z: refZ2 * pivot2(z2)
     };
   }
-  function correctGamma2(n7) {
-    return n7 > 0.0031308 ? 1.055 * n7 ** (1 / 2.4) - 0.055 : 12.92 * n7;
+  function correctGamma2(n) {
+    return n > 0.0031308 ? 1.055 * n ** (1 / 2.4) - 0.055 : 12.92 * n;
   }
-  function xyz2rgb(x22, y2, z) {
-    const r = correctGamma2(x22 * 3.2406 + y2 * -1.5372 + z * -0.4986);
-    const g = correctGamma2(x22 * -0.9689 + y2 * 1.8758 + z * 0.0415);
-    const b = correctGamma2(x22 * 0.0557 + y2 * -0.204 + z * 1.057);
+  function xyz2rgb(x2, y2, z2) {
+    const r7 = correctGamma2(x2 * 3.2406 + y2 * -1.5372 + z2 * -0.4986);
+    const g = correctGamma2(x2 * -0.9689 + y2 * 1.8758 + z2 * 0.0415);
+    const b = correctGamma2(x2 * 0.0557 + y2 * -0.204 + z2 * 1.057);
     return {
-      r: inRange0to255Rounded(r * 255),
+      r: inRange0to255Rounded(r7 * 255),
       g: inRange0to255Rounded(g * 255),
       b: inRange0to255Rounded(b * 255)
     };
@@ -24026,23 +24026,23 @@ var require_image_q = __commonJS((exports, module) => {
       this._setDefaults();
       this.setWhitePoint(255, 255, 255, 255);
     }
-    setWhitePoint(r, g, b, a) {
+    setWhitePoint(r7, g, b, a) {
       this._whitePoint = {
-        r: r > 0 ? 255 / r : 0,
+        r: r7 > 0 ? 255 / r7 : 0,
         g: g > 0 ? 255 / g : 0,
         b: b > 0 ? 255 / b : 0,
         a: a > 0 ? 255 / a : 0
       };
-      this._maxDistance = this.calculateRaw(r, g, b, a, 0, 0, 0, 0);
+      this._maxDistance = this.calculateRaw(r7, g, b, a, 0, 0, 0, 0);
     }
     calculateNormalized(colorA, colorB) {
       return this.calculateRaw(colorA.r, colorA.g, colorA.b, colorA.a, colorB.r, colorB.g, colorB.b, colorB.a) / this._maxDistance;
     }
   };
   var AbstractCIE94 = class extends AbstractDistanceCalculator {
-    calculateRaw(r1, g1, b1, a1, r2, g2, b2, a2) {
+    calculateRaw(r1, g1, b1, a1, r22, g2, b2, a2) {
       const lab1 = rgb2lab(inRange0to255(r1 * this._whitePoint.r), inRange0to255(g1 * this._whitePoint.g), inRange0to255(b1 * this._whitePoint.b));
-      const lab2 = rgb2lab(inRange0to255(r2 * this._whitePoint.r), inRange0to255(g2 * this._whitePoint.g), inRange0to255(b2 * this._whitePoint.b));
+      const lab2 = rgb2lab(inRange0to255(r22 * this._whitePoint.r), inRange0to255(g2 * this._whitePoint.g), inRange0to255(b2 * this._whitePoint.b));
       const dL = lab1.L - lab2.L;
       const dA = lab1.a - lab2.a;
       const dB = lab1.b - lab2.b;
@@ -24112,9 +24112,9 @@ var require_image_q = __commonJS((exports, module) => {
       }
       return 2 * Math.sqrt(C1pC2p) * Math.sin(dhp / 2);
     }
-    calculateRaw(r1, g1, b1, a1, r2, g2, b2, a2) {
+    calculateRaw(r1, g1, b1, a1, r22, g2, b2, a2) {
       const lab1 = rgb2lab(inRange0to255(r1 * this._whitePoint.r), inRange0to255(g1 * this._whitePoint.g), inRange0to255(b1 * this._whitePoint.b));
-      const lab2 = rgb2lab(inRange0to255(r2 * this._whitePoint.r), inRange0to255(g2 * this._whitePoint.g), inRange0to255(b2 * this._whitePoint.b));
+      const lab2 = rgb2lab(inRange0to255(r22 * this._whitePoint.r), inRange0to255(g2 * this._whitePoint.g), inRange0to255(b2 * this._whitePoint.b));
       const dA = (a2 - a1) * this._whitePoint.a * _CIEDE2000._kA;
       const dE2 = this.calculateRawInLab(lab1, lab2);
       return Math.sqrt(dE2 + dA * dA);
@@ -24166,20 +24166,20 @@ var require_image_q = __commonJS((exports, module) => {
   __publicField(CIEDE2000, "_deg275InRad", degrees2radians(275));
   __publicField(CIEDE2000, "_deg25InRad", degrees2radians(25));
   var CMetric = class extends AbstractDistanceCalculator {
-    calculateRaw(r1, g1, b1, a1, r2, g2, b2, a2) {
-      const rmean = (r1 + r2) / 2 * this._whitePoint.r;
-      const r = (r1 - r2) * this._whitePoint.r;
+    calculateRaw(r1, g1, b1, a1, r22, g2, b2, a2) {
+      const rmean = (r1 + r22) / 2 * this._whitePoint.r;
+      const r7 = (r1 - r22) * this._whitePoint.r;
       const g = (g1 - g2) * this._whitePoint.g;
       const b = (b1 - b2) * this._whitePoint.b;
-      const dE = ((512 + rmean) * r * r >> 8) + 4 * g * g + ((767 - rmean) * b * b >> 8);
+      const dE = ((512 + rmean) * r7 * r7 >> 8) + 4 * g * g + ((767 - rmean) * b * b >> 8);
       const dA = (a2 - a1) * this._whitePoint.a;
       return Math.sqrt(dE + dA * dA);
     }
     _setDefaults() {}
   };
   var AbstractEuclidean = class extends AbstractDistanceCalculator {
-    calculateRaw(r1, g1, b1, a1, r2, g2, b2, a2) {
-      const dR = r2 - r1;
+    calculateRaw(r1, g1, b1, a1, r22, g2, b2, a2) {
+      const dR = r22 - r1;
       const dG = g2 - g1;
       const dB = b2 - b1;
       const dA = a2 - a1;
@@ -24211,8 +24211,8 @@ var require_image_q = __commonJS((exports, module) => {
     }
   };
   var AbstractManhattan = class extends AbstractDistanceCalculator {
-    calculateRaw(r1, g1, b1, a1, r2, g2, b2, a2) {
-      let dR = r2 - r1;
+    calculateRaw(r1, g1, b1, a1, r22, g2, b2, a2) {
+      let dR = r22 - r1;
       let dG = g2 - g1;
       let dB = b2 - b1;
       let dA = a2 - a1;
@@ -24252,12 +24252,12 @@ var require_image_q = __commonJS((exports, module) => {
     }
   };
   var PNGQuant = class extends AbstractDistanceCalculator {
-    calculateRaw(r1, g1, b1, a1, r2, g2, b2, a2) {
+    calculateRaw(r1, g1, b1, a1, r22, g2, b2, a2) {
       const alphas = (a2 - a1) * this._whitePoint.a;
-      return this._colordifferenceCh(r1 * this._whitePoint.r, r2 * this._whitePoint.r, alphas) + this._colordifferenceCh(g1 * this._whitePoint.g, g2 * this._whitePoint.g, alphas) + this._colordifferenceCh(b1 * this._whitePoint.b, b2 * this._whitePoint.b, alphas);
+      return this._colordifferenceCh(r1 * this._whitePoint.r, r22 * this._whitePoint.r, alphas) + this._colordifferenceCh(g1 * this._whitePoint.g, g2 * this._whitePoint.g, alphas) + this._colordifferenceCh(b1 * this._whitePoint.b, b2 * this._whitePoint.b, alphas);
     }
-    _colordifferenceCh(x22, y2, alphas) {
-      const black = x22 - y2;
+    _colordifferenceCh(x2, y2, alphas) {
+      const black = x2 - y2;
       const white = black + alphas;
       return black * black + white * white;
     }
@@ -24338,15 +24338,15 @@ var require_image_q = __commonJS((exports, module) => {
       this.rgba[3] = point.a;
     }
     getLuminosity(useAlphaChannel) {
-      let r = this.r;
+      let r7 = this.r;
       let g = this.g;
       let b = this.b;
       if (useAlphaChannel) {
-        r = Math.min(255, 255 - this.a + this.a * r / 255);
+        r7 = Math.min(255, 255 - this.a + this.a * r7 / 255);
         g = Math.min(255, 255 - this.a + this.a * g / 255);
         b = Math.min(255, 255 - this.a + this.a * b / 255);
       }
-      return r * 0.2126 + g * 0.7152 + b * 0.0722;
+      return r7 * 0.2126 + g * 0.7152 + b * 0.0722;
     }
     _loadUINT32() {
       this.uint32 = (this.a << 24 | this.b << 16 | this.g << 8 | this.r) >>> 0;
@@ -24566,10 +24566,10 @@ var require_image_q = __commonJS((exports, module) => {
       if (this._groupsFull === this._numGroups + 1) {
         this.check = () => {};
       }
-      const r = i32 & 255;
+      const r7 = i32 & 255;
       const g = i32 >>> 8 & 255;
       const b = i32 >>> 16 & 255;
-      const hg = r === g && g === b ? 0 : 1 + hueGroup(rgb2hsl(r, g, b).h, this._numGroups);
+      const hg = r7 === g && g === b ? 0 : 1 + hueGroup(rgb2hsl(r7, g, b).h, this._numGroups);
       const gr = this._stats[hg];
       const min = this._minCols;
       gr.num++;
@@ -24644,8 +24644,8 @@ var require_image_q = __commonJS((exports, module) => {
     toPoint() {
       return Point.createByRGBA(this.r >> networkBiasShift, this.g >> networkBiasShift, this.b >> networkBiasShift, this.a >> networkBiasShift);
     }
-    subtract(r, g, b, a) {
-      this.r -= r | 0;
+    subtract(r7, g, b, a) {
+      this.r -= r7 | 0;
       this.g -= g | 0;
       this.b -= b | 0;
       this.a -= a | 0;
@@ -24728,12 +24728,12 @@ var require_image_q = __commonJS((exports, module) => {
         const point = this._pointArray[pointIndex];
         const b = point.b << networkBiasShift;
         const g = point.g << networkBiasShift;
-        const r = point.r << networkBiasShift;
+        const r7 = point.r << networkBiasShift;
         const a = point.a << networkBiasShift;
-        const neuronIndex = this._contest(b, g, r, a);
-        this._alterSingle(alpha, neuronIndex, b, g, r, a);
+        const neuronIndex = this._contest(b, g, r7, a);
+        this._alterSingle(alpha, neuronIndex, b, g, r7, a);
         if (rad !== 0)
-          this._alterNeighbour(rad, neuronIndex, b, g, r, a);
+          this._alterNeighbour(rad, neuronIndex, b, g, r7, a);
         pointIndex += step;
         if (pointIndex >= pointsNumber)
           pointIndex -= pointsNumber;
@@ -24760,7 +24760,7 @@ var require_image_q = __commonJS((exports, module) => {
       palette2.sort();
       return palette2;
     }
-    _alterNeighbour(rad, i, b, g, r, al) {
+    _alterNeighbour(rad, i, b, g, r7, al) {
       let lo = i - rad;
       if (lo < -1)
         lo = -1;
@@ -24774,28 +24774,28 @@ var require_image_q = __commonJS((exports, module) => {
         const a = this._radPower[m++] / _NeuQuant._alphaRadBias;
         if (j2 < hi2) {
           const p = this._network[j2++];
-          p.subtract(a * (p.r - r), a * (p.g - g), a * (p.b - b), a * (p.a - al));
+          p.subtract(a * (p.r - r7), a * (p.g - g), a * (p.b - b), a * (p.a - al));
         }
         if (k2 > lo) {
           const p = this._network[k2--];
-          p.subtract(a * (p.r - r), a * (p.g - g), a * (p.b - b), a * (p.a - al));
+          p.subtract(a * (p.r - r7), a * (p.g - g), a * (p.b - b), a * (p.a - al));
         }
       }
     }
-    _alterSingle(alpha, i, b, g, r, a) {
+    _alterSingle(alpha, i, b, g, r7, a) {
       alpha /= _NeuQuant._initAlpha;
-      const n7 = this._network[i];
-      n7.subtract(alpha * (n7.r - r), alpha * (n7.g - g), alpha * (n7.b - b), alpha * (n7.a - a));
+      const n = this._network[i];
+      n.subtract(alpha * (n.r - r7), alpha * (n.g - g), alpha * (n.b - b), alpha * (n.a - a));
     }
-    _contest(b, g, r, a) {
+    _contest(b, g, r7, a) {
       const multiplier = 255 * 4 << networkBiasShift;
       let bestd = ~(1 << 31);
       let bestbiasd = bestd;
       let bestpos = -1;
       let bestbiaspos = bestpos;
       for (let i = 0;i < this._networkSize; i++) {
-        const n7 = this._network[i];
-        const dist = this._distance.calculateNormalized(n7, { r, g, b, a }) * multiplier | 0;
+        const n = this._network[i];
+        const dist = this._distance.calculateNormalized(n, { r: r7, g, b, a }) * multiplier | 0;
         if (dist < bestd) {
           bestd = dist;
           bestpos = i;
@@ -24848,8 +24848,8 @@ var require_image_q = __commonJS((exports, module) => {
     toPoint() {
       return Point.createByRGBA(this.r >> networkBiasShift2, this.g >> networkBiasShift2, this.b >> networkBiasShift2, this.a >> networkBiasShift2);
     }
-    subtract(r, g, b, a) {
-      this.r -= r;
+    subtract(r7, g, b, a) {
+      this.r -= r7;
       this.g -= g;
       this.b -= b;
       this.a -= a;
@@ -24932,12 +24932,12 @@ var require_image_q = __commonJS((exports, module) => {
         const point = this._pointArray[pointIndex];
         const b = point.b << networkBiasShift2;
         const g = point.g << networkBiasShift2;
-        const r = point.r << networkBiasShift2;
+        const r7 = point.r << networkBiasShift2;
         const a = point.a << networkBiasShift2;
-        const neuronIndex = this._contest(b, g, r, a);
-        this._alterSingle(alpha, neuronIndex, b, g, r, a);
+        const neuronIndex = this._contest(b, g, r7, a);
+        this._alterSingle(alpha, neuronIndex, b, g, r7, a);
         if (rad !== 0)
-          this._alterNeighbour(rad, neuronIndex, b, g, r, a);
+          this._alterNeighbour(rad, neuronIndex, b, g, r7, a);
         pointIndex += step;
         if (pointIndex >= pointsNumber)
           pointIndex -= pointsNumber;
@@ -24964,7 +24964,7 @@ var require_image_q = __commonJS((exports, module) => {
       palette2.sort();
       return palette2;
     }
-    _alterNeighbour(rad, i, b, g, r, al) {
+    _alterNeighbour(rad, i, b, g, r7, al) {
       let lo = i - rad;
       if (lo < -1)
         lo = -1;
@@ -24978,28 +24978,28 @@ var require_image_q = __commonJS((exports, module) => {
         const a = this._radPower[m++] / _NeuQuantFloat._alphaRadBias;
         if (j2 < hi2) {
           const p = this._network[j2++];
-          p.subtract(a * (p.r - r), a * (p.g - g), a * (p.b - b), a * (p.a - al));
+          p.subtract(a * (p.r - r7), a * (p.g - g), a * (p.b - b), a * (p.a - al));
         }
         if (k2 > lo) {
           const p = this._network[k2--];
-          p.subtract(a * (p.r - r), a * (p.g - g), a * (p.b - b), a * (p.a - al));
+          p.subtract(a * (p.r - r7), a * (p.g - g), a * (p.b - b), a * (p.a - al));
         }
       }
     }
-    _alterSingle(alpha, i, b, g, r, a) {
+    _alterSingle(alpha, i, b, g, r7, a) {
       alpha /= _NeuQuantFloat._initAlpha;
-      const n7 = this._network[i];
-      n7.subtract(alpha * (n7.r - r), alpha * (n7.g - g), alpha * (n7.b - b), alpha * (n7.a - a));
+      const n = this._network[i];
+      n.subtract(alpha * (n.r - r7), alpha * (n.g - g), alpha * (n.b - b), alpha * (n.a - a));
     }
-    _contest(b, g, r, al) {
+    _contest(b, g, r7, al) {
       const multiplier = 255 * 4 << networkBiasShift2;
       let bestd = ~(1 << 31);
       let bestbiasd = bestd;
       let bestpos = -1;
       let bestbiaspos = bestpos;
       for (let i = 0;i < this._networkSize; i++) {
-        const n7 = this._network[i];
-        const dist = this._distance.calculateNormalized(n7, { r, g, b, a: al }) * multiplier;
+        const n = this._network[i];
+        const dist = this._distance.calculateNormalized(n, { r: r7, g, b, a: al }) * multiplier;
         if (dist < bestd) {
           bestd = dist;
           bestpos = i;
@@ -25134,7 +25134,7 @@ var require_image_q = __commonJS((exports, module) => {
       });
       this._hueStats.injectIntoDictionary(histG);
     }
-    _iterateBox(bbox, wid, fn) {
+    _iterateBox(bbox, wid, fn2) {
       const b = bbox;
       const i0 = b.y * wid + b.x;
       const i1 = (b.y + b.h - 1) * wid + (b.x + b.w - 1);
@@ -25142,7 +25142,7 @@ var require_image_q = __commonJS((exports, module) => {
       let cnt = 0;
       let i = i0;
       do {
-        fn.call(this, i);
+        fn2.call(this, i);
         i += ++cnt % b.w === 0 ? incr : 1;
       } while (i <= i1);
     }
@@ -25153,11 +25153,11 @@ var require_image_q = __commonJS((exports, module) => {
       const yend = height - hrem;
       const boxesArray = [];
       for (let y2 = 0;y2 < height; y2 += stepY) {
-        for (let x22 = 0;x22 < width; x22 += stepX) {
+        for (let x2 = 0;x2 < width; x2 += stepX) {
           boxesArray.push({
-            x: x22,
+            x: x2,
             y: y2,
-            w: x22 === xend ? wrem : stepX,
+            w: x2 === xend ? wrem : stepX,
             h: y2 === yend ? hrem : stepY
           });
         }
@@ -25374,11 +25374,11 @@ var require_image_q = __commonJS((exports, module) => {
       for (let paletteIndex = 0;paletteIndex < this._colors; paletteIndex++) {
         if (this._sums[paletteIndex] > 0) {
           const sum = this._sums[paletteIndex];
-          const r = this._reds[paletteIndex] / sum;
+          const r7 = this._reds[paletteIndex] / sum;
           const g = this._greens[paletteIndex] / sum;
           const b = this._blues[paletteIndex] / sum;
           const a = this._alphas[paletteIndex] / sum;
-          const color = Point.createByRGBA(r | 0, g | 0, b | 0, a | 0);
+          const color = Point.createByRGBA(r7 | 0, g | 0, b | 0, a | 0);
           palette2.add(color);
         }
       }
@@ -25757,7 +25757,7 @@ var require_image_q = __commonJS((exports, module) => {
             progress: tracker.progress
           };
         }
-        for (let x22 = 0, idx = y2 * width;x22 < width; x22++, idx++) {
+        for (let x2 = 0, idx = y2 * width;x2 < width; x2++, idx++) {
           const point = pointArray[idx];
           point.from(palette2.getNearestColor(this._distance, point));
         }
@@ -25825,9 +25825,9 @@ var require_image_q = __commonJS((exports, module) => {
         this._fillErrorLine(errorLines[0], width);
         errorLines.push(errorLines.shift());
         const errorLine = errorLines[0];
-        for (let x22 = xStart, idx = lni + xStart;x22 !== xEnd; x22 += dir, idx += dir) {
+        for (let x2 = xStart, idx = lni + xStart;x2 !== xEnd; x2 += dir, idx += dir) {
           const point = pointArray[idx];
-          const error2 = errorLine[x22];
+          const error2 = errorLine[x2];
           originalPoint.from(point);
           const correctedPoint = Point.createByRGBA(inRange0to255Rounded(point.r + error2[0]), inRange0to255Rounded(point.g + error2[1]), inRange0to255Rounded(point.b + error2[2]), inRange0to255Rounded(point.a + error2[3]));
           const palettePoint = palette2.getNearestColor(this._distance, correctedPoint);
@@ -25857,9 +25857,9 @@ var require_image_q = __commonJS((exports, module) => {
           for (let i = dStart;i !== dEnd; i += dir) {
             const x1 = this._kernel[i][1] * dir;
             const y1 = this._kernel[i][2];
-            if (x1 + x22 >= 0 && x1 + x22 < width && y1 + y2 >= 0 && y1 + y2 < height) {
+            if (x1 + x2 >= 0 && x1 + x2 < width && y1 + y2 >= 0 && y1 + y2 < height) {
               const d = this._kernel[i][0];
-              const e = errorLines[y1][x1 + x22];
+              const e = errorLines[y1][x1 + x2];
               e[0] += er * d;
               e[1] += eg * d;
               e[2] += eb * d;
@@ -26098,18 +26098,18 @@ var require_image_q = __commonJS((exports, module) => {
       for (let i = 0;i < this._errorQueueSize; i++) {
         errorQueue[i] = { r: 0, g: 0, b: 0, a: 0 };
       }
-      yield* hilbertCurve(width, height, (x22, y2) => {
-        const p = pointArray[x22 + y2 * width];
-        let { r, g, b, a } = p;
+      yield* hilbertCurve(width, height, (x2, y2) => {
+        const p = pointArray[x2 + y2 * width];
+        let { r: r7, g, b, a } = p;
         for (let i = 0;i < this._errorQueueSize; i++) {
           const weight = this._weights[i];
           const e = errorQueue[(i + head) % this._errorQueueSize];
-          r += e.r * weight;
+          r7 += e.r * weight;
           g += e.g * weight;
           b += e.b * weight;
           a += e.a * weight;
         }
-        const correctedPoint = Point.createByRGBA(inRange0to255Rounded(r), inRange0to255Rounded(g), inRange0to255Rounded(b), inRange0to255Rounded(a));
+        const correctedPoint = Point.createByRGBA(inRange0to255Rounded(r7), inRange0to255Rounded(g), inRange0to255Rounded(b), inRange0to255Rounded(a));
         const quantizedPoint = palette2.getNearestColor(this._distance, correctedPoint);
         head = (head + 1) % this._errorQueueSize;
         const tail = (head + this._errorQueueSize - 1) % this._errorQueueSize;
@@ -26176,24 +26176,24 @@ var require_image_q = __commonJS((exports, module) => {
     const width = image1.getWidth();
     const height = image1.getHeight();
     for (let y2 = 0;y2 < height; y2 += windowSize) {
-      for (let x22 = 0;x22 < width; x22 += windowSize) {
-        const windowWidth = Math.min(windowSize, width - x22);
+      for (let x2 = 0;x2 < width; x2 += windowSize) {
+        const windowWidth = Math.min(windowSize, width - x2);
         const windowHeight = Math.min(windowSize, height - y2);
-        const lumaValues1 = calculateLumaValuesForWindow(image1, x22, y2, windowWidth, windowHeight);
-        const lumaValues2 = calculateLumaValuesForWindow(image2, x22, y2, windowWidth, windowHeight);
+        const lumaValues1 = calculateLumaValuesForWindow(image1, x2, y2, windowWidth, windowHeight);
+        const lumaValues2 = calculateLumaValuesForWindow(image2, x2, y2, windowWidth, windowHeight);
         const averageLuma1 = calculateAverageLuma(lumaValues1);
         const averageLuma2 = calculateAverageLuma(lumaValues2);
         callback(lumaValues1, lumaValues2, averageLuma1, averageLuma2);
       }
     }
   }
-  function calculateLumaValuesForWindow(image2, x22, y2, width, height) {
+  function calculateLumaValuesForWindow(image2, x2, y2, width, height) {
     const pointArray = image2.getPointArray();
     const lumaValues = [];
     let counter = 0;
     for (let j2 = y2;j2 < y2 + height; j2++) {
       const offset = j2 * image2.getWidth();
-      for (let i = x22;i < x22 + width; i++) {
+      for (let i = x2;i < x2 + width; i++) {
         const point = pointArray[offset + i];
         lumaValues[counter] = point.r * 0.2126 + point.g * 0.7152 + point.b * 0.0722;
         counter++;
@@ -27814,8 +27814,8 @@ var require_encoder = __commonJS((exports, module) => {
       for (var m = 0;m < 16; m++) {
         writeByte(std_dc_chrominance_nrcodes[m + 1]);
       }
-      for (var n7 = 0;n7 <= 11; n7++) {
-        writeByte(std_dc_chrominance_values[n7]);
+      for (var n = 0;n <= 11; n++) {
+        writeByte(std_dc_chrominance_values[n]);
       }
       writeByte(17);
       for (var o = 0;o < 16; o++) {
@@ -27933,13 +27933,13 @@ var require_encoder = __commonJS((exports, module) => {
       var height = image2.height;
       var quadWidth = width * 4;
       var tripleWidth = width * 3;
-      var x2, y = 0;
-      var r, g, b;
+      var x, y = 0;
+      var r7, g, b;
       var start, p, col, row, pos;
       while (y < height) {
-        x2 = 0;
-        while (x2 < quadWidth) {
-          start = quadWidth * y + x2;
+        x = 0;
+        while (x < quadWidth) {
+          start = quadWidth * y + x;
           p = start;
           col = -1;
           row = 0;
@@ -27950,20 +27950,20 @@ var require_encoder = __commonJS((exports, module) => {
             if (y + row >= height) {
               p -= quadWidth * (y + 1 + row - height);
             }
-            if (x2 + col >= quadWidth) {
-              p -= x2 + col - quadWidth + 4;
+            if (x + col >= quadWidth) {
+              p -= x + col - quadWidth + 4;
             }
-            r = imageData[p++];
+            r7 = imageData[p++];
             g = imageData[p++];
             b = imageData[p++];
-            YDU[pos] = (RGB_YUV_TABLE[r] + RGB_YUV_TABLE[g + 256 >> 0] + RGB_YUV_TABLE[b + 512 >> 0] >> 16) - 128;
-            UDU[pos] = (RGB_YUV_TABLE[r + 768 >> 0] + RGB_YUV_TABLE[g + 1024 >> 0] + RGB_YUV_TABLE[b + 1280 >> 0] >> 16) - 128;
-            VDU[pos] = (RGB_YUV_TABLE[r + 1280 >> 0] + RGB_YUV_TABLE[g + 1536 >> 0] + RGB_YUV_TABLE[b + 1792 >> 0] >> 16) - 128;
+            YDU[pos] = (RGB_YUV_TABLE[r7] + RGB_YUV_TABLE[g + 256 >> 0] + RGB_YUV_TABLE[b + 512 >> 0] >> 16) - 128;
+            UDU[pos] = (RGB_YUV_TABLE[r7 + 768 >> 0] + RGB_YUV_TABLE[g + 1024 >> 0] + RGB_YUV_TABLE[b + 1280 >> 0] >> 16) - 128;
+            VDU[pos] = (RGB_YUV_TABLE[r7 + 1280 >> 0] + RGB_YUV_TABLE[g + 1536 >> 0] + RGB_YUV_TABLE[b + 1792 >> 0] >> 16) - 128;
           }
           DCY = processDU(YDU, fdtbl_Y, DCY, YDC_HT, YAC_HT);
           DCU = processDU(UDU, fdtbl_UV, DCU, UVDC_HT, UVAC_HT);
           DCV = processDU(VDU, fdtbl_UV, DCV, UVDC_HT, UVAC_HT);
-          x2 += 32;
+          x += 32;
         }
         y += 8;
       }
@@ -28115,7 +28115,7 @@ var require_decoder = __commonJS((exports, module) => {
       while (length > 0 && !codeLengths[length - 1])
         length--;
       code.push({ children: [], index: 0 });
-      var p = code[0], q2;
+      var p = code[0], q;
       for (i = 0;i < length; i++) {
         for (j2 = 0;j2 < codeLengths[i]; j2++) {
           p = code.pop();
@@ -28128,16 +28128,16 @@ var require_decoder = __commonJS((exports, module) => {
           p.index++;
           code.push(p);
           while (code.length <= i) {
-            code.push(q2 = { children: [], index: 0 });
-            p.children[p.index] = q2.children;
-            p = q2;
+            code.push(q = { children: [], index: 0 });
+            p.children[p.index] = q.children;
+            p = q;
           }
           k2++;
         }
         if (i + 1 < length) {
-          code.push(q2 = { children: [], index: 0 });
-          p.children[p.index] = q2.children;
-          p = q2;
+          code.push(q = { children: [], index: 0 });
+          p.children[p.index] = q.children;
+          p = q;
         }
       }
       return code[0].children;
@@ -28177,21 +28177,21 @@ var require_decoder = __commonJS((exports, module) => {
         return null;
       }
       function receive(length) {
-        var n8 = 0;
+        var n2 = 0;
         while (length > 0) {
           var bit = readBit();
           if (bit === null)
             return;
-          n8 = n8 << 1 | bit;
+          n2 = n2 << 1 | bit;
           length--;
         }
-        return n8;
+        return n2;
       }
       function receiveAndExtend(length) {
-        var n8 = receive(length);
-        if (n8 >= 1 << length - 1)
-          return n8;
-        return n8 + (-1 << length) + 1;
+        var n2 = receive(length);
+        if (n2 >= 1 << length - 1)
+          return n2;
+        return n2 + (-1 << length) + 1;
       }
       function decodeBaseline(component2, zz) {
         var t = decodeHuffman(component2.huffmanTableDC);
@@ -28200,16 +28200,16 @@ var require_decoder = __commonJS((exports, module) => {
         var k3 = 1;
         while (k3 < 64) {
           var rs2 = decodeHuffman(component2.huffmanTableAC);
-          var s = rs2 & 15, r = rs2 >> 4;
+          var s = rs2 & 15, r7 = rs2 >> 4;
           if (s === 0) {
-            if (r < 15)
+            if (r7 < 15)
               break;
             k3 += 16;
             continue;
           }
-          k3 += r;
-          var z = dctZigZag[k3];
-          zz[z] = receiveAndExtend(s);
+          k3 += r7;
+          var z2 = dctZigZag[k3];
+          zz[z2] = receiveAndExtend(s);
           k3++;
         }
       }
@@ -28230,67 +28230,67 @@ var require_decoder = __commonJS((exports, module) => {
         var k3 = spectralStart, e = spectralEnd;
         while (k3 <= e) {
           var rs2 = decodeHuffman(component2.huffmanTableAC);
-          var s = rs2 & 15, r = rs2 >> 4;
+          var s = rs2 & 15, r7 = rs2 >> 4;
           if (s === 0) {
-            if (r < 15) {
-              eobrun = receive(r) + (1 << r) - 1;
+            if (r7 < 15) {
+              eobrun = receive(r7) + (1 << r7) - 1;
               break;
             }
             k3 += 16;
             continue;
           }
-          k3 += r;
-          var z = dctZigZag[k3];
-          zz[z] = receiveAndExtend(s) * (1 << successive);
+          k3 += r7;
+          var z2 = dctZigZag[k3];
+          zz[z2] = receiveAndExtend(s) * (1 << successive);
           k3++;
         }
       }
       var successiveACState = 0, successiveACNextValue;
       function decodeACSuccessive(component2, zz) {
-        var k3 = spectralStart, e = spectralEnd, r = 0;
+        var k3 = spectralStart, e = spectralEnd, r7 = 0;
         while (k3 <= e) {
-          var z = dctZigZag[k3];
-          var direction = zz[z] < 0 ? -1 : 1;
+          var z2 = dctZigZag[k3];
+          var direction = zz[z2] < 0 ? -1 : 1;
           switch (successiveACState) {
             case 0:
               var rs2 = decodeHuffman(component2.huffmanTableAC);
-              var s = rs2 & 15, r = rs2 >> 4;
+              var s = rs2 & 15, r7 = rs2 >> 4;
               if (s === 0) {
-                if (r < 15) {
-                  eobrun = receive(r) + (1 << r);
+                if (r7 < 15) {
+                  eobrun = receive(r7) + (1 << r7);
                   successiveACState = 4;
                 } else {
-                  r = 16;
+                  r7 = 16;
                   successiveACState = 1;
                 }
               } else {
                 if (s !== 1)
                   throw new Error("invalid ACn encoding");
                 successiveACNextValue = receiveAndExtend(s);
-                successiveACState = r ? 2 : 3;
+                successiveACState = r7 ? 2 : 3;
               }
               continue;
             case 1:
             case 2:
-              if (zz[z])
-                zz[z] += (readBit() << successive) * direction;
+              if (zz[z2])
+                zz[z2] += (readBit() << successive) * direction;
               else {
-                r--;
-                if (r === 0)
+                r7--;
+                if (r7 === 0)
                   successiveACState = successiveACState == 2 ? 3 : 0;
               }
               break;
             case 3:
-              if (zz[z])
-                zz[z] += (readBit() << successive) * direction;
+              if (zz[z2])
+                zz[z2] += (readBit() << successive) * direction;
               else {
-                zz[z] = successiveACNextValue << successive;
+                zz[z2] = successiveACNextValue << successive;
                 successiveACState = 0;
               }
               break;
             case 4:
-              if (zz[z])
-                zz[z] += (readBit() << successive) * direction;
+              if (zz[z2])
+                zz[z2] += (readBit() << successive) * direction;
               break;
           }
           k3++;
@@ -28318,7 +28318,7 @@ var require_decoder = __commonJS((exports, module) => {
         decode4(component2, component2.blocks[blockRow][blockCol]);
       }
       var componentsLength = components.length;
-      var component, i, j2, k2, n7;
+      var component, i, j2, k2, n;
       var decodeFn;
       if (progressive) {
         if (spectralStart === 0)
@@ -28344,12 +28344,12 @@ var require_decoder = __commonJS((exports, module) => {
         eobrun = 0;
         if (componentsLength == 1) {
           component = components[0];
-          for (n7 = 0;n7 < resetInterval; n7++) {
+          for (n = 0;n < resetInterval; n++) {
             decodeBlock(component, decodeFn, mcu);
             mcu++;
           }
         } else {
-          for (n7 = 0;n7 < resetInterval; n7++) {
+          for (n = 0;n < resetInterval; n++) {
             for (i = 0;i < componentsLength; i++) {
               component = components[i];
               h = component.h;
@@ -28392,7 +28392,7 @@ var require_decoder = __commonJS((exports, module) => {
       var blocksPerLine = component.blocksPerLine;
       var blocksPerColumn = component.blocksPerColumn;
       var samplesPerLine = blocksPerLine << 3;
-      var R2 = new Int32Array(64), r = new Uint8Array(64);
+      var R2 = new Int32Array(64), r7 = new Uint8Array(64);
       function quantizeAndInverse(zz, dataOut, dataIn) {
         var qt2 = component.quantizationTable;
         var v0, v1, v2, v3, v4, v5, v6, v7, t;
@@ -28522,12 +28522,12 @@ var require_decoder = __commonJS((exports, module) => {
         for (i = 0;i < 8; i++)
           lines.push(new Uint8Array(samplesPerLine));
         for (var blockCol = 0;blockCol < blocksPerLine; blockCol++) {
-          quantizeAndInverse(component.blocks[blockRow][blockCol], r, R2);
+          quantizeAndInverse(component.blocks[blockRow][blockCol], r7, R2);
           var offset = 0, sample = blockCol << 3;
           for (j2 = 0;j2 < 8; j2++) {
             var line = lines[scanLine + j2];
             for (i = 0;i < 8; i++)
-              line[sample + i] = r[offset++];
+              line[sample + i] = r7[offset++];
           }
         }
       }
@@ -28681,13 +28681,13 @@ var require_decoder = __commonJS((exports, module) => {
                 var tableData = new Int32Array(64);
                 if (quantizationTableSpec >> 4 === 0) {
                   for (j2 = 0;j2 < 64; j2++) {
-                    var z = dctZigZag[j2];
-                    tableData[z] = data[offset++];
+                    var z2 = dctZigZag[j2];
+                    tableData[z2] = data[offset++];
                   }
                 } else if (quantizationTableSpec >> 4 === 1) {
                   for (j2 = 0;j2 < 64; j2++) {
-                    var z = dctZigZag[j2];
-                    tableData[z] = readUint16();
+                    var z2 = dctZigZag[j2];
+                    tableData[z2] = readUint16();
                   }
                 } else
                   throw new Error("DQT: invalid table spec");
@@ -28825,9 +28825,9 @@ var require_decoder = __commonJS((exports, module) => {
         var scaleX = this.width / width, scaleY = this.height / height;
         var component1, component2, component3, component4;
         var component1Line, component2Line, component3Line, component4Line;
-        var x2, y;
+        var x, y;
         var offset = 0;
-        var Y2, Cb, Cr2, K2, C2, M2, Ye2, R2, G2, B2;
+        var Y2, Cb, Cr, K2, C2, M2, Ye2, R2, G2, B;
         var colorTransform;
         var dataLength = width * height * this.components.length;
         requestMemoryAllocation(dataLength);
@@ -28837,8 +28837,8 @@ var require_decoder = __commonJS((exports, module) => {
             component1 = this.components[0];
             for (y = 0;y < height; y++) {
               component1Line = component1.lines[0 | y * component1.scaleY * scaleY];
-              for (x2 = 0;x2 < width; x2++) {
-                Y2 = component1Line[0 | x2 * component1.scaleX * scaleX];
+              for (x = 0;x < width; x++) {
+                Y2 = component1Line[0 | x * component1.scaleX * scaleX];
                 data[offset++] = Y2;
               }
             }
@@ -28849,10 +28849,10 @@ var require_decoder = __commonJS((exports, module) => {
             for (y = 0;y < height; y++) {
               component1Line = component1.lines[0 | y * component1.scaleY * scaleY];
               component2Line = component2.lines[0 | y * component2.scaleY * scaleY];
-              for (x2 = 0;x2 < width; x2++) {
-                Y2 = component1Line[0 | x2 * component1.scaleX * scaleX];
+              for (x = 0;x < width; x++) {
+                Y2 = component1Line[0 | x * component1.scaleX * scaleX];
                 data[offset++] = Y2;
-                Y2 = component2Line[0 | x2 * component2.scaleX * scaleX];
+                Y2 = component2Line[0 | x * component2.scaleX * scaleX];
                 data[offset++] = Y2;
               }
             }
@@ -28870,22 +28870,22 @@ var require_decoder = __commonJS((exports, module) => {
               component1Line = component1.lines[0 | y * component1.scaleY * scaleY];
               component2Line = component2.lines[0 | y * component2.scaleY * scaleY];
               component3Line = component3.lines[0 | y * component3.scaleY * scaleY];
-              for (x2 = 0;x2 < width; x2++) {
+              for (x = 0;x < width; x++) {
                 if (!colorTransform) {
-                  R2 = component1Line[0 | x2 * component1.scaleX * scaleX];
-                  G2 = component2Line[0 | x2 * component2.scaleX * scaleX];
-                  B2 = component3Line[0 | x2 * component3.scaleX * scaleX];
+                  R2 = component1Line[0 | x * component1.scaleX * scaleX];
+                  G2 = component2Line[0 | x * component2.scaleX * scaleX];
+                  B = component3Line[0 | x * component3.scaleX * scaleX];
                 } else {
-                  Y2 = component1Line[0 | x2 * component1.scaleX * scaleX];
-                  Cb = component2Line[0 | x2 * component2.scaleX * scaleX];
-                  Cr2 = component3Line[0 | x2 * component3.scaleX * scaleX];
-                  R2 = clampTo8bit(Y2 + 1.402 * (Cr2 - 128));
-                  G2 = clampTo8bit(Y2 - 0.3441363 * (Cb - 128) - 0.71413636 * (Cr2 - 128));
-                  B2 = clampTo8bit(Y2 + 1.772 * (Cb - 128));
+                  Y2 = component1Line[0 | x * component1.scaleX * scaleX];
+                  Cb = component2Line[0 | x * component2.scaleX * scaleX];
+                  Cr = component3Line[0 | x * component3.scaleX * scaleX];
+                  R2 = clampTo8bit(Y2 + 1.402 * (Cr - 128));
+                  G2 = clampTo8bit(Y2 - 0.3441363 * (Cb - 128) - 0.71413636 * (Cr - 128));
+                  B = clampTo8bit(Y2 + 1.772 * (Cb - 128));
                 }
                 data[offset++] = R2;
                 data[offset++] = G2;
-                data[offset++] = B2;
+                data[offset++] = B;
               }
             }
             break;
@@ -28906,19 +28906,19 @@ var require_decoder = __commonJS((exports, module) => {
               component2Line = component2.lines[0 | y * component2.scaleY * scaleY];
               component3Line = component3.lines[0 | y * component3.scaleY * scaleY];
               component4Line = component4.lines[0 | y * component4.scaleY * scaleY];
-              for (x2 = 0;x2 < width; x2++) {
+              for (x = 0;x < width; x++) {
                 if (!colorTransform) {
-                  C2 = component1Line[0 | x2 * component1.scaleX * scaleX];
-                  M2 = component2Line[0 | x2 * component2.scaleX * scaleX];
-                  Ye2 = component3Line[0 | x2 * component3.scaleX * scaleX];
-                  K2 = component4Line[0 | x2 * component4.scaleX * scaleX];
+                  C2 = component1Line[0 | x * component1.scaleX * scaleX];
+                  M2 = component2Line[0 | x * component2.scaleX * scaleX];
+                  Ye2 = component3Line[0 | x * component3.scaleX * scaleX];
+                  K2 = component4Line[0 | x * component4.scaleX * scaleX];
                 } else {
-                  Y2 = component1Line[0 | x2 * component1.scaleX * scaleX];
-                  Cb = component2Line[0 | x2 * component2.scaleX * scaleX];
-                  Cr2 = component3Line[0 | x2 * component3.scaleX * scaleX];
-                  K2 = component4Line[0 | x2 * component4.scaleX * scaleX];
-                  C2 = 255 - clampTo8bit(Y2 + 1.402 * (Cr2 - 128));
-                  M2 = 255 - clampTo8bit(Y2 - 0.3441363 * (Cb - 128) - 0.71413636 * (Cr2 - 128));
+                  Y2 = component1Line[0 | x * component1.scaleX * scaleX];
+                  Cb = component2Line[0 | x * component2.scaleX * scaleX];
+                  Cr = component3Line[0 | x * component3.scaleX * scaleX];
+                  K2 = component4Line[0 | x * component4.scaleX * scaleX];
+                  C2 = 255 - clampTo8bit(Y2 + 1.402 * (Cr - 128));
+                  M2 = 255 - clampTo8bit(Y2 - 0.3441363 * (Cb - 128) - 0.71413636 * (Cr - 128));
                   Ye2 = 255 - clampTo8bit(Y2 + 1.772 * (Cb - 128));
                 }
                 data[offset++] = 255 - C2;
@@ -28937,12 +28937,12 @@ var require_decoder = __commonJS((exports, module) => {
         var { width, height } = imageData;
         var imageDataArray = imageData.data;
         var data = this.getData(width, height);
-        var i = 0, j2 = 0, x2, y;
-        var Y2, K2, C2, M2, R2, G2, B2;
+        var i = 0, j2 = 0, x, y;
+        var Y2, K2, C2, M2, R2, G2, B;
         switch (this.components.length) {
           case 1:
             for (y = 0;y < height; y++) {
-              for (x2 = 0;x2 < width; x2++) {
+              for (x = 0;x < width; x++) {
                 Y2 = data[i++];
                 imageDataArray[j2++] = Y2;
                 imageDataArray[j2++] = Y2;
@@ -28955,13 +28955,13 @@ var require_decoder = __commonJS((exports, module) => {
             break;
           case 3:
             for (y = 0;y < height; y++) {
-              for (x2 = 0;x2 < width; x2++) {
+              for (x = 0;x < width; x++) {
                 R2 = data[i++];
                 G2 = data[i++];
-                B2 = data[i++];
+                B = data[i++];
                 imageDataArray[j2++] = R2;
                 imageDataArray[j2++] = G2;
-                imageDataArray[j2++] = B2;
+                imageDataArray[j2++] = B;
                 if (formatAsRGBA) {
                   imageDataArray[j2++] = 255;
                 }
@@ -28970,17 +28970,17 @@ var require_decoder = __commonJS((exports, module) => {
             break;
           case 4:
             for (y = 0;y < height; y++) {
-              for (x2 = 0;x2 < width; x2++) {
+              for (x = 0;x < width; x++) {
                 C2 = data[i++];
                 M2 = data[i++];
                 Y2 = data[i++];
                 K2 = data[i++];
                 R2 = 255 - clampTo8bit(C2 * (1 - K2 / 255) + K2);
                 G2 = 255 - clampTo8bit(M2 * (1 - K2 / 255) + K2);
-                B2 = 255 - clampTo8bit(Y2 * (1 - K2 / 255) + K2);
+                B = 255 - clampTo8bit(Y2 * (1 - K2 / 255) + K2);
                 imageDataArray[j2++] = R2;
                 imageDataArray[j2++] = G2;
-                imageDataArray[j2++] = B2;
+                imageDataArray[j2++] = B;
                 if (formatAsRGBA) {
                   imageDataArray[j2++] = 255;
                 }
@@ -29267,9 +29267,9 @@ var require_interlace = __commonJS((exports) => {
     return images;
   };
   exports.getInterlaceIterator = function(width) {
-    return function(x2, y, pass) {
-      let outerXLeftOver = x2 % imagePasses[pass].x.length;
-      let outerX = (x2 - outerXLeftOver) / imagePasses[pass].x.length * 8 + imagePasses[pass].x[outerXLeftOver];
+    return function(x, y, pass) {
+      let outerXLeftOver = x % imagePasses[pass].x.length;
+      let outerX = (x - outerXLeftOver) / imagePasses[pass].x.length * 8 + imagePasses[pass].x[outerXLeftOver];
       let outerYLeftOver = y % imagePasses[pass].y.length;
       let outerY = (y - outerYLeftOver) / imagePasses[pass].y.length * 8 + imagePasses[pass].y[outerYLeftOver];
       return outerX * 4 + outerY * width * 4;
@@ -29346,43 +29346,43 @@ var require_filter_parse = __commonJS((exports, module) => {
   Filter.prototype._unFilterType1 = function(rawData, unfilteredLine, byteWidth) {
     let xComparison = this._xComparison;
     let xBiggerThan = xComparison - 1;
-    for (let x2 = 0;x2 < byteWidth; x2++) {
-      let rawByte = rawData[1 + x2];
-      let f1Left = x2 > xBiggerThan ? unfilteredLine[x2 - xComparison] : 0;
-      unfilteredLine[x2] = rawByte + f1Left;
+    for (let x = 0;x < byteWidth; x++) {
+      let rawByte = rawData[1 + x];
+      let f1Left = x > xBiggerThan ? unfilteredLine[x - xComparison] : 0;
+      unfilteredLine[x] = rawByte + f1Left;
     }
   };
   Filter.prototype._unFilterType2 = function(rawData, unfilteredLine, byteWidth) {
     let lastLine = this._lastLine;
-    for (let x2 = 0;x2 < byteWidth; x2++) {
-      let rawByte = rawData[1 + x2];
-      let f2Up = lastLine ? lastLine[x2] : 0;
-      unfilteredLine[x2] = rawByte + f2Up;
+    for (let x = 0;x < byteWidth; x++) {
+      let rawByte = rawData[1 + x];
+      let f2Up = lastLine ? lastLine[x] : 0;
+      unfilteredLine[x] = rawByte + f2Up;
     }
   };
   Filter.prototype._unFilterType3 = function(rawData, unfilteredLine, byteWidth) {
     let xComparison = this._xComparison;
     let xBiggerThan = xComparison - 1;
     let lastLine = this._lastLine;
-    for (let x2 = 0;x2 < byteWidth; x2++) {
-      let rawByte = rawData[1 + x2];
-      let f3Up = lastLine ? lastLine[x2] : 0;
-      let f3Left = x2 > xBiggerThan ? unfilteredLine[x2 - xComparison] : 0;
+    for (let x = 0;x < byteWidth; x++) {
+      let rawByte = rawData[1 + x];
+      let f3Up = lastLine ? lastLine[x] : 0;
+      let f3Left = x > xBiggerThan ? unfilteredLine[x - xComparison] : 0;
       let f3Add = Math.floor((f3Left + f3Up) / 2);
-      unfilteredLine[x2] = rawByte + f3Add;
+      unfilteredLine[x] = rawByte + f3Add;
     }
   };
   Filter.prototype._unFilterType4 = function(rawData, unfilteredLine, byteWidth) {
     let xComparison = this._xComparison;
     let xBiggerThan = xComparison - 1;
     let lastLine = this._lastLine;
-    for (let x2 = 0;x2 < byteWidth; x2++) {
-      let rawByte = rawData[1 + x2];
-      let f4Up = lastLine ? lastLine[x2] : 0;
-      let f4Left = x2 > xBiggerThan ? unfilteredLine[x2 - xComparison] : 0;
-      let f4UpLeft = x2 > xBiggerThan && lastLine ? lastLine[x2 - xComparison] : 0;
+    for (let x = 0;x < byteWidth; x++) {
+      let rawByte = rawData[1 + x];
+      let f4Up = lastLine ? lastLine[x] : 0;
+      let f4Left = x > xBiggerThan ? unfilteredLine[x - xComparison] : 0;
+      let f4UpLeft = x > xBiggerThan && lastLine ? lastLine[x - xComparison] : 0;
       let f4Add = paethPredictor(f4Left, f4Up, f4UpLeft);
-      unfilteredLine[x2] = rawByte + f4Add;
+      unfilteredLine[x] = rawByte + f4Add;
     }
   };
   Filter.prototype._reverseFilterLine = function(rawData) {
@@ -29873,8 +29873,8 @@ var require_bitmapper = __commonJS((exports) => {
     let imageHeight = image2.height;
     let imagePass = image2.index;
     for (let y = 0;y < imageHeight; y++) {
-      for (let x2 = 0;x2 < imageWidth; x2++) {
-        let pxPos = getPxPos(x2, y, imagePass);
+      for (let x = 0;x < imageWidth; x++) {
+        let pxPos = getPxPos(x, y, imagePass);
         pixelBppMapper[bpp](pxData, data, pxPos, rawPos);
         rawPos += bpp;
       }
@@ -29886,9 +29886,9 @@ var require_bitmapper = __commonJS((exports) => {
     let imageHeight = image2.height;
     let imagePass = image2.index;
     for (let y = 0;y < imageHeight; y++) {
-      for (let x2 = 0;x2 < imageWidth; x2++) {
+      for (let x = 0;x < imageWidth; x++) {
         let pixelData = bits.get(bpp);
-        let pxPos = getPxPos(x2, y, imagePass);
+        let pxPos = getPxPos(x, y, imagePass);
         pixelBppCustomMapper[bpp](pxData, pixelData, pxPos, maxBit);
       }
       bits.resetAfterLine();
@@ -29949,7 +29949,7 @@ var require_format_normaliser = __commonJS((exports, module) => {
   function dePalette(indata, outdata, width, height, palette2) {
     let pxPos = 0;
     for (let y = 0;y < height; y++) {
-      for (let x2 = 0;x2 < width; x2++) {
+      for (let x = 0;x < width; x++) {
         let color = palette2[indata[pxPos]];
         if (!color) {
           throw new Error("index " + indata[pxPos] + " not in palette");
@@ -29964,7 +29964,7 @@ var require_format_normaliser = __commonJS((exports, module) => {
   function replaceTransparentColor(indata, outdata, width, height, transColor) {
     let pxPos = 0;
     for (let y = 0;y < height; y++) {
-      for (let x2 = 0;x2 < width; x2++) {
+      for (let x = 0;x < width; x++) {
         let makeTrans = false;
         if (transColor.length === 1) {
           if (transColor[0] === indata[pxPos]) {
@@ -29987,7 +29987,7 @@ var require_format_normaliser = __commonJS((exports, module) => {
     let maxInSample = Math.pow(2, depth) - 1;
     let pxPos = 0;
     for (let y = 0;y < height; y++) {
-      for (let x2 = 0;x2 < width; x2++) {
+      for (let x = 0;x < width; x++) {
         for (let i = 0;i < 4; i++) {
           outdata[pxPos + i] = Math.floor(indata[pxPos + i] * maxOutSample / maxInSample + 0.5);
         }
@@ -30223,7 +30223,7 @@ var require_bitpacker = __commonJS((exports, module) => {
       return { red, green, blue, alpha };
     }
     for (let y = 0;y < height; y++) {
-      for (let x2 = 0;x2 < width; x2++) {
+      for (let x = 0;x < width; x++) {
         let rgba = getRGBA(data, inIndex);
         switch (options.colorType) {
           case constants4.COLORTYPE_COLOR_ALPHA:
@@ -30275,8 +30275,8 @@ var require_bitpacker = __commonJS((exports, module) => {
 var require_filter_pack = __commonJS((exports, module) => {
   var paethPredictor = require_paeth_predictor();
   function filterNone(pxData, pxPos, byteWidth, rawData, rawPos) {
-    for (let x2 = 0;x2 < byteWidth; x2++) {
-      rawData[rawPos + x2] = pxData[pxPos + x2];
+    for (let x = 0;x < byteWidth; x++) {
+      rawData[rawPos + x] = pxData[pxPos + x];
     }
   }
   function filterSumNone(pxData, pxPos, byteWidth) {
@@ -30288,72 +30288,72 @@ var require_filter_pack = __commonJS((exports, module) => {
     return sum;
   }
   function filterSub(pxData, pxPos, byteWidth, rawData, rawPos, bpp) {
-    for (let x2 = 0;x2 < byteWidth; x2++) {
-      let left = x2 >= bpp ? pxData[pxPos + x2 - bpp] : 0;
-      let val = pxData[pxPos + x2] - left;
-      rawData[rawPos + x2] = val;
+    for (let x = 0;x < byteWidth; x++) {
+      let left = x >= bpp ? pxData[pxPos + x - bpp] : 0;
+      let val = pxData[pxPos + x] - left;
+      rawData[rawPos + x] = val;
     }
   }
   function filterSumSub(pxData, pxPos, byteWidth, bpp) {
     let sum = 0;
-    for (let x2 = 0;x2 < byteWidth; x2++) {
-      let left = x2 >= bpp ? pxData[pxPos + x2 - bpp] : 0;
-      let val = pxData[pxPos + x2] - left;
+    for (let x = 0;x < byteWidth; x++) {
+      let left = x >= bpp ? pxData[pxPos + x - bpp] : 0;
+      let val = pxData[pxPos + x] - left;
       sum += Math.abs(val);
     }
     return sum;
   }
   function filterUp(pxData, pxPos, byteWidth, rawData, rawPos) {
-    for (let x2 = 0;x2 < byteWidth; x2++) {
-      let up = pxPos > 0 ? pxData[pxPos + x2 - byteWidth] : 0;
-      let val = pxData[pxPos + x2] - up;
-      rawData[rawPos + x2] = val;
+    for (let x = 0;x < byteWidth; x++) {
+      let up = pxPos > 0 ? pxData[pxPos + x - byteWidth] : 0;
+      let val = pxData[pxPos + x] - up;
+      rawData[rawPos + x] = val;
     }
   }
   function filterSumUp(pxData, pxPos, byteWidth) {
     let sum = 0;
     let length = pxPos + byteWidth;
-    for (let x2 = pxPos;x2 < length; x2++) {
-      let up = pxPos > 0 ? pxData[x2 - byteWidth] : 0;
-      let val = pxData[x2] - up;
+    for (let x = pxPos;x < length; x++) {
+      let up = pxPos > 0 ? pxData[x - byteWidth] : 0;
+      let val = pxData[x] - up;
       sum += Math.abs(val);
     }
     return sum;
   }
   function filterAvg(pxData, pxPos, byteWidth, rawData, rawPos, bpp) {
-    for (let x2 = 0;x2 < byteWidth; x2++) {
-      let left = x2 >= bpp ? pxData[pxPos + x2 - bpp] : 0;
-      let up = pxPos > 0 ? pxData[pxPos + x2 - byteWidth] : 0;
-      let val = pxData[pxPos + x2] - (left + up >> 1);
-      rawData[rawPos + x2] = val;
+    for (let x = 0;x < byteWidth; x++) {
+      let left = x >= bpp ? pxData[pxPos + x - bpp] : 0;
+      let up = pxPos > 0 ? pxData[pxPos + x - byteWidth] : 0;
+      let val = pxData[pxPos + x] - (left + up >> 1);
+      rawData[rawPos + x] = val;
     }
   }
   function filterSumAvg(pxData, pxPos, byteWidth, bpp) {
     let sum = 0;
-    for (let x2 = 0;x2 < byteWidth; x2++) {
-      let left = x2 >= bpp ? pxData[pxPos + x2 - bpp] : 0;
-      let up = pxPos > 0 ? pxData[pxPos + x2 - byteWidth] : 0;
-      let val = pxData[pxPos + x2] - (left + up >> 1);
+    for (let x = 0;x < byteWidth; x++) {
+      let left = x >= bpp ? pxData[pxPos + x - bpp] : 0;
+      let up = pxPos > 0 ? pxData[pxPos + x - byteWidth] : 0;
+      let val = pxData[pxPos + x] - (left + up >> 1);
       sum += Math.abs(val);
     }
     return sum;
   }
   function filterPaeth(pxData, pxPos, byteWidth, rawData, rawPos, bpp) {
-    for (let x2 = 0;x2 < byteWidth; x2++) {
-      let left = x2 >= bpp ? pxData[pxPos + x2 - bpp] : 0;
-      let up = pxPos > 0 ? pxData[pxPos + x2 - byteWidth] : 0;
-      let upleft = pxPos > 0 && x2 >= bpp ? pxData[pxPos + x2 - (byteWidth + bpp)] : 0;
-      let val = pxData[pxPos + x2] - paethPredictor(left, up, upleft);
-      rawData[rawPos + x2] = val;
+    for (let x = 0;x < byteWidth; x++) {
+      let left = x >= bpp ? pxData[pxPos + x - bpp] : 0;
+      let up = pxPos > 0 ? pxData[pxPos + x - byteWidth] : 0;
+      let upleft = pxPos > 0 && x >= bpp ? pxData[pxPos + x - (byteWidth + bpp)] : 0;
+      let val = pxData[pxPos + x] - paethPredictor(left, up, upleft);
+      rawData[rawPos + x] = val;
     }
   }
   function filterSumPaeth(pxData, pxPos, byteWidth, bpp) {
     let sum = 0;
-    for (let x2 = 0;x2 < byteWidth; x2++) {
-      let left = x2 >= bpp ? pxData[pxPos + x2 - bpp] : 0;
-      let up = pxPos > 0 ? pxData[pxPos + x2 - byteWidth] : 0;
-      let upleft = pxPos > 0 && x2 >= bpp ? pxData[pxPos + x2 - (byteWidth + bpp)] : 0;
-      let val = pxData[pxPos + x2] - paethPredictor(left, up, upleft);
+    for (let x = 0;x < byteWidth; x++) {
+      let left = x >= bpp ? pxData[pxPos + x - bpp] : 0;
+      let up = pxPos > 0 ? pxData[pxPos + x - byteWidth] : 0;
+      let upleft = pxPos > 0 && x >= bpp ? pxData[pxPos + x - (byteWidth + bpp)] : 0;
+      let val = pxData[pxPos + x] - paethPredictor(left, up, upleft);
       sum += Math.abs(val);
     }
     return sum;
@@ -30942,8 +30942,8 @@ var require_png = __commonJS((exports) => {
   PNG.adjustGamma = function(src) {
     if (src.gamma) {
       for (let y = 0;y < src.height; y++) {
-        for (let x2 = 0;x2 < src.width; x2++) {
-          let idx = src.width * y + x2 << 2;
+        for (let x = 0;x < src.width; x++) {
+          let idx = src.width * y + x << 2;
           for (let i = 0;i < 3; i++) {
             let sample = src.data[idx + i] / 255;
             sample = Math.pow(sample, 1 / 2.2 / src.gamma);
@@ -31029,8 +31029,8 @@ var require_common = __commonJS((exports) => {
       return [].concat.apply([], chunks);
     }
   };
-  exports.setTyped = function(on) {
-    if (on) {
+  exports.setTyped = function(on2) {
+    if (on2) {
       exports.Buf8 = Uint8Array;
       exports.Buf16 = Uint16Array;
       exports.Buf32 = Int32Array;
@@ -31159,7 +31159,7 @@ var require_trees = __commonJS((exports) => {
     var base = desc.stat_desc.extra_base;
     var max_length = desc.stat_desc.max_length;
     var h;
-    var n7, m;
+    var n, m;
     var bits;
     var xbits;
     var f;
@@ -31169,25 +31169,25 @@ var require_trees = __commonJS((exports) => {
     }
     tree[s.heap[s.heap_max] * 2 + 1] = 0;
     for (h = s.heap_max + 1;h < HEAP_SIZE; h++) {
-      n7 = s.heap[h];
-      bits = tree[tree[n7 * 2 + 1] * 2 + 1] + 1;
+      n = s.heap[h];
+      bits = tree[tree[n * 2 + 1] * 2 + 1] + 1;
       if (bits > max_length) {
         bits = max_length;
         overflow++;
       }
-      tree[n7 * 2 + 1] = bits;
-      if (n7 > max_code) {
+      tree[n * 2 + 1] = bits;
+      if (n > max_code) {
         continue;
       }
       s.bl_count[bits]++;
       xbits = 0;
-      if (n7 >= base) {
-        xbits = extra[n7 - base];
+      if (n >= base) {
+        xbits = extra[n - base];
       }
-      f = tree[n7 * 2];
+      f = tree[n * 2];
       s.opt_len += f * (bits + xbits);
       if (has_stree) {
-        s.static_len += f * (stree[n7 * 2 + 1] + xbits);
+        s.static_len += f * (stree[n * 2 + 1] + xbits);
       }
     }
     if (overflow === 0) {
@@ -31204,8 +31204,8 @@ var require_trees = __commonJS((exports) => {
       overflow -= 2;
     } while (overflow > 0);
     for (bits = max_length;bits !== 0; bits--) {
-      n7 = s.bl_count[bits];
-      while (n7 !== 0) {
+      n = s.bl_count[bits];
+      while (n !== 0) {
         m = s.heap[--h];
         if (m > max_code) {
           continue;
@@ -31214,7 +31214,7 @@ var require_trees = __commonJS((exports) => {
           s.opt_len += (bits - tree[m * 2 + 1]) * tree[m * 2];
           tree[m * 2 + 1] = bits;
         }
-        n7--;
+        n--;
       }
     }
   }
@@ -31222,20 +31222,20 @@ var require_trees = __commonJS((exports) => {
     var next_code = new Array(MAX_BITS + 1);
     var code = 0;
     var bits;
-    var n7;
+    var n;
     for (bits = 1;bits <= MAX_BITS; bits++) {
       next_code[bits] = code = code + bl_count[bits - 1] << 1;
     }
-    for (n7 = 0;n7 <= max_code; n7++) {
-      var len = tree[n7 * 2 + 1];
+    for (n = 0;n <= max_code; n++) {
+      var len = tree[n * 2 + 1];
       if (len === 0) {
         continue;
       }
-      tree[n7 * 2] = bi_reverse(next_code[len]++, len);
+      tree[n * 2] = bi_reverse(next_code[len]++, len);
     }
   }
   function tr_static_init() {
-    var n7;
+    var n;
     var bits;
     var length;
     var code;
@@ -31244,7 +31244,7 @@ var require_trees = __commonJS((exports) => {
     length = 0;
     for (code = 0;code < LENGTH_CODES - 1; code++) {
       base_length[code] = length;
-      for (n7 = 0;n7 < 1 << extra_lbits[code]; n7++) {
+      for (n = 0;n < 1 << extra_lbits[code]; n++) {
         _length_code[length++] = code;
       }
     }
@@ -31252,60 +31252,60 @@ var require_trees = __commonJS((exports) => {
     dist = 0;
     for (code = 0;code < 16; code++) {
       base_dist[code] = dist;
-      for (n7 = 0;n7 < 1 << extra_dbits[code]; n7++) {
+      for (n = 0;n < 1 << extra_dbits[code]; n++) {
         _dist_code[dist++] = code;
       }
     }
     dist >>= 7;
     for (;code < D_CODES; code++) {
       base_dist[code] = dist << 7;
-      for (n7 = 0;n7 < 1 << extra_dbits[code] - 7; n7++) {
+      for (n = 0;n < 1 << extra_dbits[code] - 7; n++) {
         _dist_code[256 + dist++] = code;
       }
     }
     for (bits = 0;bits <= MAX_BITS; bits++) {
       bl_count[bits] = 0;
     }
-    n7 = 0;
-    while (n7 <= 143) {
-      static_ltree[n7 * 2 + 1] = 8;
-      n7++;
+    n = 0;
+    while (n <= 143) {
+      static_ltree[n * 2 + 1] = 8;
+      n++;
       bl_count[8]++;
     }
-    while (n7 <= 255) {
-      static_ltree[n7 * 2 + 1] = 9;
-      n7++;
+    while (n <= 255) {
+      static_ltree[n * 2 + 1] = 9;
+      n++;
       bl_count[9]++;
     }
-    while (n7 <= 279) {
-      static_ltree[n7 * 2 + 1] = 7;
-      n7++;
+    while (n <= 279) {
+      static_ltree[n * 2 + 1] = 7;
+      n++;
       bl_count[7]++;
     }
-    while (n7 <= 287) {
-      static_ltree[n7 * 2 + 1] = 8;
-      n7++;
+    while (n <= 287) {
+      static_ltree[n * 2 + 1] = 8;
+      n++;
       bl_count[8]++;
     }
     gen_codes(static_ltree, L_CODES + 1, bl_count);
-    for (n7 = 0;n7 < D_CODES; n7++) {
-      static_dtree[n7 * 2 + 1] = 5;
-      static_dtree[n7 * 2] = bi_reverse(n7, 5);
+    for (n = 0;n < D_CODES; n++) {
+      static_dtree[n * 2 + 1] = 5;
+      static_dtree[n * 2] = bi_reverse(n, 5);
     }
     static_l_desc = new StaticTreeDesc(static_ltree, extra_lbits, LITERALS + 1, L_CODES, MAX_BITS);
     static_d_desc = new StaticTreeDesc(static_dtree, extra_dbits, 0, D_CODES, MAX_BITS);
     static_bl_desc = new StaticTreeDesc(new Array(0), extra_blbits, 0, BL_CODES, MAX_BL_BITS);
   }
   function init_block(s) {
-    var n7;
-    for (n7 = 0;n7 < L_CODES; n7++) {
-      s.dyn_ltree[n7 * 2] = 0;
+    var n;
+    for (n = 0;n < L_CODES; n++) {
+      s.dyn_ltree[n * 2] = 0;
     }
-    for (n7 = 0;n7 < D_CODES; n7++) {
-      s.dyn_dtree[n7 * 2] = 0;
+    for (n = 0;n < D_CODES; n++) {
+      s.dyn_dtree[n * 2] = 0;
     }
-    for (n7 = 0;n7 < BL_CODES; n7++) {
-      s.bl_tree[n7 * 2] = 0;
+    for (n = 0;n < BL_CODES; n++) {
+      s.bl_tree[n * 2] = 0;
     }
     s.dyn_ltree[END_BLOCK * 2] = 1;
     s.opt_len = s.static_len = 0;
@@ -31329,10 +31329,10 @@ var require_trees = __commonJS((exports) => {
     utils2.arraySet(s.pending_buf, s.window, buf, len, s.pending);
     s.pending += len;
   }
-  function smaller(tree, n7, m, depth) {
-    var _n2 = n7 * 2;
+  function smaller(tree, n, m, depth) {
+    var _n2 = n * 2;
     var _m2 = m * 2;
-    return tree[_n2] < tree[_m2] || tree[_n2] === tree[_m2] && depth[n7] <= depth[m];
+    return tree[_n2] < tree[_m2] || tree[_n2] === tree[_m2] && depth[n] <= depth[m];
   }
   function pqdownheap(s, tree, k2) {
     var v2 = s.heap[k2];
@@ -31389,17 +31389,17 @@ var require_trees = __commonJS((exports) => {
     var stree = desc.stat_desc.static_tree;
     var has_stree = desc.stat_desc.has_stree;
     var elems = desc.stat_desc.elems;
-    var n7, m;
+    var n, m;
     var max_code = -1;
     var node;
     s.heap_len = 0;
     s.heap_max = HEAP_SIZE;
-    for (n7 = 0;n7 < elems; n7++) {
-      if (tree[n7 * 2] !== 0) {
-        s.heap[++s.heap_len] = max_code = n7;
-        s.depth[n7] = 0;
+    for (n = 0;n < elems; n++) {
+      if (tree[n * 2] !== 0) {
+        s.heap[++s.heap_len] = max_code = n;
+        s.depth[n] = 0;
       } else {
-        tree[n7 * 2 + 1] = 0;
+        tree[n * 2 + 1] = 0;
       }
     }
     while (s.heap_len < 2) {
@@ -31412,20 +31412,20 @@ var require_trees = __commonJS((exports) => {
       }
     }
     desc.max_code = max_code;
-    for (n7 = s.heap_len >> 1;n7 >= 1; n7--) {
-      pqdownheap(s, tree, n7);
+    for (n = s.heap_len >> 1;n >= 1; n--) {
+      pqdownheap(s, tree, n);
     }
     node = elems;
     do {
-      n7 = s.heap[1];
+      n = s.heap[1];
       s.heap[1] = s.heap[s.heap_len--];
       pqdownheap(s, tree, 1);
       m = s.heap[1];
-      s.heap[--s.heap_max] = n7;
+      s.heap[--s.heap_max] = n;
       s.heap[--s.heap_max] = m;
-      tree[node * 2] = tree[n7 * 2] + tree[m * 2];
-      s.depth[node] = (s.depth[n7] >= s.depth[m] ? s.depth[n7] : s.depth[m]) + 1;
-      tree[n7 * 2 + 1] = tree[m * 2 + 1] = node;
+      tree[node * 2] = tree[n * 2] + tree[m * 2];
+      s.depth[node] = (s.depth[n] >= s.depth[m] ? s.depth[n] : s.depth[m]) + 1;
+      tree[n * 2 + 1] = tree[m * 2 + 1] = node;
       s.heap[1] = node++;
       pqdownheap(s, tree, 1);
     } while (s.heap_len >= 2);
@@ -31434,7 +31434,7 @@ var require_trees = __commonJS((exports) => {
     gen_codes(tree, max_code, s.bl_count);
   }
   function scan_tree(s, tree, max_code) {
-    var n7;
+    var n;
     var prevlen = -1;
     var curlen;
     var nextlen = tree[0 * 2 + 1];
@@ -31446,9 +31446,9 @@ var require_trees = __commonJS((exports) => {
       min_count = 3;
     }
     tree[(max_code + 1) * 2 + 1] = 65535;
-    for (n7 = 0;n7 <= max_code; n7++) {
+    for (n = 0;n <= max_code; n++) {
       curlen = nextlen;
-      nextlen = tree[(n7 + 1) * 2 + 1];
+      nextlen = tree[(n + 1) * 2 + 1];
       if (++count < max_count && curlen === nextlen) {
         continue;
       } else if (count < min_count) {
@@ -31478,7 +31478,7 @@ var require_trees = __commonJS((exports) => {
     }
   }
   function send_tree(s, tree, max_code) {
-    var n7;
+    var n;
     var prevlen = -1;
     var curlen;
     var nextlen = tree[0 * 2 + 1];
@@ -31489,9 +31489,9 @@ var require_trees = __commonJS((exports) => {
       max_count = 138;
       min_count = 3;
     }
-    for (n7 = 0;n7 <= max_code; n7++) {
+    for (n = 0;n <= max_code; n++) {
       curlen = nextlen;
-      nextlen = tree[(n7 + 1) * 2 + 1];
+      nextlen = tree[(n + 1) * 2 + 1];
       if (++count < max_count && curlen === nextlen) {
         continue;
       } else if (count < min_count) {
@@ -31552,17 +31552,17 @@ var require_trees = __commonJS((exports) => {
   }
   function detect_data_type(s) {
     var black_mask = 4093624447;
-    var n7;
-    for (n7 = 0;n7 <= 31; n7++, black_mask >>>= 1) {
-      if (black_mask & 1 && s.dyn_ltree[n7 * 2] !== 0) {
+    var n;
+    for (n = 0;n <= 31; n++, black_mask >>>= 1) {
+      if (black_mask & 1 && s.dyn_ltree[n * 2] !== 0) {
         return Z_BINARY;
       }
     }
     if (s.dyn_ltree[9 * 2] !== 0 || s.dyn_ltree[10 * 2] !== 0 || s.dyn_ltree[13 * 2] !== 0) {
       return Z_TEXT;
     }
-    for (n7 = 32;n7 < LITERALS; n7++) {
-      if (s.dyn_ltree[n7 * 2] !== 0) {
+    for (n = 32;n < LITERALS; n++) {
+      if (s.dyn_ltree[n * 2] !== 0) {
         return Z_TEXT;
       }
     }
@@ -31648,14 +31648,14 @@ var require_trees = __commonJS((exports) => {
 // ../node_modules/pako/lib/zlib/adler32.js
 var require_adler32 = __commonJS((exports, module) => {
   function adler32(adler, buf, len, pos) {
-    var s1 = adler & 65535 | 0, s2 = adler >>> 16 & 65535 | 0, n7 = 0;
+    var s1 = adler & 65535 | 0, s2 = adler >>> 16 & 65535 | 0, n = 0;
     while (len !== 0) {
-      n7 = len > 2000 ? 2000 : len;
-      len -= n7;
+      n = len > 2000 ? 2000 : len;
+      len -= n;
       do {
         s1 = s1 + buf[pos++] | 0;
         s2 = s2 + s1 | 0;
-      } while (--n7);
+      } while (--n);
       s1 %= 65521;
       s2 %= 65521;
     }
@@ -31668,12 +31668,12 @@ var require_adler32 = __commonJS((exports, module) => {
 var require_crc32 = __commonJS((exports, module) => {
   function makeTable() {
     var c, table = [];
-    for (var n7 = 0;n7 < 256; n7++) {
-      c = n7;
+    for (var n = 0;n < 256; n++) {
+      c = n;
       for (var k2 = 0;k2 < 8; k2++) {
         c = c & 1 ? 3988292384 ^ c >>> 1 : c >>> 1;
       }
-      table[n7] = c;
+      table[n] = c;
     }
     return table;
   }
@@ -31865,7 +31865,7 @@ var require_deflate = __commonJS((exports) => {
   }
   function fill_window(s) {
     var _w_size = s.w_size;
-    var p, n7, m, more, str;
+    var p, n, m, more, str;
     do {
       more = s.window_size - s.lookahead - s.strstart;
       if (s.strstart >= _w_size + (_w_size - MIN_LOOKAHEAD)) {
@@ -31873,25 +31873,25 @@ var require_deflate = __commonJS((exports) => {
         s.match_start -= _w_size;
         s.strstart -= _w_size;
         s.block_start -= _w_size;
-        n7 = s.hash_size;
-        p = n7;
+        n = s.hash_size;
+        p = n;
         do {
           m = s.head[--p];
           s.head[p] = m >= _w_size ? m - _w_size : 0;
-        } while (--n7);
-        n7 = _w_size;
-        p = n7;
+        } while (--n);
+        n = _w_size;
+        p = n;
         do {
           m = s.prev[--p];
           s.prev[p] = m >= _w_size ? m - _w_size : 0;
-        } while (--n7);
+        } while (--n);
         more += _w_size;
       }
       if (s.strm.avail_in === 0) {
         break;
       }
-      n7 = read_buf(s.strm, s.window, s.strstart + s.lookahead, more);
-      s.lookahead += n7;
+      n = read_buf(s.strm, s.window, s.strstart + s.lookahead, more);
+      s.lookahead += n;
       if (s.lookahead + s.insert >= MIN_MATCH) {
         str = s.strstart - s.insert;
         s.ins_h = s.window[str];
@@ -32661,7 +32661,7 @@ var require_deflate = __commonJS((exports) => {
   function deflateSetDictionary(strm, dictionary) {
     var dictLength = dictionary.length;
     var s;
-    var str, n7;
+    var str, n;
     var wrap;
     var avail;
     var next;
@@ -32700,13 +32700,13 @@ var require_deflate = __commonJS((exports) => {
     fill_window(s);
     while (s.lookahead >= MIN_MATCH) {
       str = s.strstart;
-      n7 = s.lookahead - (MIN_MATCH - 1);
+      n = s.lookahead - (MIN_MATCH - 1);
       do {
         s.ins_h = (s.ins_h << s.hash_shift ^ s.window[str + MIN_MATCH - 1]) & s.hash_mask;
         s.prev[str & s.w_mask] = s.head[s.ins_h];
         s.head[s.ins_h] = str;
         str++;
-      } while (--n7);
+      } while (--n);
       s.strstart = str;
       s.lookahead = MIN_MATCH - 1;
       fill_window(s);
@@ -32750,10 +32750,10 @@ var require_strings = __commonJS((exports) => {
     STR_APPLY_UIA_OK = false;
   }
   var _utf8len = new utils2.Buf8(256);
-  for (q2 = 0;q2 < 256; q2++) {
-    _utf8len[q2] = q2 >= 252 ? 6 : q2 >= 248 ? 5 : q2 >= 240 ? 4 : q2 >= 224 ? 3 : q2 >= 192 ? 2 : 1;
+  for (q = 0;q < 256; q++) {
+    _utf8len[q] = q >= 252 ? 6 : q >= 248 ? 5 : q >= 240 ? 4 : q >= 224 ? 3 : q >= 192 ? 2 : 1;
   }
-  var q2;
+  var q;
   _utf8len[254] = _utf8len[254] = 1;
   exports.string2buf = function(str) {
     var buf, c, c2, m_pos, i, str_len = str.length, buf_len = 0;
@@ -33636,8 +33636,8 @@ var require_inflate = __commonJS((exports) => {
   var ENOUGH_DISTS = 592;
   var MAX_WBITS = 15;
   var DEF_WBITS = MAX_WBITS;
-  function zswap32(q2) {
-    return (q2 >>> 24 & 255) + (q2 >>> 8 & 65280) + ((q2 & 65280) << 8) + ((q2 & 255) << 24);
+  function zswap32(q) {
+    return (q >>> 24 & 255) + (q >>> 8 & 65280) + ((q & 65280) << 8) + ((q & 255) << 24);
   }
   function InflateState() {
     this.mode = 0;
@@ -33844,7 +33844,7 @@ var require_inflate = __commonJS((exports) => {
     var ret;
     var hbuf = new utils2.Buf8(4);
     var opts;
-    var n7;
+    var n;
     var order = [16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15];
     if (!strm || !strm.state || !strm.output || !strm.input && strm.avail_in !== 0) {
       return Z_STREAM_ERROR;
@@ -34314,8 +34314,8 @@ var require_inflate = __commonJS((exports) => {
                 state.lens[state.have++] = here_val;
               } else {
                 if (here_val === 16) {
-                  n7 = here_bits + 2;
-                  while (bits < n7) {
+                  n = here_bits + 2;
+                  while (bits < n) {
                     if (have === 0) {
                       break inf_leave;
                     }
@@ -34335,8 +34335,8 @@ var require_inflate = __commonJS((exports) => {
                   hold >>>= 2;
                   bits -= 2;
                 } else if (here_val === 17) {
-                  n7 = here_bits + 3;
-                  while (bits < n7) {
+                  n = here_bits + 3;
+                  while (bits < n) {
                     if (have === 0) {
                       break inf_leave;
                     }
@@ -34351,8 +34351,8 @@ var require_inflate = __commonJS((exports) => {
                   hold >>>= 3;
                   bits -= 3;
                 } else {
-                  n7 = here_bits + 7;
-                  while (bits < n7) {
+                  n = here_bits + 7;
+                  while (bits < n) {
                     if (have === 0) {
                       break inf_leave;
                     }
@@ -34493,8 +34493,8 @@ var require_inflate = __commonJS((exports) => {
             state.mode = LENEXT;
           case LENEXT:
             if (state.extra) {
-              n7 = state.extra;
-              while (bits < n7) {
+              n = state.extra;
+              while (bits < n) {
                 if (have === 0) {
                   break inf_leave;
                 }
@@ -34561,8 +34561,8 @@ var require_inflate = __commonJS((exports) => {
             state.mode = DISTEXT;
           case DISTEXT:
             if (state.extra) {
-              n7 = state.extra;
-              while (bits < n7) {
+              n = state.extra;
+              while (bits < n) {
                 if (have === 0) {
                   break inf_leave;
                 }
@@ -35023,14 +35023,14 @@ var require_UTIF = __commonJS((exports, module) => {
     }
     (function(UTIF2, pako2) {
       (function() {
-        var W2 = function a1() {
-          function W3(p) {
+        var W = function a1() {
+          function W2(p) {
             this.message = "JPEG error: " + p;
           }
-          W3.prototype = new Error;
-          W3.prototype.name = "JpegError";
-          W3.constructor = W3;
-          return W3;
+          W2.prototype = new Error;
+          W2.prototype.name = "JpegError";
+          W2.constructor = W2;
+          return W2;
         }(), ak = function ag() {
           var p = new Uint8Array([0, 1, 8, 16, 9, 2, 3, 10, 17, 24, 32, 25, 18, 11, 4, 5, 12, 19, 26, 33, 40, 48, 41, 34, 27, 20, 13, 6, 7, 14, 21, 28, 35, 42, 49, 56, 57, 50, 43, 36, 29, 22, 15, 23, 30, 37, 44, 51, 58, 59, 52, 45, 38, 31, 39, 46, 53, 60, 61, 54, 47, 55, 62, 63]), t = 4017, ac = 799, ah = 3406, ao = 2276, ar = 1567, ai2 = 3784, s = 5793, ad = 2896;
           function ak2(Q2) {
@@ -35042,14 +35042,14 @@ var require_UTIF = __commonJS((exports, module) => {
             this.N = Q2.w;
           }
           function a5(Q2, h) {
-            var f = 0, G2 = [], n7, E, a = 16, F2;
+            var f = 0, G2 = [], n, E2, a = 16, F2;
             while (a > 0 && !Q2[a - 1]) {
               a--;
             }
             G2.push({ children: [], index: 0 });
             var C2 = G2[0];
-            for (n7 = 0;n7 < a; n7++) {
-              for (E = 0;E < Q2[n7]; E++) {
+            for (n = 0;n < a; n++) {
+              for (E2 = 0;E2 < Q2[n]; E2++) {
                 C2 = G2.pop();
                 C2.children[C2.index] = h[f];
                 while (C2.index > 0) {
@@ -35057,14 +35057,14 @@ var require_UTIF = __commonJS((exports, module) => {
                 }
                 C2.index++;
                 G2.push(C2);
-                while (G2.length <= n7) {
+                while (G2.length <= n) {
                   G2.push(F2 = { children: [], index: 0 });
                   C2.children[C2.index] = F2.children;
                   C2 = F2;
                 }
                 f++;
               }
-              if (n7 + 1 < a) {
+              if (n + 1 < a) {
                 G2.push(F2 = { children: [], index: 0 });
                 C2.children[C2.index] = F2.children;
                 C2 = F2;
@@ -35075,40 +35075,40 @@ var require_UTIF = __commonJS((exports, module) => {
           function a2(Q2, h, f) {
             return 64 * ((Q2.P + 1) * h + f);
           }
-          function a7(Q2, h, f, G2, n7, E, a, C2, F2, d) {
+          function a7(Q2, h, f, G2, n, E2, a, C2, F2, d) {
             if (d == null)
               d = false;
-            var { m: T2, Z: U2 } = f, z = h, J = 0, V2 = 0, r = 0, D2 = 0, a8, q2 = 0, X2, O2, _2, N2, e, K2, x2 = 0, k2, g, R2, c;
+            var { m: T2, Z: U2 } = f, z2 = h, J2 = 0, V2 = 0, r7 = 0, D2 = 0, a8, q = 0, X2, O2, _2, N2, e, K2, x = 0, k2, g, R2, c;
             function Y2() {
               if (V2 > 0) {
                 V2--;
-                return J >> V2 & 1;
+                return J2 >> V2 & 1;
               }
-              J = Q2[h++];
-              if (J === 255) {
+              J2 = Q2[h++];
+              if (J2 === 255) {
                 var I2 = Q2[h++];
                 if (I2) {
                   if (I2 === 220 && d) {
                     h += 2;
-                    var l = Z(Q2, h);
+                    var l = Z2(Q2, h);
                     h += 2;
                     if (l > 0 && l !== f.s) {
                       throw new DNLMarkerError("Found DNL marker (0xFFDC) while parsing scan data", l);
                     }
                   } else if (I2 === 217) {
                     if (d) {
-                      var M2 = q2 * 8;
+                      var M2 = q * 8;
                       if (M2 > 0 && M2 < f.s / 10) {
                         throw new DNLMarkerError("Found EOI marker (0xFFD9) while parsing scan data, " + "possibly caused by incorrect `scanLines` parameter", M2);
                       }
                     }
                     throw new EOIMarkerError("Found EOI marker (0xFFD9) while parsing scan data");
                   }
-                  throw new W2("unexpected marker");
+                  throw new W("unexpected marker");
                 }
               }
               V2 = 7;
-              return J >>> 7;
+              return J2 >>> 7;
             }
             function u(I2) {
               var l = I2;
@@ -35120,7 +35120,7 @@ var require_UTIF = __commonJS((exports, module) => {
                   case "object":
                     continue;
                 }
-                throw new W2("invalid huffman sequence");
+                throw new W("invalid huffman sequence");
               }
             }
             function m(I2) {
@@ -35159,7 +35159,7 @@ var require_UTIF = __commonJS((exports, module) => {
                 N3++;
               }
             }
-            function $(X3, I2) {
+            function $2(X3, I2) {
               var l = u(X3.J), M2 = l === 0 ? 0 : j2(l) << F2;
               X3.D[I2] = X3.Q += M2;
             }
@@ -35167,16 +35167,16 @@ var require_UTIF = __commonJS((exports, module) => {
               X3.D[I2] |= Y2() << F2;
             }
             function P2(X3, I2) {
-              if (r > 0) {
-                r--;
+              if (r7 > 0) {
+                r7--;
                 return;
               }
-              var N3 = E, l = a;
+              var N3 = E2, l = a;
               while (N3 <= l) {
                 var M2 = u(X3.i), S = M2 & 15, i = M2 >> 4;
                 if (S === 0) {
                   if (i < 15) {
-                    r = m(i) + (1 << i) - 1;
+                    r7 = m(i) + (1 << i) - 1;
                     break;
                   }
                   N3 += 16;
@@ -35189,7 +35189,7 @@ var require_UTIF = __commonJS((exports, module) => {
               }
             }
             function a4(X3, I2) {
-              var N3 = E, l = a, M2 = 0, S, i;
+              var N3 = E2, l = a, M2 = 0, S, i;
               while (N3 <= l) {
                 var A2 = I2 + p[N3], o = X3.D[A2] < 0 ? -1 : 1;
                 switch (D2) {
@@ -35199,7 +35199,7 @@ var require_UTIF = __commonJS((exports, module) => {
                     M2 = i >> 4;
                     if (S === 0) {
                       if (M2 < 15) {
-                        r = m(M2) + (1 << M2);
+                        r7 = m(M2) + (1 << M2);
                         D2 = 4;
                       } else {
                         M2 = 16;
@@ -35207,7 +35207,7 @@ var require_UTIF = __commonJS((exports, module) => {
                       }
                     } else {
                       if (S !== 1) {
-                        throw new W2("invalid ACn encoding");
+                        throw new W("invalid ACn encoding");
                       }
                       a8 = j2(S);
                       D2 = M2 ? 2 : 3;
@@ -35241,27 +35241,27 @@ var require_UTIF = __commonJS((exports, module) => {
                 N3++;
               }
               if (D2 === 4) {
-                r--;
-                if (r === 0) {
+                r7--;
+                if (r7 === 0) {
                   D2 = 0;
                 }
               }
             }
-            function H2(X3, I2, x3, l, M2) {
-              var S = x3 / T2 | 0, i = x3 % T2;
-              q2 = S * X3.A + l;
-              var A2 = i * X3.h + M2, o = a2(X3, q2, A2);
+            function H2(X3, I2, x2, l, M2) {
+              var S = x2 / T2 | 0, i = x2 % T2;
+              q = S * X3.A + l;
+              var A2 = i * X3.h + M2, o = a2(X3, q, A2);
               I2(X3, o);
             }
-            function w(X3, I2, x3) {
-              q2 = x3 / X3.P | 0;
-              var l = x3 % X3.P, M2 = a2(X3, q2, l);
+            function w(X3, I2, x2) {
+              q = x2 / X3.P | 0;
+              var l = x2 % X3.P, M2 = a2(X3, q, l);
               I2(X3, M2);
             }
             var y = G2.length;
             if (U2) {
-              if (E === 0) {
-                K2 = C2 === 0 ? $ : b;
+              if (E2 === 0) {
+                K2 = C2 === 0 ? $2 : b;
               } else {
                 K2 = C2 === 0 ? P2 : a4;
               }
@@ -35273,18 +35273,18 @@ var require_UTIF = __commonJS((exports, module) => {
             } else {
               g = T2 * f.R;
             }
-            while (x2 <= g) {
-              var L2 = n7 ? Math.min(g - x2, n7) : g;
+            while (x <= g) {
+              var L2 = n ? Math.min(g - x, n) : g;
               if (L2 > 0) {
                 for (O2 = 0;O2 < y; O2++) {
                   G2[O2].Q = 0;
                 }
-                r = 0;
+                r7 = 0;
                 if (y === 1) {
                   X2 = G2[0];
                   for (e = 0;e < L2; e++) {
-                    w(X2, K2, x2);
-                    x2++;
+                    w(X2, K2, x);
+                    x++;
                   }
                 } else {
                   for (e = 0;e < L2; e++) {
@@ -35294,16 +35294,16 @@ var require_UTIF = __commonJS((exports, module) => {
                       c = X2.A;
                       for (_2 = 0;_2 < c; _2++) {
                         for (N2 = 0;N2 < R2; N2++) {
-                          H2(X2, K2, x2, _2, N2);
+                          H2(X2, K2, x, _2, N2);
                         }
                       }
                     }
-                    x2++;
+                    x++;
                   }
                 }
               }
               V2 = 0;
-              k2 = an(Q2, h);
+              k2 = an2(Q2, h);
               if (!k2) {
                 break;
               }
@@ -35317,89 +35317,89 @@ var require_UTIF = __commonJS((exports, module) => {
                 break;
               }
             }
-            return h - z;
+            return h - z2;
           }
           function al(Q2, h, f) {
-            var { $: G2, D: n7 } = Q2, E, a, C2, F2, d, T2, U2, z, J, V2, Y2, u, m, j2, v2, $, b;
+            var { $: G2, D: n } = Q2, E2, a, C2, F2, d, T2, U2, z2, J2, V2, Y2, u, m, j2, v2, $2, b;
             if (!G2) {
-              throw new W2("missing required Quantization Table.");
+              throw new W("missing required Quantization Table.");
             }
-            for (var r = 0;r < 64; r += 8) {
-              J = n7[h + r];
-              V2 = n7[h + r + 1];
-              Y2 = n7[h + r + 2];
-              u = n7[h + r + 3];
-              m = n7[h + r + 4];
-              j2 = n7[h + r + 5];
-              v2 = n7[h + r + 6];
-              $ = n7[h + r + 7];
-              J *= G2[r];
-              if ((V2 | Y2 | u | m | j2 | v2 | $) === 0) {
-                b = s * J + 512 >> 10;
-                f[r] = b;
-                f[r + 1] = b;
-                f[r + 2] = b;
-                f[r + 3] = b;
-                f[r + 4] = b;
-                f[r + 5] = b;
-                f[r + 6] = b;
-                f[r + 7] = b;
+            for (var r7 = 0;r7 < 64; r7 += 8) {
+              J2 = n[h + r7];
+              V2 = n[h + r7 + 1];
+              Y2 = n[h + r7 + 2];
+              u = n[h + r7 + 3];
+              m = n[h + r7 + 4];
+              j2 = n[h + r7 + 5];
+              v2 = n[h + r7 + 6];
+              $2 = n[h + r7 + 7];
+              J2 *= G2[r7];
+              if ((V2 | Y2 | u | m | j2 | v2 | $2) === 0) {
+                b = s * J2 + 512 >> 10;
+                f[r7] = b;
+                f[r7 + 1] = b;
+                f[r7 + 2] = b;
+                f[r7 + 3] = b;
+                f[r7 + 4] = b;
+                f[r7 + 5] = b;
+                f[r7 + 6] = b;
+                f[r7 + 7] = b;
                 continue;
               }
-              V2 *= G2[r + 1];
-              Y2 *= G2[r + 2];
-              u *= G2[r + 3];
-              m *= G2[r + 4];
-              j2 *= G2[r + 5];
-              v2 *= G2[r + 6];
-              $ *= G2[r + 7];
-              E = s * J + 128 >> 8;
+              V2 *= G2[r7 + 1];
+              Y2 *= G2[r7 + 2];
+              u *= G2[r7 + 3];
+              m *= G2[r7 + 4];
+              j2 *= G2[r7 + 5];
+              v2 *= G2[r7 + 6];
+              $2 *= G2[r7 + 7];
+              E2 = s * J2 + 128 >> 8;
               a = s * m + 128 >> 8;
               C2 = Y2;
               F2 = v2;
-              d = ad * (V2 - $) + 128 >> 8;
-              z = ad * (V2 + $) + 128 >> 8;
+              d = ad * (V2 - $2) + 128 >> 8;
+              z2 = ad * (V2 + $2) + 128 >> 8;
               T2 = u << 4;
               U2 = j2 << 4;
-              E = E + a + 1 >> 1;
-              a = E - a;
+              E2 = E2 + a + 1 >> 1;
+              a = E2 - a;
               b = C2 * ai2 + F2 * ar + 128 >> 8;
               C2 = C2 * ar - F2 * ai2 + 128 >> 8;
               F2 = b;
               d = d + U2 + 1 >> 1;
               U2 = d - U2;
-              z = z + T2 + 1 >> 1;
-              T2 = z - T2;
-              E = E + F2 + 1 >> 1;
-              F2 = E - F2;
+              z2 = z2 + T2 + 1 >> 1;
+              T2 = z2 - T2;
+              E2 = E2 + F2 + 1 >> 1;
+              F2 = E2 - F2;
               a = a + C2 + 1 >> 1;
               C2 = a - C2;
-              b = d * ao + z * ah + 2048 >> 12;
-              d = d * ah - z * ao + 2048 >> 12;
-              z = b;
+              b = d * ao + z2 * ah + 2048 >> 12;
+              d = d * ah - z2 * ao + 2048 >> 12;
+              z2 = b;
               b = T2 * ac + U2 * t + 2048 >> 12;
               T2 = T2 * t - U2 * ac + 2048 >> 12;
               U2 = b;
-              f[r] = E + z;
-              f[r + 7] = E - z;
-              f[r + 1] = a + U2;
-              f[r + 6] = a - U2;
-              f[r + 2] = C2 + T2;
-              f[r + 5] = C2 - T2;
-              f[r + 3] = F2 + d;
-              f[r + 4] = F2 - d;
+              f[r7] = E2 + z2;
+              f[r7 + 7] = E2 - z2;
+              f[r7 + 1] = a + U2;
+              f[r7 + 6] = a - U2;
+              f[r7 + 2] = C2 + T2;
+              f[r7 + 5] = C2 - T2;
+              f[r7 + 3] = F2 + d;
+              f[r7 + 4] = F2 - d;
             }
             for (var P2 = 0;P2 < 8; ++P2) {
-              J = f[P2];
+              J2 = f[P2];
               V2 = f[P2 + 8];
               Y2 = f[P2 + 16];
               u = f[P2 + 24];
               m = f[P2 + 32];
               j2 = f[P2 + 40];
               v2 = f[P2 + 48];
-              $ = f[P2 + 56];
-              if ((V2 | Y2 | u | m | j2 | v2 | $) === 0) {
-                b = s * J + 8192 >> 14;
+              $2 = f[P2 + 56];
+              if ((V2 | Y2 | u | m | j2 | v2 | $2) === 0) {
+                b = s * J2 + 8192 >> 14;
                 if (b < -2040) {
                   b = 0;
                 } else if (b >= 2024) {
@@ -35407,57 +35407,57 @@ var require_UTIF = __commonJS((exports, module) => {
                 } else {
                   b = b + 2056 >> 4;
                 }
-                n7[h + P2] = b;
-                n7[h + P2 + 8] = b;
-                n7[h + P2 + 16] = b;
-                n7[h + P2 + 24] = b;
-                n7[h + P2 + 32] = b;
-                n7[h + P2 + 40] = b;
-                n7[h + P2 + 48] = b;
-                n7[h + P2 + 56] = b;
+                n[h + P2] = b;
+                n[h + P2 + 8] = b;
+                n[h + P2 + 16] = b;
+                n[h + P2 + 24] = b;
+                n[h + P2 + 32] = b;
+                n[h + P2 + 40] = b;
+                n[h + P2 + 48] = b;
+                n[h + P2 + 56] = b;
                 continue;
               }
-              E = s * J + 2048 >> 12;
+              E2 = s * J2 + 2048 >> 12;
               a = s * m + 2048 >> 12;
               C2 = Y2;
               F2 = v2;
-              d = ad * (V2 - $) + 2048 >> 12;
-              z = ad * (V2 + $) + 2048 >> 12;
+              d = ad * (V2 - $2) + 2048 >> 12;
+              z2 = ad * (V2 + $2) + 2048 >> 12;
               T2 = u;
               U2 = j2;
-              E = (E + a + 1 >> 1) + 4112;
-              a = E - a;
+              E2 = (E2 + a + 1 >> 1) + 4112;
+              a = E2 - a;
               b = C2 * ai2 + F2 * ar + 2048 >> 12;
               C2 = C2 * ar - F2 * ai2 + 2048 >> 12;
               F2 = b;
               d = d + U2 + 1 >> 1;
               U2 = d - U2;
-              z = z + T2 + 1 >> 1;
-              T2 = z - T2;
-              E = E + F2 + 1 >> 1;
-              F2 = E - F2;
+              z2 = z2 + T2 + 1 >> 1;
+              T2 = z2 - T2;
+              E2 = E2 + F2 + 1 >> 1;
+              F2 = E2 - F2;
               a = a + C2 + 1 >> 1;
               C2 = a - C2;
-              b = d * ao + z * ah + 2048 >> 12;
-              d = d * ah - z * ao + 2048 >> 12;
-              z = b;
+              b = d * ao + z2 * ah + 2048 >> 12;
+              d = d * ah - z2 * ao + 2048 >> 12;
+              z2 = b;
               b = T2 * ac + U2 * t + 2048 >> 12;
               T2 = T2 * t - U2 * ac + 2048 >> 12;
               U2 = b;
-              J = E + z;
-              $ = E - z;
+              J2 = E2 + z2;
+              $2 = E2 - z2;
               V2 = a + U2;
               v2 = a - U2;
               Y2 = C2 + T2;
               j2 = C2 - T2;
               u = F2 + d;
               m = F2 - d;
-              if (J < 16) {
-                J = 0;
-              } else if (J >= 4080) {
-                J = 255;
+              if (J2 < 16) {
+                J2 = 0;
+              } else if (J2 >= 4080) {
+                J2 = 255;
               } else {
-                J >>= 4;
+                J2 >>= 4;
               }
               if (V2 < 16) {
                 V2 = 0;
@@ -35501,87 +35501,87 @@ var require_UTIF = __commonJS((exports, module) => {
               } else {
                 v2 >>= 4;
               }
-              if ($ < 16) {
-                $ = 0;
-              } else if ($ >= 4080) {
-                $ = 255;
+              if ($2 < 16) {
+                $2 = 0;
+              } else if ($2 >= 4080) {
+                $2 = 255;
               } else {
-                $ >>= 4;
+                $2 >>= 4;
               }
-              n7[h + P2] = J;
-              n7[h + P2 + 8] = V2;
-              n7[h + P2 + 16] = Y2;
-              n7[h + P2 + 24] = u;
-              n7[h + P2 + 32] = m;
-              n7[h + P2 + 40] = j2;
-              n7[h + P2 + 48] = v2;
-              n7[h + P2 + 56] = $;
+              n[h + P2] = J2;
+              n[h + P2 + 8] = V2;
+              n[h + P2 + 16] = Y2;
+              n[h + P2 + 24] = u;
+              n[h + P2 + 32] = m;
+              n[h + P2 + 40] = j2;
+              n[h + P2 + 48] = v2;
+              n[h + P2 + 56] = $2;
             }
           }
           function a0(Q2, h) {
-            var { P: f, c: G2 } = h, n7 = new Int16Array(64);
-            for (var E = 0;E < G2; E++) {
+            var { P: f, c: G2 } = h, n = new Int16Array(64);
+            for (var E2 = 0;E2 < G2; E2++) {
               for (var a = 0;a < f; a++) {
-                var C2 = a2(h, E, a);
-                al(h, C2, n7);
+                var C2 = a2(h, E2, a);
+                al(h, C2, n);
               }
             }
             return h.D;
           }
-          function an(Q2, h, f) {
+          function an2(Q2, h, f) {
             if (f == null)
               f = h;
-            var G2 = Q2.length - 1, n7 = f < h ? f : h;
+            var G2 = Q2.length - 1, n = f < h ? f : h;
             if (h >= G2) {
               return null;
             }
-            var E = Z(Q2, h);
-            if (E >= 65472 && E <= 65534) {
-              return { u: null, M: E, offset: h };
+            var E2 = Z2(Q2, h);
+            if (E2 >= 65472 && E2 <= 65534) {
+              return { u: null, M: E2, offset: h };
             }
-            var a = Z(Q2, n7);
+            var a = Z2(Q2, n);
             while (!(a >= 65472 && a <= 65534)) {
-              if (++n7 >= G2) {
+              if (++n >= G2) {
                 return null;
               }
-              a = Z(Q2, n7);
+              a = Z2(Q2, n);
             }
-            return { u: E.toString(16), M: a, offset: n7 };
+            return { u: E2.toString(16), M: a, offset: n };
           }
           ak2.prototype = { parse(Q2, h) {
             if (h == null)
               h = {};
-            var f = h.F, E = 0, a = null, C2 = null, F2, d, T2 = 0;
+            var f = h.F, E2 = 0, a = null, C2 = null, F2, d, T2 = 0;
             function G2() {
-              var o = Z(Q2, E);
-              E += 2;
-              var B2 = E + o - 2, V3 = an(Q2, B2, E);
+              var o = Z2(Q2, E2);
+              E2 += 2;
+              var B = E2 + o - 2, V3 = an2(Q2, B, E2);
               if (V3 && V3.u) {
-                B2 = V3.offset;
+                B = V3.offset;
               }
-              var ab = Q2.subarray(E, B2);
-              E += ab.length;
+              var ab = Q2.subarray(E2, B);
+              E2 += ab.length;
               return ab;
             }
-            function n7(F3) {
-              var o = Math.ceil(F3.o / 8 / F3.X), B2 = Math.ceil(F3.s / 8 / F3.B);
+            function n(F3) {
+              var o = Math.ceil(F3.o / 8 / F3.X), B = Math.ceil(F3.s / 8 / F3.B);
               for (var Y3 = 0;Y3 < F3.W.length; Y3++) {
                 R2 = F3.W[Y3];
-                var ab = Math.ceil(Math.ceil(F3.o / 8) * R2.h / F3.X), af = Math.ceil(Math.ceil(F3.s / 8) * R2.A / F3.B), ap = o * R2.h, aq = B2 * R2.A, ae2 = 64 * aq * (ap + 1);
+                var ab = Math.ceil(Math.ceil(F3.o / 8) * R2.h / F3.X), af = Math.ceil(Math.ceil(F3.s / 8) * R2.A / F3.B), ap = o * R2.h, aq = B * R2.A, ae2 = 64 * aq * (ap + 1);
                 R2.D = new Int16Array(ae2);
                 R2.P = ab;
                 R2.c = af;
               }
               F3.m = o;
-              F3.R = B2;
+              F3.R = B;
             }
-            var U2 = [], z = [], J = [], V2 = Z(Q2, E);
-            E += 2;
+            var U2 = [], z2 = [], J2 = [], V2 = Z2(Q2, E2);
+            E2 += 2;
             if (V2 !== 65496) {
-              throw new W2("SOI not found");
+              throw new W("SOI not found");
             }
-            V2 = Z(Q2, E);
-            E += 2;
+            V2 = Z2(Q2, E2);
+            E2 += 2;
             markerLoop:
               while (V2 !== 65497) {
                 var Y2, u, m;
@@ -35616,103 +35616,103 @@ var require_UTIF = __commonJS((exports, module) => {
                     }
                     break;
                   case 65499:
-                    var v2 = Z(Q2, E), b;
-                    E += 2;
-                    var $ = v2 + E - 2;
-                    while (E < $) {
-                      var r = Q2[E++], P2 = new Uint16Array(64);
-                      if (r >> 4 === 0) {
+                    var v2 = Z2(Q2, E2), b;
+                    E2 += 2;
+                    var $2 = v2 + E2 - 2;
+                    while (E2 < $2) {
+                      var r7 = Q2[E2++], P2 = new Uint16Array(64);
+                      if (r7 >> 4 === 0) {
                         for (u = 0;u < 64; u++) {
                           b = p[u];
-                          P2[b] = Q2[E++];
+                          P2[b] = Q2[E2++];
                         }
-                      } else if (r >> 4 === 1) {
+                      } else if (r7 >> 4 === 1) {
                         for (u = 0;u < 64; u++) {
                           b = p[u];
-                          P2[b] = Z(Q2, E);
-                          E += 2;
+                          P2[b] = Z2(Q2, E2);
+                          E2 += 2;
                         }
                       } else {
-                        throw new W2("DQT - invalid table spec");
+                        throw new W("DQT - invalid table spec");
                       }
-                      U2[r & 15] = P2;
+                      U2[r7 & 15] = P2;
                     }
                     break;
                   case 65472:
                   case 65473:
                   case 65474:
                     if (F2) {
-                      throw new W2("Only single frame JPEGs supported");
+                      throw new W("Only single frame JPEGs supported");
                     }
-                    E += 2;
+                    E2 += 2;
                     F2 = {};
                     F2.G = V2 === 65473;
                     F2.Z = V2 === 65474;
-                    F2.precision = Q2[E++];
-                    var D2 = Z(Q2, E), a4, q2 = 0, H2 = 0;
-                    E += 2;
+                    F2.precision = Q2[E2++];
+                    var D2 = Z2(Q2, E2), a4, q = 0, H2 = 0;
+                    E2 += 2;
                     F2.s = f || D2;
-                    F2.o = Z(Q2, E);
-                    E += 2;
+                    F2.o = Z2(Q2, E2);
+                    E2 += 2;
                     F2.W = [];
                     F2._ = {};
-                    var a8 = Q2[E++];
+                    var a8 = Q2[E2++];
                     for (Y2 = 0;Y2 < a8; Y2++) {
-                      a4 = Q2[E];
-                      var w = Q2[E + 1] >> 4, y = Q2[E + 1] & 15;
-                      if (q2 < w) {
-                        q2 = w;
+                      a4 = Q2[E2];
+                      var w = Q2[E2 + 1] >> 4, y = Q2[E2 + 1] & 15;
+                      if (q < w) {
+                        q = w;
                       }
                       if (H2 < y) {
                         H2 = y;
                       }
-                      var X2 = Q2[E + 2];
+                      var X2 = Q2[E2 + 2];
                       m = F2.W.push({ h: w, A: y, L: X2, $: null });
                       F2._[a4] = m - 1;
-                      E += 3;
+                      E2 += 3;
                     }
-                    F2.X = q2;
+                    F2.X = q;
                     F2.B = H2;
-                    n7(F2);
+                    n(F2);
                     break;
                   case 65476:
-                    var O2 = Z(Q2, E);
-                    E += 2;
+                    var O2 = Z2(Q2, E2);
+                    E2 += 2;
                     for (Y2 = 2;Y2 < O2; ) {
-                      var _2 = Q2[E++], N2 = new Uint8Array(16), e = 0;
-                      for (u = 0;u < 16; u++, E++) {
-                        e += N2[u] = Q2[E];
+                      var _2 = Q2[E2++], N2 = new Uint8Array(16), e = 0;
+                      for (u = 0;u < 16; u++, E2++) {
+                        e += N2[u] = Q2[E2];
                       }
                       var K2 = new Uint8Array(e);
-                      for (u = 0;u < e; u++, E++) {
-                        K2[u] = Q2[E];
+                      for (u = 0;u < e; u++, E2++) {
+                        K2[u] = Q2[E2];
                       }
                       Y2 += 17 + e;
-                      (_2 >> 4 === 0 ? J : z)[_2 & 15] = a5(N2, K2);
+                      (_2 >> 4 === 0 ? J2 : z2)[_2 & 15] = a5(N2, K2);
                     }
                     break;
                   case 65501:
-                    E += 2;
-                    d = Z(Q2, E);
-                    E += 2;
+                    E2 += 2;
+                    d = Z2(Q2, E2);
+                    E2 += 2;
                     break;
                   case 65498:
-                    var x2 = ++T2 === 1 && !f, R2;
-                    E += 2;
-                    var k2 = Q2[E++], g = [];
+                    var x = ++T2 === 1 && !f, R2;
+                    E2 += 2;
+                    var k2 = Q2[E2++], g = [];
                     for (Y2 = 0;Y2 < k2; Y2++) {
-                      var c = Q2[E++], L2 = F2._[c];
+                      var c = Q2[E2++], L2 = F2._[c];
                       R2 = F2.W[L2];
                       R2.index = c;
-                      var a6 = Q2[E++];
-                      R2.J = J[a6 >> 4];
-                      R2.i = z[a6 & 15];
+                      var a6 = Q2[E2++];
+                      R2.J = J2[a6 >> 4];
+                      R2.i = z2[a6 & 15];
                       g.push(R2);
                     }
-                    var I2 = Q2[E++], l = Q2[E++], M2 = Q2[E++];
+                    var I2 = Q2[E2++], l = Q2[E2++], M2 = Q2[E2++];
                     try {
-                      var S = a7(Q2, E, F2, g, d, I2, l, M2 >> 4, M2 & 15, x2);
-                      E += S;
+                      var S = a7(Q2, E2, F2, g, d, I2, l, M2 >> 4, M2 & 15, x);
+                      E2 += S;
                     } catch (ex) {
                       if (ex instanceof DNLMarkerError) {
                         return this.parse(Q2, { F: ex.s });
@@ -35723,26 +35723,26 @@ var require_UTIF = __commonJS((exports, module) => {
                     }
                     break;
                   case 65500:
-                    E += 4;
+                    E2 += 4;
                     break;
                   case 65535:
-                    if (Q2[E] !== 255) {
-                      E--;
+                    if (Q2[E2] !== 255) {
+                      E2--;
                     }
                     break;
                   default:
-                    var i = an(Q2, E - 2, E - 3);
+                    var i = an2(Q2, E2 - 2, E2 - 3);
                     if (i && i.u) {
-                      E = i.offset;
+                      E2 = i.offset;
                       break;
                     }
-                    if (E >= Q2.length - 1) {
+                    if (E2 >= Q2.length - 1) {
                       break markerLoop;
                     }
-                    throw new W2("JpegImage.parse - unknown marker: " + V2.toString(16));
+                    throw new W("JpegImage.parse - unknown marker: " + V2.toString(16));
                 }
-                V2 = Z(Q2, E);
-                E += 2;
+                V2 = Z2(Q2, E2);
+                E2 += 2;
               }
             this.width = F2.o;
             this.height = F2.s;
@@ -35762,26 +35762,26 @@ var require_UTIF = __commonJS((exports, module) => {
           }, Y(Q2, h, f) {
             if (f == null)
               f = false;
-            var G2 = this.width / Q2, n7 = this.height / h, E, a, C2, F2, d, T2, U2, z, J, V2, Y2 = 0, u, m = this.W.length, j2 = Q2 * h * m, v2 = new Uint8ClampedArray(j2), $ = new Uint32Array(Q2), b = 4294967288, r;
+            var G2 = this.width / Q2, n = this.height / h, E2, a, C2, F2, d, T2, U2, z2, J2, V2, Y2 = 0, u, m = this.W.length, j2 = Q2 * h * m, v2 = new Uint8ClampedArray(j2), $2 = new Uint32Array(Q2), b = 4294967288, r7;
             for (U2 = 0;U2 < m; U2++) {
-              E = this.W[U2];
-              a = E.l * G2;
-              C2 = E.t * n7;
+              E2 = this.W[U2];
+              a = E2.l * G2;
+              C2 = E2.t * n;
               Y2 = U2;
-              u = E.e;
-              F2 = E.P + 1 << 3;
-              if (a !== r) {
+              u = E2.e;
+              F2 = E2.P + 1 << 3;
+              if (a !== r7) {
                 for (d = 0;d < Q2; d++) {
-                  z = 0 | d * a;
-                  $[d] = (z & b) << 3 | z & 7;
+                  z2 = 0 | d * a;
+                  $2[d] = (z2 & b) << 3 | z2 & 7;
                 }
-                r = a;
+                r7 = a;
               }
               for (T2 = 0;T2 < h; T2++) {
-                z = 0 | T2 * C2;
-                V2 = F2 * (z & b) | (z & 7) << 3;
+                z2 = 0 | T2 * C2;
+                V2 = F2 * (z2 & b) | (z2 & 7) << 3;
                 for (d = 0;d < Q2; d++) {
-                  v2[Y2] = u[V2 + $[d]];
+                  v2[Y2] = u[V2 + $2[d]];
                   Y2 += m;
                 }
               }
@@ -35792,8 +35792,8 @@ var require_UTIF = __commonJS((exports, module) => {
             }
             if (P2) {
               for (U2 = 0;U2 < j2; ) {
-                for (z = 0, J = 0;z < m; z++, U2++, J += 2) {
-                  v2[U2] = (v2[U2] * P2[J] >> 8) + P2[J + 1];
+                for (z2 = 0, J2 = 0;z2 < m; z2++, U2++, J2 += 2) {
+                  v2[U2] = (v2[U2] * P2[J2] >> 8) + P2[J2 + 1];
                 }
               }
             }
@@ -35816,85 +35816,85 @@ var require_UTIF = __commonJS((exports, module) => {
             return false;
           }, z: function aj(Q2) {
             var h, f, G2;
-            for (var n7 = 0, E = Q2.length;n7 < E; n7 += 3) {
-              h = Q2[n7];
-              f = Q2[n7 + 1];
-              G2 = Q2[n7 + 2];
-              Q2[n7] = h - 179.456 + 1.402 * G2;
-              Q2[n7 + 1] = h + 135.459 - 0.344 * f - 0.714 * G2;
-              Q2[n7 + 2] = h - 226.816 + 1.772 * f;
+            for (var n = 0, E2 = Q2.length;n < E2; n += 3) {
+              h = Q2[n];
+              f = Q2[n + 1];
+              G2 = Q2[n + 2];
+              Q2[n] = h - 179.456 + 1.402 * G2;
+              Q2[n + 1] = h + 135.459 - 0.344 * f - 0.714 * G2;
+              Q2[n + 2] = h - 226.816 + 1.772 * f;
             }
             return Q2;
           }, O: function aa(Q2) {
-            var h, f, G2, n7, E = 0;
+            var h, f, G2, n, E2 = 0;
             for (var a = 0, C2 = Q2.length;a < C2; a += 4) {
               h = Q2[a];
               f = Q2[a + 1];
               G2 = Q2[a + 2];
-              n7 = Q2[a + 3];
-              Q2[E++] = -122.67195406894 + f * (-0.0000660635669420364 * f + 0.000437130475926232 * G2 - 0.000054080610064599 * h + 0.00048449797120281 * n7 - 0.154362151871126) + G2 * (-0.000957964378445773 * G2 + 0.000817076911346625 * h - 0.00477271405408747 * n7 + 1.53380253221734) + h * (0.000961250184130688 * h - 0.00266257332283933 * n7 + 0.48357088451265) + n7 * (-0.000336197177618394 * n7 + 0.484791561490776);
-              Q2[E++] = 107.268039397724 + f * (0.0000219927104525741 * f - 0.000640992018297945 * G2 + 0.000659397001245577 * h + 0.000426105652938837 * n7 - 0.176491792462875) + G2 * (-0.000778269941513683 * G2 + 0.00130872261408275 * h + 0.000770482631801132 * n7 - 0.151051492775562) + h * (0.00126935368114843 * h - 0.00265090189010898 * n7 + 0.25802910206845) + n7 * (-0.000318913117588328 * n7 - 0.213742400323665);
-              Q2[E++] = -20.810012546947 + f * (-0.000570115196973677 * f - 0.0000263409051004589 * G2 + 0.0020741088115012 * h - 0.00288260236853442 * n7 + 0.814272968359295) + G2 * (-0.0000153496057440975 * G2 - 0.000132689043961446 * h + 0.000560833691242812 * n7 - 0.195152027534049) + h * (0.00174418132927582 * h - 0.00255243321439347 * n7 + 0.116935020465145) + n7 * (-0.000343531996510555 * n7 + 0.24165260232407);
+              n = Q2[a + 3];
+              Q2[E2++] = -122.67195406894 + f * (-0.0000660635669420364 * f + 0.000437130475926232 * G2 - 0.000054080610064599 * h + 0.00048449797120281 * n - 0.154362151871126) + G2 * (-0.000957964378445773 * G2 + 0.000817076911346625 * h - 0.00477271405408747 * n + 1.53380253221734) + h * (0.000961250184130688 * h - 0.00266257332283933 * n + 0.48357088451265) + n * (-0.000336197177618394 * n + 0.484791561490776);
+              Q2[E2++] = 107.268039397724 + f * (0.0000219927104525741 * f - 0.000640992018297945 * G2 + 0.000659397001245577 * h + 0.000426105652938837 * n - 0.176491792462875) + G2 * (-0.000778269941513683 * G2 + 0.00130872261408275 * h + 0.000770482631801132 * n - 0.151051492775562) + h * (0.00126935368114843 * h - 0.00265090189010898 * n + 0.25802910206845) + n * (-0.000318913117588328 * n - 0.213742400323665);
+              Q2[E2++] = -20.810012546947 + f * (-0.000570115196973677 * f - 0.0000263409051004589 * G2 + 0.0020741088115012 * h - 0.00288260236853442 * n + 0.814272968359295) + G2 * (-0.0000153496057440975 * G2 - 0.000132689043961446 * h + 0.000560833691242812 * n - 0.195152027534049) + h * (0.00174418132927582 * h - 0.00255243321439347 * n + 0.116935020465145) + n * (-0.000343531996510555 * n + 0.24165260232407);
             }
-            return Q2.subarray(0, E);
+            return Q2.subarray(0, E2);
           }, r: function a3(Q2) {
             var h, f, G2;
-            for (var n7 = 0, E = Q2.length;n7 < E; n7 += 4) {
-              h = Q2[n7];
-              f = Q2[n7 + 1];
-              G2 = Q2[n7 + 2];
-              Q2[n7] = 434.456 - h - 1.402 * G2;
-              Q2[n7 + 1] = 119.541 - h + 0.344 * f + 0.714 * G2;
-              Q2[n7 + 2] = 481.816 - h - 1.772 * f;
+            for (var n = 0, E2 = Q2.length;n < E2; n += 4) {
+              h = Q2[n];
+              f = Q2[n + 1];
+              G2 = Q2[n + 2];
+              Q2[n] = 434.456 - h - 1.402 * G2;
+              Q2[n + 1] = 119.541 - h + 0.344 * f + 0.714 * G2;
+              Q2[n + 2] = 481.816 - h - 1.772 * f;
             }
             return Q2;
           }, U: function as(Q2) {
-            var h, f, G2, n7, E = 0;
+            var h, f, G2, n, E2 = 0;
             for (var a = 0, C2 = Q2.length;a < C2; a += 4) {
               h = Q2[a];
               f = Q2[a + 1];
               G2 = Q2[a + 2];
-              n7 = Q2[a + 3];
-              Q2[E++] = 255 + h * (-0.00006747147073602441 * h + 0.0008379262121013727 * f + 0.0002894718188643294 * G2 + 0.003264231057537806 * n7 - 1.1185611867203937) + f * (0.000026374107616089405 * f - 0.00008626949158638572 * G2 - 0.0002748769067499491 * n7 - 0.02155688794978967) + G2 * (-0.00003878099212869363 * G2 - 0.0003267808279485286 * n7 + 0.0686742238595345) - n7 * (0.0003361971776183937 * n7 + 0.7430659151342254);
-              Q2[E++] = 255 + h * (0.00013596372813588848 * h + 0.000924537132573585 * f + 0.00010567359618683593 * G2 + 0.0004791864687436512 * n7 - 0.3109689587515875) + f * (-0.00023545346108370344 * f + 0.0002702845253534714 * G2 + 0.0020200308977307156 * n7 - 0.7488052167015494) + G2 * (0.00006834815998235662 * G2 + 0.00015168452363460973 * n7 - 0.09751927774728933) - n7 * (0.0003189131175883281 * n7 + 0.7364883807733168);
-              Q2[E++] = 255 + h * (0.000013598650411385307 * h + 0.00012423956175490851 * f + 0.0004751985097583589 * G2 - 0.0000036729317476630422 * n7 - 0.05562186980264034) + f * (0.00016141380598724676 * f + 0.0009692239130725186 * G2 + 0.0007782692450036253 * n7 - 0.44015232367526463) + G2 * (0.0000005068882914068769 * G2 + 0.0017778369011375071 * n7 - 0.7591454649749609) - n7 * (0.0003435319965105553 * n7 + 0.7063770186160144);
+              n = Q2[a + 3];
+              Q2[E2++] = 255 + h * (-0.00006747147073602441 * h + 0.0008379262121013727 * f + 0.0002894718188643294 * G2 + 0.003264231057537806 * n - 1.1185611867203937) + f * (0.000026374107616089405 * f - 0.00008626949158638572 * G2 - 0.0002748769067499491 * n - 0.02155688794978967) + G2 * (-0.00003878099212869363 * G2 - 0.0003267808279485286 * n + 0.0686742238595345) - n * (0.0003361971776183937 * n + 0.7430659151342254);
+              Q2[E2++] = 255 + h * (0.00013596372813588848 * h + 0.000924537132573585 * f + 0.00010567359618683593 * G2 + 0.0004791864687436512 * n - 0.3109689587515875) + f * (-0.00023545346108370344 * f + 0.0002702845253534714 * G2 + 0.0020200308977307156 * n - 0.7488052167015494) + G2 * (0.00006834815998235662 * G2 + 0.00015168452363460973 * n - 0.09751927774728933) - n * (0.0003189131175883281 * n + 0.7364883807733168);
+              Q2[E2++] = 255 + h * (0.000013598650411385307 * h + 0.00012423956175490851 * f + 0.0004751985097583589 * G2 - 0.0000036729317476630422 * n - 0.05562186980264034) + f * (0.00016141380598724676 * f + 0.0009692239130725186 * G2 + 0.0007782692450036253 * n - 0.44015232367526463) + G2 * (0.0000005068882914068769 * G2 + 0.0017778369011375071 * n - 0.7591454649749609) - n * (0.0003435319965105553 * n + 0.7063770186160144);
             }
-            return Q2.subarray(0, E);
+            return Q2.subarray(0, E2);
           }, getData: function(Q2) {
-            var { width: h, height: f, forceRGB: G2, isSourcePDF: n7 } = Q2;
+            var { width: h, height: f, forceRGB: G2, isSourcePDF: n } = Q2;
             if (this.p > 4) {
-              throw new W2("Unsupported color mode");
+              throw new W("Unsupported color mode");
             }
-            var E = this.Y(h, f, n7);
+            var E2 = this.Y(h, f, n);
             if (this.p === 1 && G2) {
-              var a = E.length, C2 = new Uint8ClampedArray(a * 3), F2 = 0;
+              var a = E2.length, C2 = new Uint8ClampedArray(a * 3), F2 = 0;
               for (var d = 0;d < a; d++) {
-                var T2 = E[d];
+                var T2 = E2[d];
                 C2[F2++] = T2;
                 C2[F2++] = T2;
                 C2[F2++] = T2;
               }
               return C2;
             } else if (this.p === 3 && this.f) {
-              return this.z(E);
+              return this.z(E2);
             } else if (this.p === 4) {
               if (this.f) {
                 if (G2) {
-                  return this.O(E);
+                  return this.O(E2);
                 }
-                return this.r(E);
+                return this.r(E2);
               } else if (G2) {
-                return this.U(E);
+                return this.U(E2);
               }
             }
-            return E;
+            return E2;
           } };
           return ak2;
         }();
         function a9(p, t) {
           return p[t] << 24 >> 24;
         }
-        function Z(p, t) {
+        function Z2(p, t) {
           return p[t] << 8 | p[t + 1];
         }
         function am(p, t) {
@@ -36021,14 +36021,14 @@ var require_UTIF = __commonJS((exports, module) => {
           var tbuff = new Uint8Array(Math.ceil(tw * th * bipp / 8) | 0);
           console.log("====", tx, ty);
           for (var y = 0;y < ty; y++)
-            for (var x2 = 0;x2 < tx; x2++) {
-              var i = y * tx + x2;
+            for (var x = 0;x < tx; x++) {
+              var i = y * tx + x;
               tbuff.fill(0);
               UTIF2.decode._decompress(img, ifds, data, soff[i], bcnt[i], cmpr, tbuff, 0, fo, tw, th);
               if (cmpr == 6)
                 bytes = tbuff;
               else
-                UTIF2._copyTile(tbuff, Math.ceil(tw * bipp / 8) | 0, th, bytes, Math.ceil(img.width * bipp / 8) | 0, img.height, Math.ceil(x2 * tw * bipp / 8) | 0, y * th);
+                UTIF2._copyTile(tbuff, Math.ceil(tw * bipp / 8) | 0, th, bytes, Math.ceil(img.width * bipp / 8) | 0, img.height, Math.ceil(x * tw * bipp / 8) | 0, y * th);
             }
           bilen = bytes.length * 8;
         } else {
@@ -36088,10 +36088,10 @@ var require_UTIF = __commonJS((exports, module) => {
         if (bps == 16 && !img.isLE && img["t33422"] == null)
           for (var y = 0;y < h; y++) {
             var roff = toff + y * bpl;
-            for (var x2 = 1;x2 < bpl; x2 += 2) {
-              var t = tgt[roff + x2];
-              tgt[roff + x2] = tgt[roff + x2 - 1];
-              tgt[roff + x2 - 1] = t;
+            for (var x = 1;x < bpl; x += 2) {
+              var t = tgt[roff + x];
+              tgt[roff + x] = tgt[roff + x - 1];
+              tgt[roff + x - 1] = t;
             }
           }
         if (img["t317"] && img["t317"][0] == 2) {
@@ -36301,68 +36301,68 @@ var require_UTIF = __commonJS((exports, module) => {
           throw RW2_Format;
       };
       UTIF2.decode._decodeVC5 = function() {
-        var x2 = [1, 0, 1, 0, 2, 2, 1, 1, 3, 7, 1, 2, 5, 25, 1, 3, 6, 48, 1, 4, 6, 54, 1, 5, 7, 111, 1, 8, 7, 99, 1, 6, 7, 105, 12, 0, 7, 107, 1, 7, 8, 209, 20, 0, 8, 212, 1, 9, 8, 220, 1, 10, 9, 393, 1, 11, 9, 394, 32, 0, 9, 416, 1, 12, 9, 427, 1, 13, 10, 887, 1, 18, 10, 784, 1, 14, 10, 790, 1, 15, 10, 835, 60, 0, 10, 852, 1, 16, 10, 885, 1, 17, 11, 1571, 1, 19, 11, 1668, 1, 20, 11, 1669, 100, 0, 11, 1707, 1, 21, 11, 1772, 1, 22, 12, 3547, 1, 29, 12, 3164, 1, 24, 12, 3166, 1, 25, 12, 3140, 1, 23, 12, 3413, 1, 26, 12, 3537, 1, 27, 12, 3539, 1, 28, 13, 7093, 1, 35, 13, 6283, 1, 30, 13, 6331, 1, 31, 13, 6335, 180, 0, 13, 6824, 1, 32, 13, 7072, 1, 33, 13, 7077, 320, 0, 13, 7076, 1, 34, 14, 12565, 1, 36, 14, 12661, 1, 37, 14, 12669, 1, 38, 14, 13651, 1, 39, 14, 14184, 1, 40, 15, 28295, 1, 46, 15, 28371, 1, 47, 15, 25320, 1, 42, 15, 25336, 1, 43, 15, 25128, 1, 41, 15, 27300, 1, 44, 15, 28293, 1, 45, 16, 50259, 1, 48, 16, 50643, 1, 49, 16, 50675, 1, 50, 16, 56740, 1, 53, 16, 56584, 1, 51, 16, 56588, 1, 52, 17, 113483, 1, 61, 17, 113482, 1, 60, 17, 101285, 1, 55, 17, 101349, 1, 56, 17, 109205, 1, 57, 17, 109207, 1, 58, 17, 100516, 1, 54, 17, 113171, 1, 59, 18, 202568, 1, 62, 18, 202696, 1, 63, 18, 218408, 1, 64, 18, 218412, 1, 65, 18, 226340, 1, 66, 18, 226356, 1, 67, 18, 226358, 1, 68, 19, 402068, 1, 69, 19, 405138, 1, 70, 19, 405394, 1, 71, 19, 436818, 1, 72, 19, 436826, 1, 73, 19, 452714, 1, 75, 19, 452718, 1, 76, 19, 452682, 1, 74, 20, 804138, 1, 77, 20, 810279, 1, 78, 20, 810790, 1, 79, 20, 873638, 1, 80, 20, 873654, 1, 81, 20, 905366, 1, 82, 20, 905430, 1, 83, 20, 905438, 1, 84, 21, 1608278, 1, 85, 21, 1620557, 1, 86, 21, 1621582, 1, 87, 21, 1621583, 1, 88, 21, 1747310, 1, 89, 21, 1810734, 1, 90, 21, 1810735, 1, 91, 21, 1810863, 1, 92, 21, 1810879, 1, 93, 22, 3621725, 1, 99, 22, 3621757, 1, 100, 22, 3241112, 1, 94, 22, 3494556, 1, 95, 22, 3494557, 1, 96, 22, 3494622, 1, 97, 22, 3494623, 1, 98, 23, 6482227, 1, 102, 23, 6433117, 1, 101, 23, 6989117, 1, 103, 23, 6989119, 1, 105, 23, 6989118, 1, 104, 23, 7243449, 1, 106, 23, 7243512, 1, 107, 24, 13978233, 1, 111, 24, 12964453, 1, 109, 24, 12866232, 1, 108, 24, 14486897, 1, 113, 24, 13978232, 1, 110, 24, 14486896, 1, 112, 24, 14487026, 1, 114, 24, 14487027, 1, 115, 25, 25732598, 1, 225, 25, 25732597, 1, 189, 25, 25732596, 1, 188, 25, 25732595, 1, 203, 25, 25732594, 1, 202, 25, 25732593, 1, 197, 25, 25732592, 1, 207, 25, 25732591, 1, 169, 25, 25732590, 1, 223, 25, 25732589, 1, 159, 25, 25732522, 1, 235, 25, 25732579, 1, 152, 25, 25732575, 1, 192, 25, 25732489, 1, 179, 25, 25732573, 1, 201, 25, 25732472, 1, 172, 25, 25732576, 1, 149, 25, 25732488, 1, 178, 25, 25732566, 1, 120, 25, 25732571, 1, 219, 25, 25732577, 1, 150, 25, 25732487, 1, 127, 25, 25732506, 1, 211, 25, 25732548, 1, 125, 25, 25732588, 1, 158, 25, 25732486, 1, 247, 25, 25732467, 1, 238, 25, 25732508, 1, 163, 25, 25732552, 1, 228, 25, 25732603, 1, 183, 25, 25732513, 1, 217, 25, 25732587, 1, 168, 25, 25732520, 1, 122, 25, 25732484, 1, 128, 25, 25732562, 1, 249, 25, 25732505, 1, 187, 25, 25732504, 1, 186, 25, 25732483, 1, 136, 25, 25928905, 1, 181, 25, 25732560, 1, 255, 25, 25732500, 1, 230, 25, 25732482, 1, 135, 25, 25732555, 1, 233, 25, 25732568, 1, 222, 25, 25732583, 1, 145, 25, 25732481, 1, 134, 25, 25732586, 1, 167, 25, 25732521, 1, 248, 25, 25732518, 1, 209, 25, 25732480, 1, 243, 25, 25732512, 1, 216, 25, 25732509, 1, 164, 25, 25732547, 1, 140, 25, 25732479, 1, 157, 25, 25732544, 1, 239, 25, 25732574, 1, 191, 25, 25732564, 1, 251, 25, 25732478, 1, 156, 25, 25732546, 1, 139, 25, 25732498, 1, 242, 25, 25732557, 1, 133, 25, 25732477, 1, 162, 25, 25732515, 1, 213, 25, 25732584, 1, 165, 25, 25732514, 1, 212, 25, 25732476, 1, 227, 25, 25732494, 1, 198, 25, 25732531, 1, 236, 25, 25732530, 1, 234, 25, 25732529, 1, 117, 25, 25732528, 1, 215, 25, 25732527, 1, 124, 25, 25732526, 1, 123, 25, 25732525, 1, 254, 25, 25732524, 1, 253, 25, 25732523, 1, 148, 25, 25732570, 1, 218, 25, 25732580, 1, 146, 25, 25732581, 1, 147, 25, 25732569, 1, 224, 25, 25732533, 1, 143, 25, 25732540, 1, 184, 25, 25732541, 1, 185, 25, 25732585, 1, 166, 25, 25732556, 1, 132, 25, 25732485, 1, 129, 25, 25732563, 1, 250, 25, 25732578, 1, 151, 25, 25732501, 1, 119, 25, 25732502, 1, 193, 25, 25732536, 1, 176, 25, 25732496, 1, 245, 25, 25732553, 1, 229, 25, 25732516, 1, 206, 25, 25732582, 1, 144, 25, 25732517, 1, 208, 25, 25732558, 1, 137, 25, 25732543, 1, 241, 25, 25732466, 1, 237, 25, 25732507, 1, 190, 25, 25732542, 1, 240, 25, 25732551, 1, 131, 25, 25732554, 1, 232, 25, 25732565, 1, 252, 25, 25732475, 1, 171, 25, 25732493, 1, 205, 25, 25732492, 1, 204, 25, 25732491, 1, 118, 25, 25732490, 1, 214, 25, 25928904, 1, 180, 25, 25732549, 1, 126, 25, 25732602, 1, 182, 25, 25732539, 1, 175, 25, 25732545, 1, 141, 25, 25732559, 1, 138, 25, 25732537, 1, 177, 25, 25732534, 1, 153, 25, 25732503, 1, 194, 25, 25732606, 1, 160, 25, 25732567, 1, 121, 25, 25732538, 1, 174, 25, 25732497, 1, 246, 25, 25732550, 1, 130, 25, 25732572, 1, 200, 25, 25732474, 1, 170, 25, 25732511, 1, 221, 25, 25732601, 1, 196, 25, 25732532, 1, 142, 25, 25732519, 1, 210, 25, 25732495, 1, 199, 25, 25732605, 1, 155, 25, 25732535, 1, 154, 25, 25732499, 1, 244, 25, 25732510, 1, 220, 25, 25732600, 1, 195, 25, 25732607, 1, 161, 25, 25732604, 1, 231, 25, 25732473, 1, 173, 25, 25732599, 1, 226, 26, 51465122, 1, 116, 26, 51465123, 0, 1], o, C2, k2, P2 = [3, 3, 3, 3, 2, 2, 2, 1, 1, 1], V2 = 24576, ar = 16384, H2 = 8192, az = ar | H2;
+        var x = [1, 0, 1, 0, 2, 2, 1, 1, 3, 7, 1, 2, 5, 25, 1, 3, 6, 48, 1, 4, 6, 54, 1, 5, 7, 111, 1, 8, 7, 99, 1, 6, 7, 105, 12, 0, 7, 107, 1, 7, 8, 209, 20, 0, 8, 212, 1, 9, 8, 220, 1, 10, 9, 393, 1, 11, 9, 394, 32, 0, 9, 416, 1, 12, 9, 427, 1, 13, 10, 887, 1, 18, 10, 784, 1, 14, 10, 790, 1, 15, 10, 835, 60, 0, 10, 852, 1, 16, 10, 885, 1, 17, 11, 1571, 1, 19, 11, 1668, 1, 20, 11, 1669, 100, 0, 11, 1707, 1, 21, 11, 1772, 1, 22, 12, 3547, 1, 29, 12, 3164, 1, 24, 12, 3166, 1, 25, 12, 3140, 1, 23, 12, 3413, 1, 26, 12, 3537, 1, 27, 12, 3539, 1, 28, 13, 7093, 1, 35, 13, 6283, 1, 30, 13, 6331, 1, 31, 13, 6335, 180, 0, 13, 6824, 1, 32, 13, 7072, 1, 33, 13, 7077, 320, 0, 13, 7076, 1, 34, 14, 12565, 1, 36, 14, 12661, 1, 37, 14, 12669, 1, 38, 14, 13651, 1, 39, 14, 14184, 1, 40, 15, 28295, 1, 46, 15, 28371, 1, 47, 15, 25320, 1, 42, 15, 25336, 1, 43, 15, 25128, 1, 41, 15, 27300, 1, 44, 15, 28293, 1, 45, 16, 50259, 1, 48, 16, 50643, 1, 49, 16, 50675, 1, 50, 16, 56740, 1, 53, 16, 56584, 1, 51, 16, 56588, 1, 52, 17, 113483, 1, 61, 17, 113482, 1, 60, 17, 101285, 1, 55, 17, 101349, 1, 56, 17, 109205, 1, 57, 17, 109207, 1, 58, 17, 100516, 1, 54, 17, 113171, 1, 59, 18, 202568, 1, 62, 18, 202696, 1, 63, 18, 218408, 1, 64, 18, 218412, 1, 65, 18, 226340, 1, 66, 18, 226356, 1, 67, 18, 226358, 1, 68, 19, 402068, 1, 69, 19, 405138, 1, 70, 19, 405394, 1, 71, 19, 436818, 1, 72, 19, 436826, 1, 73, 19, 452714, 1, 75, 19, 452718, 1, 76, 19, 452682, 1, 74, 20, 804138, 1, 77, 20, 810279, 1, 78, 20, 810790, 1, 79, 20, 873638, 1, 80, 20, 873654, 1, 81, 20, 905366, 1, 82, 20, 905430, 1, 83, 20, 905438, 1, 84, 21, 1608278, 1, 85, 21, 1620557, 1, 86, 21, 1621582, 1, 87, 21, 1621583, 1, 88, 21, 1747310, 1, 89, 21, 1810734, 1, 90, 21, 1810735, 1, 91, 21, 1810863, 1, 92, 21, 1810879, 1, 93, 22, 3621725, 1, 99, 22, 3621757, 1, 100, 22, 3241112, 1, 94, 22, 3494556, 1, 95, 22, 3494557, 1, 96, 22, 3494622, 1, 97, 22, 3494623, 1, 98, 23, 6482227, 1, 102, 23, 6433117, 1, 101, 23, 6989117, 1, 103, 23, 6989119, 1, 105, 23, 6989118, 1, 104, 23, 7243449, 1, 106, 23, 7243512, 1, 107, 24, 13978233, 1, 111, 24, 12964453, 1, 109, 24, 12866232, 1, 108, 24, 14486897, 1, 113, 24, 13978232, 1, 110, 24, 14486896, 1, 112, 24, 14487026, 1, 114, 24, 14487027, 1, 115, 25, 25732598, 1, 225, 25, 25732597, 1, 189, 25, 25732596, 1, 188, 25, 25732595, 1, 203, 25, 25732594, 1, 202, 25, 25732593, 1, 197, 25, 25732592, 1, 207, 25, 25732591, 1, 169, 25, 25732590, 1, 223, 25, 25732589, 1, 159, 25, 25732522, 1, 235, 25, 25732579, 1, 152, 25, 25732575, 1, 192, 25, 25732489, 1, 179, 25, 25732573, 1, 201, 25, 25732472, 1, 172, 25, 25732576, 1, 149, 25, 25732488, 1, 178, 25, 25732566, 1, 120, 25, 25732571, 1, 219, 25, 25732577, 1, 150, 25, 25732487, 1, 127, 25, 25732506, 1, 211, 25, 25732548, 1, 125, 25, 25732588, 1, 158, 25, 25732486, 1, 247, 25, 25732467, 1, 238, 25, 25732508, 1, 163, 25, 25732552, 1, 228, 25, 25732603, 1, 183, 25, 25732513, 1, 217, 25, 25732587, 1, 168, 25, 25732520, 1, 122, 25, 25732484, 1, 128, 25, 25732562, 1, 249, 25, 25732505, 1, 187, 25, 25732504, 1, 186, 25, 25732483, 1, 136, 25, 25928905, 1, 181, 25, 25732560, 1, 255, 25, 25732500, 1, 230, 25, 25732482, 1, 135, 25, 25732555, 1, 233, 25, 25732568, 1, 222, 25, 25732583, 1, 145, 25, 25732481, 1, 134, 25, 25732586, 1, 167, 25, 25732521, 1, 248, 25, 25732518, 1, 209, 25, 25732480, 1, 243, 25, 25732512, 1, 216, 25, 25732509, 1, 164, 25, 25732547, 1, 140, 25, 25732479, 1, 157, 25, 25732544, 1, 239, 25, 25732574, 1, 191, 25, 25732564, 1, 251, 25, 25732478, 1, 156, 25, 25732546, 1, 139, 25, 25732498, 1, 242, 25, 25732557, 1, 133, 25, 25732477, 1, 162, 25, 25732515, 1, 213, 25, 25732584, 1, 165, 25, 25732514, 1, 212, 25, 25732476, 1, 227, 25, 25732494, 1, 198, 25, 25732531, 1, 236, 25, 25732530, 1, 234, 25, 25732529, 1, 117, 25, 25732528, 1, 215, 25, 25732527, 1, 124, 25, 25732526, 1, 123, 25, 25732525, 1, 254, 25, 25732524, 1, 253, 25, 25732523, 1, 148, 25, 25732570, 1, 218, 25, 25732580, 1, 146, 25, 25732581, 1, 147, 25, 25732569, 1, 224, 25, 25732533, 1, 143, 25, 25732540, 1, 184, 25, 25732541, 1, 185, 25, 25732585, 1, 166, 25, 25732556, 1, 132, 25, 25732485, 1, 129, 25, 25732563, 1, 250, 25, 25732578, 1, 151, 25, 25732501, 1, 119, 25, 25732502, 1, 193, 25, 25732536, 1, 176, 25, 25732496, 1, 245, 25, 25732553, 1, 229, 25, 25732516, 1, 206, 25, 25732582, 1, 144, 25, 25732517, 1, 208, 25, 25732558, 1, 137, 25, 25732543, 1, 241, 25, 25732466, 1, 237, 25, 25732507, 1, 190, 25, 25732542, 1, 240, 25, 25732551, 1, 131, 25, 25732554, 1, 232, 25, 25732565, 1, 252, 25, 25732475, 1, 171, 25, 25732493, 1, 205, 25, 25732492, 1, 204, 25, 25732491, 1, 118, 25, 25732490, 1, 214, 25, 25928904, 1, 180, 25, 25732549, 1, 126, 25, 25732602, 1, 182, 25, 25732539, 1, 175, 25, 25732545, 1, 141, 25, 25732559, 1, 138, 25, 25732537, 1, 177, 25, 25732534, 1, 153, 25, 25732503, 1, 194, 25, 25732606, 1, 160, 25, 25732567, 1, 121, 25, 25732538, 1, 174, 25, 25732497, 1, 246, 25, 25732550, 1, 130, 25, 25732572, 1, 200, 25, 25732474, 1, 170, 25, 25732511, 1, 221, 25, 25732601, 1, 196, 25, 25732532, 1, 142, 25, 25732519, 1, 210, 25, 25732495, 1, 199, 25, 25732605, 1, 155, 25, 25732535, 1, 154, 25, 25732499, 1, 244, 25, 25732510, 1, 220, 25, 25732600, 1, 195, 25, 25732607, 1, 161, 25, 25732604, 1, 231, 25, 25732473, 1, 173, 25, 25732599, 1, 226, 26, 51465122, 1, 116, 26, 51465123, 0, 1], o, C2, k2, P2 = [3, 3, 3, 3, 2, 2, 2, 1, 1, 1], V2 = 24576, ar = 16384, H2 = 8192, az = ar | H2;
         function d(t) {
-          var E = t[1], h = t[0][E >>> 3] >>> 7 - (E & 7) & 1;
+          var E2 = t[1], h = t[0][E2 >>> 3] >>> 7 - (E2 & 7) & 1;
           t[1]++;
           return h;
         }
-        function ag(t, E) {
+        function ag(t, E2) {
           if (o == null) {
             o = {};
-            for (var h = 0;h < x2.length; h += 4)
-              o[x2[h + 1]] = x2.slice(h, h + 4);
+            for (var h = 0;h < x.length; h += 4)
+              o[x[h + 1]] = x.slice(h, h + 4);
           }
           var L2 = d(t), g = o[L2];
           while (g == null) {
             L2 = L2 << 1 | d(t);
             g = o[L2];
           }
-          var n7 = g[3];
-          if (n7 != 0)
-            n7 = d(t) == 0 ? n7 : -n7;
-          E[0] = g[2];
-          E[1] = n7;
+          var n = g[3];
+          if (n != 0)
+            n = d(t) == 0 ? n : -n;
+          E2[0] = g[2];
+          E2[1] = n;
         }
-        function m(t, E) {
-          for (var h = 0;h < E; h++) {
+        function m(t, E2) {
+          for (var h = 0;h < E2; h++) {
             if ((t & 1) == 1)
               t++;
             t = t >>> 1;
           }
           return t;
         }
-        function A2(t, E) {
-          return t >> E;
+        function A2(t, E2) {
+          return t >> E2;
         }
-        function O2(t, E, h, L2, g, n7) {
-          E[h] = A2(A2(11 * t[g] - 4 * t[g + n7] + t[g + n7 + n7] + 4, 3) + t[L2], 1);
-          E[h + n7] = A2(A2(5 * t[g] + 4 * t[g + n7] - t[g + n7 + n7] + 4, 3) - t[L2], 1);
+        function O2(t, E2, h, L2, g, n) {
+          E2[h] = A2(A2(11 * t[g] - 4 * t[g + n] + t[g + n + n] + 4, 3) + t[L2], 1);
+          E2[h + n] = A2(A2(5 * t[g] + 4 * t[g + n] - t[g + n + n] + 4, 3) - t[L2], 1);
         }
-        function J(t, E, h, L2, g, n7) {
-          var W2 = t[g - n7] - t[g + n7], j2 = t[g], $ = t[L2];
-          E[h] = A2(A2(W2 + 4, 3) + j2 + $, 1);
-          E[h + n7] = A2(A2(-W2 + 4, 3) + j2 - $, 1);
+        function J2(t, E2, h, L2, g, n) {
+          var W = t[g - n] - t[g + n], j2 = t[g], $2 = t[L2];
+          E2[h] = A2(A2(W + 4, 3) + j2 + $2, 1);
+          E2[h + n] = A2(A2(-W + 4, 3) + j2 - $2, 1);
         }
-        function y(t, E, h, L2, g, n7) {
-          E[h] = A2(A2(5 * t[g] + 4 * t[g - n7] - t[g - n7 - n7] + 4, 3) + t[L2], 1);
-          E[h + n7] = A2(A2(11 * t[g] - 4 * t[g - n7] + t[g - n7 - n7] + 4, 3) - t[L2], 1);
+        function y(t, E2, h, L2, g, n) {
+          E2[h] = A2(A2(5 * t[g] + 4 * t[g - n] - t[g - n - n] + 4, 3) + t[L2], 1);
+          E2[h + n] = A2(A2(11 * t[g] - 4 * t[g - n] + t[g - n - n] + 4, 3) - t[L2], 1);
         }
-        function q2(t) {
+        function q(t) {
           t = t < 0 ? 0 : t > 4095 ? 4095 : t;
           t = k2[t] >>> 2;
           return t;
         }
-        function av(t, E, h, L2, g, n7) {
+        function av(t, E2, h, L2, g, n) {
           L2 = new Uint16Array(L2.buffer);
-          var W2 = Date.now(), j2 = UTIF2._binBE, $ = E + h, r, u, X2, I2, ax, a3, R2, ai2, aa, ap, ah, ae2, aD, al, i, aE, T2, B2;
-          E += 4;
-          var a5 = n7[0] == 1;
-          while (E < $) {
-            var S = j2.readShort(t, E), s = j2.readUshort(t, E + 2);
-            E += 4;
+          var W = Date.now(), j2 = UTIF2._binBE, $2 = E2 + h, r7, u, X2, I2, ax, a3, R2, ai2, aa, ap, ah, ae2, aD, al, i, aE, T2, B;
+          E2 += 4;
+          var a5 = n[0] == 1;
+          while (E2 < $2) {
+            var S = j2.readShort(t, E2), s = j2.readUshort(t, E2 + 2);
+            E2 += 4;
             if (S == 12)
-              r = s;
+              r7 = s;
             else if (S == 20)
               u = s;
             else if (S == 21)
@@ -36408,11 +36408,11 @@ var require_UTIF = __commonJS((exports, module) => {
                   T2 = [];
                   for (var M2 = 0;M2 < 4; M2++)
                     T2[M2] = new Int16Array((u >>> 1) * (X2 >>> 1));
-                  B2 = new Int16Array((u >>> 1) * (X2 >>> 1));
+                  B = new Int16Array((u >>> 1) * (X2 >>> 1));
                   C2 = new Int16Array(1024);
                   for (var M2 = 0;M2 < 1024; M2++) {
-                    var aG = M2 - 512, p = Math.abs(aG), r = Math.floor(768 * p * p * p / (255 * 255 * 255)) + p;
-                    C2[M2] = Math.sign(aG) * r;
+                    var aG = M2 - 512, p = Math.abs(aG), r7 = Math.floor(768 * p * p * p / (255 * 255 * 255)) + p;
+                    C2[M2] = Math.sign(aG) * r7;
                   }
                   k2 = new Uint16Array(4096);
                   var aA = (1 << 16) - 1;
@@ -36425,11 +36425,11 @@ var require_UTIF = __commonJS((exports, module) => {
                 if (I2 == 0) {
                   for (var b = 0;b < N2; b++)
                     for (var G2 = 0;G2 < v2; G2++) {
-                      var c = E + (b * v2 + G2) * 2;
+                      var c = E2 + (b * v2 + G2) * 2;
                       w[b * (u >>> 1) + G2] = t[c] << 8 | t[c + 1];
                     }
                 } else {
-                  var a7 = [t, E * 8], a4 = [], ay = 0, aw = v2 * N2, f = [0, 0], Q2 = 0, s = 0;
+                  var a7 = [t, E2 * 8], a4 = [], ay = 0, aw = v2 * N2, f = [0, 0], Q2 = 0, s = 0;
                   while (ay < aw) {
                     ag(a7, f);
                     Q2 = f[0];
@@ -36446,42 +36446,42 @@ var require_UTIF = __commonJS((exports, module) => {
                       w[af + G2] = C2[a4[au + G2] + 512] * ax;
                   }
                   if (l == 2) {
-                    var i = u >>> 1, an = v2 * 2, a9 = N2 * 2;
+                    var i = u >>> 1, an2 = v2 * 2, a9 = N2 * 2;
                     for (var b = 0;b < N2; b++) {
-                      for (var G2 = 0;G2 < an; G2++) {
+                      for (var G2 = 0;G2 < an2; G2++) {
                         var M2 = b * 2 * i + G2, a = b * i + G2, e = N2 * i + a;
                         if (b == 0)
-                          O2(w, B2, M2, e, a, i);
+                          O2(w, B, M2, e, a, i);
                         else if (b == N2 - 1)
-                          y(w, B2, M2, e, a, i);
+                          y(w, B, M2, e, a, i);
                         else
-                          J(w, B2, M2, e, a, i);
+                          J2(w, B, M2, e, a, i);
                       }
                     }
-                    var Z = w;
-                    w = B2;
-                    B2 = Z;
+                    var Z2 = w;
+                    w = B;
+                    B = Z2;
                     for (var b = 0;b < a9; b++) {
                       for (var G2 = 0;G2 < v2; G2++) {
                         var M2 = b * i + 2 * G2, a = b * i + G2, e = v2 + a;
                         if (G2 == 0)
-                          O2(w, B2, M2, e, a, 1);
+                          O2(w, B, M2, e, a, 1);
                         else if (G2 == v2 - 1)
-                          y(w, B2, M2, e, a, 1);
+                          y(w, B, M2, e, a, 1);
                         else
-                          J(w, B2, M2, e, a, 1);
+                          J2(w, B, M2, e, a, 1);
                       }
                     }
-                    var Z = w;
-                    w = B2;
-                    B2 = Z;
+                    var Z2 = w;
+                    w = B;
+                    B = Z2;
                     var aC = [], aB = 2 - ~~((I2 - 1) / 3);
                     for (var K2 = 0;K2 < 3; K2++)
                       aC[K2] = aa >> 14 - K2 * 2 & 3;
                     var a6 = aC[aB];
                     if (a6 != 0)
                       for (var b = 0;b < a9; b++)
-                        for (var G2 = 0;G2 < an; G2++) {
+                        for (var G2 = 0;G2 < an2; G2++) {
                           var M2 = b * i + G2;
                           w[M2] = w[M2] << a6;
                         }
@@ -36491,28 +36491,28 @@ var require_UTIF = __commonJS((exports, module) => {
                   var a8 = T2[0], ab = T2[1], aq = T2[2], as2 = T2[3];
                   for (var b = 0;b < X2; b += 2)
                     for (var G2 = 0;G2 < u; G2 += 2) {
-                      var U2 = b * u + G2, c = (b >>> 1) * (u >>> 1) + (G2 >>> 1), z = a8[c], ao = ab[c] - 2048, ak = aq[c] - 2048, ad = as2[c] - 2048, aj = (ao << 1) + z, a0 = (ak << 1) + z, aH = z + ad, am = z - ad;
+                      var U2 = b * u + G2, c = (b >>> 1) * (u >>> 1) + (G2 >>> 1), z2 = a8[c], ao = ab[c] - 2048, ak = aq[c] - 2048, ad = as2[c] - 2048, aj = (ao << 1) + z2, a0 = (ak << 1) + z2, aH = z2 + ad, am = z2 - ad;
                       if (a5) {
-                        L2[U2] = q2(aH);
-                        L2[U2 + 1] = q2(a0);
-                        L2[U2 + u] = q2(aj);
-                        L2[U2 + u + 1] = q2(am);
+                        L2[U2] = q(aH);
+                        L2[U2 + 1] = q(a0);
+                        L2[U2 + u] = q(aj);
+                        L2[U2 + u + 1] = q(am);
                       } else {
-                        L2[U2] = q2(aj);
-                        L2[U2 + 1] = q2(aH);
-                        L2[U2 + u] = q2(am);
-                        L2[U2 + u + 1] = q2(a0);
+                        L2[U2] = q(aj);
+                        L2[U2 + 1] = q(aH);
+                        L2[U2 + u] = q(am);
+                        L2[U2 + u + 1] = q(a0);
                       }
                     }
                 }
-                E += _2 * 4;
+                E2 += _2 * 4;
               } else if (F2 == 16388) {
-                E += _2 * 4;
+                E2 += _2 * 4;
               } else if (D2 == 8192 || D2 == 8448 || D2 == 9216) {} else
                 throw F2.toString(16);
             }
           }
-          console.log(Date.now() - W2);
+          console.log(Date.now() - W);
         }
         return av;
       }();
@@ -36537,11 +36537,11 @@ var require_UTIF = __commonJS((exports, module) => {
               io++;
             }
           }
-          for (var x2 = 0;x2 < w; x2++) {
-            tgt[toff + 0] = out[x2];
-            tgt[toff + 1] = out[x2 + w];
-            tgt[toff + 2] = out[x2 + w * 2];
-            tgt[toff + 4] = out[x2 + w * 3];
+          for (var x = 0;x < w; x++) {
+            tgt[toff + 0] = out[x];
+            tgt[toff + 1] = out[x + w];
+            tgt[toff + 2] = out[x + w * 2];
+            tgt[toff + 4] = out[x + w * 3];
             toff += 6;
           }
         }
@@ -36583,13 +36583,13 @@ var require_UTIF = __commonJS((exports, module) => {
             514,
             513
           ];
-          var i, c, n7, col, row, sum = 0;
+          var i, c, n, col, row, sum = 0;
           var ljpeg_diff = UTIF2.decode._ljpeg_diff;
           huff[0] = 15;
-          for (n7 = i = 0;i < 18; i++) {
+          for (n = i = 0;i < 18; i++) {
             var lim = 32768 >>> (tab[i] >>> 8);
             for (var c = 0;c < lim; c++)
-              huff[++n7] = tab[i];
+              huff[++n] = tab[i];
           }
           for (col = raw_width;col--; )
             for (row = 0;row < height + 1; row += 2) {
@@ -36850,7 +36850,7 @@ var require_UTIF = __commonJS((exports, module) => {
         var tree = 0, split = 0;
         var make_decoder = UTIF2.decode._make_decoder;
         var getbithuff = UTIF2.decode._getbithuff;
-        var mn = imgs[0].exifIFD.makerNote, md = mn["t150"] ? mn["t150"] : mn["t140"], mdo = 0;
+        var mn2 = imgs[0].exifIFD.makerNote, md = mn2["t150"] ? mn2["t150"] : mn2["t140"], mdo = 0;
         var ver0 = md[mdo++], ver1 = md[mdo++];
         if (ver0 == 73 || ver1 == 88)
           mdo += 2110;
@@ -37213,16 +37213,16 @@ var require_UTIF = __commonJS((exports, module) => {
       UTIF2.decode._decodePackBits = function(data, off, len, tgt, toff) {
         var sa = new Int8Array(data.buffer), ta = new Int8Array(tgt.buffer), lim = off + len;
         while (off < lim) {
-          var n7 = sa[off];
+          var n = sa[off];
           off++;
-          if (n7 >= 0 && n7 < 128)
-            for (var i = 0;i < n7 + 1; i++) {
+          if (n >= 0 && n < 128)
+            for (var i = 0;i < n + 1; i++) {
               ta[toff] = sa[off];
               toff++;
               off++;
             }
-          if (n7 >= -127 && n7 < 0) {
-            for (var i = 0;i < -n7 + 1; i++) {
+          if (n >= -127 && n < 0) {
+            for (var i = 0;i < -n + 1; i++) {
               ta[toff] = sa[off];
               toff++;
             }
@@ -37235,21 +37235,21 @@ var require_UTIF = __commonJS((exports, module) => {
         var d2 = [0, 1, 0, -1], d3 = [0, 1, 2, 3, 0, -3, -2, -1];
         var lim = off + len, qoff = toff * 2, px = 0;
         while (off < lim) {
-          var b = data[off], msk = b >>> 6, n7 = b & 63;
+          var b = data[off], msk = b >>> 6, n = b & 63;
           off++;
           if (msk == 3) {
-            px = n7 & 15;
+            px = n & 15;
             tgt[qoff >>> 1] |= px << 4 * (1 - qoff & 1);
             qoff++;
           }
           if (msk == 0)
-            for (var i = 0;i < n7; i++) {
+            for (var i = 0;i < n; i++) {
               tgt[qoff >>> 1] |= px << 4 * (1 - qoff & 1);
               qoff++;
             }
           if (msk == 2)
             for (var i = 0;i < 2; i++) {
-              var d = n7 >>> 3 * (1 - i) & 7;
+              var d = n >>> 3 * (1 - i) & 7;
               if (d != 4) {
                 px += d3[d];
                 tgt[qoff >>> 1] |= px << 4 * (1 - qoff & 1);
@@ -37258,7 +37258,7 @@ var require_UTIF = __commonJS((exports, module) => {
             }
           if (msk == 1)
             for (var i = 0;i < 3; i++) {
-              var d = n7 >>> 2 * (2 - i) & 3;
+              var d = n >>> 2 * (2 - i) & 3;
               if (d != 2) {
                 px += d2[d];
                 tgt[qoff >>> 1] |= px << 4 * (1 - qoff & 1);
@@ -37354,9 +37354,9 @@ var require_UTIF = __commonJS((exports, module) => {
           }
         }
       };
-      UTIF2.decode._findDiff = function(line, x2, clr) {
+      UTIF2.decode._findDiff = function(line, x, clr) {
         for (var i = 0;i < line.length; i += 2)
-          if (line[i] >= x2 && line[i + 1] == clr)
+          if (line[i] >= x && line[i + 1] == clr)
             return line[i];
       };
       UTIF2.decode._makeDiff = function(line) {
@@ -37487,8 +37487,8 @@ var require_UTIF = __commonJS((exports, module) => {
         if (line.length == w)
           U2._writeBits(line, tgt, toff * 8 + y * bipl);
       };
-      UTIF2.decode._addNtimes = function(arr, n7, val) {
-        for (var i = 0;i < n7; i++)
+      UTIF2.decode._addNtimes = function(arr, n, val) {
+        for (var i = 0;i < n; i++)
           arr.push(val);
       };
       UTIF2.decode._writeBits = function(bits, tgt, boff) {
@@ -37496,7 +37496,7 @@ var require_UTIF = __commonJS((exports, module) => {
           tgt[boff + i >>> 3] |= bits[i] << 7 - (boff + i & 7);
       };
       UTIF2.decode._decodeLZW = UTIF2.decode._decodeLZW = function() {
-        var e, U2, Z, u, K2 = 0, V2 = 0, g = 0, N2 = 0, O2 = function() {
+        var e, U2, Z2, u, K2 = 0, V2 = 0, g = 0, N2 = 0, O2 = function() {
           var S = e >>> 3, A2 = U2[S] << 16 | U2[S + 1] << 8 | U2[S + 2], j2 = A2 >>> 24 - (e & 7) - V2 & (1 << V2) - 1;
           e += V2;
           return j2;
@@ -37517,7 +37517,7 @@ var require_UTIF = __commonJS((exports, module) => {
         }, D2 = function(S) {
           var A2 = S << 2, j2 = h[A2 + 2], a = u + j2 - 1;
           while (A2 != 65535) {
-            Z[a--] = h[A2];
+            Z2[a--] = h[A2];
             A2 = h[A2 + 1];
           }
           u += j2;
@@ -37530,17 +37530,17 @@ var require_UTIF = __commonJS((exports, module) => {
           K2++;
           if (K2 + 1 == 1 << V2 && V2 != 12)
             V2++;
-        }, T2 = function(S, A2, j2, a, n7, q2) {
+        }, T2 = function(S, A2, j2, a, n, q) {
           e = A2 << 3;
           U2 = S;
-          Z = a;
-          u = n7;
-          var B2 = A2 + j2 << 3, _2 = 0, t = 0;
-          m(q2);
-          i(q2);
-          while (e < B2 && (_2 = O2()) != N2) {
+          Z2 = a;
+          u = n;
+          var B = A2 + j2 << 3, _2 = 0, t = 0;
+          m(q);
+          i(q);
+          while (e < B && (_2 = O2()) != N2) {
             if (_2 == g) {
-              i(q2);
+              i(q);
               _2 = O2();
               if (_2 == N2)
                 break;
@@ -37661,19 +37661,19 @@ var require_UTIF = __commonJS((exports, module) => {
               ifd.fujiIFD = subfd[0];
           }
           if (tag == 37500 && prm.parseMN) {
-            var mn = arr;
-            if (bin.readASCII(mn, 0, 5) == "Nikon")
-              ifd.makerNote = UTIF2["decode"](mn.slice(10).buffer)[0];
-            else if (bin.readASCII(mn, 0, 5) == "OLYMP" || bin.readASCII(mn, 0, 9) == "OM SYSTEM") {
+            var mn2 = arr;
+            if (bin.readASCII(mn2, 0, 5) == "Nikon")
+              ifd.makerNote = UTIF2["decode"](mn2.slice(10).buffer)[0];
+            else if (bin.readASCII(mn2, 0, 5) == "OLYMP" || bin.readASCII(mn2, 0, 9) == "OM SYSTEM") {
               var inds = [8208, 8224, 8240, 8256, 8272];
               var subsub = [];
-              UTIF2._readIFD(bin, mn, mn[1] == 77 ? 16 : mn[5] == 85 ? 12 : 8, subsub, depth + 1, prm);
+              UTIF2._readIFD(bin, mn2, mn2[1] == 77 ? 16 : mn2[5] == 85 ? 12 : 8, subsub, depth + 1, prm);
               var obj2 = ifd.makerNote = subsub.pop();
               for (var j2 = 0;j2 < inds.length; j2++) {
                 var k2 = "t" + inds[j2];
                 if (obj2[k2] == null)
                   continue;
-                UTIF2._readIFD(bin, mn, obj2[k2][0], subsub, depth + 1, prm);
+                UTIF2._readIFD(bin, mn2, obj2[k2][0], subsub, depth + 1, prm);
                 obj2[k2] = subsub.pop();
               }
               if (obj2["t12288"]) {
@@ -37777,8 +37777,8 @@ var require_UTIF = __commonJS((exports, module) => {
         return [offset, eoff];
       };
       UTIF2.toRGBA8 = function(out, scl) {
-        function gamma(x3) {
-          return x3 < 0.0031308 ? 12.92 * x3 : 1.055 * Math.pow(x3, 1 / 2.4) - 0.055;
+        function gamma(x2) {
+          return x2 < 0.0031308 ? 12.92 * x2 : 1.055 * Math.pow(x2, 1 / 2.4) - 0.055;
         }
         var { width: w, height: h } = out, area = w * h, qarea = area * 4, data = out.data;
         var img = new Uint8Array(area * 4);
@@ -37796,27 +37796,27 @@ var require_UTIF = __commonJS((exports, module) => {
             var off = y * bpl, io = y * w;
             if (bps == 1)
               for (var i = 0;i < w; i++) {
-                var qi = io + i << 2, px = data[off + (i >> 3)] >> 7 - (i & 7) & 1;
-                img[qi] = img[qi + 1] = img[qi + 2] = (1 - px) * 255;
-                img[qi + 3] = 255;
+                var qi2 = io + i << 2, px = data[off + (i >> 3)] >> 7 - (i & 7) & 1;
+                img[qi2] = img[qi2 + 1] = img[qi2 + 2] = (1 - px) * 255;
+                img[qi2 + 3] = 255;
               }
             if (bps == 4)
               for (var i = 0;i < w; i++) {
-                var qi = io + i << 2, px = data[off + (i >> 1)] >> 4 - 4 * (i & 1) & 15;
-                img[qi] = img[qi + 1] = img[qi + 2] = (15 - px) * 17;
-                img[qi + 3] = 255;
+                var qi2 = io + i << 2, px = data[off + (i >> 1)] >> 4 - 4 * (i & 1) & 15;
+                img[qi2] = img[qi2 + 1] = img[qi2 + 2] = (15 - px) * 17;
+                img[qi2 + 3] = 255;
               }
             if (bps == 8)
               for (var i = 0;i < w; i++) {
-                var qi = io + i << 2, px = data[off + i];
-                img[qi] = img[qi + 1] = img[qi + 2] = 255 - px;
-                img[qi + 3] = 255;
+                var qi2 = io + i << 2, px = data[off + i];
+                img[qi2] = img[qi2 + 1] = img[qi2 + 2] = 255 - px;
+                img[qi2 + 3] = 255;
               }
             if (bps == 16)
               for (var i = 0;i < w; i++) {
-                var qi = io + i << 2, o = off + 2 * i, px = data[o + 1] << 8 | data[o];
-                img[qi] = img[qi + 1] = img[qi + 2] = Math.min(255, 255 - ~~(px * scl));
-                img[qi + 3] = 255;
+                var qi2 = io + i << 2, o = off + 2 * i, px = data[o + 1] << 8 | data[o];
+                img[qi2] = img[qi2 + 1] = img[qi2 + 2] = Math.min(255, 255 - ~~(px * scl));
+                img[qi2 + 3] = 255;
               }
           }
         } else if (intp == 1) {
@@ -37827,33 +37827,33 @@ var require_UTIF = __commonJS((exports, module) => {
             var off = y * bpl, io = y * w;
             if (bps == 1)
               for (var i = 0;i < w; i++) {
-                var qi = io + i << 2, px = data[off + (i >> 3)] >> 7 - (i & 7) & 1;
-                img[qi] = img[qi + 1] = img[qi + 2] = px * 255;
-                img[qi + 3] = 255;
+                var qi2 = io + i << 2, px = data[off + (i >> 3)] >> 7 - (i & 7) & 1;
+                img[qi2] = img[qi2 + 1] = img[qi2 + 2] = px * 255;
+                img[qi2 + 3] = 255;
               }
             if (bps == 2)
               for (var i = 0;i < w; i++) {
-                var qi = io + i << 2, px = data[off + (i >> 2)] >> 6 - 2 * (i & 3) & 3;
-                img[qi] = img[qi + 1] = img[qi + 2] = px * 85;
-                img[qi + 3] = 255;
+                var qi2 = io + i << 2, px = data[off + (i >> 2)] >> 6 - 2 * (i & 3) & 3;
+                img[qi2] = img[qi2 + 1] = img[qi2 + 2] = px * 85;
+                img[qi2 + 3] = 255;
               }
             if (bps == 8)
               for (var i = 0;i < w; i++) {
-                var qi = io + i << 2, px = data[off + i * smpls];
-                img[qi] = img[qi + 1] = img[qi + 2] = px;
-                img[qi + 3] = 255;
+                var qi2 = io + i << 2, px = data[off + i * smpls];
+                img[qi2] = img[qi2 + 1] = img[qi2 + 2] = px;
+                img[qi2 + 3] = 255;
               }
             if (bps == 16)
               for (var i = 0;i < w; i++) {
-                var qi = io + i << 2, o = off + 2 * i, px = data[o + 1] << 8 | data[o];
-                img[qi] = img[qi + 1] = img[qi + 2] = Math.min(255, ~~(px * scl));
-                img[qi + 3] = 255;
+                var qi2 = io + i << 2, o = off + 2 * i, px = data[o + 1] << 8 | data[o];
+                img[qi2] = img[qi2 + 1] = img[qi2 + 2] = Math.min(255, ~~(px * scl));
+                img[qi2 + 3] = 255;
               }
             if (bps == 32)
               for (var i = 0;i < w; i++) {
-                var qi = io + i << 2, o = (off >>> 2) + i, px = f32[o];
-                img[qi] = img[qi + 1] = img[qi + 2] = ~~(0.5 + 255 * px);
-                img[qi + 3] = 255;
+                var qi2 = io + i << 2, o = (off >>> 2) + i, px = f32[o];
+                img[qi2] = img[qi2 + 1] = img[qi2 + 2] = ~~(0.5 + 255 * px);
+                img[qi2 + 3] = 255;
               }
           }
         } else if (intp == 2) {
@@ -37865,36 +37865,36 @@ var require_UTIF = __commonJS((exports, module) => {
               }
             if (smpls == 3)
               for (var i = 0;i < area; i++) {
-                var qi = i << 2, ti2 = i * 3;
-                img[qi] = data[ti2];
-                img[qi + 1] = data[ti2 + 1];
-                img[qi + 2] = data[ti2 + 2];
-                img[qi + 3] = 255;
+                var qi2 = i << 2, ti2 = i * 3;
+                img[qi2] = data[ti2];
+                img[qi2 + 1] = data[ti2 + 1];
+                img[qi2 + 2] = data[ti2 + 2];
+                img[qi2 + 3] = 255;
               }
             if (smpls >= 4)
               for (var i = 0;i < area; i++) {
-                var qi = i << 2, ti2 = i * smpls;
-                img[qi] = data[ti2];
-                img[qi + 1] = data[ti2 + 1];
-                img[qi + 2] = data[ti2 + 2];
-                img[qi + 3] = data[ti2 + 3];
+                var qi2 = i << 2, ti2 = i * smpls;
+                img[qi2] = data[ti2];
+                img[qi2 + 1] = data[ti2 + 1];
+                img[qi2 + 2] = data[ti2 + 2];
+                img[qi2 + 3] = data[ti2 + 3];
               }
           } else if (bps == 16) {
             if (smpls == 4)
               for (var i = 0;i < area; i++) {
-                var qi = i << 2, ti2 = i * 8 + 1;
-                img[qi] = data[ti2];
-                img[qi + 1] = data[ti2 + 2];
-                img[qi + 2] = data[ti2 + 4];
-                img[qi + 3] = data[ti2 + 6];
+                var qi2 = i << 2, ti2 = i * 8 + 1;
+                img[qi2] = data[ti2];
+                img[qi2 + 1] = data[ti2 + 2];
+                img[qi2 + 2] = data[ti2 + 4];
+                img[qi2 + 3] = data[ti2 + 6];
               }
             if (smpls == 3)
               for (var i = 0;i < area; i++) {
-                var qi = i << 2, ti2 = i * 6 + 1;
-                img[qi] = data[ti2];
-                img[qi + 1] = data[ti2 + 2];
-                img[qi + 2] = data[ti2 + 4];
-                img[qi + 3] = 255;
+                var qi2 = i << 2, ti2 = i * 6 + 1;
+                img[qi2] = data[ti2];
+                img[qi2 + 1] = data[ti2 + 2];
+                img[qi2 + 2] = data[ti2 + 4];
+                img[qi2 + 3] = 255;
               }
           } else if (bps == 32) {
             var ndt = new Float32Array(data.buffer);
@@ -37919,19 +37919,19 @@ var require_UTIF = __commonJS((exports, module) => {
             }
             if (smpls == 3)
               for (var i = 0;i < area; i++) {
-                var qi = i << 2, ti2 = i * 3;
-                img[qi] = ~~(0.5 + ndt[ti2] * 255);
-                img[qi + 1] = ~~(0.5 + ndt[ti2 + 1] * 255);
-                img[qi + 2] = ~~(0.5 + ndt[ti2 + 2] * 255);
-                img[qi + 3] = 255;
+                var qi2 = i << 2, ti2 = i * 3;
+                img[qi2] = ~~(0.5 + ndt[ti2] * 255);
+                img[qi2 + 1] = ~~(0.5 + ndt[ti2 + 1] * 255);
+                img[qi2 + 2] = ~~(0.5 + ndt[ti2 + 2] * 255);
+                img[qi2 + 3] = 255;
               }
             else if (smpls == 4)
               for (var i = 0;i < area; i++) {
-                var qi = i << 2, ti2 = i * 4;
-                img[qi] = ~~(0.5 + ndt[ti2] * 255);
-                img[qi + 1] = ~~(0.5 + ndt[ti2 + 1] * 255);
-                img[qi + 2] = ~~(0.5 + ndt[ti2 + 2] * 255);
-                img[qi + 3] = ~~(0.5 + ndt[ti2 + 3] * 255);
+                var qi2 = i << 2, ti2 = i * 4;
+                img[qi2] = ~~(0.5 + ndt[ti2] * 255);
+                img[qi2 + 1] = ~~(0.5 + ndt[ti2 + 1] * 255);
+                img[qi2 + 2] = ~~(0.5 + ndt[ti2 + 2] * 255);
+                img[qi2 + 3] = ~~(0.5 + ndt[ti2 + 3] * 255);
               }
             else
               throw smpls;
@@ -37939,66 +37939,66 @@ var require_UTIF = __commonJS((exports, module) => {
             throw bps;
         } else if (intp == 3) {
           var map2 = out["t320"];
-          var cn = 1 << bps;
+          var cn2 = 1 << bps;
           var nexta = bps == 8 && smpls > 1 && out["t338"] && out["t338"][0] != 0;
           for (var y = 0;y < h; y++)
-            for (var x2 = 0;x2 < w; x2++) {
-              var i = y * w + x2;
-              var qi = i << 2, mi2 = 0;
+            for (var x = 0;x < w; x++) {
+              var i = y * w + x;
+              var qi2 = i << 2, mi2 = 0;
               var dof = y * bpl;
               if (false) {} else if (bps == 1)
-                mi2 = data[dof + (x2 >>> 3)] >>> 7 - (x2 & 7) & 1;
+                mi2 = data[dof + (x >>> 3)] >>> 7 - (x & 7) & 1;
               else if (bps == 2)
-                mi2 = data[dof + (x2 >>> 2)] >>> 6 - 2 * (x2 & 3) & 3;
+                mi2 = data[dof + (x >>> 2)] >>> 6 - 2 * (x & 3) & 3;
               else if (bps == 4)
-                mi2 = data[dof + (x2 >>> 1)] >>> 4 - 4 * (x2 & 1) & 15;
+                mi2 = data[dof + (x >>> 1)] >>> 4 - 4 * (x & 1) & 15;
               else if (bps == 8)
-                mi2 = data[dof + x2 * smpls];
+                mi2 = data[dof + x * smpls];
               else
                 throw bps;
-              img[qi] = map2[mi2] >> 8;
-              img[qi + 1] = map2[cn + mi2] >> 8;
-              img[qi + 2] = map2[cn + cn + mi2] >> 8;
-              img[qi + 3] = nexta ? data[dof + x2 * smpls + 1] : 255;
+              img[qi2] = map2[mi2] >> 8;
+              img[qi2 + 1] = map2[cn2 + mi2] >> 8;
+              img[qi2 + 2] = map2[cn2 + cn2 + mi2] >> 8;
+              img[qi2 + 3] = nexta ? data[dof + x * smpls + 1] : 255;
             }
         } else if (intp == 5) {
           var gotAlpha = smpls > 4 ? 1 : 0;
           for (var i = 0;i < area; i++) {
-            var qi = i << 2, si2 = i * smpls;
+            var qi2 = i << 2, si2 = i * smpls;
             if (window.UDOC) {
               var C2 = data[si2], M2 = data[si2 + 1], Y2 = data[si2 + 2], K2 = data[si2 + 3];
               var c = UDOC.C.cmykToRgb([C2 * (1 / 255), M2 * (1 / 255), Y2 * (1 / 255), K2 * (1 / 255)]);
-              img[qi] = ~~(0.5 + 255 * c[0]);
-              img[qi + 1] = ~~(0.5 + 255 * c[1]);
-              img[qi + 2] = ~~(0.5 + 255 * c[2]);
+              img[qi2] = ~~(0.5 + 255 * c[0]);
+              img[qi2 + 1] = ~~(0.5 + 255 * c[1]);
+              img[qi2 + 2] = ~~(0.5 + 255 * c[2]);
             } else {
               var C2 = 255 - data[si2], M2 = 255 - data[si2 + 1], Y2 = 255 - data[si2 + 2], K2 = (255 - data[si2 + 3]) * (1 / 255);
-              img[qi] = ~~(C2 * K2 + 0.5);
-              img[qi + 1] = ~~(M2 * K2 + 0.5);
-              img[qi + 2] = ~~(Y2 * K2 + 0.5);
+              img[qi2] = ~~(C2 * K2 + 0.5);
+              img[qi2 + 1] = ~~(M2 * K2 + 0.5);
+              img[qi2 + 2] = ~~(Y2 * K2 + 0.5);
             }
-            img[qi + 3] = 255 * (1 - gotAlpha) + data[si2 + 4] * gotAlpha;
+            img[qi2 + 3] = 255 * (1 - gotAlpha) + data[si2 + 4] * gotAlpha;
           }
         } else if (intp == 6 && out["t278"]) {
           var rps = out["t278"][0];
           for (var y = 0;y < h; y += rps) {
             var i = y * w, len = rps * w;
             for (var j2 = 0;j2 < len; j2++) {
-              var qi = 4 * (i + j2), si2 = 3 * i + 4 * (j2 >>> 1);
-              var Y2 = data[si2 + (j2 & 1)], Cb = data[si2 + 2] - 128, Cr2 = data[si2 + 3] - 128;
-              var r = Y2 + ((Cr2 >> 2) + (Cr2 >> 3) + (Cr2 >> 5));
-              var g = Y2 - ((Cb >> 2) + (Cb >> 4) + (Cb >> 5)) - ((Cr2 >> 1) + (Cr2 >> 3) + (Cr2 >> 4) + (Cr2 >> 5));
+              var qi2 = 4 * (i + j2), si2 = 3 * i + 4 * (j2 >>> 1);
+              var Y2 = data[si2 + (j2 & 1)], Cb = data[si2 + 2] - 128, Cr = data[si2 + 3] - 128;
+              var r7 = Y2 + ((Cr >> 2) + (Cr >> 3) + (Cr >> 5));
+              var g = Y2 - ((Cb >> 2) + (Cb >> 4) + (Cb >> 5)) - ((Cr >> 1) + (Cr >> 3) + (Cr >> 4) + (Cr >> 5));
               var b = Y2 + (Cb + (Cb >> 1) + (Cb >> 2) + (Cb >> 6));
-              img[qi] = Math.max(0, Math.min(255, r));
-              img[qi + 1] = Math.max(0, Math.min(255, g));
-              img[qi + 2] = Math.max(0, Math.min(255, b));
-              img[qi + 3] = 255;
+              img[qi2] = Math.max(0, Math.min(255, r7));
+              img[qi2 + 1] = Math.max(0, Math.min(255, g));
+              img[qi2 + 2] = Math.max(0, Math.min(255, b));
+              img[qi2 + 3] = 255;
             }
           }
         } else if (intp == 32845) {
           for (var y = 0;y < h; y++)
-            for (var x2 = 0;x2 < w; x2++) {
-              var si2 = (y * w + x2) * 6, qi = (y * w + x2) * 4;
+            for (var x = 0;x < w; x++) {
+              var si2 = (y * w + x) * 6, qi2 = (y * w + x) * 4;
               var L2 = data[si2 + 1] << 8 | data[si2];
               var L2 = Math.pow(2, (L2 + 0.5) / 256 - 64);
               var u = (data[si2 + 3] + 0.5) / 410;
@@ -38006,14 +38006,14 @@ var require_UTIF = __commonJS((exports, module) => {
               var sX = 9 * u / (6 * u - 16 * v2 + 12);
               var sY = 4 * v2 / (6 * u - 16 * v2 + 12);
               var bY = L2;
-              var X2 = sX * bY / sY, Y2 = bY, Z = (1 - sX - sY) * bY / sY;
-              var r = 2.69 * X2 - 1.276 * Y2 - 0.414 * Z;
-              var g = -1.022 * X2 + 1.978 * Y2 + 0.044 * Z;
-              var b = 0.061 * X2 - 0.224 * Y2 + 1.163 * Z;
-              img[qi] = gamma(Math.min(r, 1)) * 255;
-              img[qi + 1] = gamma(Math.min(g, 1)) * 255;
-              img[qi + 2] = gamma(Math.min(b, 1)) * 255;
-              img[qi + 3] = 255;
+              var X2 = sX * bY / sY, Y2 = bY, Z2 = (1 - sX - sY) * bY / sY;
+              var r7 = 2.69 * X2 - 1.276 * Y2 - 0.414 * Z2;
+              var g = -1.022 * X2 + 1.978 * Y2 + 0.044 * Z2;
+              var b = 0.061 * X2 - 0.224 * Y2 + 1.163 * Z2;
+              img[qi2] = gamma(Math.min(r7, 1)) * 255;
+              img[qi2 + 1] = gamma(Math.min(g, 1)) * 255;
+              img[qi2 + 2] = gamma(Math.min(b, 1)) * 255;
+              img[qi2 + 3] = 255;
             }
         } else
           log("Unknown Photometric interpretation: " + intp);
@@ -38121,30 +38121,30 @@ var require_UTIF = __commonJS((exports, module) => {
             a[i] = buff[p + 7 - i];
           return UTIF2._binBE.fl64[0];
         },
-        writeUshort: function(buff, p, n7) {
-          buff[p] = n7 >> 8 & 255;
-          buff[p + 1] = n7 & 255;
+        writeUshort: function(buff, p, n) {
+          buff[p] = n >> 8 & 255;
+          buff[p + 1] = n & 255;
         },
-        writeInt: function(buff, p, n7) {
+        writeInt: function(buff, p, n) {
           var a = UTIF2._binBE.ui8;
-          UTIF2._binBE.i32[0] = n7;
+          UTIF2._binBE.i32[0] = n;
           buff[p + 3] = a[0];
           buff[p + 2] = a[1];
           buff[p + 1] = a[2];
           buff[p + 0] = a[3];
         },
-        writeUint: function(buff, p, n7) {
-          buff[p] = n7 >> 24 & 255;
-          buff[p + 1] = n7 >> 16 & 255;
-          buff[p + 2] = n7 >> 8 & 255;
-          buff[p + 3] = n7 >> 0 & 255;
+        writeUint: function(buff, p, n) {
+          buff[p] = n >> 24 & 255;
+          buff[p + 1] = n >> 16 & 255;
+          buff[p + 2] = n >> 8 & 255;
+          buff[p + 3] = n >> 0 & 255;
         },
         writeASCII: function(buff, p, s) {
           for (var i = 0;i < s.length; i++)
             buff[p + i] = s.charCodeAt(i);
         },
-        writeDouble: function(buff, p, n7) {
-          UTIF2._binBE.fl64[0] = n7;
+        writeDouble: function(buff, p, n) {
+          UTIF2._binBE.fl64[0] = n;
           for (var i = 0;i < 8; i++)
             buff[p + i] = UTIF2._binBE.ui8[7 - i];
         }
@@ -38195,23 +38195,23 @@ var require_UTIF = __commonJS((exports, module) => {
             a[i] = buff[p + i];
           return UTIF2._binBE.fl64[0];
         },
-        writeUshort: function(buff, p, n7) {
-          buff[p] = n7 & 255;
-          buff[p + 1] = n7 >> 8 & 255;
+        writeUshort: function(buff, p, n) {
+          buff[p] = n & 255;
+          buff[p + 1] = n >> 8 & 255;
         },
-        writeInt: function(buff, p, n7) {
+        writeInt: function(buff, p, n) {
           var a = UTIF2._binBE.ui8;
-          UTIF2._binBE.i32[0] = n7;
+          UTIF2._binBE.i32[0] = n;
           buff[p + 0] = a[0];
           buff[p + 1] = a[1];
           buff[p + 2] = a[2];
           buff[p + 3] = a[3];
         },
-        writeUint: function(buff, p, n7) {
-          buff[p] = n7 >>> 0 & 255;
-          buff[p + 1] = n7 >>> 8 & 255;
-          buff[p + 2] = n7 >>> 16 & 255;
-          buff[p + 3] = n7 >>> 24 & 255;
+        writeUint: function(buff, p, n) {
+          buff[p] = n >>> 0 & 255;
+          buff[p + 1] = n >>> 8 & 255;
+          buff[p + 2] = n >>> 16 & 255;
+          buff[p + 3] = n >>> 24 & 255;
         },
         writeASCII: UTIF2._binBE.writeASCII
       };
@@ -38221,8 +38221,8 @@ var require_UTIF = __commonJS((exports, module) => {
         for (var y = 0;y < ylim; y++) {
           var tof = (yoff + y) * w + xoff;
           var sof = y * tw;
-          for (var x2 = 0;x2 < xlim; x2++)
-            b[tof + x2] = tb[sof + x2];
+          for (var x = 0;x < xlim; x++)
+            b[tof + x] = tb[sof + x];
         }
       };
       UTIF2.LosslessJpegDecode = function() {
@@ -38238,23 +38238,23 @@ var require_UTIF = __commonJS((exports, module) => {
           for (var w = 0;w < 16; w++)
             f[w] = l();
           for (var w = 0;w < 16; w++) {
-            for (var x2 = 0;x2 < f[w]; x2++) {
-              var T2 = z(I2, 0, w + 1, 1);
+            for (var x = 0;x < f[w]; x++) {
+              var T2 = z2(I2, 0, w + 1, 1);
               I2[T2 + 3] = l();
             }
           }
-          var E = new Uint8Array(1 << G2);
-          h[V2] = [new Uint8Array(I2), E];
+          var E2 = new Uint8Array(1 << G2);
+          h[V2] = [new Uint8Array(I2), E2];
           for (var w = 0;w < 1 << G2; w++) {
             var s = G2, _2 = w, Y2 = 0, F2 = 0;
             while (I2[Y2 + 3] == 255 && s != 0) {
               F2 = _2 >> --s & 1;
               Y2 = I2[Y2 + F2];
             }
-            E[w] = Y2;
+            E2[w] = Y2;
           }
         }
-        function z(h, V2, I2, f) {
+        function z2(h, V2, I2, f) {
           if (h[V2 + 3] != 255)
             return 0;
           if (I2 == 0)
@@ -38264,9 +38264,9 @@ var require_UTIF = __commonJS((exports, module) => {
               h[V2 + w] = h.length;
               h.push(0, 0, f, 255);
             }
-            var x2 = z(h, h[V2 + w], I2 - 1, f + 1);
-            if (x2 != 0)
-              return x2;
+            var x = z2(h, h[V2 + w], I2 - 1, f + 1);
+            if (x != 0)
+              return x;
           }
           return 0;
         }
@@ -38290,7 +38290,7 @@ var require_UTIF = __commonJS((exports, module) => {
           return V2.f >> (V2.b -= h) & 65535 >> 16 - h;
         }
         function g(h, V2) {
-          var I2 = h[0], f = 0, w = 255, x2 = 0;
+          var I2 = h[0], f = 0, w = 255, x = 0;
           if (V2.b < 16)
             i(V2);
           var T2 = V2.f >> V2.b - 8 & 255;
@@ -38298,8 +38298,8 @@ var require_UTIF = __commonJS((exports, module) => {
           w = I2[f + 3];
           V2.b -= I2[f + 2];
           while (w == 255) {
-            x2 = V2.f >> --V2.b & 1;
-            f = I2[f + x2];
+            x = V2.f >> --V2.b & 1;
+            f = I2[f + x];
             w = I2[f + 3];
           }
           return w;
@@ -38318,9 +38318,9 @@ var require_UTIF = __commonJS((exports, module) => {
           var f = H2(I2, V2);
           return P2(f, I2);
         }
-        function X2(h, V2, I2, f, w, x2) {
+        function X2(h, V2, I2, f, w, x) {
           var T2 = 0;
-          for (var G2 = 0;G2 < x2; G2++) {
+          for (var G2 = 0;G2 < x; G2++) {
             var s = G2 * V2;
             for (var _2 = 0;_2 < V2; _2 += w) {
               T2++;
@@ -38341,8 +38341,8 @@ var require_UTIF = __commonJS((exports, module) => {
           return P2(H2(h, V2), h);
         }
         function a1(h, V2, I2, f, w) {
-          var x2 = b.length - O2;
-          for (var T2 = 0;T2 < x2; T2 += 4) {
+          var x = b.length - O2;
+          for (var T2 = 0;T2 < x; T2 += 4) {
             var G2 = b[O2 + T2];
             b[O2 + T2] = b[O2 + T2 + 3];
             b[O2 + T2 + 3] = G2;
@@ -38350,7 +38350,7 @@ var require_UTIF = __commonJS((exports, module) => {
             b[O2 + T2 + 1] = b[O2 + T2 + 2];
             b[O2 + T2 + 2] = G2;
           }
-          for (var E = 0;E < w; E++) {
+          for (var E2 = 0;E2 < w; E2++) {
             var s = 32768, _2 = 32768;
             for (var Y2 = 0;Y2 < V2; Y2 += 2) {
               var F2 = g(f, I2), t = g(f, I2);
@@ -38358,8 +38358,8 @@ var require_UTIF = __commonJS((exports, module) => {
                 s += o(F2, I2);
               if (t != 0)
                 _2 += o(t, I2);
-              h[E * V2 + Y2] = s & 65535;
-              h[E * V2 + Y2 + 1] = _2 & 65535;
+              h[E2 * V2 + Y2] = s & 65535;
+              h[E2 * V2 + Y2 + 1] = _2 & 65535;
             }
           }
         }
@@ -38368,7 +38368,7 @@ var require_UTIF = __commonJS((exports, module) => {
           O2 = 0;
           if (m() != 65496)
             throw "e";
-          var V2 = [], I2 = 0, f = 0, w = 0, x2 = [], T2 = [], G2 = [], E = 0, s = 0, _2 = 0;
+          var V2 = [], I2 = 0, f = 0, w = 0, x = [], T2 = [], G2 = [], E2 = 0, s = 0, _2 = 0;
           while (true) {
             var Y2 = m();
             if (Y2 == 65535) {
@@ -38380,12 +38380,12 @@ var require_UTIF = __commonJS((exports, module) => {
               f = l();
               s = m();
               _2 = m();
-              E = l();
-              for (var t = 0;t < E; t++) {
-                var a = l(), J = l(), r = l();
-                if (r != 0)
+              E2 = l();
+              for (var t = 0;t < E2; t++) {
+                var a = l(), J2 = l(), r7 = l();
+                if (r7 != 0)
                   throw "e";
-                V2[a] = [t, J >> 4, J & 15];
+                V2[a] = [t, J2 >> 4, J2 & 15];
               }
             } else if (Y2 == 65476) {
               var a3 = O2 + F2 - 2;
@@ -38393,10 +38393,10 @@ var require_UTIF = __commonJS((exports, module) => {
                 a0(T2);
             } else if (Y2 == 65498) {
               O2++;
-              for (var t = 0;t < E; t++) {
+              for (var t = 0;t < E2; t++) {
                 var a5 = l(), v2 = V2[a5];
                 G2[v2[0]] = T2[l() >>> 4];
-                x2[v2[0]] = v2.slice(1);
+                x[v2[0]] = v2.slice(1);
               }
               I2 = l();
               O2 += 2;
@@ -38407,13 +38407,13 @@ var require_UTIF = __commonJS((exports, module) => {
               O2 += F2 - 2;
             }
           }
-          var a4 = f > 8 ? Uint16Array : Uint8Array, $ = new a4(s * _2 * E), M2 = { b: 0, f: 0, c: I2 == 8, a: O2, data: b, d: b.length, e: w };
+          var a4 = f > 8 ? Uint16Array : Uint8Array, $2 = new a4(s * _2 * E2), M2 = { b: 0, f: 0, c: I2 == 8, a: O2, data: b, d: b.length, e: w };
           if (M2.c)
-            a1($, _2 * E, M2, G2[0], s);
+            a1($2, _2 * E2, M2, G2[0], s);
           else {
             var c = [], p = 0, D2 = 0;
-            for (var t = 0;t < E; t++) {
-              var N2 = x2[t], S = N2[0], K2 = N2[1];
+            for (var t = 0;t < E2; t++) {
+              var N2 = x[t], S = N2[0], K2 = N2[1];
               if (S > p)
                 p = S;
               if (K2 > D2)
@@ -38421,109 +38421,109 @@ var require_UTIF = __commonJS((exports, module) => {
               c.push(S * K2);
             }
             if (p != 1 || D2 != 1) {
-              if (E != 3 || c[1] != 1 || c[2] != 1)
+              if (E2 != 3 || c[1] != 1 || c[2] != 1)
                 throw "e";
               if (p != 2 || D2 != 1 && D2 != 2)
                 throw "e";
-              var u = [], Z = 0;
-              for (var t = 0;t < E; t++) {
+              var u = [], Z2 = 0;
+              for (var t = 0;t < E2; t++) {
                 for (var R2 = 0;R2 < c[t]; R2++)
                   u.push(G2[t]);
-                Z += c[t];
+                Z2 += c[t];
               }
-              var B2 = _2 / p, e = s / D2, d = B2 * e;
-              X2($, B2 * Z, M2, u, Z, e);
-              j2($, I2, B2, e, Z - 2, Z, Z, f);
+              var B = _2 / p, e = s / D2, d = B * e;
+              X2($2, B * Z2, M2, u, Z2, e);
+              j2($2, I2, B, e, Z2 - 2, Z2, Z2, f);
               var A2 = new Uint16Array(d * c[0]);
               if (p == 2 && D2 == 2) {
                 for (var t = 0;t < d; t++) {
-                  A2[4 * t] = $[6 * t];
-                  A2[4 * t + 1] = $[6 * t + 1];
-                  A2[4 * t + 2] = $[6 * t + 2];
-                  A2[4 * t + 3] = $[6 * t + 3];
+                  A2[4 * t] = $2[6 * t];
+                  A2[4 * t + 1] = $2[6 * t + 1];
+                  A2[4 * t + 2] = $2[6 * t + 2];
+                  A2[4 * t + 3] = $2[6 * t + 3];
                 }
-                j2(A2, I2, B2 * 4, e, 0, 1, 1, f);
+                j2(A2, I2, B * 4, e, 0, 1, 1, f);
                 for (var t = 0;t < d; t++) {
-                  $[6 * t] = A2[4 * t];
-                  $[6 * t + 1] = A2[4 * t + 1];
-                  $[6 * t + 2] = A2[4 * t + 2];
-                  $[6 * t + 3] = A2[4 * t + 3];
+                  $2[6 * t] = A2[4 * t];
+                  $2[6 * t + 1] = A2[4 * t + 1];
+                  $2[6 * t + 2] = A2[4 * t + 2];
+                  $2[6 * t + 3] = A2[4 * t + 3];
                 }
               }
               if (p == 2 && D2 == 1) {
                 for (var t = 0;t < d; t++) {
-                  A2[2 * t] = $[4 * t];
-                  A2[2 * t + 1] = $[4 * t + 1];
+                  A2[2 * t] = $2[4 * t];
+                  A2[2 * t + 1] = $2[4 * t + 1];
                 }
-                j2(A2, I2, B2 * 2, e, 0, 1, 1, f);
+                j2(A2, I2, B * 2, e, 0, 1, 1, f);
                 for (var t = 0;t < d; t++) {
-                  $[4 * t] = A2[2 * t];
-                  $[4 * t + 1] = A2[2 * t + 1];
+                  $2[4 * t] = A2[2 * t];
+                  $2[4 * t + 1] = A2[2 * t + 1];
                 }
               }
-              var n7 = $.slice(0);
+              var n = $2.slice(0);
               for (var K2 = 0;K2 < s; K2++) {
                 if (D2 == 2)
                   for (var S = 0;S < _2; S++) {
-                    var q2 = (K2 * _2 + S) * E, k2 = ((K2 >>> 1) * B2 + (S >>> 1)) * Z, y = (K2 & 1) * 2 + (S & 1);
-                    $[q2] = n7[k2 + y];
-                    $[q2 + 1] = n7[k2 + 4];
-                    $[q2 + 2] = n7[k2 + 5];
+                    var q = (K2 * _2 + S) * E2, k2 = ((K2 >>> 1) * B + (S >>> 1)) * Z2, y = (K2 & 1) * 2 + (S & 1);
+                    $2[q] = n[k2 + y];
+                    $2[q + 1] = n[k2 + 4];
+                    $2[q + 2] = n[k2 + 5];
                   }
                 else
                   for (var S = 0;S < _2; S++) {
-                    var q2 = (K2 * _2 + S) * E, k2 = (K2 * B2 + (S >>> 1)) * Z, y = S & 1;
-                    $[q2] = n7[k2 + y];
-                    $[q2 + 1] = n7[k2 + 2];
-                    $[q2 + 2] = n7[k2 + 3];
+                    var q = (K2 * _2 + S) * E2, k2 = (K2 * B + (S >>> 1)) * Z2, y = S & 1;
+                    $2[q] = n[k2 + y];
+                    $2[q + 1] = n[k2 + 2];
+                    $2[q + 2] = n[k2 + 3];
                   }
               }
             } else {
-              X2($, _2 * E, M2, G2, E, s);
+              X2($2, _2 * E2, M2, G2, E2, s);
               if (w == 0)
-                j2($, I2, _2, s, 0, E, E, f);
+                j2($2, I2, _2, s, 0, E2, E2, f);
               else {
                 var U2 = Math.floor(w / _2);
                 for (var K2 = 0;K2 < s; K2 += U2) {
-                  var L2 = $.slice(K2 * _2 * E, (K2 + U2) * _2 * E);
-                  j2(L2, I2, _2, U2, 0, E, E, f);
-                  $.set(L2, K2 * _2 * E);
+                  var L2 = $2.slice(K2 * _2 * E2, (K2 + U2) * _2 * E2);
+                  j2(L2, I2, _2, U2, 0, E2, E2, f);
+                  $2.set(L2, K2 * _2 * E2);
                 }
               }
             }
           }
-          return $;
+          return $2;
         }
-        function j2(h, V2, I2, f, w, x2, G2, E) {
+        function j2(h, V2, I2, f, w, x, G2, E2) {
           var s = I2 * G2;
-          for (var _2 = w;_2 < x2; _2++)
-            h[_2] += 1 << E - 1;
+          for (var _2 = w;_2 < x; _2++)
+            h[_2] += 1 << E2 - 1;
           for (var Y2 = G2;Y2 < s; Y2 += G2)
-            for (var _2 = w;_2 < x2; _2++)
+            for (var _2 = w;_2 < x; _2++)
               h[Y2 + _2] += h[Y2 + _2 - G2];
           for (var F2 = 1;F2 < f; F2++) {
             var t = F2 * s;
-            for (var _2 = w;_2 < x2; _2++)
+            for (var _2 = w;_2 < x; _2++)
               h[t + _2] += h[t + _2 - s];
             for (var Y2 = G2;Y2 < s; Y2 += G2) {
-              for (var _2 = w;_2 < x2; _2++) {
-                var a = t + Y2 + _2, J = a - s, r = h[a - G2], Q2 = 0;
+              for (var _2 = w;_2 < x; _2++) {
+                var a = t + Y2 + _2, J2 = a - s, r7 = h[a - G2], Q2 = 0;
                 if (V2 == 0)
                   Q2 = 0;
                 else if (V2 == 1)
-                  Q2 = r;
+                  Q2 = r7;
                 else if (V2 == 2)
-                  Q2 = h[J];
+                  Q2 = h[J2];
                 else if (V2 == 3)
-                  Q2 = h[J - G2];
+                  Q2 = h[J2 - G2];
                 else if (V2 == 4)
-                  Q2 = r + (h[J] - h[J - G2]);
+                  Q2 = r7 + (h[J2] - h[J2 - G2]);
                 else if (V2 == 5)
-                  Q2 = r + (h[J] - h[J - G2] >>> 1);
+                  Q2 = r7 + (h[J2] - h[J2 - G2] >>> 1);
                 else if (V2 == 6)
-                  Q2 = h[J] + (r - h[J - G2] >>> 1);
+                  Q2 = h[J2] + (r7 - h[J2 - G2] >>> 1);
                 else if (V2 == 7)
-                  Q2 = r + h[J] >>> 1;
+                  Q2 = r7 + h[J2] >>> 1;
                 else
                   throw V2;
                 h[a] += Q2;
@@ -38534,9 +38534,9 @@ var require_UTIF = __commonJS((exports, module) => {
         return C2;
       }();
       (function() {
-        var G2 = 0, F2 = 1, i = 2, b = 3, J = 4, N2 = 5, E = 6, s = 7, c = 8, T2 = 9, a3 = 10, f = 11, q2 = 12, M2 = 13, m = 14, x2 = 15, L2 = 16, $ = 17, p = 18;
+        var G2 = 0, F2 = 1, i = 2, b = 3, J2 = 4, N2 = 5, E2 = 6, s = 7, c = 8, T2 = 9, a3 = 10, f = 11, q = 12, M2 = 13, m = 14, x = 15, L2 = 16, $2 = 17, p = 18;
         function a5(t) {
-          var Z = UTIF2._binBE.readUshort, u = { b: Z(t, 0), i: t[2], C: t[3], u: t[4], q: Z(t, 5), k: Z(t, 7), e: Z(t, 9), l: Z(t, 11), s: t[13], d: Z(t, 14) };
+          var Z2 = UTIF2._binBE.readUshort, u = { b: Z2(t, 0), i: t[2], C: t[3], u: t[4], q: Z2(t, 5), k: Z2(t, 7), e: Z2(t, 9), l: Z2(t, 11), s: t[13], d: Z2(t, 14) };
           if (u.b != 18771 || u.i > 1 || u.q < 6 || u.q % 6 || u.e < 768 || u.e % 24 || u.l != 768 || u.k < u.l || u.k % u.l || u.k - u.e >= u.l || u.s > 16 || u.s != u.k / u.l || u.s != Math.ceil(u.e / u.l) || u.d != u.q / 6 || u.u != 12 && u.u != 14 && u.u != 16 || u.C != 16 && u.C != 0) {
             throw "Invalid data";
           }
@@ -38551,11 +38551,11 @@ var require_UTIF = __commonJS((exports, module) => {
           u.n = 4 * u.u;
           return u;
         }
-        function a7(t, Z) {
-          var u = new Array(Z.s), e = 4 * Z.s, Q2 = 16 + e;
+        function a7(t, Z2) {
+          var u = new Array(Z2.s), e = 4 * Z2.s, Q2 = 16 + e;
           if (e & 12)
             Q2 += 16 - (e & 12);
-          for (var V2 = 0, O2 = 16;V2 < Z.s; O2 += 4) {
+          for (var V2 = 0, O2 = 16;V2 < Z2.s; O2 += 4) {
             var o = UTIF2._binBE.readUint(t, O2);
             u[V2] = t.slice(Q2, Q2 + o);
             u[V2].j = 0;
@@ -38567,100 +38567,100 @@ var require_UTIF = __commonJS((exports, module) => {
             throw "Invalid data";
           return u;
         }
-        function a6(t, Z) {
-          for (var u = -Z[4], e = 0;u <= Z[4]; e++, u++) {
-            t[e] = u <= -Z[3] ? -4 : u <= -Z[2] ? -3 : u <= -Z[1] ? -2 : u < -Z[0] ? -1 : u <= Z[0] ? 0 : u < Z[1] ? 1 : u < Z[2] ? 2 : u < Z[3] ? 3 : 4;
+        function a6(t, Z2) {
+          for (var u = -Z2[4], e = 0;u <= Z2[4]; e++, u++) {
+            t[e] = u <= -Z2[3] ? -4 : u <= -Z2[2] ? -3 : u <= -Z2[1] ? -2 : u < -Z2[0] ? -1 : u <= Z2[0] ? 0 : u < Z2[1] ? 1 : u < Z2[2] ? 2 : u < Z2[3] ? 3 : 4;
           }
         }
-        function a1(t, Z, u) {
-          var e = [Z, 3 * Z + 18, 5 * Z + 67, 7 * Z + 276, u];
-          t.o = Z;
-          t.w = (e[4] + 2 * Z) / (2 * Z + 1) + 1 | 0;
+        function a1(t, Z2, u) {
+          var e = [Z2, 3 * Z2 + 18, 5 * Z2 + 67, 7 * Z2 + 276, u];
+          t.o = Z2;
+          t.w = (e[4] + 2 * Z2) / (2 * Z2 + 1) + 1 | 0;
           t.v = Math.ceil(Math.log2(t.w));
           t.t = 9;
           a6(t.c, e);
         }
         function a2(t) {
-          var Z = { c: new Int8Array(2 << t.u) };
-          a1(Z, 0, t.g);
-          return Z;
+          var Z2 = { c: new Int8Array(2 << t.u) };
+          a1(Z2, 0, t.g);
+          return Z2;
         }
         function D2(t) {
-          var Z = [[], [], []], u = Math.max(2, t.w + 32 >>> 6);
+          var Z2 = [[], [], []], u = Math.max(2, t.w + 32 >>> 6);
           for (var e = 0;e < 3; e++) {
             for (var Q2 = 0;Q2 < 41; Q2++) {
-              Z[e][Q2] = [u, 1];
+              Z2[e][Q2] = [u, 1];
             }
           }
-          return Z;
+          return Z2;
         }
         function a4(t) {
-          for (var Z = -1, u = 0;!u; Z++) {
+          for (var Z2 = -1, u = 0;!u; Z2++) {
             u = t[t.j] >>> 7 - t.a & 1;
             t.a++;
             t.a &= 7;
             if (!t.a)
               t.j++;
           }
-          return Z;
+          return Z2;
         }
-        function K2(t, Z) {
+        function K2(t, Z2) {
           var u = 0, e = 8 - t.a, Q2 = t.j, V2 = t.a;
-          if (Z) {
-            if (Z >= e) {
+          if (Z2) {
+            if (Z2 >= e) {
               do {
                 u <<= e;
-                Z -= e;
+                Z2 -= e;
                 u |= t[t.j] & (1 << e) - 1;
                 t.j++;
                 e = 8;
-              } while (Z >= 8);
+              } while (Z2 >= 8);
             }
-            if (Z) {
-              u <<= Z;
-              e -= Z;
-              u |= t[t.j] >>> e & (1 << Z) - 1;
+            if (Z2) {
+              u <<= Z2;
+              e -= Z2;
+              u |= t[t.j] >>> e & (1 << Z2) - 1;
             }
             t.a = 8 - e;
           }
           return u;
         }
-        function a0(t, Z) {
+        function a0(t, Z2) {
           var u = 0;
-          if (Z < t) {
-            while (u <= 14 && Z << ++u < t)
+          if (Z2 < t) {
+            while (u <= 14 && Z2 << ++u < t)
               ;
           }
           return u;
         }
-        function r(t, Z, u, e, Q2, V2, O2, o) {
+        function r7(t, Z2, u, e, Q2, V2, O2, o) {
           if (o == null)
             o = 0;
-          var X2 = V2 + 1, k2 = X2 % 2, j2 = 0, I2 = 0, a = 0, l, R2, w = e[Q2], S = e[Q2 - 1], H2 = e[Q2 - 2][X2], g = S[X2 - 1], Y2 = S[X2], P2 = S[X2 + 1], A2 = w[X2 - 1], v2 = w[X2 + 1], y = Math.abs, d, C2, n7, h;
+          var X2 = V2 + 1, k2 = X2 % 2, j2 = 0, I2 = 0, a = 0, l, R2, w = e[Q2], S = e[Q2 - 1], H2 = e[Q2 - 2][X2], g = S[X2 - 1], Y2 = S[X2], P2 = S[X2 + 1], A2 = w[X2 - 1], v2 = w[X2 + 1], y = Math.abs, d, C2, n, h;
           if (k2) {
             d = y(P2 - Y2);
             C2 = y(H2 - Y2);
-            n7 = y(g - Y2);
+            n = y(g - Y2);
           }
           if (k2) {
-            h = d > n7 && C2 < d ? H2 + g : d < n7 && C2 < n7 ? H2 + P2 : P2 + g;
+            h = d > n && C2 < d ? H2 + g : d < n && C2 < n ? H2 + P2 : P2 + g;
             h = h + 2 * Y2 >>> 2;
             if (o) {
               w[X2] = h;
               return;
             }
-            l = Z.t * Z.c[t.g + Y2 - H2] + Z.c[t.g + g - Y2];
+            l = Z2.t * Z2.c[t.g + Y2 - H2] + Z2.c[t.g + g - Y2];
           } else {
             h = Y2 > g && Y2 > P2 || Y2 < g && Y2 < P2 ? v2 + A2 + 2 * Y2 >>> 2 : A2 + v2 >>> 1;
-            l = Z.t * Z.c[t.g + Y2 - g] + Z.c[t.g + g - A2];
+            l = Z2.t * Z2.c[t.g + Y2 - g] + Z2.c[t.g + g - A2];
           }
           R2 = y(l);
-          var W2 = a4(u);
-          if (W2 < t.n - Z.v - 1) {
-            var z = a0(O2[R2][0], O2[R2][1]);
-            a = K2(u, z) + (W2 << z);
+          var W = a4(u);
+          if (W < t.n - Z2.v - 1) {
+            var z2 = a0(O2[R2][0], O2[R2][1]);
+            a = K2(u, z2) + (W << z2);
           } else {
-            a = K2(u, Z.v) + 1;
+            a = K2(u, Z2.v) + 1;
           }
           a = a & 1 ? -1 - (a >>> 1) : a >>> 1;
           O2[R2][0] += y(a);
@@ -38672,49 +38672,49 @@ var require_UTIF = __commonJS((exports, module) => {
           h = l < 0 ? h - a : h + a;
           if (t.i) {
             if (h < 0)
-              h += Z.w;
+              h += Z2.w;
             else if (h > t.g)
-              h -= Z.w;
+              h -= Z2.w;
           }
           w[X2] = h >= 0 ? Math.min(h, t.g) : 0;
         }
-        function U2(t, Z, u) {
+        function U2(t, Z2, u) {
           var e = t[0].length;
-          for (var Q2 = Z;Q2 <= u; Q2++) {
+          for (var Q2 = Z2;Q2 <= u; Q2++) {
             t[Q2][0] = t[Q2 - 1][1];
             t[Q2][e - 1] = t[Q2 - 1][e - 2];
           }
         }
-        function B2(t) {
-          U2(t, s, q2);
-          U2(t, i, J);
-          U2(t, x2, $);
+        function B(t) {
+          U2(t, s, q);
+          U2(t, i, J2);
+          U2(t, x, $2);
         }
-        function _2(t, Z, u, e, Q2, V2, O2, o, X2, k2, j2, I2, a) {
-          var l = 0, R2 = 1, w = Q2 < M2 && Q2 > J;
+        function _2(t, Z2, u, e, Q2, V2, O2, o, X2, k2, j2, I2, a) {
+          var l = 0, R2 = 1, w = Q2 < M2 && Q2 > J2;
           while (R2 < t.m) {
             if (l < t.m) {
-              r(t, Z, u, e, Q2, l, O2[X2], t.h && (w && k2 || !w && (j2 || (l & I2) == a)));
-              r(t, Z, u, e, V2, l, O2[X2], t.h && (!w && k2 || w && (j2 || (l & I2) == a)));
+              r7(t, Z2, u, e, Q2, l, O2[X2], t.h && (w && k2 || !w && (j2 || (l & I2) == a)));
+              r7(t, Z2, u, e, V2, l, O2[X2], t.h && (!w && k2 || w && (j2 || (l & I2) == a)));
               l += 2;
             }
             if (l > 8) {
-              r(t, Z, u, e, Q2, R2, o[X2]);
-              r(t, Z, u, e, V2, R2, o[X2]);
+              r7(t, Z2, u, e, Q2, R2, o[X2]);
+              r7(t, Z2, u, e, V2, R2, o[X2]);
               R2 += 2;
             }
           }
-          B2(e);
+          B(e);
         }
-        function a8(t, Z, u, e, Q2, V2) {
-          _2(t, Z, u, e, i, s, Q2, V2, 0, 0, 1, 0, 8);
-          _2(t, Z, u, e, c, x2, Q2, V2, 1, 0, 1, 0, 8);
-          _2(t, Z, u, e, b, T2, Q2, V2, 2, 1, 0, 3, 0);
-          _2(t, Z, u, e, a3, L2, Q2, V2, 0, 0, 0, 3, 2);
-          _2(t, Z, u, e, J, f, Q2, V2, 1, 0, 0, 3, 2);
-          _2(t, Z, u, e, q2, $, Q2, V2, 2, 1, 0, 3, 0);
+        function a8(t, Z2, u, e, Q2, V2) {
+          _2(t, Z2, u, e, i, s, Q2, V2, 0, 0, 1, 0, 8);
+          _2(t, Z2, u, e, c, x, Q2, V2, 1, 0, 1, 0, 8);
+          _2(t, Z2, u, e, b, T2, Q2, V2, 2, 1, 0, 3, 0);
+          _2(t, Z2, u, e, a3, L2, Q2, V2, 0, 0, 0, 3, 2);
+          _2(t, Z2, u, e, J2, f, Q2, V2, 1, 0, 0, 3, 2);
+          _2(t, Z2, u, e, q, $2, Q2, V2, 2, 1, 0, 3, 0);
         }
-        function a9(t, Z, u, e, Q2, V2) {
+        function a9(t, Z2, u, e, Q2, V2) {
           var O2 = V2.length, o = t.l;
           if (Q2 + 1 == t.s)
             o = t.e - Q2 * t.l;
@@ -38725,22 +38725,22 @@ var require_UTIF = __commonJS((exports, module) => {
               if (I2 == 0) {
                 a = i + (k2 >>> 1);
               } else if (I2 == 2) {
-                a = x2 + (k2 >>> 1);
+                a = x + (k2 >>> 1);
               } else {
                 a = s + k2;
               }
               var l = t.h ? (j2 * 2 / 3 & 2147483646 | j2 % 3 & 1) + (j2 % 3 >>> 1) : j2 >>> 1;
-              Z[X2 + j2] = u[a][l + 1];
+              Z2[X2 + j2] = u[a][l + 1];
             }
             X2 += t.e;
           }
         }
-        UTIF2._decompressRAF = function(t, Z) {
+        UTIF2._decompressRAF = function(t, Z2) {
           var u = a5(t), e = a7(t, u), Q2 = a2(u), V2 = new Int16Array(u.e * u.q);
-          if (Z == null) {
-            Z = u.h ? [[1, 1, 0, 1, 1, 2], [1, 1, 2, 1, 1, 0], [2, 0, 1, 0, 2, 1], [1, 1, 2, 1, 1, 0], [1, 1, 0, 1, 1, 2], [0, 2, 1, 2, 0, 1]] : [[0, 1], [3, 2]];
+          if (Z2 == null) {
+            Z2 = u.h ? [[1, 1, 0, 1, 1, 2], [1, 1, 2, 1, 1, 0], [2, 0, 1, 0, 2, 1], [1, 1, 2, 1, 1, 0], [1, 1, 0, 1, 1, 2], [0, 2, 1, 2, 0, 1]] : [[0, 1], [3, 2]];
           }
-          var O2 = [[G2, b], [F2, J], [N2, f], [E, q2], [M2, L2], [m, $]], o = [];
+          var O2 = [[G2, b], [F2, J2], [N2, f], [E2, q], [M2, L2], [m, $2]], o = [];
           for (var X2 = 0;X2 < p; X2++) {
             o[X2] = new Uint16Array(u.A);
           }
@@ -38758,15 +38758,15 @@ var require_UTIF = __commonJS((exports, module) => {
                   o[O2[X2][0]][a] = o[O2[X2][1]][a];
                 }
               }
-              a9(u, V2, o, l, k2, Z);
+              a9(u, V2, o, l, k2, Z2);
               for (var X2 = i;X2 < p; X2++) {
-                if ([N2, E, M2, m].indexOf(X2) == -1) {
+                if ([N2, E2, M2, m].indexOf(X2) == -1) {
                   for (var a = 0;a < u.A; a++) {
                     o[X2][a] = 0;
                   }
                 }
               }
-              B2(o);
+              B(o);
             }
           }
           return V2;
@@ -41094,7 +41094,7 @@ var require_ms = __commonJS((exports, module) => {
     if (!match) {
       return;
     }
-    var n7 = parseFloat(match[1]);
+    var n = parseFloat(match[1]);
     var type = (match[2] || "ms").toLowerCase();
     switch (type) {
       case "years":
@@ -41102,39 +41102,39 @@ var require_ms = __commonJS((exports, module) => {
       case "yrs":
       case "yr":
       case "y":
-        return n7 * y;
+        return n * y;
       case "weeks":
       case "week":
       case "w":
-        return n7 * w;
+        return n * w;
       case "days":
       case "day":
       case "d":
-        return n7 * d;
+        return n * d;
       case "hours":
       case "hour":
       case "hrs":
       case "hr":
       case "h":
-        return n7 * h;
+        return n * h;
       case "minutes":
       case "minute":
       case "mins":
       case "min":
       case "m":
-        return n7 * m;
+        return n * m;
       case "seconds":
       case "second":
       case "secs":
       case "sec":
       case "s":
-        return n7 * s;
+        return n * s;
       case "milliseconds":
       case "millisecond":
       case "msecs":
       case "msec":
       case "ms":
-        return n7;
+        return n;
       default:
         return;
     }
@@ -41171,9 +41171,9 @@ var require_ms = __commonJS((exports, module) => {
     }
     return ms2 + " ms";
   }
-  function plural(ms2, msAbs, n7, name) {
-    var isPlural = msAbs >= n7 * 1.5;
-    return Math.round(ms2 / n7) + " " + name + (isPlural ? "s" : "");
+  function plural(ms2, msAbs, n, name) {
+    var isPlural = msAbs >= n * 1.5;
+    return Math.round(ms2 / n) + " " + name + (isPlural ? "s" : "");
   }
 });
 
@@ -41487,14 +41487,14 @@ var require_browser = __commonJS((exports, module) => {
     } catch (error2) {}
   }
   function load() {
-    let r;
+    let r7;
     try {
-      r = exports.storage.getItem("debug") || exports.storage.getItem("DEBUG");
+      r7 = exports.storage.getItem("debug") || exports.storage.getItem("DEBUG");
     } catch (error2) {}
-    if (!r && typeof process !== "undefined" && "env" in process) {
-      r = process.env.DEBUG;
+    if (!r7 && typeof process !== "undefined" && "env" in process) {
+      r7 = process.env.DEBUG;
     }
-    return r;
+    return r7;
   }
   function localstorage() {
     try {
@@ -41929,7 +41929,7 @@ class ZipHandler {
       const eocdHeader = await this.tokenizer.readToken(EndOfCentralDirectoryRecordToken, offset);
       const files = [];
       this.tokenizer.setPosition(eocdHeader.offsetOfStartOfCd);
-      for (let n7 = 0;n7 < eocdHeader.nrOfEntriesOfSize; ++n7) {
+      for (let n = 0;n < eocdHeader.nrOfEntriesOfSize; ++n) {
         const entry = await this.tokenizer.readToken(FileHeader);
         if (entry.signature !== Signature.CentralFileHeader) {
           throw new Error("Expected Central-File-Header signature");
@@ -41938,7 +41938,7 @@ class ZipHandler {
         await this.tokenizer.ignore(entry.extraFieldLength);
         await this.tokenizer.ignore(entry.fileCommentLength);
         files.push(entry);
-        debug2(`Add central-directory file-entry: n=${n7 + 1}/${files.length}: filename=${files[n7].filename}`);
+        debug2(`Add central-directory file-entry: n=${n + 1}/${files.length}: filename=${files[n].filename}`);
       }
       this.tokenizer.setPosition(pos);
       return files;
@@ -44569,7 +44569,7 @@ class FileTypeParser {
     if (hasUnknownFileSize(this.tokenizer) && 2 + numberOfTags * 12 > maximumTiffIfdOffsetInBytes) {
       return;
     }
-    for (let n7 = 0;n7 < numberOfTags; ++n7) {
+    for (let n = 0;n < numberOfTags; ++n) {
       const fileType = await this.readTiffTag(bigEndian);
       if (fileType) {
         return fileType;
@@ -45242,9 +45242,9 @@ var require_schema = __commonJS((exports) => {
   var schemaDeserializationMiddleware = (config) => (next, context3) => async (args) => {
     const { response } = await next(args);
     const { operationSchema } = getSmithyContext(context3);
-    const [, ns2, n7, t, i, o] = operationSchema ?? [];
+    const [, ns2, n, t, i, o] = operationSchema ?? [];
     try {
-      const parsed = await config.protocol.deserializeResponse(operation(ns2, n7, t, i, o), {
+      const parsed = await config.protocol.deserializeResponse(operation(ns2, n, t, i, o), {
         ...config,
         ...context3
       }, response);
@@ -45299,9 +45299,9 @@ var require_schema = __commonJS((exports) => {
   };
   var schemaSerializationMiddleware = (config) => (next, context3) => async (args) => {
     const { operationSchema } = getSmithyContext(context3);
-    const [, ns2, n7, t, i, o] = operationSchema ?? [];
+    const [, ns2, n, t, i, o] = operationSchema ?? [];
     const endpoint2 = context3.endpointV2 ? async () => toEndpointV1(context3.endpointV2) : config.endpoint;
-    const request3 = await config.protocol.serializeRequest(operation(ns2, n7, t, i, o), args.input, {
+    const request3 = await config.protocol.serializeRequest(operation(ns2, n, t, i, o), args.input, {
       ...config,
       ...context3,
       endpoint: endpoint2
@@ -45700,14 +45700,14 @@ var require_schema = __commonJS((exports) => {
         throw new Error("@smithy/core/schema - cannot iterate non-struct schema.");
       }
       const struct2 = this.getSchema();
-      const z = struct2[4].length;
+      const z2 = struct2[4].length;
       let it2 = struct2[anno.it];
-      if (it2 && z === it2.length) {
+      if (it2 && z2 === it2.length) {
         yield* it2;
         return;
       }
-      it2 = Array(z);
-      for (let i = 0;i < z; ++i) {
+      it2 = Array(z2);
+      for (let i = 0;i < z2; ++i) {
         const k2 = struct2[4][i];
         const v2 = member([struct2[5][i], 0], k2);
         yield it2[i] = [k2, v2];
@@ -45793,9 +45793,9 @@ var require_schema = __commonJS((exports) => {
     }
     register(shapeId, schema) {
       const qualifiedName = this.normalizeShapeId(shapeId);
-      for (const r of [this, TypeRegistry.for(qualifiedName.split("#")[0])]) {
-        if (!r.schemas.has(qualifiedName)) {
-          r.schemas.set(qualifiedName, schema);
+      for (const r7 of [this, TypeRegistry.for(qualifiedName.split("#")[0])]) {
+        if (!r7.schemas.has(qualifiedName)) {
+          r7.schemas.set(qualifiedName, schema);
         }
       }
     }
@@ -45822,10 +45822,10 @@ var require_schema = __commonJS((exports) => {
       const $error2 = es2;
       const ns2 = $error2[1];
       const qualifiedName = ns2 + "#" + $error2[2];
-      for (const r of [this, TypeRegistry.for(ns2)]) {
-        if (!r.schemas.has(qualifiedName) && !r.exceptions.has($error2)) {
-          r.schemas.set(qualifiedName, $error2);
-          r.exceptions.set($error2, ctor);
+      for (const r7 of [this, TypeRegistry.for(ns2)]) {
+        if (!r7.schemas.has(qualifiedName) && !r7.exceptions.has($error2)) {
+          r7.schemas.set(qualifiedName, $error2);
+          r7.exceptions.set($error2, ctor);
         }
       }
     }
@@ -46261,9 +46261,9 @@ var require_client2 = __commonJS((exports) => {
     const orderedErrors = Object.keys(observedResponses);
     let count403 = 0;
     for (const response of orderedErrors) {
-      const n7 = observedResponses[response] | 0;
+      const n = observedResponses[response] | 0;
       if (response.startsWith("403:")) {
-        count403 += n7;
+        count403 += n;
       }
     }
     const clientLogger = client?.config?.logger;
@@ -46351,8 +46351,8 @@ var require_client2 = __commonJS((exports) => {
       exitConditions.push(aborted);
     }
     return Promise.race(exitConditions).then((result) => {
-      for (const fn of finalize) {
-        fn();
+      for (const fn2 of finalize) {
+        fn2();
       }
       return result;
     });
@@ -46952,13 +46952,13 @@ var require_client2 = __commonJS((exports) => {
     return obj2;
   };
   function makeBuilder(common, service, name, ep) {
-    return function makeCommand(added, plugins, op, $, smithyContext = {}) {
+    return function makeCommand(added, plugins, op, $2, smithyContext = {}) {
       const epMerged = Object.assign({}, common, added);
       return Command2.classBuilder().ep(epMerged).m(function(CommandCtor, clientStack, config, options) {
         const list = plugins.call(this, CommandCtor, clientStack, config, options);
         list.unshift(ep(config, CommandCtor.getEndpointParameterInstructions()));
         return list;
-      }).s(service, op, smithyContext).n(name, op.charAt(0).toUpperCase() + op.slice(1) + "Command").sc($).build();
+      }).s(service, op, smithyContext).n(name, op.charAt(0).toUpperCase() + op.slice(1) + "Command").sc($2).build();
     };
   }
   exports.Client = Client;
@@ -48243,7 +48243,7 @@ var require_endpoints = __commonJS((exports) => {
     }
     throw new EndpointError(`'${keyName}': ${String(obj2)} is not a string, function or reference.`);
   };
-  var callFunction = ({ fn, argv }, options) => {
+  var callFunction = ({ fn: fn2, argv }, options) => {
     const evaluatedArgs = Array(argv.length);
     for (let i = 0;i < evaluatedArgs.length; ++i) {
       const arg = argv[i];
@@ -48253,19 +48253,19 @@ var require_endpoints = __commonJS((exports) => {
         evaluatedArgs[i] = group$2.evaluateExpression(arg, "arg", options);
       }
     }
-    const namespaceSeparatorIndex = fn.indexOf(".");
+    const namespaceSeparatorIndex = fn2.indexOf(".");
     if (namespaceSeparatorIndex !== -1) {
-      const namespaceFunctions = customEndpointFunctions[fn.slice(0, namespaceSeparatorIndex)];
-      const customFunction = namespaceFunctions?.[fn.slice(namespaceSeparatorIndex + 1)];
+      const namespaceFunctions = customEndpointFunctions[fn2.slice(0, namespaceSeparatorIndex)];
+      const customFunction = namespaceFunctions?.[fn2.slice(namespaceSeparatorIndex + 1)];
       if (typeof customFunction === "function") {
         return customFunction(...evaluatedArgs);
       }
     }
-    const callable = endpointFunctions[fn];
+    const callable = endpointFunctions[fn2];
     if (typeof callable === "function") {
       return callable(...evaluatedArgs);
     }
-    throw new Error(`function ${fn} not loaded in endpointFunctions.`);
+    throw new Error(`function ${fn2} not loaded in endpointFunctions.`);
   };
   var group$2 = {
     evaluateExpression,
@@ -48345,8 +48345,8 @@ var require_endpoints = __commonJS((exports) => {
     while (ref !== 1 && ref !== -1 && ref < RESULT) {
       const node_i = 3 * (Math.abs(ref) - 1);
       const [condition_i, highRef, lowRef] = [nodes[node_i], nodes[node_i + 1], nodes[node_i + 2]];
-      const [fn, argv, assign] = conditions[condition_i];
-      const evaluation = evaluateCondition({ fn, assign, argv }, closure);
+      const [fn2, argv, assign] = conditions[condition_i];
+      const evaluation = evaluateCondition({ fn: fn2, assign, argv }, closure);
       if (evaluation.toAssign) {
         const { name, value } = evaluation.toAssign;
         referenceRecord[name] = value;
@@ -49172,12 +49172,12 @@ var require_serde = __commonJS((exports) => {
     return compoundSegments;
   }
   var splitHeader = (value) => {
-    const z = value.length;
+    const z2 = value.length;
     const values = [];
     let withinQuotes = false;
     let prevChar = undefined;
     let anchor = 0;
-    for (let i = 0;i < z; ++i) {
+    for (let i = 0;i < z2; ++i) {
       const char = value[i];
       switch (char) {
         case `"`:
@@ -49197,12 +49197,12 @@ var require_serde = __commonJS((exports) => {
     values.push(value.slice(anchor));
     return values.map((v2) => {
       v2 = v2.trim();
-      const z2 = v2.length;
-      if (z2 < 2) {
+      const z3 = v2.length;
+      if (z3 < 2) {
         return v2;
       }
-      if (v2[0] === `"` && v2[z2 - 1] === `"`) {
-        v2 = v2.slice(1, z2 - 1);
+      if (v2[0] === `"` && v2[z3 - 1] === `"`) {
+        v2 = v2.slice(1, z3 - 1);
       }
       return v2.replace(/\\"/g, '"');
     });
@@ -50317,12 +50317,12 @@ var require_checksum = __commonJS((exports) => {
         f = c2 ^ (b | ~d);
         g = 7 * i % 16;
       }
-      const x3 = block.getUint32(g * 4, true);
+      const x2 = block.getUint32(g * 4, true);
       const tmp = d;
       d = c2;
       c2 = b;
       const s = S[(i >> 4) * 4 + (i & 3)];
-      const sum = (a + f & M2) + (x3 + T2[i] & M2) & M2;
+      const sum = (a + f & M2) + (x2 + T2[i] & M2) & M2;
       b = b + ((sum << s | sum >>> 32 - s) >>> 0) & M2;
       a = tmp;
     }
@@ -52941,7 +52941,7 @@ var require_retry2 = __commonJS((exports) => {
   }
 
   class DefaultRateLimiter {
-    static setTimeoutFn = (fn, delay) => setTimeout(fn, delay);
+    static setTimeoutFn = (fn2, delay) => setTimeout(fn2, delay);
     beta;
     minCapacity;
     minFillRate;
@@ -53073,8 +53073,8 @@ var require_retry2 = __commonJS((exports) => {
     x = Retry.delay();
     computeNextBackoffDelay(i) {
       const b = Math.random();
-      const r = 2;
-      const t_i = b * Math.min(this.x * r ** i, MAXIMUM_RETRY_DELAY);
+      const r7 = 2;
+      const t_i = b * Math.min(this.x * r7 ** i, MAXIMUM_RETRY_DELAY);
       return Math.floor(t_i);
     }
     setDelayBase(delay) {
@@ -53160,13 +53160,13 @@ var require_retry2 = __commonJS((exports) => {
         if (!shouldRetry) {
           const longPollBackoff = Retry.v2026 && retryCode === refusal.capacity && isLongPoll ? retryDelay : 0;
           if (longPollBackoff > 0) {
-            await new Promise((r) => setTimeout(r, longPollBackoff));
+            await new Promise((r7) => setTimeout(r7, longPollBackoff));
           }
         } else {
           const capacityCost = this.getCapacityCost(errorType);
           this.capacity -= capacityCost;
           const nextToken = new DefaultRetryToken(0, token.getRetryCount() + 1, capacityCost, token.isLongPoll?.() ?? false);
-          await new Promise((r) => setTimeout(r, retryDelay));
+          await new Promise((r7) => setTimeout(r7, retryDelay));
           nextToken.$retryLog.acquisitionDelay = retryDelay;
           return nextToken;
         }
@@ -53570,9 +53570,9 @@ var require_invoke_store = __commonJS((exports) => {
       this.currentContext = this.currentContext || {};
       this.currentContext[key] = value;
     }
-    run(context3, fn) {
+    run(context3, fn2) {
       this.currentContext = context3;
-      return fn();
+      return fn2();
     }
   }
 
@@ -53603,8 +53603,8 @@ var require_invoke_store = __commonJS((exports) => {
       }
       store[key] = value;
     }
-    run(context3, fn) {
-      return this.als.run(context3, fn);
+    run(context3, fn2) {
+      return this.als.run(context3, fn2);
     }
   }
   exports.InvokeStore = undefined;
@@ -53976,51 +53976,51 @@ var require_es52 = __commonJS((exports, module) => {
   })(exports, function() {
     return function(e) {
       var t = {};
-      function r(i) {
+      function r7(i) {
         if (t[i])
           return t[i].exports;
-        var n7 = t[i] = { i, l: false, exports: {} };
-        return e[i].call(n7.exports, n7, n7.exports, r), n7.l = true, n7.exports;
+        var n = t[i] = { i, l: false, exports: {} };
+        return e[i].call(n.exports, n, n.exports, r7), n.l = true, n.exports;
       }
-      return r.m = e, r.c = t, r.d = function(e2, t2, i) {
-        r.o(e2, t2) || Object.defineProperty(e2, t2, { enumerable: true, get: i });
-      }, r.r = function(e2) {
+      return r7.m = e, r7.c = t, r7.d = function(e2, t2, i) {
+        r7.o(e2, t2) || Object.defineProperty(e2, t2, { enumerable: true, get: i });
+      }, r7.r = function(e2) {
         typeof Symbol != "undefined" && Symbol.toStringTag && Object.defineProperty(e2, Symbol.toStringTag, { value: "Module" }), Object.defineProperty(e2, "__esModule", { value: true });
-      }, r.t = function(e2, t2) {
-        if (1 & t2 && (e2 = r(e2)), 8 & t2)
+      }, r7.t = function(e2, t2) {
+        if (1 & t2 && (e2 = r7(e2)), 8 & t2)
           return e2;
         if (4 & t2 && typeof e2 == "object" && e2 && e2.__esModule)
           return e2;
         var i = Object.create(null);
-        if (r.r(i), Object.defineProperty(i, "default", { enumerable: true, value: e2 }), 2 & t2 && typeof e2 != "string")
-          for (var n7 in e2)
-            r.d(i, n7, function(t3) {
+        if (r7.r(i), Object.defineProperty(i, "default", { enumerable: true, value: e2 }), 2 & t2 && typeof e2 != "string")
+          for (var n in e2)
+            r7.d(i, n, function(t3) {
               return e2[t3];
-            }.bind(null, n7));
+            }.bind(null, n));
         return i;
-      }, r.n = function(e2) {
+      }, r7.n = function(e2) {
         var t2 = e2 && e2.__esModule ? function() {
           return e2.default;
         } : function() {
           return e2;
         };
-        return r.d(t2, "a", t2), t2;
-      }, r.o = function(e2, t2) {
+        return r7.d(t2, "a", t2), t2;
+      }, r7.o = function(e2, t2) {
         return Object.prototype.hasOwnProperty.call(e2, t2);
-      }, r.p = "", r(r.s = 90);
-    }({ 17: function(e, t, r) {
+      }, r7.p = "", r7(r7.s = 90);
+    }({ 17: function(e, t, r7) {
       t.__esModule = true, t.default = undefined;
-      var i = r(18), n7 = function() {
+      var i = r7(18), n = function() {
         function e2() {}
         return e2.getFirstMatch = function(e3, t2) {
-          var r2 = t2.match(e3);
-          return r2 && r2.length > 0 && r2[1] || "";
+          var r8 = t2.match(e3);
+          return r8 && r8.length > 0 && r8[1] || "";
         }, e2.getSecondMatch = function(e3, t2) {
-          var r2 = t2.match(e3);
-          return r2 && r2.length > 1 && r2[2] || "";
-        }, e2.matchAndReturnConst = function(e3, t2, r2) {
+          var r8 = t2.match(e3);
+          return r8 && r8.length > 1 && r8[2] || "";
+        }, e2.matchAndReturnConst = function(e3, t2, r8) {
           if (e3.test(t2))
-            return r2;
+            return r8;
         }, e2.getWindowsVersionName = function(e3) {
           switch (e3) {
             case "NT":
@@ -54051,8 +54051,8 @@ var require_es52 = __commonJS((exports, module) => {
             return parseInt(e4, 10) || 0;
           });
           t2.push(0);
-          var r2 = t2[0], i2 = t2[1];
-          if (r2 === 10)
+          var r8 = t2[0], i2 = t2[1];
+          if (r8 === 10)
             switch (i2) {
               case 5:
                 return "Leopard";
@@ -54079,7 +54079,7 @@ var require_es52 = __commonJS((exports, module) => {
               default:
                 return;
             }
-          switch (r2) {
+          switch (r8) {
             case 11:
               return "Big Sur";
             case 12:
@@ -54101,15 +54101,15 @@ var require_es52 = __commonJS((exports, module) => {
             return t2[0] === 1 && t2[1] < 6 ? "Cupcake" : t2[0] === 1 && t2[1] >= 6 ? "Donut" : t2[0] === 2 && t2[1] < 2 ? "Eclair" : t2[0] === 2 && t2[1] === 2 ? "Froyo" : t2[0] === 2 && t2[1] > 2 ? "Gingerbread" : t2[0] === 3 ? "Honeycomb" : t2[0] === 4 && t2[1] < 1 ? "Ice Cream Sandwich" : t2[0] === 4 && t2[1] < 4 ? "Jelly Bean" : t2[0] === 4 && t2[1] >= 4 ? "KitKat" : t2[0] === 5 ? "Lollipop" : t2[0] === 6 ? "Marshmallow" : t2[0] === 7 ? "Nougat" : t2[0] === 8 ? "Oreo" : t2[0] === 9 ? "Pie" : undefined;
         }, e2.getVersionPrecision = function(e3) {
           return e3.split(".").length;
-        }, e2.compareVersions = function(t2, r2, i2) {
+        }, e2.compareVersions = function(t2, r8, i2) {
           i2 === undefined && (i2 = false);
-          var n8 = e2.getVersionPrecision(t2), a = e2.getVersionPrecision(r2), o = Math.max(n8, a), s = 0, u = e2.map([t2, r2], function(t3) {
-            var r3 = o - e2.getVersionPrecision(t3), i3 = t3 + new Array(r3 + 1).join(".0");
+          var n2 = e2.getVersionPrecision(t2), a = e2.getVersionPrecision(r8), o = Math.max(n2, a), s = 0, u = e2.map([t2, r8], function(t3) {
+            var r9 = o - e2.getVersionPrecision(t3), i3 = t3 + new Array(r9 + 1).join(".0");
             return e2.map(i3.split("."), function(e3) {
               return new Array(20 - e3.length).join("0") + e3;
             }).reverse();
           });
-          for (i2 && (s = o - Math.min(n8, a)), o -= 1;o >= s; ) {
+          for (i2 && (s = o - Math.min(n2, a)), o -= 1;o >= s; ) {
             if (u[0][o] > u[1][o])
               return 1;
             if (u[0][o] === u[1][o]) {
@@ -54120,23 +54120,23 @@ var require_es52 = __commonJS((exports, module) => {
               return -1;
           }
         }, e2.map = function(e3, t2) {
-          var r2, i2 = [];
+          var r8, i2 = [];
           if (Array.prototype.map)
             return Array.prototype.map.call(e3, t2);
-          for (r2 = 0;r2 < e3.length; r2 += 1)
-            i2.push(t2(e3[r2]));
+          for (r8 = 0;r8 < e3.length; r8 += 1)
+            i2.push(t2(e3[r8]));
           return i2;
         }, e2.find = function(e3, t2) {
-          var r2, i2;
+          var r8, i2;
           if (Array.prototype.find)
             return Array.prototype.find.call(e3, t2);
-          for (r2 = 0, i2 = e3.length;r2 < i2; r2 += 1) {
-            var n8 = e3[r2];
-            if (t2(n8, r2))
-              return n8;
+          for (r8 = 0, i2 = e3.length;r8 < i2; r8 += 1) {
+            var n2 = e3[r8];
+            if (t2(n2, r8))
+              return n2;
           }
         }, e2.assign = function(e3) {
-          for (var t2, r2, i2 = e3, n8 = arguments.length, a = new Array(n8 > 1 ? n8 - 1 : 0), o = 1;o < n8; o++)
+          for (var t2, r8, i2 = e3, n2 = arguments.length, a = new Array(n2 > 1 ? n2 - 1 : 0), o = 1;o < n2; o++)
             a[o - 1] = arguments[o];
           if (Object.assign)
             return Object.assign.apply(Object, [e3].concat(a));
@@ -54146,7 +54146,7 @@ var require_es52 = __commonJS((exports, module) => {
               i2[t3] = e4[t3];
             });
           };
-          for (t2 = 0, r2 = a.length;t2 < r2; t2 += 1)
+          for (t2 = 0, r8 = a.length;t2 < r8; t2 += 1)
             s();
           return e3;
         }, e2.getBrowserAlias = function(e3) {
@@ -54155,32 +54155,32 @@ var require_es52 = __commonJS((exports, module) => {
           return i.BROWSER_MAP[e3] || "";
         }, e2;
       }();
-      t.default = n7, e.exports = t.default;
-    }, 18: function(e, t, r) {
+      t.default = n, e.exports = t.default;
+    }, 18: function(e, t, r7) {
       t.__esModule = true, t.ENGINE_MAP = t.OS_MAP = t.PLATFORMS_MAP = t.BROWSER_MAP = t.BROWSER_ALIASES_MAP = undefined;
       t.BROWSER_ALIASES_MAP = { AmazonBot: "amazonbot", "Amazon Silk": "amazon_silk", "Android Browser": "android", BaiduSpider: "baiduspider", Bada: "bada", BingCrawler: "bingcrawler", BlackBerry: "blackberry", "ChatGPT-User": "chatgpt_user", Chrome: "chrome", ClaudeBot: "claudebot", Chromium: "chromium", Diffbot: "diffbot", DuckDuckBot: "duckduckbot", Electron: "electron", Epiphany: "epiphany", FacebookExternalHit: "facebookexternalhit", Firefox: "firefox", Focus: "focus", Generic: "generic", "Google Search": "google_search", Googlebot: "googlebot", GPTBot: "gptbot", "Internet Explorer": "ie", InternetArchiveCrawler: "internetarchivecrawler", "K-Meleon": "k_meleon", LibreWolf: "librewolf", Maxthon: "maxthon", "Meta-ExternalAds": "meta_externalads", "Meta-ExternalAgent": "meta_externalagent", "Meta-ExternalFetcher": "meta_externalfetcher", "Meta-WebIndexer": "meta_webindexer", "Microsoft Edge": "edge", "MZ Browser": "mz", "NAVER Whale Browser": "naver", "OAI-SearchBot": "oai_searchbot", Omgilibot: "omgilibot", Opera: "opera", "Opera Coast": "opera_coast", "Pale Moon": "pale_moon", PerplexityBot: "perplexitybot", "Perplexity-User": "perplexity_user", PhantomJS: "phantomjs", PingdomBot: "pingdombot", Puffin: "puffin", QQ: "qq", QQLite: "qqlite", QupZilla: "qupzilla", Roku: "roku", Safari: "safari", Sailfish: "sailfish", "Samsung Internet for Android": "samsung_internet", SeaMonkey: "seamonkey", Sleipnir: "sleipnir", "Sogou Browser": "sogou", Swing: "swing", Tizen: "tizen", "UC Browser": "uc", Vivaldi: "vivaldi", "WebOS Browser": "webos", WeChat: "wechat", YahooSlurp: "yahooslurp", "Yandex Browser": "yandex", YandexBot: "yandexbot", YouBot: "youbot" };
       t.BROWSER_MAP = { amazonbot: "AmazonBot", amazon_silk: "Amazon Silk", android: "Android Browser", baiduspider: "BaiduSpider", bada: "Bada", bingcrawler: "BingCrawler", blackberry: "BlackBerry", chatgpt_user: "ChatGPT-User", chrome: "Chrome", claudebot: "ClaudeBot", chromium: "Chromium", diffbot: "Diffbot", duckduckbot: "DuckDuckBot", edge: "Microsoft Edge", electron: "Electron", epiphany: "Epiphany", facebookexternalhit: "FacebookExternalHit", firefox: "Firefox", focus: "Focus", generic: "Generic", google_search: "Google Search", googlebot: "Googlebot", gptbot: "GPTBot", ie: "Internet Explorer", internetarchivecrawler: "InternetArchiveCrawler", k_meleon: "K-Meleon", librewolf: "LibreWolf", maxthon: "Maxthon", meta_externalads: "Meta-ExternalAds", meta_externalagent: "Meta-ExternalAgent", meta_externalfetcher: "Meta-ExternalFetcher", meta_webindexer: "Meta-WebIndexer", mz: "MZ Browser", naver: "NAVER Whale Browser", oai_searchbot: "OAI-SearchBot", omgilibot: "Omgilibot", opera: "Opera", opera_coast: "Opera Coast", pale_moon: "Pale Moon", perplexitybot: "PerplexityBot", perplexity_user: "Perplexity-User", phantomjs: "PhantomJS", pingdombot: "PingdomBot", puffin: "Puffin", qq: "QQ Browser", qqlite: "QQ Browser Lite", qupzilla: "QupZilla", roku: "Roku", safari: "Safari", sailfish: "Sailfish", samsung_internet: "Samsung Internet for Android", seamonkey: "SeaMonkey", sleipnir: "Sleipnir", sogou: "Sogou Browser", swing: "Swing", tizen: "Tizen", uc: "UC Browser", vivaldi: "Vivaldi", webos: "WebOS Browser", wechat: "WeChat", yahooslurp: "YahooSlurp", yandex: "Yandex Browser", yandexbot: "YandexBot", youbot: "YouBot" };
       t.PLATFORMS_MAP = { bot: "bot", desktop: "desktop", mobile: "mobile", tablet: "tablet", tv: "tv" };
       t.OS_MAP = { Android: "Android", Bada: "Bada", BlackBerry: "BlackBerry", ChromeOS: "Chrome OS", HarmonyOS: "HarmonyOS", iOS: "iOS", Linux: "Linux", MacOS: "macOS", PlayStation4: "PlayStation 4", Roku: "Roku", Tizen: "Tizen", WebOS: "WebOS", Windows: "Windows", WindowsPhone: "Windows Phone" };
       t.ENGINE_MAP = { Blink: "Blink", EdgeHTML: "EdgeHTML", Gecko: "Gecko", Presto: "Presto", Trident: "Trident", WebKit: "WebKit" };
-    }, 90: function(e, t, r) {
+    }, 90: function(e, t, r7) {
       t.__esModule = true, t.default = undefined;
-      var i, n7 = (i = r(91)) && i.__esModule ? i : { default: i }, a = r(18);
+      var i, n = (i = r7(91)) && i.__esModule ? i : { default: i }, a = r7(18);
       function o(e2, t2) {
-        for (var r2 = 0;r2 < t2.length; r2++) {
-          var i2 = t2[r2];
+        for (var r8 = 0;r8 < t2.length; r8++) {
+          var i2 = t2[r8];
           i2.enumerable = i2.enumerable || false, i2.configurable = true, "value" in i2 && (i2.writable = true), Object.defineProperty(e2, i2.key, i2);
         }
       }
       var s = function() {
         function e2() {}
-        var t2, r2, i2;
+        var t2, r8, i2;
         return e2.getParser = function(e3, t3) {
           if (t3 === undefined && (t3 = false), typeof e3 != "string")
             throw new Error("UserAgent should be a string");
-          return new n7.default(e3, t3);
+          return new n.default(e3, t3);
         }, e2.parse = function(e3) {
-          return new n7.default(e3).getResult();
+          return new n.default(e3).getResult();
         }, t2 = e2, i2 = [{ key: "BROWSER_MAP", get: function() {
           return a.BROWSER_MAP;
         } }, { key: "ENGINE_MAP", get: function() {
@@ -54189,12 +54189,12 @@ var require_es52 = __commonJS((exports, module) => {
           return a.OS_MAP;
         } }, { key: "PLATFORMS_MAP", get: function() {
           return a.PLATFORMS_MAP;
-        } }], (r2 = null) && o(t2.prototype, r2), i2 && o(t2, i2), e2;
+        } }], (r8 = null) && o(t2.prototype, r8), i2 && o(t2, i2), e2;
       }();
       t.default = s, e.exports = t.default;
-    }, 91: function(e, t, r) {
+    }, 91: function(e, t, r7) {
       t.__esModule = true, t.default = undefined;
-      var i = u(r(92)), n7 = u(r(93)), a = u(r(94)), o = u(r(95)), s = u(r(17));
+      var i = u(r7(92)), n = u(r7(93)), a = u(r7(94)), o = u(r7(95)), s = u(r7(17));
       function u(e2) {
         return e2 && e2.__esModule ? e2 : { default: e2 };
       }
@@ -54233,7 +54233,7 @@ var require_es52 = __commonJS((exports, module) => {
         }, t2.parseOS = function() {
           var e3 = this;
           this.parsedResult.os = {};
-          var t3 = s.default.find(n7.default, function(t4) {
+          var t3 = s.default.find(n.default, function(t4) {
             if (typeof t4.test == "function")
               return t4.test(e3);
             if (Array.isArray(t4.test))
@@ -54289,16 +54289,16 @@ var require_es52 = __commonJS((exports, module) => {
         }, t2.getResult = function() {
           return s.default.assign({}, this.parsedResult);
         }, t2.satisfies = function(e3) {
-          var t3 = this, r2 = {}, i2 = 0, n8 = {}, a2 = 0;
+          var t3 = this, r8 = {}, i2 = 0, n2 = {}, a2 = 0;
           if (Object.keys(e3).forEach(function(t4) {
             var o3 = e3[t4];
-            typeof o3 == "string" ? (n8[t4] = o3, a2 += 1) : typeof o3 == "object" && (r2[t4] = o3, i2 += 1);
+            typeof o3 == "string" ? (n2[t4] = o3, a2 += 1) : typeof o3 == "object" && (r8[t4] = o3, i2 += 1);
           }), i2 > 0) {
-            var o2 = Object.keys(r2), u2 = s.default.find(o2, function(e4) {
+            var o2 = Object.keys(r8), u2 = s.default.find(o2, function(e4) {
               return t3.isOS(e4);
             });
             if (u2) {
-              var d2 = this.satisfies(r2[u2]);
+              var d2 = this.satisfies(r8[u2]);
               if (d2 !== undefined)
                 return d2;
             }
@@ -54306,26 +54306,26 @@ var require_es52 = __commonJS((exports, module) => {
               return t3.isPlatform(e4);
             });
             if (c2) {
-              var f = this.satisfies(r2[c2]);
+              var f = this.satisfies(r8[c2]);
               if (f !== undefined)
                 return f;
             }
           }
           if (a2 > 0) {
-            var l = Object.keys(n8), b = s.default.find(l, function(e4) {
+            var l = Object.keys(n2), b = s.default.find(l, function(e4) {
               return t3.isBrowser(e4, true);
             });
             if (b !== undefined)
-              return this.compareVersion(n8[b]);
+              return this.compareVersion(n2[b]);
           }
         }, t2.isBrowser = function(e3, t3) {
           t3 === undefined && (t3 = false);
-          var r2 = this.getBrowserName().toLowerCase(), i2 = e3.toLowerCase(), n8 = s.default.getBrowserTypeByAlias(i2);
-          return t3 && n8 && (i2 = n8.toLowerCase()), i2 === r2;
+          var r8 = this.getBrowserName().toLowerCase(), i2 = e3.toLowerCase(), n2 = s.default.getBrowserTypeByAlias(i2);
+          return t3 && n2 && (i2 = n2.toLowerCase()), i2 === r8;
         }, t2.compareVersion = function(e3) {
-          var t3 = [0], r2 = e3, i2 = false, n8 = this.getBrowserVersion();
-          if (typeof n8 == "string")
-            return e3[0] === ">" || e3[0] === "<" ? (r2 = e3.substr(1), e3[1] === "=" ? (i2 = true, r2 = e3.substr(2)) : t3 = [], e3[0] === ">" ? t3.push(1) : t3.push(-1)) : e3[0] === "=" ? r2 = e3.substr(1) : e3[0] === "~" && (i2 = true, r2 = e3.substr(1)), t3.indexOf(s.default.compareVersions(n8, r2, i2)) > -1;
+          var t3 = [0], r8 = e3, i2 = false, n2 = this.getBrowserVersion();
+          if (typeof n2 == "string")
+            return e3[0] === ">" || e3[0] === "<" ? (r8 = e3.substr(1), e3[1] === "=" ? (i2 = true, r8 = e3.substr(2)) : t3 = [], e3[0] === ">" ? t3.push(1) : t3.push(-1)) : e3[0] === "=" ? r8 = e3.substr(1) : e3[0] === "~" && (i2 = true, r8 = e3.substr(1)), t3.indexOf(s.default.compareVersions(n2, r8, i2)) > -1;
         }, t2.isOS = function(e3) {
           return this.getOSName(true) === String(e3).toLowerCase();
         }, t2.isPlatform = function(e3) {
@@ -54342,66 +54342,66 @@ var require_es52 = __commonJS((exports, module) => {
         }, e2;
       }();
       t.default = d, e.exports = t.default;
-    }, 92: function(e, t, r) {
+    }, 92: function(e, t, r7) {
       t.__esModule = true, t.default = undefined;
-      var i, n7 = (i = r(17)) && i.__esModule ? i : { default: i };
+      var i, n = (i = r7(17)) && i.__esModule ? i : { default: i };
       var a = /version\/(\d+(\.?_?\d+)+)/i, o = [{ test: [/gptbot/i], describe: function(e2) {
-        var t2 = { name: "GPTBot" }, r2 = n7.default.getFirstMatch(/gptbot\/(\d+(\.\d+)+)/i, e2) || n7.default.getFirstMatch(a, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "GPTBot" }, r8 = n.default.getFirstMatch(/gptbot\/(\d+(\.\d+)+)/i, e2) || n.default.getFirstMatch(a, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/chatgpt-user/i], describe: function(e2) {
-        var t2 = { name: "ChatGPT-User" }, r2 = n7.default.getFirstMatch(/chatgpt-user\/(\d+(\.\d+)+)/i, e2) || n7.default.getFirstMatch(a, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "ChatGPT-User" }, r8 = n.default.getFirstMatch(/chatgpt-user\/(\d+(\.\d+)+)/i, e2) || n.default.getFirstMatch(a, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/oai-searchbot/i], describe: function(e2) {
-        var t2 = { name: "OAI-SearchBot" }, r2 = n7.default.getFirstMatch(/oai-searchbot\/(\d+(\.\d+)+)/i, e2) || n7.default.getFirstMatch(a, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "OAI-SearchBot" }, r8 = n.default.getFirstMatch(/oai-searchbot\/(\d+(\.\d+)+)/i, e2) || n.default.getFirstMatch(a, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/claudebot/i, /claude-web/i, /claude-user/i, /claude-searchbot/i], describe: function(e2) {
-        var t2 = { name: "ClaudeBot" }, r2 = n7.default.getFirstMatch(/(?:claudebot|claude-web|claude-user|claude-searchbot)\/(\d+(\.\d+)+)/i, e2) || n7.default.getFirstMatch(a, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "ClaudeBot" }, r8 = n.default.getFirstMatch(/(?:claudebot|claude-web|claude-user|claude-searchbot)\/(\d+(\.\d+)+)/i, e2) || n.default.getFirstMatch(a, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/omgilibot/i, /webzio-extended/i], describe: function(e2) {
-        var t2 = { name: "Omgilibot" }, r2 = n7.default.getFirstMatch(/(?:omgilibot|webzio-extended)\/(\d+(\.\d+)+)/i, e2) || n7.default.getFirstMatch(a, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "Omgilibot" }, r8 = n.default.getFirstMatch(/(?:omgilibot|webzio-extended)\/(\d+(\.\d+)+)/i, e2) || n.default.getFirstMatch(a, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/diffbot/i], describe: function(e2) {
-        var t2 = { name: "Diffbot" }, r2 = n7.default.getFirstMatch(/diffbot\/(\d+(\.\d+)+)/i, e2) || n7.default.getFirstMatch(a, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "Diffbot" }, r8 = n.default.getFirstMatch(/diffbot\/(\d+(\.\d+)+)/i, e2) || n.default.getFirstMatch(a, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/perplexitybot/i], describe: function(e2) {
-        var t2 = { name: "PerplexityBot" }, r2 = n7.default.getFirstMatch(/perplexitybot\/(\d+(\.\d+)+)/i, e2) || n7.default.getFirstMatch(a, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "PerplexityBot" }, r8 = n.default.getFirstMatch(/perplexitybot\/(\d+(\.\d+)+)/i, e2) || n.default.getFirstMatch(a, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/perplexity-user/i], describe: function(e2) {
-        var t2 = { name: "Perplexity-User" }, r2 = n7.default.getFirstMatch(/perplexity-user\/(\d+(\.\d+)+)/i, e2) || n7.default.getFirstMatch(a, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "Perplexity-User" }, r8 = n.default.getFirstMatch(/perplexity-user\/(\d+(\.\d+)+)/i, e2) || n.default.getFirstMatch(a, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/youbot/i], describe: function(e2) {
-        var t2 = { name: "YouBot" }, r2 = n7.default.getFirstMatch(/youbot\/(\d+(\.\d+)+)/i, e2) || n7.default.getFirstMatch(a, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "YouBot" }, r8 = n.default.getFirstMatch(/youbot\/(\d+(\.\d+)+)/i, e2) || n.default.getFirstMatch(a, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/meta-webindexer/i], describe: function(e2) {
-        var t2 = { name: "Meta-WebIndexer" }, r2 = n7.default.getFirstMatch(/meta-webindexer\/(\d+(\.\d+)+)/i, e2) || n7.default.getFirstMatch(a, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "Meta-WebIndexer" }, r8 = n.default.getFirstMatch(/meta-webindexer\/(\d+(\.\d+)+)/i, e2) || n.default.getFirstMatch(a, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/meta-externalads/i], describe: function(e2) {
-        var t2 = { name: "Meta-ExternalAds" }, r2 = n7.default.getFirstMatch(/meta-externalads\/(\d+(\.\d+)+)/i, e2) || n7.default.getFirstMatch(a, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "Meta-ExternalAds" }, r8 = n.default.getFirstMatch(/meta-externalads\/(\d+(\.\d+)+)/i, e2) || n.default.getFirstMatch(a, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/meta-externalagent/i], describe: function(e2) {
-        var t2 = { name: "Meta-ExternalAgent" }, r2 = n7.default.getFirstMatch(/meta-externalagent\/(\d+(\.\d+)+)/i, e2) || n7.default.getFirstMatch(a, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "Meta-ExternalAgent" }, r8 = n.default.getFirstMatch(/meta-externalagent\/(\d+(\.\d+)+)/i, e2) || n.default.getFirstMatch(a, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/meta-externalfetcher/i], describe: function(e2) {
-        var t2 = { name: "Meta-ExternalFetcher" }, r2 = n7.default.getFirstMatch(/meta-externalfetcher\/(\d+(\.\d+)+)/i, e2) || n7.default.getFirstMatch(a, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "Meta-ExternalFetcher" }, r8 = n.default.getFirstMatch(/meta-externalfetcher\/(\d+(\.\d+)+)/i, e2) || n.default.getFirstMatch(a, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/googlebot/i], describe: function(e2) {
-        var t2 = { name: "Googlebot" }, r2 = n7.default.getFirstMatch(/googlebot\/(\d+(\.\d+))/i, e2) || n7.default.getFirstMatch(a, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "Googlebot" }, r8 = n.default.getFirstMatch(/googlebot\/(\d+(\.\d+))/i, e2) || n.default.getFirstMatch(a, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/amazonbot/i], describe: function(e2) {
-        var t2 = { name: "AmazonBot" }, r2 = n7.default.getFirstMatch(/amazonbot\/(\d+(\.\d+)+)/i, e2) || n7.default.getFirstMatch(a, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "AmazonBot" }, r8 = n.default.getFirstMatch(/amazonbot\/(\d+(\.\d+)+)/i, e2) || n.default.getFirstMatch(a, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/bingbot/i], describe: function(e2) {
-        var t2 = { name: "BingCrawler" }, r2 = n7.default.getFirstMatch(/bingbot\/(\d+(\.\d+)+)/i, e2) || n7.default.getFirstMatch(a, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "BingCrawler" }, r8 = n.default.getFirstMatch(/bingbot\/(\d+(\.\d+)+)/i, e2) || n.default.getFirstMatch(a, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/baiduspider/i], describe: function(e2) {
-        var t2 = { name: "BaiduSpider" }, r2 = n7.default.getFirstMatch(/baiduspider\/(\d+(\.\d+)+)/i, e2) || n7.default.getFirstMatch(a, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "BaiduSpider" }, r8 = n.default.getFirstMatch(/baiduspider\/(\d+(\.\d+)+)/i, e2) || n.default.getFirstMatch(a, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/duckduckbot/i], describe: function(e2) {
-        var t2 = { name: "DuckDuckBot" }, r2 = n7.default.getFirstMatch(/duckduckbot\/(\d+(\.\d+)+)/i, e2) || n7.default.getFirstMatch(a, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "DuckDuckBot" }, r8 = n.default.getFirstMatch(/duckduckbot\/(\d+(\.\d+)+)/i, e2) || n.default.getFirstMatch(a, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/ia_archiver/i], describe: function(e2) {
-        var t2 = { name: "InternetArchiveCrawler" }, r2 = n7.default.getFirstMatch(/ia_archiver\/(\d+(\.\d+)+)/i, e2) || n7.default.getFirstMatch(a, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "InternetArchiveCrawler" }, r8 = n.default.getFirstMatch(/ia_archiver\/(\d+(\.\d+)+)/i, e2) || n.default.getFirstMatch(a, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/facebookexternalhit/i, /facebookcatalog/i], describe: function() {
         return { name: "FacebookExternalHit" };
       } }, { test: [/yahoo!?[\s/]*slurp/i], describe: function() {
@@ -54411,199 +54411,199 @@ var require_es52 = __commonJS((exports, module) => {
       } }, { test: [/pingdom/i], describe: function() {
         return { name: "PingdomBot" };
       } }, { test: [/opera/i], describe: function(e2) {
-        var t2 = { name: "Opera" }, r2 = n7.default.getFirstMatch(a, e2) || n7.default.getFirstMatch(/(?:opera)[\s/](\d+(\.?_?\d+)+)/i, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "Opera" }, r8 = n.default.getFirstMatch(a, e2) || n.default.getFirstMatch(/(?:opera)[\s/](\d+(\.?_?\d+)+)/i, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/opr\/|opios/i], describe: function(e2) {
-        var t2 = { name: "Opera" }, r2 = n7.default.getFirstMatch(/(?:opr|opios)[\s/](\S+)/i, e2) || n7.default.getFirstMatch(a, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "Opera" }, r8 = n.default.getFirstMatch(/(?:opr|opios)[\s/](\S+)/i, e2) || n.default.getFirstMatch(a, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/SamsungBrowser/i], describe: function(e2) {
-        var t2 = { name: "Samsung Internet for Android" }, r2 = n7.default.getFirstMatch(a, e2) || n7.default.getFirstMatch(/(?:SamsungBrowser)[\s/](\d+(\.?_?\d+)+)/i, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "Samsung Internet for Android" }, r8 = n.default.getFirstMatch(a, e2) || n.default.getFirstMatch(/(?:SamsungBrowser)[\s/](\d+(\.?_?\d+)+)/i, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/Whale/i], describe: function(e2) {
-        var t2 = { name: "NAVER Whale Browser" }, r2 = n7.default.getFirstMatch(a, e2) || n7.default.getFirstMatch(/(?:whale)[\s/](\d+(?:\.\d+)+)/i, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "NAVER Whale Browser" }, r8 = n.default.getFirstMatch(a, e2) || n.default.getFirstMatch(/(?:whale)[\s/](\d+(?:\.\d+)+)/i, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/PaleMoon/i], describe: function(e2) {
-        var t2 = { name: "Pale Moon" }, r2 = n7.default.getFirstMatch(a, e2) || n7.default.getFirstMatch(/(?:PaleMoon)[\s/](\d+(?:\.\d+)+)/i, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "Pale Moon" }, r8 = n.default.getFirstMatch(a, e2) || n.default.getFirstMatch(/(?:PaleMoon)[\s/](\d+(?:\.\d+)+)/i, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/MZBrowser/i], describe: function(e2) {
-        var t2 = { name: "MZ Browser" }, r2 = n7.default.getFirstMatch(/(?:MZBrowser)[\s/](\d+(?:\.\d+)+)/i, e2) || n7.default.getFirstMatch(a, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "MZ Browser" }, r8 = n.default.getFirstMatch(/(?:MZBrowser)[\s/](\d+(?:\.\d+)+)/i, e2) || n.default.getFirstMatch(a, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/focus/i], describe: function(e2) {
-        var t2 = { name: "Focus" }, r2 = n7.default.getFirstMatch(/(?:focus)[\s/](\d+(?:\.\d+)+)/i, e2) || n7.default.getFirstMatch(a, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "Focus" }, r8 = n.default.getFirstMatch(/(?:focus)[\s/](\d+(?:\.\d+)+)/i, e2) || n.default.getFirstMatch(a, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/swing/i], describe: function(e2) {
-        var t2 = { name: "Swing" }, r2 = n7.default.getFirstMatch(/(?:swing)[\s/](\d+(?:\.\d+)+)/i, e2) || n7.default.getFirstMatch(a, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "Swing" }, r8 = n.default.getFirstMatch(/(?:swing)[\s/](\d+(?:\.\d+)+)/i, e2) || n.default.getFirstMatch(a, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/coast/i], describe: function(e2) {
-        var t2 = { name: "Opera Coast" }, r2 = n7.default.getFirstMatch(a, e2) || n7.default.getFirstMatch(/(?:coast)[\s/](\d+(\.?_?\d+)+)/i, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "Opera Coast" }, r8 = n.default.getFirstMatch(a, e2) || n.default.getFirstMatch(/(?:coast)[\s/](\d+(\.?_?\d+)+)/i, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/opt\/\d+(?:.?_?\d+)+/i], describe: function(e2) {
-        var t2 = { name: "Opera Touch" }, r2 = n7.default.getFirstMatch(/(?:opt)[\s/](\d+(\.?_?\d+)+)/i, e2) || n7.default.getFirstMatch(a, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "Opera Touch" }, r8 = n.default.getFirstMatch(/(?:opt)[\s/](\d+(\.?_?\d+)+)/i, e2) || n.default.getFirstMatch(a, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/yabrowser/i], describe: function(e2) {
-        var t2 = { name: "Yandex Browser" }, r2 = n7.default.getFirstMatch(/(?:yabrowser)[\s/](\d+(\.?_?\d+)+)/i, e2) || n7.default.getFirstMatch(a, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "Yandex Browser" }, r8 = n.default.getFirstMatch(/(?:yabrowser)[\s/](\d+(\.?_?\d+)+)/i, e2) || n.default.getFirstMatch(a, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/ucbrowser/i], describe: function(e2) {
-        var t2 = { name: "UC Browser" }, r2 = n7.default.getFirstMatch(a, e2) || n7.default.getFirstMatch(/(?:ucbrowser)[\s/](\d+(\.?_?\d+)+)/i, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "UC Browser" }, r8 = n.default.getFirstMatch(a, e2) || n.default.getFirstMatch(/(?:ucbrowser)[\s/](\d+(\.?_?\d+)+)/i, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/Maxthon|mxios/i], describe: function(e2) {
-        var t2 = { name: "Maxthon" }, r2 = n7.default.getFirstMatch(a, e2) || n7.default.getFirstMatch(/(?:Maxthon|mxios)[\s/](\d+(\.?_?\d+)+)/i, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "Maxthon" }, r8 = n.default.getFirstMatch(a, e2) || n.default.getFirstMatch(/(?:Maxthon|mxios)[\s/](\d+(\.?_?\d+)+)/i, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/epiphany/i], describe: function(e2) {
-        var t2 = { name: "Epiphany" }, r2 = n7.default.getFirstMatch(a, e2) || n7.default.getFirstMatch(/(?:epiphany)[\s/](\d+(\.?_?\d+)+)/i, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "Epiphany" }, r8 = n.default.getFirstMatch(a, e2) || n.default.getFirstMatch(/(?:epiphany)[\s/](\d+(\.?_?\d+)+)/i, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/puffin/i], describe: function(e2) {
-        var t2 = { name: "Puffin" }, r2 = n7.default.getFirstMatch(a, e2) || n7.default.getFirstMatch(/(?:puffin)[\s/](\d+(\.?_?\d+)+)/i, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "Puffin" }, r8 = n.default.getFirstMatch(a, e2) || n.default.getFirstMatch(/(?:puffin)[\s/](\d+(\.?_?\d+)+)/i, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/sleipnir/i], describe: function(e2) {
-        var t2 = { name: "Sleipnir" }, r2 = n7.default.getFirstMatch(a, e2) || n7.default.getFirstMatch(/(?:sleipnir)[\s/](\d+(\.?_?\d+)+)/i, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "Sleipnir" }, r8 = n.default.getFirstMatch(a, e2) || n.default.getFirstMatch(/(?:sleipnir)[\s/](\d+(\.?_?\d+)+)/i, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/k-meleon/i], describe: function(e2) {
-        var t2 = { name: "K-Meleon" }, r2 = n7.default.getFirstMatch(a, e2) || n7.default.getFirstMatch(/(?:k-meleon)[\s/](\d+(\.?_?\d+)+)/i, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "K-Meleon" }, r8 = n.default.getFirstMatch(a, e2) || n.default.getFirstMatch(/(?:k-meleon)[\s/](\d+(\.?_?\d+)+)/i, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/micromessenger/i], describe: function(e2) {
-        var t2 = { name: "WeChat" }, r2 = n7.default.getFirstMatch(/(?:micromessenger)[\s/](\d+(\.?_?\d+)+)/i, e2) || n7.default.getFirstMatch(a, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "WeChat" }, r8 = n.default.getFirstMatch(/(?:micromessenger)[\s/](\d+(\.?_?\d+)+)/i, e2) || n.default.getFirstMatch(a, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/qqbrowser/i], describe: function(e2) {
-        var t2 = { name: /qqbrowserlite/i.test(e2) ? "QQ Browser Lite" : "QQ Browser" }, r2 = n7.default.getFirstMatch(/(?:qqbrowserlite|qqbrowser)[/](\d+(\.?_?\d+)+)/i, e2) || n7.default.getFirstMatch(a, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: /qqbrowserlite/i.test(e2) ? "QQ Browser Lite" : "QQ Browser" }, r8 = n.default.getFirstMatch(/(?:qqbrowserlite|qqbrowser)[/](\d+(\.?_?\d+)+)/i, e2) || n.default.getFirstMatch(a, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/msie|trident/i], describe: function(e2) {
-        var t2 = { name: "Internet Explorer" }, r2 = n7.default.getFirstMatch(/(?:msie |rv:)(\d+(\.?_?\d+)+)/i, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "Internet Explorer" }, r8 = n.default.getFirstMatch(/(?:msie |rv:)(\d+(\.?_?\d+)+)/i, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/\sedg\//i], describe: function(e2) {
-        var t2 = { name: "Microsoft Edge" }, r2 = n7.default.getFirstMatch(/\sedg\/(\d+(\.?_?\d+)+)/i, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "Microsoft Edge" }, r8 = n.default.getFirstMatch(/\sedg\/(\d+(\.?_?\d+)+)/i, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/edg([ea]|ios)/i], describe: function(e2) {
-        var t2 = { name: "Microsoft Edge" }, r2 = n7.default.getSecondMatch(/edg([ea]|ios)\/(\d+(\.?_?\d+)+)/i, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "Microsoft Edge" }, r8 = n.default.getSecondMatch(/edg([ea]|ios)\/(\d+(\.?_?\d+)+)/i, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/vivaldi/i], describe: function(e2) {
-        var t2 = { name: "Vivaldi" }, r2 = n7.default.getFirstMatch(/vivaldi\/(\d+(\.?_?\d+)+)/i, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "Vivaldi" }, r8 = n.default.getFirstMatch(/vivaldi\/(\d+(\.?_?\d+)+)/i, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/seamonkey/i], describe: function(e2) {
-        var t2 = { name: "SeaMonkey" }, r2 = n7.default.getFirstMatch(/seamonkey\/(\d+(\.?_?\d+)+)/i, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "SeaMonkey" }, r8 = n.default.getFirstMatch(/seamonkey\/(\d+(\.?_?\d+)+)/i, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/sailfish/i], describe: function(e2) {
-        var t2 = { name: "Sailfish" }, r2 = n7.default.getFirstMatch(/sailfish\s?browser\/(\d+(\.\d+)?)/i, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "Sailfish" }, r8 = n.default.getFirstMatch(/sailfish\s?browser\/(\d+(\.\d+)?)/i, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/silk/i], describe: function(e2) {
-        var t2 = { name: "Amazon Silk" }, r2 = n7.default.getFirstMatch(/silk\/(\d+(\.?_?\d+)+)/i, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "Amazon Silk" }, r8 = n.default.getFirstMatch(/silk\/(\d+(\.?_?\d+)+)/i, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/phantom/i], describe: function(e2) {
-        var t2 = { name: "PhantomJS" }, r2 = n7.default.getFirstMatch(/phantomjs\/(\d+(\.?_?\d+)+)/i, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "PhantomJS" }, r8 = n.default.getFirstMatch(/phantomjs\/(\d+(\.?_?\d+)+)/i, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/slimerjs/i], describe: function(e2) {
-        var t2 = { name: "SlimerJS" }, r2 = n7.default.getFirstMatch(/slimerjs\/(\d+(\.?_?\d+)+)/i, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "SlimerJS" }, r8 = n.default.getFirstMatch(/slimerjs\/(\d+(\.?_?\d+)+)/i, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/blackberry|\bbb\d+/i, /rim\stablet/i], describe: function(e2) {
-        var t2 = { name: "BlackBerry" }, r2 = n7.default.getFirstMatch(a, e2) || n7.default.getFirstMatch(/blackberry[\d]+\/(\d+(\.?_?\d+)+)/i, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "BlackBerry" }, r8 = n.default.getFirstMatch(a, e2) || n.default.getFirstMatch(/blackberry[\d]+\/(\d+(\.?_?\d+)+)/i, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/(web|hpw)[o0]s/i], describe: function(e2) {
-        var t2 = { name: "WebOS Browser" }, r2 = n7.default.getFirstMatch(a, e2) || n7.default.getFirstMatch(/w(?:eb)?[o0]sbrowser\/(\d+(\.?_?\d+)+)/i, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "WebOS Browser" }, r8 = n.default.getFirstMatch(a, e2) || n.default.getFirstMatch(/w(?:eb)?[o0]sbrowser\/(\d+(\.?_?\d+)+)/i, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/bada/i], describe: function(e2) {
-        var t2 = { name: "Bada" }, r2 = n7.default.getFirstMatch(/dolfin\/(\d+(\.?_?\d+)+)/i, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "Bada" }, r8 = n.default.getFirstMatch(/dolfin\/(\d+(\.?_?\d+)+)/i, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/tizen/i], describe: function(e2) {
-        var t2 = { name: "Tizen" }, r2 = n7.default.getFirstMatch(/(?:tizen\s?)?browser\/(\d+(\.?_?\d+)+)/i, e2) || n7.default.getFirstMatch(a, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "Tizen" }, r8 = n.default.getFirstMatch(/(?:tizen\s?)?browser\/(\d+(\.?_?\d+)+)/i, e2) || n.default.getFirstMatch(a, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/qupzilla/i], describe: function(e2) {
-        var t2 = { name: "QupZilla" }, r2 = n7.default.getFirstMatch(/(?:qupzilla)[\s/](\d+(\.?_?\d+)+)/i, e2) || n7.default.getFirstMatch(a, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "QupZilla" }, r8 = n.default.getFirstMatch(/(?:qupzilla)[\s/](\d+(\.?_?\d+)+)/i, e2) || n.default.getFirstMatch(a, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/librewolf/i], describe: function(e2) {
-        var t2 = { name: "LibreWolf" }, r2 = n7.default.getFirstMatch(/(?:librewolf)[\s/](\d+(\.?_?\d+)+)/i, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "LibreWolf" }, r8 = n.default.getFirstMatch(/(?:librewolf)[\s/](\d+(\.?_?\d+)+)/i, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/firefox|iceweasel|fxios/i], describe: function(e2) {
-        var t2 = { name: "Firefox" }, r2 = n7.default.getFirstMatch(/(?:firefox|iceweasel|fxios)[\s/](\d+(\.?_?\d+)+)/i, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "Firefox" }, r8 = n.default.getFirstMatch(/(?:firefox|iceweasel|fxios)[\s/](\d+(\.?_?\d+)+)/i, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/electron/i], describe: function(e2) {
-        var t2 = { name: "Electron" }, r2 = n7.default.getFirstMatch(/(?:electron)\/(\d+(\.?_?\d+)+)/i, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "Electron" }, r8 = n.default.getFirstMatch(/(?:electron)\/(\d+(\.?_?\d+)+)/i, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/sogoumobilebrowser/i, /metasr/i, /se 2\.[x]/i], describe: function(e2) {
-        var t2 = { name: "Sogou Browser" }, r2 = n7.default.getFirstMatch(/(?:sogoumobilebrowser)[\s/](\d+(\.?_?\d+)+)/i, e2), i2 = n7.default.getFirstMatch(/(?:chrome|crios|crmo)\/(\d+(\.?_?\d+)+)/i, e2), a2 = n7.default.getFirstMatch(/se ([\d.]+)x/i, e2), o2 = r2 || i2 || a2;
+        var t2 = { name: "Sogou Browser" }, r8 = n.default.getFirstMatch(/(?:sogoumobilebrowser)[\s/](\d+(\.?_?\d+)+)/i, e2), i2 = n.default.getFirstMatch(/(?:chrome|crios|crmo)\/(\d+(\.?_?\d+)+)/i, e2), a2 = n.default.getFirstMatch(/se ([\d.]+)x/i, e2), o2 = r8 || i2 || a2;
         return o2 && (t2.version = o2), t2;
       } }, { test: [/MiuiBrowser/i], describe: function(e2) {
-        var t2 = { name: "Miui" }, r2 = n7.default.getFirstMatch(/(?:MiuiBrowser)[\s/](\d+(\.?_?\d+)+)/i, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "Miui" }, r8 = n.default.getFirstMatch(/(?:MiuiBrowser)[\s/](\d+(\.?_?\d+)+)/i, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/chromium/i], describe: function(e2) {
-        var t2 = { name: "Chromium" }, r2 = n7.default.getFirstMatch(/(?:chromium)[\s/](\d+(\.?_?\d+)+)/i, e2) || n7.default.getFirstMatch(a, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "Chromium" }, r8 = n.default.getFirstMatch(/(?:chromium)[\s/](\d+(\.?_?\d+)+)/i, e2) || n.default.getFirstMatch(a, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/chrome|crios|crmo/i], describe: function(e2) {
-        var t2 = { name: "Chrome" }, r2 = n7.default.getFirstMatch(/(?:chrome|crios|crmo)\/(\d+(\.?_?\d+)+)/i, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "Chrome" }, r8 = n.default.getFirstMatch(/(?:chrome|crios|crmo)\/(\d+(\.?_?\d+)+)/i, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/GSA/i], describe: function(e2) {
-        var t2 = { name: "Google Search" }, r2 = n7.default.getFirstMatch(/(?:GSA)\/(\d+(\.?_?\d+)+)/i, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "Google Search" }, r8 = n.default.getFirstMatch(/(?:GSA)\/(\d+(\.?_?\d+)+)/i, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: function(e2) {
-        var t2 = !e2.test(/like android/i), r2 = e2.test(/android/i);
-        return t2 && r2;
+        var t2 = !e2.test(/like android/i), r8 = e2.test(/android/i);
+        return t2 && r8;
       }, describe: function(e2) {
-        var t2 = { name: "Android Browser" }, r2 = n7.default.getFirstMatch(a, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "Android Browser" }, r8 = n.default.getFirstMatch(a, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/playstation 4/i], describe: function(e2) {
-        var t2 = { name: "PlayStation 4" }, r2 = n7.default.getFirstMatch(a, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "PlayStation 4" }, r8 = n.default.getFirstMatch(a, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/safari|applewebkit/i], describe: function(e2) {
-        var t2 = { name: "Safari" }, r2 = n7.default.getFirstMatch(a, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: "Safari" }, r8 = n.default.getFirstMatch(a, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/.*/i], describe: function(e2) {
         var t2 = e2.search("\\(") !== -1 ? /^(.*)\/(.*)[ \t]\((.*)/ : /^(.*)\/(.*) /;
-        return { name: n7.default.getFirstMatch(t2, e2), version: n7.default.getSecondMatch(t2, e2) };
+        return { name: n.default.getFirstMatch(t2, e2), version: n.default.getSecondMatch(t2, e2) };
       } }];
       t.default = o, e.exports = t.default;
-    }, 93: function(e, t, r) {
+    }, 93: function(e, t, r7) {
       t.__esModule = true, t.default = undefined;
-      var i, n7 = (i = r(17)) && i.__esModule ? i : { default: i }, a = r(18);
+      var i, n = (i = r7(17)) && i.__esModule ? i : { default: i }, a = r7(18);
       var o = [{ test: [/Roku\/DVP/], describe: function(e2) {
-        var t2 = n7.default.getFirstMatch(/Roku\/DVP-(\d+\.\d+)/i, e2);
+        var t2 = n.default.getFirstMatch(/Roku\/DVP-(\d+\.\d+)/i, e2);
         return { name: a.OS_MAP.Roku, version: t2 };
       } }, { test: [/windows phone/i], describe: function(e2) {
-        var t2 = n7.default.getFirstMatch(/windows phone (?:os)?\s?(\d+(\.\d+)*)/i, e2);
+        var t2 = n.default.getFirstMatch(/windows phone (?:os)?\s?(\d+(\.\d+)*)/i, e2);
         return { name: a.OS_MAP.WindowsPhone, version: t2 };
       } }, { test: [/windows /i], describe: function(e2) {
-        var t2 = n7.default.getFirstMatch(/Windows ((NT|XP)( \d\d?.\d)?)/i, e2), r2 = n7.default.getWindowsVersionName(t2);
-        return { name: a.OS_MAP.Windows, version: t2, versionName: r2 };
+        var t2 = n.default.getFirstMatch(/Windows ((NT|XP)( \d\d?.\d)?)/i, e2), r8 = n.default.getWindowsVersionName(t2);
+        return { name: a.OS_MAP.Windows, version: t2, versionName: r8 };
       } }, { test: [/Macintosh(.*?) FxiOS(.*?)\//], describe: function(e2) {
-        var t2 = { name: a.OS_MAP.iOS }, r2 = n7.default.getSecondMatch(/(Version\/)(\d[\d.]+)/, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: a.OS_MAP.iOS }, r8 = n.default.getSecondMatch(/(Version\/)(\d[\d.]+)/, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/macintosh/i], describe: function(e2) {
-        var t2 = n7.default.getFirstMatch(/mac os x (\d+(\.?_?\d+)+)/i, e2).replace(/[_\s]/g, "."), r2 = n7.default.getMacOSVersionName(t2), i2 = { name: a.OS_MAP.MacOS, version: t2 };
-        return r2 && (i2.versionName = r2), i2;
+        var t2 = n.default.getFirstMatch(/mac os x (\d+(\.?_?\d+)+)/i, e2).replace(/[_\s]/g, "."), r8 = n.default.getMacOSVersionName(t2), i2 = { name: a.OS_MAP.MacOS, version: t2 };
+        return r8 && (i2.versionName = r8), i2;
       } }, { test: [/(ipod|iphone|ipad)/i], describe: function(e2) {
-        var t2 = n7.default.getFirstMatch(/os (\d+([_\s]\d+)*) like mac os x/i, e2).replace(/[_\s]/g, ".");
+        var t2 = n.default.getFirstMatch(/os (\d+([_\s]\d+)*) like mac os x/i, e2).replace(/[_\s]/g, ".");
         return { name: a.OS_MAP.iOS, version: t2 };
       } }, { test: [/OpenHarmony/i], describe: function(e2) {
-        var t2 = n7.default.getFirstMatch(/OpenHarmony\s+(\d+(\.\d+)*)/i, e2);
+        var t2 = n.default.getFirstMatch(/OpenHarmony\s+(\d+(\.\d+)*)/i, e2);
         return { name: a.OS_MAP.HarmonyOS, version: t2 };
       } }, { test: function(e2) {
-        var t2 = !e2.test(/like android/i), r2 = e2.test(/android/i);
-        return t2 && r2;
+        var t2 = !e2.test(/like android/i), r8 = e2.test(/android/i);
+        return t2 && r8;
       }, describe: function(e2) {
-        var t2 = n7.default.getFirstMatch(/android[\s/-](\d+(\.\d+)*)/i, e2), r2 = n7.default.getAndroidVersionName(t2), i2 = { name: a.OS_MAP.Android, version: t2 };
-        return r2 && (i2.versionName = r2), i2;
+        var t2 = n.default.getFirstMatch(/android[\s/-](\d+(\.\d+)*)/i, e2), r8 = n.default.getAndroidVersionName(t2), i2 = { name: a.OS_MAP.Android, version: t2 };
+        return r8 && (i2.versionName = r8), i2;
       } }, { test: [/(web|hpw)[o0]s/i], describe: function(e2) {
-        var t2 = n7.default.getFirstMatch(/(?:web|hpw)[o0]s\/(\d+(\.\d+)*)/i, e2), r2 = { name: a.OS_MAP.WebOS };
-        return t2 && t2.length && (r2.version = t2), r2;
+        var t2 = n.default.getFirstMatch(/(?:web|hpw)[o0]s\/(\d+(\.\d+)*)/i, e2), r8 = { name: a.OS_MAP.WebOS };
+        return t2 && t2.length && (r8.version = t2), r8;
       } }, { test: [/blackberry|\bbb\d+/i, /rim\stablet/i], describe: function(e2) {
-        var t2 = n7.default.getFirstMatch(/rim\stablet\sos\s(\d+(\.\d+)*)/i, e2) || n7.default.getFirstMatch(/blackberry\d+\/(\d+([_\s]\d+)*)/i, e2) || n7.default.getFirstMatch(/\bbb(\d+)/i, e2);
+        var t2 = n.default.getFirstMatch(/rim\stablet\sos\s(\d+(\.\d+)*)/i, e2) || n.default.getFirstMatch(/blackberry\d+\/(\d+([_\s]\d+)*)/i, e2) || n.default.getFirstMatch(/\bbb(\d+)/i, e2);
         return { name: a.OS_MAP.BlackBerry, version: t2 };
       } }, { test: [/bada/i], describe: function(e2) {
-        var t2 = n7.default.getFirstMatch(/bada\/(\d+(\.\d+)*)/i, e2);
+        var t2 = n.default.getFirstMatch(/bada\/(\d+(\.\d+)*)/i, e2);
         return { name: a.OS_MAP.Bada, version: t2 };
       } }, { test: [/tizen/i], describe: function(e2) {
-        var t2 = n7.default.getFirstMatch(/tizen[/\s](\d+(\.\d+)*)/i, e2);
+        var t2 = n.default.getFirstMatch(/tizen[/\s](\d+(\.\d+)*)/i, e2);
         return { name: a.OS_MAP.Tizen, version: t2 };
       } }, { test: [/linux/i], describe: function() {
         return { name: a.OS_MAP.Linux };
       } }, { test: [/CrOS/], describe: function() {
         return { name: a.OS_MAP.ChromeOS };
       } }, { test: [/PlayStation 4/], describe: function(e2) {
-        var t2 = n7.default.getFirstMatch(/PlayStation 4[/\s](\d+(\.\d+)*)/i, e2);
+        var t2 = n.default.getFirstMatch(/PlayStation 4[/\s](\d+(\.\d+)*)/i, e2);
         return { name: a.OS_MAP.PlayStation4, version: t2 };
       } }];
       t.default = o, e.exports = t.default;
-    }, 94: function(e, t, r) {
+    }, 94: function(e, t, r7) {
       t.__esModule = true, t.default = undefined;
-      var i, n7 = (i = r(17)) && i.__esModule ? i : { default: i }, a = r(18);
+      var i, n = (i = r7(17)) && i.__esModule ? i : { default: i }, a = r7(18);
       var o = [{ test: [/googlebot/i], describe: function() {
         return { type: a.PLATFORMS_MAP.bot, vendor: "Google" };
       } }, { test: [/amazonbot/i], describe: function() {
@@ -54651,8 +54651,8 @@ var require_es52 = __commonJS((exports, module) => {
       } }, { test: [/pingdom/i], describe: function() {
         return { type: a.PLATFORMS_MAP.bot, vendor: "Pingdom" };
       } }, { test: [/huawei/i], describe: function(e2) {
-        var t2 = n7.default.getFirstMatch(/(can-l01)/i, e2) && "Nova", r2 = { type: a.PLATFORMS_MAP.mobile, vendor: "Huawei" };
-        return t2 && (r2.model = t2), r2;
+        var t2 = n.default.getFirstMatch(/(can-l01)/i, e2) && "Nova", r8 = { type: a.PLATFORMS_MAP.mobile, vendor: "Huawei" };
+        return t2 && (r8.model = t2), r8;
       } }, { test: [/nexus\s*(?:7|8|9|10).*/i], describe: function() {
         return { type: a.PLATFORMS_MAP.tablet, vendor: "Nexus" };
       } }, { test: [/ipad/i], describe: function() {
@@ -54666,16 +54666,16 @@ var require_es52 = __commonJS((exports, module) => {
       } }, { test: [/tablet(?! pc)/i], describe: function() {
         return { type: a.PLATFORMS_MAP.tablet };
       } }, { test: function(e2) {
-        var t2 = e2.test(/ipod|iphone/i), r2 = e2.test(/like (ipod|iphone)/i);
-        return t2 && !r2;
+        var t2 = e2.test(/ipod|iphone/i), r8 = e2.test(/like (ipod|iphone)/i);
+        return t2 && !r8;
       }, describe: function(e2) {
-        var t2 = n7.default.getFirstMatch(/(ipod|iphone)/i, e2);
+        var t2 = n.default.getFirstMatch(/(ipod|iphone)/i, e2);
         return { type: a.PLATFORMS_MAP.mobile, vendor: "Apple", model: t2 };
       } }, { test: [/nexus\s*[0-6].*/i, /galaxy nexus/i], describe: function() {
         return { type: a.PLATFORMS_MAP.mobile, vendor: "Nexus" };
       } }, { test: [/Nokia/i], describe: function(e2) {
-        var t2 = n7.default.getFirstMatch(/Nokia\s+([0-9]+(\.[0-9]+)?)/i, e2), r2 = { type: a.PLATFORMS_MAP.mobile, vendor: "Nokia" };
-        return t2 && (r2.model = t2), r2;
+        var t2 = n.default.getFirstMatch(/Nokia\s+([0-9]+(\.[0-9]+)?)/i, e2), r8 = { type: a.PLATFORMS_MAP.mobile, vendor: "Nokia" };
+        return t2 && (r8.model = t2), r8;
       } }, { test: [/[^-]mobi/i], describe: function() {
         return { type: a.PLATFORMS_MAP.mobile };
       } }, { test: function(e2) {
@@ -54721,35 +54721,35 @@ var require_es52 = __commonJS((exports, module) => {
         return { type: a.PLATFORMS_MAP.tv };
       } }];
       t.default = o, e.exports = t.default;
-    }, 95: function(e, t, r) {
+    }, 95: function(e, t, r7) {
       t.__esModule = true, t.default = undefined;
-      var i, n7 = (i = r(17)) && i.__esModule ? i : { default: i }, a = r(18);
+      var i, n = (i = r7(17)) && i.__esModule ? i : { default: i }, a = r7(18);
       var o = [{ test: function(e2) {
         return e2.getBrowserName(true) === "microsoft edge";
       }, describe: function(e2) {
         if (/\sedg\//i.test(e2))
           return { name: a.ENGINE_MAP.Blink };
-        var t2 = n7.default.getFirstMatch(/edge\/(\d+(\.?_?\d+)+)/i, e2);
+        var t2 = n.default.getFirstMatch(/edge\/(\d+(\.?_?\d+)+)/i, e2);
         return { name: a.ENGINE_MAP.EdgeHTML, version: t2 };
       } }, { test: [/trident/i], describe: function(e2) {
-        var t2 = { name: a.ENGINE_MAP.Trident }, r2 = n7.default.getFirstMatch(/trident\/(\d+(\.?_?\d+)+)/i, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: a.ENGINE_MAP.Trident }, r8 = n.default.getFirstMatch(/trident\/(\d+(\.?_?\d+)+)/i, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: function(e2) {
         return e2.test(/presto/i);
       }, describe: function(e2) {
-        var t2 = { name: a.ENGINE_MAP.Presto }, r2 = n7.default.getFirstMatch(/presto\/(\d+(\.?_?\d+)+)/i, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: a.ENGINE_MAP.Presto }, r8 = n.default.getFirstMatch(/presto\/(\d+(\.?_?\d+)+)/i, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: function(e2) {
-        var t2 = e2.test(/gecko/i), r2 = e2.test(/like gecko/i);
-        return t2 && !r2;
+        var t2 = e2.test(/gecko/i), r8 = e2.test(/like gecko/i);
+        return t2 && !r8;
       }, describe: function(e2) {
-        var t2 = { name: a.ENGINE_MAP.Gecko }, r2 = n7.default.getFirstMatch(/gecko\/(\d+(\.?_?\d+)+)/i, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: a.ENGINE_MAP.Gecko }, r8 = n.default.getFirstMatch(/gecko\/(\d+(\.?_?\d+)+)/i, e2);
+        return r8 && (t2.version = r8), t2;
       } }, { test: [/(apple)?webkit\/537\.36/i], describe: function() {
         return { name: a.ENGINE_MAP.Blink };
       } }, { test: [/(apple)?webkit/i], describe: function(e2) {
-        var t2 = { name: a.ENGINE_MAP.WebKit }, r2 = n7.default.getFirstMatch(/webkit\/(\d+(\.?_?\d+)+)/i, e2);
-        return r2 && (t2.version = r2), t2;
+        var t2 = { name: a.ENGINE_MAP.WebKit }, r8 = n.default.getFirstMatch(/webkit\/(\d+(\.?_?\d+)+)/i, e2);
+        return r8 && (t2.version = r8), t2;
       } }];
       t.default = o, e.exports = t.default;
     } });
@@ -57506,8 +57506,8 @@ var require_cbor = __commonJS((exports) => {
     }
     return num;
   }
-  function overflow$1(n7) {
-    throw new Error(`length ${n7} greater than remaining buf len.`);
+  function overflow$1(n) {
+    throw new Error(`length ${n} greater than remaining buf len.`);
   }
   function unexpectedMinor(minor) {
     throw new Error(`unexpected minor value ${minor}.`);
@@ -57604,9 +57604,9 @@ var require_cbor = __commonJS((exports) => {
         const major = nonNegative ? majorUint64 : majorNegativeInt64;
         const value = nonNegative ? input : -input - BigInt(1);
         if (value < BigInt("18446744073709551616")) {
-          const n7 = Number(value);
-          if (n7 < 4294967296) {
-            encodeInteger(major, n7);
+          const n = Number(value);
+          if (n < 4294967296) {
+            encodeInteger(major, n);
           } else {
             data[cursor$1++] = major << 5 | extendedFloat64;
             dataView$1.setBigUint64(cursor$1, value);
@@ -58111,11 +58111,11 @@ var require_cbor = __commonJS((exports) => {
     }
     const cache = loadCborStructIterator(ns2);
     const { memberNames, memberSchemas, encodedKeys } = cache;
-    const z = memberNames.length;
+    const z2 = memberNames.length;
     let headerSize;
-    if (z < 24) {
+    if (z2 < 24) {
       headerSize = 1;
-    } else if (z < 256) {
+    } else if (z2 < 256) {
       headerSize = 2;
     } else {
       headerSize = 3;
@@ -58124,7 +58124,7 @@ var require_cbor = __commonJS((exports) => {
     const headerPos = cursor;
     cursor += headerSize;
     let count = 0;
-    for (let i = 0;i < z; ++i) {
+    for (let i = 0;i < z2; ++i) {
       const item = value[memberNames[i]];
       if (item == null && !memberSchemas[i].isIdempotencyToken()) {
         continue;
@@ -58281,10 +58281,10 @@ var require_cbor = __commonJS((exports) => {
     }
     writeString(String(value));
   }
-  function ensure(n7) {
-    if (cursor + n7 > buf.length) {
+  function ensure(n) {
+    if (cursor + n > buf.length) {
       let newSize = buf.length * 2;
-      while (newSize < cursor + n7) {
+      while (newSize < cursor + n) {
         newSize *= 2;
       }
       const next = allocUnsafe(newSize);
@@ -58317,9 +58317,9 @@ var require_cbor = __commonJS((exports) => {
     }
   }
   function encodeBigHeader(major, value) {
-    const n7 = Number(value);
-    if (n7 < 4294967296) {
-      encodeHeader(major, n7);
+    const n = Number(value);
+    if (n < 4294967296) {
+      encodeHeader(major, n);
       return;
     }
     buf[cursor++] = major << 5 | extendedFloat64;
@@ -58567,7 +58567,7 @@ var require_cbor = __commonJS((exports) => {
     const isUnion = ns2.isUnionSchema();
     const cache = loadCborStructIterator(ns2);
     const { memberSchemas, encodedKeys, memberNames } = cache;
-    const z = encodedKeys.length;
+    const z2 = encodedKeys.length;
     const result = {};
     let unknownKey;
     let unknownValue;
@@ -58575,10 +58575,10 @@ var require_cbor = __commonJS((exports) => {
     let hasType = false;
     let hint = 0;
     for (let i = 0;i < count; ++i) {
-      const matchIdx = matchStructKey(encodedKeys, z, hint);
+      const matchIdx = matchStructKey(encodedKeys, z2, hint);
       if (matchIdx >= 0) {
         hint = matchIdx + 1;
-        if (hint >= z) {
+        if (hint >= z2) {
           hint = 0;
         }
         const val = readValue(memberSchemas[matchIdx]);
@@ -58751,7 +58751,7 @@ var require_cbor = __commonJS((exports) => {
     if (ns2.isStructSchema()) {
       const cache = loadCborStructIterator(ns2);
       const { memberSchemas, encodedKeys, memberNames } = cache;
-      const z = encodedKeys.length;
+      const z2 = encodedKeys.length;
       const isUnion = ns2.isUnionSchema();
       const result = {};
       let unknownKey;
@@ -58775,10 +58775,10 @@ var require_cbor = __commonJS((exports) => {
           }
           return result;
         }
-        const matchIdx = matchStructKey(encodedKeys, z, hint);
+        const matchIdx = matchStructKey(encodedKeys, z2, hint);
         if (matchIdx >= 0) {
           hint = matchIdx + 1;
-          if (hint >= z) {
+          if (hint >= z2) {
             hint = 0;
           }
           const val = readValue(memberSchemas[matchIdx]);
@@ -58809,13 +58809,13 @@ var require_cbor = __commonJS((exports) => {
     }
     throw new Error("expected break marker.");
   }
-  function matchStructKey(encodedKeys, z, hint) {
+  function matchStructKey(encodedKeys, z2, hint) {
     const hintKey = encodedKeys[hint];
     if (pos + hintKey.length <= end && bytesMatch(pos, hintKey)) {
       pos += hintKey.length;
       return hint;
     }
-    for (let i = 0;i < z; ++i) {
+    for (let i = 0;i < z2; ++i) {
       if (i === hint) {
         continue;
       }
@@ -59014,8 +59014,8 @@ var require_cbor = __commonJS((exports) => {
     }
     return value;
   }
-  function overflow(n7) {
-    throw new Error(`CBOR: length ${n7} greater than remaining buffer length.`);
+  function overflow(n) {
+    throw new Error(`CBOR: length ${n} greater than remaining buffer length.`);
   }
   function transformObject(ns2, value) {
     if (ns2.isTimestampSchema()) {
@@ -59577,18 +59577,18 @@ var require_dist_cjs5 = __commonJS((exports) => {
     x;
     i = 0;
     z;
-    constructor(x3) {
-      this.x = x3;
-      this.x = x3.replace(/\r\n?/g, `
+    constructor(x2) {
+      this.x = x2;
+      this.x = x2.replace(/\r\n?/g, `
 `);
       this.z = this.x.length;
     }
     parse() {
       const p = this;
-      const { z } = p;
-      while (p.i < z) {
+      const { z: z2 } = p;
+      while (p.i < z2) {
         p.trim();
-        if (p.i >= z) {
+        if (p.i >= z2) {
           break;
         }
         if (p.isNext("<?")) {
@@ -60504,11 +60504,11 @@ var require_protocols2 = __commonJS((exports) => {
       if (typeof searchString === "string") {
         return this.s().lastIndexOf(searchString, position);
       }
-      const fn = Uint8Array.prototype.lastIndexOf;
+      const fn2 = Uint8Array.prototype.lastIndexOf;
       if (position !== undefined) {
-        return fn.call(this, searchString, position);
+        return fn2.call(this, searchString, position);
       }
-      return fn.call(this, searchString);
+      return fn2.call(this, searchString);
     }
     startsWith(searchString, position) {
       return this.s().startsWith(searchString, position);
@@ -60563,10 +60563,10 @@ var require_protocols2 = __commonJS((exports) => {
     }
     s() {
       if (this.string == null) {
-        const n7 = Date.now();
-        if (n7 > warned + 60000) {
+        const n = Date.now();
+        if (n > warned + 60000) {
           console.warn("@aws-sdk/core/protocols - WARN - JsonCodec2: you have called a string method on a Uint8Array request body. " + "It has been automatically converted to string. In a future version this will throw an error.");
-          warned = n7;
+          warned = n;
         }
         this.string = toUtf8(this);
       }
@@ -60632,11 +60632,11 @@ var require_protocols2 = __commonJS((exports) => {
       if (ns2.isStructSchema() && value != null && typeof value === "object") {
         this.writeValue(ns2, value, undefined);
         const prefix = `"__type":"${ns2.getName(true) ?? "Unknown"}",`;
-        const z = prefix.length;
-        this.ensure(z);
-        this.json.copyWithin(1 + z, 1, this.i);
+        const z2 = prefix.length;
+        this.ensure(z2);
+        this.json.copyWithin(1 + z2, 1, this.i);
         encoder.encodeInto(prefix, this.json.subarray(1));
-        this.i += z;
+        this.i += z2;
       } else {
         this.writeValue(ns2, value, undefined);
       }
@@ -60667,21 +60667,21 @@ var require_protocols2 = __commonJS((exports) => {
       }
     }
     writeAscii(s) {
-      const z = s.length;
-      this.ensure(z);
+      const z2 = s.length;
+      this.ensure(z2);
       let { i, json } = this;
-      for (let j2 = 0;j2 < z; ++j2) {
+      for (let j2 = 0;j2 < z2; ++j2) {
         json[i] = s.charCodeAt(j2);
         i += 1;
       }
       this.i = i;
     }
     writeAsciiQuoted(s) {
-      const z = s.length;
-      this.ensure(z + 4);
+      const z2 = s.length;
+      this.ensure(z2 + 4);
       let { json, i } = this;
       json[i++] = QUOTE;
-      for (let j2 = 0;j2 < z; ++j2) {
+      for (let j2 = 0;j2 < z2; ++j2) {
         json[i++] = s.charCodeAt(j2);
       }
       json[i++] = QUOTE;
@@ -60690,8 +60690,8 @@ var require_protocols2 = __commonJS((exports) => {
     writeJsonString(s) {
       this.ensure(s.length * 3 + 2);
       this.json[this.i++] = QUOTE;
-      const z = s.length;
-      for (let j2 = 0;j2 < z; ++j2) {
+      const z2 = s.length;
+      for (let j2 = 0;j2 < z2; ++j2) {
         const c2 = s.charCodeAt(j2);
         if (c2 > 34 && c2 < 92) {
           this.json[this.i++] = c2;
@@ -60707,7 +60707,7 @@ var require_protocols2 = __commonJS((exports) => {
             this.json[this.i++] = c2;
           }
         } else if (c2 >= 55296 && c2 <= 56319) {
-          const next = j2 + 1 < z ? s.charCodeAt(j2 + 1) : 0;
+          const next = j2 + 1 < z2 ? s.charCodeAt(j2 + 1) : 0;
           if (next >= 56320 && next <= 57343) {
             this.ensure(4);
             const { written } = encoder.encodeInto(s.substring(j2, j2 + 2), this.json.subarray(this.i));
@@ -63932,10 +63932,10 @@ var require_httpAuthSchemes = __commonJS((exports) => {
     if (credentialsProvider.configBound) {
       return credentialsProvider;
     }
-    const fn = async (options) => credentialsProvider({ ...options, callerClientConfig: config });
-    fn.memoized = credentialsProvider.memoized;
-    fn.configBound = true;
-    return fn;
+    const fn2 = async (options) => credentialsProvider({ ...options, callerClientConfig: config });
+    fn2.memoized = credentialsProvider.memoized;
+    fn2.configBound = true;
+    return fn2;
   }
   var ENV_DISABLE_CLOCK_SKEW_CORRECTION = "AWS_DISABLE_CLOCK_SKEW_CORRECTION";
   var CONFIG_DISABLE_CLOCK_SKEW_CORRECTION = "disable_clock_skew_correction";
@@ -65447,7 +65447,7 @@ var require_sso_oidc = __commonJS((exports) => {
     ]
   };
   var root = 2;
-  var r = 1e8;
+  var r7 = 1e8;
   var nodes = new Int32Array([
     -1,
     1,
@@ -65457,40 +65457,40 @@ var require_sso_oidc = __commonJS((exports) => {
     3,
     1,
     4,
-    r + 12,
+    r7 + 12,
     2,
     5,
-    r + 12,
+    r7 + 12,
     3,
     8,
     6,
     4,
     7,
-    r + 11,
+    r7 + 11,
     5,
-    r + 9,
-    r + 10,
+    r7 + 9,
+    r7 + 10,
     4,
     11,
     9,
     6,
     10,
-    r + 8,
+    r7 + 8,
     7,
-    r + 6,
-    r + 7,
+    r7 + 6,
+    r7 + 7,
     5,
     12,
-    r + 5,
+    r7 + 5,
     6,
-    r + 4,
-    r + 5,
+    r7 + 4,
+    r7 + 5,
     3,
-    r + 1,
+    r7 + 1,
     14,
     4,
-    r + 2,
-    r + 3
+    r7 + 2,
+    r7 + 3
   ]);
   var bdd = BinaryDecisionDiagram.from(nodes, root, _data.conditions, _data.results);
   var cache = new EndpointCache({
@@ -66348,7 +66348,7 @@ var require_sso = __commonJS((exports) => {
     ]
   };
   var root = 2;
-  var r = 1e8;
+  var r7 = 1e8;
   var nodes = new Int32Array([
     -1,
     1,
@@ -66358,40 +66358,40 @@ var require_sso = __commonJS((exports) => {
     3,
     1,
     4,
-    r + 12,
+    r7 + 12,
     2,
     5,
-    r + 12,
+    r7 + 12,
     3,
     8,
     6,
     4,
     7,
-    r + 11,
+    r7 + 11,
     5,
-    r + 9,
-    r + 10,
+    r7 + 9,
+    r7 + 10,
     4,
     11,
     9,
     6,
     10,
-    r + 8,
+    r7 + 8,
     7,
-    r + 6,
-    r + 7,
+    r7 + 6,
+    r7 + 7,
     5,
     12,
-    r + 5,
+    r7 + 5,
     6,
-    r + 4,
-    r + 5,
+    r7 + 4,
+    r7 + 5,
     3,
-    r + 1,
+    r7 + 1,
     14,
     4,
-    r + 2,
-    r + 3
+    r7 + 2,
+    r7 + 3
   ]);
   var bdd = BinaryDecisionDiagram.from(nodes, root, _data.conditions, _data.results);
   var cache = new EndpointCache({
@@ -66955,7 +66955,7 @@ var require_sts = __commonJS((exports) => {
   var { streamCollector, NodeHttpHandler } = require_dist_cjs8();
   var { AwsQueryProtocol } = require_protocols2();
   var { Sha256 } = require_checksum();
-  var q2 = "ref";
+  var q = "ref";
   var a = -1;
   var b = true;
   var c2 = "isSet";
@@ -66967,9 +66967,9 @@ var require_sts = __commonJS((exports) => {
   var i = "sigv4";
   var j2 = "sts";
   var k2 = "https://sts.{Region}.{PartitionResult#dnsSuffix}";
-  var l = { [q2]: "Endpoint" };
-  var m = { [q2]: "Region" };
-  var n7 = { [q2]: d };
+  var l = { [q]: "Endpoint" };
+  var m = { [q]: "Region" };
+  var n = { [q]: d };
   var o = {};
   var p = [m];
   var _data = {
@@ -66977,13 +66977,13 @@ var require_sts = __commonJS((exports) => {
       [c2, [l]],
       [c2, p],
       ["aws.partition", p, d],
-      [e, [{ [q2]: "UseFIPS" }, b]],
-      [e, [{ [q2]: "UseDualStack" }, b]],
+      [e, [{ [q]: "UseFIPS" }, b]],
+      [e, [{ [q]: "UseDualStack" }, b]],
       [f, [m, "aws-global"]],
-      [e, [{ [q2]: "UseGlobalEndpoint" }, b]],
+      [e, [{ [q]: "UseGlobalEndpoint" }, b]],
       [f, [m, "eu-central-1"]],
-      [e, [{ fn: g, argv: [n7, "supportsDualStack"] }, b]],
-      [e, [{ fn: g, argv: [n7, "supportsFIPS"] }, b]],
+      [e, [{ fn: g, argv: [n, "supportsDualStack"] }, b]],
+      [e, [{ fn: g, argv: [n, "supportsFIPS"] }, b]],
       [f, [m, "ap-south-1"]],
       [f, [m, "eu-north-1"]],
       [f, [m, "eu-west-1"]],
@@ -66998,7 +66998,7 @@ var require_sts = __commonJS((exports) => {
       [f, [m, "ap-southeast-1"]],
       [f, [m, "ap-northeast-1"]],
       [f, [m, "ap-southeast-2"]],
-      [f, [{ fn: g, argv: [n7, "name"] }, "aws-us-gov"]]
+      [f, [{ fn: g, argv: [n, "name"] }, "aws-us-gov"]]
     ],
     results: [
       [a],
@@ -67019,7 +67019,7 @@ var require_sts = __commonJS((exports) => {
     ]
   };
   var root = 2;
-  var r = 1e8;
+  var r7 = 1e8;
   var nodes = new Int32Array([
     -1,
     1,
@@ -67029,10 +67029,10 @@ var require_sts = __commonJS((exports) => {
     3,
     1,
     4,
-    r + 14,
+    r7 + 14,
     2,
     5,
-    r + 14,
+    r7 + 14,
     3,
     25,
     6,
@@ -67040,80 +67040,80 @@ var require_sts = __commonJS((exports) => {
     24,
     7,
     5,
-    r + 1,
+    r7 + 1,
     8,
     6,
     9,
-    r + 13,
+    r7 + 13,
     7,
-    r + 1,
+    r7 + 1,
     10,
     10,
-    r + 1,
+    r7 + 1,
     11,
     11,
-    r + 1,
+    r7 + 1,
     12,
     12,
-    r + 1,
+    r7 + 1,
     13,
     13,
-    r + 1,
+    r7 + 1,
     14,
     14,
-    r + 1,
+    r7 + 1,
     15,
     15,
-    r + 1,
+    r7 + 1,
     16,
     16,
-    r + 1,
+    r7 + 1,
     17,
     17,
-    r + 1,
+    r7 + 1,
     18,
     18,
-    r + 1,
+    r7 + 1,
     19,
     19,
-    r + 1,
+    r7 + 1,
     20,
     20,
-    r + 1,
+    r7 + 1,
     21,
     21,
-    r + 1,
+    r7 + 1,
     22,
     22,
-    r + 1,
+    r7 + 1,
     23,
     23,
-    r + 1,
-    r + 2,
+    r7 + 1,
+    r7 + 2,
     8,
-    r + 11,
-    r + 12,
+    r7 + 11,
+    r7 + 12,
     4,
     28,
     26,
     9,
     27,
-    r + 10,
+    r7 + 10,
     24,
-    r + 8,
-    r + 9,
+    r7 + 8,
+    r7 + 9,
     8,
     29,
-    r + 7,
+    r7 + 7,
     9,
-    r + 6,
-    r + 7,
+    r7 + 6,
+    r7 + 7,
     3,
-    r + 3,
+    r7 + 3,
     31,
     4,
-    r + 4,
-    r + 5
+    r7 + 4,
+    r7 + 5
   ]);
   var bdd = BinaryDecisionDiagram.from(nodes, root, _data.conditions, _data.results);
   var cache = new EndpointCache({
@@ -68054,16 +68054,16 @@ var require_signin = __commonJS((exports) => {
   var k2 = { [s]: "Endpoint" };
   var l = { fn: i, argv: [{ [s]: g }, "name"] };
   var m = { [s]: "Region" };
-  var n7 = { [s]: g };
+  var n = { [s]: g };
   var o = { authSchemes: [{ name: "sigv4", signingName: "signin", signingRegion: "{Region}" }] };
   var p = {};
-  var q2 = [m];
+  var q = [m];
   var _data = {
     conditions: [
-      [d, q2],
+      [d, q],
       [e, [{ fn: f, argv: [{ [s]: "IsControlPlane" }, b] }, c2]],
       [d, [k2]],
-      ["aws.partition", q2, g],
+      ["aws.partition", q, g],
       [e, [{ [s]: "UseFIPS" }, c2]],
       [h, [l, "aws"]],
       [e, [{ fn: f, argv: [{ [s]: "IsOAuthEndpoint" }, b] }, c2]],
@@ -68071,13 +68071,13 @@ var require_signin = __commonJS((exports) => {
       [h, [l, "aws-cn"]],
       [h, [m, "us-gov-west-1"]],
       [h, [l, "aws-us-gov"]],
-      [e, [{ fn: i, argv: [n7, "supportsFIPS"] }, c2]],
+      [e, [{ fn: i, argv: [n, "supportsFIPS"] }, c2]],
       [h, [l, "aws-iso"]],
       [h, [l, "aws-iso-b"]],
       [h, [l, "aws-iso-f"]],
       [h, [l, "aws-iso-e"]],
       [h, [l, "aws-eusc"]],
-      [e, [{ fn: i, argv: [n7, "supportsDualStack"] }, c2]]
+      [e, [{ fn: i, argv: [n, "supportsDualStack"] }, c2]]
     ],
     results: [
       [a],
@@ -68111,7 +68111,7 @@ var require_signin = __commonJS((exports) => {
     ]
   };
   var root = 2;
-  var r = 1e8;
+  var r7 = 1e8;
   var nodes = new Int32Array([
     -1,
     1,
@@ -68124,10 +68124,10 @@ var require_signin = __commonJS((exports) => {
     4,
     4,
     5,
-    r + 27,
+    r7 + 27,
     6,
-    r + 4,
-    r + 27,
+    r7 + 4,
+    r7 + 27,
     1,
     29,
     7,
@@ -68147,56 +68147,56 @@ var require_signin = __commonJS((exports) => {
     21,
     12,
     8,
-    r + 7,
+    r7 + 7,
     13,
     10,
-    r + 8,
+    r7 + 8,
     14,
     12,
-    r + 9,
+    r7 + 9,
     15,
     13,
-    r + 10,
+    r7 + 10,
     16,
     14,
-    r + 11,
+    r7 + 11,
     17,
     15,
-    r + 12,
+    r7 + 12,
     18,
     16,
-    r + 13,
-    r + 16,
+    r7 + 13,
+    r7 + 16,
     6,
-    r + 5,
+    r7 + 5,
     20,
     7,
     21,
-    r + 6,
+    r7 + 6,
     17,
-    r + 24,
-    r + 25,
+    r7 + 24,
+    r7 + 25,
     6,
-    r + 4,
+    r7 + 4,
     23,
     7,
     27,
     24,
     9,
-    r + 14,
+    r7 + 14,
     25,
     10,
-    r + 15,
+    r7 + 15,
     26,
     11,
-    r + 22,
-    r + 23,
+    r7 + 22,
+    r7 + 23,
     11,
     28,
-    r + 21,
+    r7 + 21,
     17,
-    r + 20,
-    r + 21,
+    r7 + 20,
+    r7 + 21,
     2,
     35,
     30,
@@ -68205,16 +68205,16 @@ var require_signin = __commonJS((exports) => {
     31,
     4,
     32,
-    r + 27,
+    r7 + 27,
     6,
-    r + 4,
+    r7 + 4,
     33,
     7,
-    r + 27,
+    r7 + 27,
     34,
     9,
-    r + 14,
-    r + 27,
+    r7 + 14,
+    r7 + 27,
     3,
     39,
     36,
@@ -68222,17 +68222,17 @@ var require_signin = __commonJS((exports) => {
     38,
     37,
     7,
-    r + 18,
-    r + 19,
+    r7 + 18,
+    r7 + 19,
     6,
-    r + 4,
-    r + 17,
+    r7 + 4,
+    r7 + 17,
     5,
-    r + 1,
+    r7 + 1,
     40,
     8,
-    r + 2,
-    r + 3
+    r7 + 2,
+    r7 + 3
   ]);
   var bdd = BinaryDecisionDiagram.from(nodes, root, _data.conditions, _data.results);
   var cache = new EndpointCache({
@@ -68874,7 +68874,7 @@ var require_dist_cjs12 = __commonJS((exports) => {
       }
       offset++;
       const rLength = derSignature[offset++];
-      let r = derSignature.subarray(offset, offset + rLength);
+      let r7 = derSignature.subarray(offset, offset + rLength);
       offset += rLength;
       if (derSignature[offset] !== 2) {
         throw new Error("Invalid DER signature");
@@ -68882,9 +68882,9 @@ var require_dist_cjs12 = __commonJS((exports) => {
       offset++;
       const sLength = derSignature[offset++];
       let s = derSignature.subarray(offset, offset + sLength);
-      r = r[0] === 0 ? r.subarray(1) : r;
+      r7 = r7[0] === 0 ? r7.subarray(1) : r7;
       s = s[0] === 0 ? s.subarray(1) : s;
-      const rPadded = Buffer.concat([Buffer.alloc(32 - r.length), r]);
+      const rPadded = Buffer.concat([Buffer.alloc(32 - r7.length), r7]);
       const sPadded = Buffer.concat([Buffer.alloc(32 - s.length), s]);
       return Buffer.concat([rPadded, sPadded]);
     }
@@ -68923,7 +68923,7 @@ var require_dist_cjs12 = __commonJS((exports) => {
             break;
           }
         }
-        const x3 = publicDer.slice(pointStart + 1, pointStart + 33);
+        const x2 = publicDer.slice(pointStart + 1, pointStart + 33);
         const y2 = publicDer.slice(pointStart + 33, pointStart + 65);
         const header = {
           alg: "ES256",
@@ -68931,7 +68931,7 @@ var require_dist_cjs12 = __commonJS((exports) => {
           jwk: {
             kty: "EC",
             crv: "P-256",
-            x: x3.toString("base64url"),
+            x: x2.toString("base64url"),
             y: y2.toString("base64url")
           }
         };
@@ -69605,12 +69605,12 @@ var require_sha = __commonJS((exports) => {
         w[t] = (data[offset + t * 4] & 255) << 24 | (data[offset + t * 4 + 1] & 255) << 16 | (data[offset + t * 4 + 2] & 255) << 8 | data[offset + t * 4 + 3] & 255;
       }
       for (let t = 16;t < 80; ++t) {
-        const x3 = w[t - 3] ^ w[t - 8] ^ w[t - 14] ^ w[t - 16];
-        w[t] = x3 << 1 | x3 >>> 31;
+        const x2 = w[t - 3] ^ w[t - 8] ^ w[t - 14] ^ w[t - 16];
+        w[t] = x2 << 1 | x2 >>> 31;
       }
       for (let t = 0;t < 80; ++t) {
-        const r = t < 20 ? 0 : t < 40 ? 1 : t < 60 ? 2 : 3;
-        const temp = ((s0 << 5 | s0 >>> 27) + (r === 0 ? s1 & s2 ^ ~s1 & s3 : r === 2 ? s1 & s2 ^ s1 & s3 ^ s2 & s3 : s1 ^ s2 ^ s3) | 0) + (s4 + (K3[r] + w[t] | 0) | 0) | 0;
+        const r7 = t < 20 ? 0 : t < 40 ? 1 : t < 60 ? 2 : 3;
+        const temp = ((s0 << 5 | s0 >>> 27) + (r7 === 0 ? s1 & s2 ^ ~s1 & s3 : r7 === 2 ? s1 & s2 ^ s1 & s3 ^ s2 & s3 : s1 ^ s2 ^ s3) | 0) + (s4 + (K3[r7] + w[t] | 0) | 0) | 0;
         s4 = s3;
         s3 = s2;
         s2 = s1 << 30 | s1 >>> 2;
@@ -74914,550 +74914,917 @@ function getOctokit(token, options, ...additionalPlugins) {
 }
 
 // ../node_modules/glob/dist/esm/index.min.js
-import { fileURLToPath as Wi } from "node:url";
-import { posix as mi, win32 as re } from "node:path";
-import { fileURLToPath as gi } from "node:url";
-import { lstatSync as wi, readdir as yi, readdirSync as bi, readlinkSync as Si, realpathSync as Ei } from "fs";
-import * as xi from "node:fs";
-import { lstat as Ci, readdir as Ti, readlink as Ai, realpath as ki } from "node:fs/promises";
-import { EventEmitter as ee } from "node:events";
-import Pe from "node:stream";
-import { StringDecoder as ni } from "node:string_decoder";
-var Gt = (n, t, e) => {
-  let s = n instanceof RegExp ? ce(n, e) : n, i = t instanceof RegExp ? ce(t, e) : t, r = s !== null && i != null && ss(s, i, e);
-  return r && { start: r[0], end: r[1], pre: e.slice(0, r[0]), body: e.slice(r[0] + s.length, r[1]), post: e.slice(r[1] + i.length) };
+import { fileURLToPath as yn } from "node:url";
+import { tracingChannel as Fi, channel as Ti } from "node:diagnostics_channel";
+import { posix as qi, win32 as Ne } from "node:path";
+import { fileURLToPath as Ki } from "node:url";
+import { lstatSync as Xi, readdir as Vi, readdirSync as Yi, readlinkSync as Ji, realpathSync as Zi } from "fs";
+import * as Qi from "node:fs";
+import { lstat as en, readdir as sn, readlink as nn, realpath as rn } from "node:fs/promises";
+import { EventEmitter as Te } from "node:events";
+import ys from "node:stream";
+import { StringDecoder as zi } from "node:string_decoder";
+var re = (r, t, e) => {
+  let s = r instanceof RegExp ? We(r, e) : r, i = t instanceof RegExp ? We(t, e) : t, n = s !== null && i != null && js(s, i, e);
+  return n && { start: n[0], end: n[1], pre: e.slice(0, n[0]), body: e.slice(n[0] + s.length, n[1]), post: e.slice(n[1] + i.length) };
 };
-var ce = (n, t) => {
-  let e = t.match(n);
+var We = (r, t) => {
+  let e = t.match(r);
   return e ? e[0] : null;
 };
-var ss = (n, t, e) => {
-  let s, i, r, o, h, a = e.indexOf(n), l = e.indexOf(t, a + 1), u = a;
+var js = (r, t, e) => {
+  let s, i, n, o, h, a = e.indexOf(r), l = e.indexOf(t, a + 1), c = a;
   if (a >= 0 && l > 0) {
-    if (n === t)
+    if (r === t)
       return [a, l];
-    for (s = [], r = e.length;u >= 0 && !h; ) {
-      if (u === a)
-        s.push(u), a = e.indexOf(n, u + 1);
+    for (s = [], n = e.length;c >= 0 && !h; ) {
+      if (c === a)
+        s.push(c), a = e.indexOf(r, c + 1);
       else if (s.length === 1) {
-        let c = s.pop();
-        c !== undefined && (h = [c, l]);
+        let f = s.pop();
+        f !== undefined && (h = [f, l]);
       } else
-        i = s.pop(), i !== undefined && i < r && (r = i, o = l), l = e.indexOf(t, u + 1);
-      u = a < l && a >= 0 ? a : l;
+        i = s.pop(), i !== undefined && i < n && (n = i, o = l), l = e.indexOf(t, c + 1);
+      c = a < l && a >= 0 ? a : l;
     }
-    s.length && o !== undefined && (h = [r, o]);
+    s.length && o !== undefined && (h = [n, o]);
   }
   return h;
 };
-var fe = "\x00SLASH" + Math.random() + "\x00";
-var ue = "\x00OPEN" + Math.random() + "\x00";
-var qt = "\x00CLOSE" + Math.random() + "\x00";
-var de = "\x00COMMA" + Math.random() + "\x00";
-var pe = "\x00PERIOD" + Math.random() + "\x00";
-var is = new RegExp(fe, "g");
-var rs = new RegExp(ue, "g");
-var ns = new RegExp(qt, "g");
-var os5 = new RegExp(de, "g");
-var hs = new RegExp(pe, "g");
-var as = /\\\\/g;
-var ls = /\\{/g;
-var cs = /\\}/g;
-var fs2 = /\\,/g;
-var us = /\\./g;
-var ds = 1e5;
-function Ht(n) {
-  return isNaN(n) ? n.charCodeAt(0) : parseInt(n, 10);
+var $e = "\x00SLASH" + Math.random() + "\x00";
+var Ie = "\x00OPEN" + Math.random() + "\x00";
+var le = "\x00CLOSE" + Math.random() + "\x00";
+var Be = "\x00COMMA" + Math.random() + "\x00";
+var Ue = "\x00PERIOD" + Math.random() + "\x00";
+var Ws = new RegExp($e, "g");
+var $s = new RegExp(Ie, "g");
+var Is = new RegExp(le, "g");
+var Bs = new RegExp(Be, "g");
+var Us = new RegExp(Ue, "g");
+var Gs = /\\\\/g;
+var Hs = /\\{/g;
+var qs = /\\}/g;
+var Ks = /\\,/g;
+var Xs = /\\\./g;
+var Vs = 1e5;
+var Ys = 4000000;
+var Js = 1000;
+var Zs = 1000;
+function oe(r) {
+  return isNaN(r) ? r.charCodeAt(0) : parseInt(r, 10);
 }
-function ps(n) {
-  return n.replace(as, fe).replace(ls, ue).replace(cs, qt).replace(fs2, de).replace(us, pe);
+function Qs(r) {
+  return r.replace(Gs, $e).replace(Hs, Ie).replace(qs, le).replace(Ks, Be).replace(Xs, Ue);
 }
-function ms(n) {
-  return n.replace(is, "\\").replace(rs, "{").replace(ns, "}").replace(os5, ",").replace(hs, ".");
+function ti(r) {
+  return r.replace(Ws, "\\").replace($s, "{").replace(Is, "}").replace(Bs, ",").replace(Us, ".");
 }
-function me(n) {
-  if (!n)
-    return [""];
-  let t = [], e = Gt("{", "}", n);
-  if (!e)
-    return n.split(",");
-  let { pre: s, body: i, post: r } = e, o = s.split(",");
-  o[o.length - 1] += "{" + i + "}";
-  let h = me(r);
-  return r.length && (o[o.length - 1] += h.shift(), o.push.apply(o, h)), t.push.apply(t, o), t;
+function he(r, t) {
+  for (let e = 0;e < t.length; e++)
+    r.push(t[e]);
 }
-function ge(n, t = {}) {
-  if (!n)
-    return [];
-  let { max: e = ds } = t;
-  return n.slice(0, 2) === "{}" && (n = "\\{\\}" + n.slice(2)), ht(ps(n), e, true).map(ms);
-}
-function gs(n) {
-  return "{" + n + "}";
-}
-function ws(n) {
-  return /^-?0\d/.test(n);
-}
-function ys(n, t) {
-  return n <= t;
-}
-function bs(n, t) {
-  return n >= t;
-}
-function ht(n, t, e) {
-  let s = [], i = Gt("{", "}", n);
-  if (!i)
-    return [n];
-  let r = i.pre, o = i.post.length ? ht(i.post, t, false) : [""];
-  if (/\$$/.test(i.pre))
-    for (let h = 0;h < o.length && h < t; h++) {
-      let a = r + "{" + i.body + "}" + o[h];
-      s.push(a);
+function ei(r) {
+  let t = [], e = "";
+  for (;; ) {
+    let s = re("{", "}", r);
+    if (!s) {
+      let a = r.split(",");
+      return a[0] = e + a[0], he(t, a), t;
     }
-  else {
-    let h = /^-?\d+\.\.-?\d+(?:\.\.-?\d+)?$/.test(i.body), a = /^[a-zA-Z]\.\.[a-zA-Z](?:\.\.-?\d+)?$/.test(i.body), l = h || a, u = i.body.indexOf(",") >= 0;
-    if (!l && !u)
-      return i.post.match(/,(?!,).*\}/) ? (n = i.pre + "{" + i.body + qt + i.post, ht(n, t, true)) : [n];
-    let c;
-    if (l)
-      c = i.body.split(/\.\./);
-    else if (c = me(i.body), c.length === 1 && c[0] !== undefined && (c = ht(c[0], t, false).map(gs), c.length === 1))
-      return o.map((f) => i.pre + c[0] + f);
+    let { pre: i, body: n, post: o } = s, h = i.split(",");
+    if (h[0] = e + h[0], h[h.length - 1] += "{" + n + "}", !o.length)
+      return he(t, h), t;
+    e = h.pop(), he(t, h), r = o;
+  }
+}
+function Ge(r, t = {}) {
+  if (!r)
+    return [];
+  let { max: e = Vs, maxLength: s = Ys, maxDepth: i = Js, maxRewrites: n = Zs } = t;
+  return r.slice(0, 2) === "{}" && (r = "\\{\\}" + r.slice(2)), ae(Qs(r), e, s, i, 0, n, true).map(ti);
+}
+function si(r) {
+  return "{" + r + "}";
+}
+function ii(r) {
+  return /^-?0\d/.test(r);
+}
+function ni(r, t) {
+  return r <= t;
+}
+function ri(r, t) {
+  return r >= t;
+}
+function ct(r, t, e, s, i, n) {
+  let o = [], h = 0;
+  for (let a = 0;a < r.length; a++)
+    for (let l = 0;l < e.length; l++) {
+      if (o.length >= s)
+        return o;
+      let c = r[a] + t + e[l];
+      if (!(n && !c)) {
+        if (h + c.length > i)
+          return o;
+        o.push(c), h += c.length;
+      }
+    }
+  return o;
+}
+function oi(r, t, e, s) {
+  let i = r.split(/\.\./), n = [];
+  if (i[0] === undefined || i[1] === undefined)
+    return n;
+  let o = oe(i[0]), h = oe(i[1]), a = Math.max(i[0].length, i[1].length), l = i.length === 3 && i[2] !== undefined ? Math.max(Math.abs(oe(i[2])), 1) : 1, c = ni;
+  h < o && (l *= -1, c = ri);
+  let u = i.some(ii), p = 0;
+  for (let g = o;c(g, h) && n.length < e; g += l) {
     let d;
-    if (l && c[0] !== undefined && c[1] !== undefined) {
-      let f = Ht(c[0]), m = Ht(c[1]), p = Math.max(c[0].length, c[1].length), w = c.length === 3 && c[2] !== undefined ? Math.abs(Ht(c[2])) : 1, g = ys;
-      m < f && (w *= -1, g = bs);
-      let E = c.some(ws);
-      d = [];
-      for (let y = f;g(y, m); y += w) {
-        let b;
-        if (a)
-          b = String.fromCharCode(y), b === "\\" && (b = "");
-        else if (b = String(y), E) {
-          let z = p - b.length;
-          if (z > 0) {
-            let $ = new Array(z + 1).join("0");
-            y < 0 ? b = "-" + $ + b.slice(1) : b = $ + b;
+    if (t)
+      d = String.fromCharCode(g), d === "\\" && (d = "");
+    else if (d = String(g), u) {
+      let w = a - d.length;
+      if (w > 0) {
+        let m = new Array(w + 1).join("0");
+        g < 0 ? d = "-" + m + d.slice(1) : d = m + d;
+      }
+    }
+    if (p + d.length > s)
+      break;
+    n.push(d), p += d.length;
+  }
+  return n;
+}
+function ae(r, t, e, s, i, n, o) {
+  if (i > s)
+    return [r];
+  let h = [""], a = 0, l = false, c = true;
+  for (;; ) {
+    let f = re("{", "}", r);
+    if (!f)
+      return ct(h, r, [""], t, e, l);
+    let u = f.pre;
+    if (/\$$/.test(u)) {
+      if (h = ct(h, u + "{" + f.body + "}", [""], t, e, l && !f.post.length), c = false, !f.post.length)
+        break;
+      r = f.post;
+      continue;
+    }
+    let p = /^-?\d+\.\.-?\d+(?:\.\.-?\d+)?$/.test(f.body), g = /^[a-zA-Z]\.\.[a-zA-Z](?:\.\.-?\d+)?$/.test(f.body), d = p || g, w = f.body.indexOf(",") >= 0;
+    if (!d && !w) {
+      if (a < n && f.post.match(/,(?!,).*\}/)) {
+        a++, r = f.pre + "{" + f.body + le + f.post, o = true;
+        continue;
+      }
+      return ct(h, u + "{" + f.body + "}" + f.post, [""], t, e, l);
+    }
+    c && (l = o && !d, c = false);
+    let m;
+    if (d)
+      m = oi(f.body, g, t, e);
+    else {
+      let b = ei(f.body);
+      if (b.length === 1 && b[0] !== undefined && (b = ae(b[0], t, e, s, i + 1, n, false).map(si), b.length === 1)) {
+        if (h = ct(h, u + b[0], [""], t, e, l && !f.post.length), !f.post.length)
+          break;
+        r = f.post;
+        continue;
+      }
+      let x = l && !f.post.length && !u;
+      for (let y = 0;x && y < h.length; y++)
+        h[y] && (x = false);
+      m = [];
+      let S = 0;
+      t:
+        for (let y = 0;y < b.length; y++) {
+          let q = ae(b[y], t, e, s, i + 1, n, false);
+          for (let W = 0;W < q.length; W++) {
+            let B = q[W];
+            if (!(x && !B)) {
+              if (m.length >= t || S + B.length > e)
+                break t;
+              m.push(B), S += B.length;
+            }
           }
         }
-        d.push(b);
-      }
-    } else {
-      d = [];
-      for (let f = 0;f < c.length; f++)
-        d.push.apply(d, ht(c[f], t, false));
     }
-    for (let f = 0;f < d.length; f++)
-      for (let m = 0;m < o.length && s.length < t; m++) {
-        let p = r + d[f] + o[m];
-        (!e || l || p) && s.push(p);
-      }
+    if (h = ct(h, u, m, t, e, l && !f.post.length), !f.post.length)
+      break;
+    r = f.post;
+  }
+  return h;
+}
+var fe = (r, t) => r === t ? { t: "lit", ch: String(r) } : { t: "class", re: new RegExp(`^[${r}-${t}]$`) };
+var ce = (r, t) => t.map((e) => [fe(r, r), ...e]);
+var ft = (r, t) => {
+  if (!r)
+    return [[]];
+  let e = +r[0], s = +t[0], i = r.slice(1), n = t.slice(1);
+  if (e === s)
+    return ce(e, ft(i, n));
+  let o = "0".repeat(i.length), h = "9".repeat(i.length), a = [];
+  i !== o && a.push(...ce(e++, ft(i, h)));
+  let l = n === h ? [] : ce(s--, ft(o, n));
+  return e <= s && a.push([fe(e, s), ...Array.from(i, () => fe(0, 9))]), a.push(...l), a;
+};
+var He = (r, t, e) => {
+  if (e)
+    return ft(String(r).padStart(e, "0"), String(t).padStart(e, "0"));
+  let s = [];
+  for (let i = String(r).length;i <= String(t).length; i++) {
+    let n = Math.max(r, i === 1 ? 0 : 10 ** (i - 1)), o = Math.min(t, 10 ** i - 1);
+    s.push(...ft(String(n), String(o)));
   }
   return s;
-}
-var at = (n) => {
-  if (typeof n != "string")
-    throw new TypeError("invalid pattern");
-  if (n.length > 65536)
-    throw new TypeError("pattern is too long");
 };
-var Ss = { "[:alnum:]": ["\\p{L}\\p{Nl}\\p{Nd}", true], "[:alpha:]": ["\\p{L}\\p{Nl}", true], "[:ascii:]": ["\\x00-\\x7f", false], "[:blank:]": ["\\p{Zs}\\t", true], "[:cntrl:]": ["\\p{Cc}", true], "[:digit:]": ["\\p{Nd}", true], "[:graph:]": ["\\p{Z}\\p{C}", true, true], "[:lower:]": ["\\p{Ll}", true], "[:print:]": ["\\p{C}", true], "[:punct:]": ["\\p{P}", true], "[:space:]": ["\\p{Z}\\t\\r\\n\\v\\f", true], "[:upper:]": ["\\p{Lu}", true], "[:word:]": ["\\p{L}\\p{Nl}\\p{Nd}\\p{Pc}", true], "[:xdigit:]": ["A-Fa-f0-9", false] };
-var lt = (n) => n.replace(/[[\]\\-]/g, "\\$&");
-var Es = (n) => n.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
-var we = (n) => n.join("");
-var ye = (n, t) => {
-  let e = t;
-  if (n.charAt(e) !== "[")
+var qe = (r, t) => {
+  let e = Number(r), s = Number(t);
+  if (!Number.isSafeInteger(e) || !Number.isSafeInteger(s))
+    return;
+  e > s && ([e, s] = [s, e]);
+  let n = /^-?0\d/.test(r) || /^-?0\d/.test(t) ? Math.max(r.length, t.length) : 0, o = [];
+  if (e < 0) {
+    let h = He(Math.max(-s, 1), -e, n && n - 1);
+    o.push(...h.map((a) => [{ t: "lit", ch: "-" }, ...a]));
+  }
+  return s >= 0 && o.push(...He(Math.max(e, 0), s, n)), o;
+};
+var hi = { "[:alnum:]": ["\\p{L}\\p{Nl}\\p{Nd}"], "[:alpha:]": ["\\p{L}\\p{Nl}"], "[:ascii:]": ["\\x00-\\x7f"], "[:blank:]": ["\\p{Zs}\\t"], "[:cntrl:]": ["\\p{Cc}"], "[:digit:]": ["\\p{Nd}"], "[:graph:]": ["\\p{Z}\\p{C}", true], "[:lower:]": ["\\p{Ll}"], "[:print:]": ["\\p{C}", true], "[:punct:]": ["\\p{P}\\p{S}"], "[:space:]": ["\\p{Z}\\t\\r\\n\\v\\f"], "[:upper:]": ["\\p{Lu}"], "[:word:]": ["\\p{L}\\p{Nl}\\p{Nd}\\p{Pc}"], "[:xdigit:]": ["A-Fa-f0-9"] };
+var ut = (r) => r.replace(/[[\]\\-]/g, "\\$&");
+var ue = /$./;
+var Ke = (r, t, e = false, s) => {
+  let i = (m) => {
+    let b = s ? m.normalize(s) : m;
+    return [...b].length === 1 ? b : m;
+  }, n = t;
+  if (r.charAt(n) !== "[")
     throw new Error("not in a brace expression");
-  let s = [], i = [], r = e + 1, o = false, h = false, a = false, l = false, u = e, c = "";
+  let o = [], h = [], a = n + 1, l = false, c = false, f = false, u = n, p = "";
   t:
-    for (;r < n.length; ) {
-      let p = n.charAt(r);
-      if ((p === "!" || p === "^") && r === e + 1) {
-        l = true, r++;
+    for (;a < r.length; ) {
+      let m = String.fromCodePoint(r.codePointAt(a));
+      if ((m === "!" || m === "^") && a === n + 1) {
+        f = true, a++;
         continue;
       }
-      if (p === "]" && o && !a) {
-        u = r + 1;
+      if (m === "]" && l && !c) {
+        u = a + 1;
         break;
       }
-      if (o = true, p === "\\" && !a) {
-        a = true, r++;
+      if (l = true, m === "\\" && !c) {
+        c = true, a++;
         continue;
       }
-      if (p === "[" && !a) {
-        for (let [w, [g, S, E]] of Object.entries(Ss))
-          if (n.startsWith(w, r)) {
-            if (c)
-              return ["$.", false, n.length - e, true];
-            r += w.length, E ? i.push(g) : s.push(g), h = h || S;
+      if (m === "[" && !c) {
+        for (let [x, [S, y]] of Object.entries(hi))
+          if (r.startsWith(x, a)) {
+            if (p)
+              return [ue, r.length - n];
+            a += x.length, y ? h.push(S) : o.push(S);
             continue t;
           }
       }
-      if (a = false, c) {
-        p > c ? s.push(lt(c) + "-" + lt(p)) : p === c && s.push(lt(p)), c = "", r++;
+      c = false;
+      let b = i(m);
+      if (p) {
+        b.codePointAt(0) > p.codePointAt(0) ? o.push(ut(p) + "-" + ut(b)) : b === p && o.push(ut(b)), p = "", a += m.length;
         continue;
       }
-      if (n.startsWith("-]", r + 1)) {
-        s.push(lt(p + "-")), r += 2;
+      if (r.startsWith("-]", a + m.length)) {
+        o.push(ut(b + "-")), a += m.length + 1;
         continue;
       }
-      if (n.startsWith("-", r + 1)) {
-        c = p, r += 2;
+      if (r.startsWith("-", a + m.length)) {
+        p = b, a += m.length + 1;
         continue;
       }
-      s.push(lt(p)), r++;
+      o.push(ut(b)), a += m.length;
     }
-  if (u < r)
-    return ["", false, 0, false];
-  if (!s.length && !i.length)
-    return ["$.", false, n.length - e, true];
-  if (i.length === 0 && s.length === 1 && /^\\?.$/.test(s[0]) && !l) {
-    let p = s[0].length === 2 ? s[0].slice(-1) : s[0];
-    return [Es(p), false, u - e, false];
-  }
-  let d = "[" + (l ? "^" : "") + we(s) + "]", f = "[" + (l ? "" : "^") + we(i) + "]";
-  return [s.length && i.length ? "(" + d + "|" + f + ")" : s.length ? d : f, h, u - e, true];
+  if (u < a)
+    return [ue, 0];
+  if (!o.length && !h.length)
+    return [ue, r.length - n];
+  let g = "[" + (f ? "^" : "") + o.join("") + "]", d = "[" + (f ? "" : "^") + h.join("") + "]", w = "^" + (o.length && h.length ? "(" + g + "|" + d + ")" : o.length ? g : d);
+  return [new RegExp(w, e ? "iu" : "u"), u - n];
 };
-var W = (n, { windowsPathsNoEscape: t = false, magicalBraces: e = true } = {}) => e ? t ? n.replace(/\[([^\/\\])\]/g, "$1") : n.replace(/((?!\\).|^)\[([^\/\\])\]/g, "$1$2").replace(/\\([^\/])/g, "$1") : t ? n.replace(/\[([^\/\\{}])\]/g, "$1") : n.replace(/((?!\\).|^)\[([^\/\\{}])\]/g, "$1$2").replace(/\\([^\/{}])/g, "$1");
-var xs = new Set(["!", "?", "+", "*", "@"]);
-var be = (n) => xs.has(n);
-var vs = "(?!(?:^|/)\\.\\.?(?:$|/))";
-var Ct = "(?!\\.)";
-var Cs = new Set(["[", "."]);
-var Ts = new Set(["..", "."]);
-var As = new Set("().*{}+?[]^$\\!");
-var ks = (n) => n.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
-var Kt = "[^/]";
-var Se = Kt + "*?";
-var Ee = Kt + "+?";
-var Q = class n {
-  type;
-  #t;
-  #s;
-  #n = false;
-  #r = [];
-  #o;
-  #S;
-  #w;
-  #c = false;
-  #h;
-  #u;
-  #f = false;
-  constructor(t, e, s = {}) {
-    this.type = t, t && (this.#s = true), this.#o = e, this.#t = this.#o ? this.#o.#t : this, this.#h = this.#t === this ? s : this.#t.#h, this.#w = this.#t === this ? [] : this.#t.#w, t === "!" && !this.#t.#c && this.#w.push(this), this.#S = this.#o ? this.#o.#r.length : 0;
+var de = { t: "match", id: 0 };
+var ai = "!?+*@";
+var Z = (r) => ({ t: "lit", ch: r });
+var li = (r) => r.replace(/[\\^$.*+?()[\]{}|/]/g, "\\$&");
+var Je = (r) => new RegExp(`^${li(r)}$`, "iu");
+var Dt = new Map;
+var Ze = (r) => {
+  let t = Dt.get(r);
+  return t || (t = Je(r), Dt.size >= 1000 && Dt.clear(), Dt.set(r, t)), t;
+};
+var ge = (r, t) => {
+  if (t === r.ch)
+    return true;
+  if (!r.re)
+    return false;
+  let e = t.charCodeAt(0);
+  if (e >= 128)
+    return r.re.test(t);
+  let s = r.ascii ??= new Uint8Array(128);
+  return s[e] ||= r.re.test(t) ? 1 : 2, s[e] === 1;
+};
+var ci = (r, t, e, s, i) => {
+  let n = [];
+  for (let o = 0;o < r.length; ) {
+    let h = String.fromCodePoint(r.codePointAt(o));
+    if (i) {
+      let a = h === "\\" && r.startsWith(i, o + 1) ? 1 : 0;
+      if (a || h === i) {
+        let l = o + a + i.length, c = r.indexOf(i, l), f = /^(-?\d+)\.\.(-?\d+)$/.exec(r.slice(l, c)), u = c !== -1 && f && qe(f[1], f[2]);
+        if (u) {
+          n.push({ t: "ext", type: "@", alts: u }), o = c + i.length;
+          continue;
+        }
+      }
+    }
+    if (h === "\\") {
+      let a = r.codePointAt(o + 1), l = a === undefined ? h : String.fromCodePoint(a);
+      n.push(Z(l)), o += 1 + l.length;
+      continue;
+    }
+    if (h === "[") {
+      let [a, l] = Ke(r, o, t, s);
+      if (l) {
+        n.push({ t: "class", re: a }), o += l;
+        continue;
+      }
+    }
+    if (!e && ai.includes(h) && r[o + 1] === "(") {
+      n.push({ t: "open", type: h }), o += 2;
+      continue;
+    }
+    n.push(!e && h === "|" ? { t: "bar" } : !e && h === ")" ? { t: "close" } : h === "*" ? { t: "star" } : h === "?" ? { t: "any" } : Z(h)), o += h.length;
   }
-  get hasMagic() {
-    if (this.#s !== undefined)
-      return this.#s;
-    for (let t of this.#r)
-      if (typeof t != "string" && (t.type || t.hasMagic))
-        return this.#s = true;
-    return this.#s;
+  return n;
+};
+var fi = (r) => {
+  let t = new Map, e = [];
+  return r.forEach((s, i) => {
+    s.t === "open" ? e.push(i) : s.t === "close" && e.length && t.set(e.pop(), i);
+  }), t;
+};
+var Qe = (r, t, e, s, i) => {
+  let n = [], o = [n];
+  for (let h = e;h < s; h++) {
+    let a = r[h], l = t.get(h);
+    if (a.t === "open" && l !== undefined) {
+      let c = Qe(r, t, h + 1, l, false);
+      n.push({ t: "ext", type: a.type, alts: c }), h = l;
+    } else
+      a.t === "bar" && !i ? o.push(n = []) : a.t === "open" ? n.push(Z(a.type), Z("(")) : a.t === "bar" ? n.push(Z("|")) : a.t === "close" ? n.push(Z(")")) : n.push(a);
+  }
+  return o;
+};
+var ts = (r, t) => {
+  let e = [], s = "", i = () => {
+    for (let n of s.normalize(t))
+      e.push(Z(n));
+    s = "";
+  };
+  for (let n of r) {
+    if (n.t === "lit") {
+      s += n.ch;
+      continue;
+    }
+    i(), e.push(n.t === "ext" ? { ...n, alts: n.alts.map((o) => ts(o, t)) } : n);
+  }
+  return i(), e;
+};
+var ui = (r, t) => {
+  let e = 1, s = (h) => ({ t: "split", id: e++, out: h }), i = (h, a) => h.reduceRight((l, c) => n(c, l), a), n = (h, a) => {
+    switch (h.t) {
+      case "lit":
+        let u = t ? Ze(h.ch) : undefined;
+        return { t: "lit", id: e++, ch: h.ch, re: u, next: a };
+      case "any":
+      case "star":
+        return { t: h.t, id: e++, next: a };
+      case "class":
+        return { t: "class", id: e++, re: h.re, next: a };
+    }
+    let l = (u) => h.alts.map((p) => i(p, u));
+    switch (h.type) {
+      case "@":
+        return s(l(a));
+      case "?":
+        return s([a, ...l(a)]);
+      case "!":
+        return { t: "neg", id: e++, sub: s(l(de)), next: a };
+    }
+    let c = s([]), f = s(l(c));
+    return c.out.push(a, f), h.type === "*" ? c : f;
+  };
+  return [i(r, de), e];
+};
+var di = (r) => {
+  let t = [], e = new Set, s = (n) => n.t === "match" ? "match" : String(n.id), i = (n, o) => {
+    if (n.t === "match" || e.has(n))
+      return;
+    e.add(n);
+    let h = (a) => t.push(`${o}${n.id}: ${a}`);
+    switch (n.t) {
+      case "split":
+        h(`split -> ${n.out.map(s).join(", ")}`);
+        for (let a of n.out)
+          i(a, o);
+        return;
+      case "neg":
+        return h(`!(${s(n.sub)}) -> ${s(n.next)}`), i(n.sub, o + "  "), i(n.next, o);
+      case "lit":
+        h(`${JSON.stringify(n.ch)} -> ${s(n.next)}`);
+        break;
+      case "class":
+        h(`${n.re} -> ${s(n.next)}`);
+        break;
+      default:
+        h(`${n.t === "any" ? "?" : "*"} -> ${s(n.next)}`);
+    }
+    i(n.next, o);
+  };
+  return i(r, ""), [`start -> ${s(r)}`, ...t].join(`
+`);
+};
+var pe = class {
+  gen;
+  threads = [];
+  match = false;
+  runs = [];
+  ids = [];
+  constructor(t) {
+    this.gen = t;
+  }
+  get dead() {
+    return !this.threads.length && !this.match && !this.runs.length;
+  }
+};
+var es = (r, t) => r.ids.length !== t.ids.length || r.runs.length !== t.runs.length || r.ids.some((e, s) => e !== t.ids[s]) ? false : r.runs.every((e) => t.runs.some((s) => s.neg === e.neg && es(s.state, e.state)));
+var Xe = (r) => ({ has: new Float64Array(r), seen: new Float64Array(r), gen: 0 });
+var dt = class {
+  dots;
+  dotStart;
+  #t;
+  constructor(t, e, s) {
+    this.dots = t, this.dotStart = e, this.#t = s;
+  }
+  state() {
+    return new pe(++this.#t.gen);
+  }
+  done(t) {
+    return t.ids = t.threads.map((e) => e.id).sort((e, s) => e - s), t.match && t.ids.unshift(de.id), t;
+  }
+  #n(t, e) {
+    let { seen: s } = this.#t;
+    return s[e.id] === t.gen ? false : (s[e.id] = t.gen, true);
+  }
+  #i(t, e) {
+    let { has: s } = this.#t;
+    return s[e.id] === t.gen ? false : (s[e.id] = t.gen, t.threads.push(e), true);
+  }
+  restricted(t, e) {
+    return e && (this.dots || this.dotStart && t === 0);
+  }
+  add(t, e, s, i) {
+    switch (e.t) {
+      case "split":
+        if (!this.#n(t, e))
+          return;
+        for (let o of e.out)
+          this.add(t, o, s, i);
+        return;
+      case "neg":
+        if (!this.#n(t, e))
+          return;
+        let n = this.state();
+        return this.add(n, e.sub, s, false), this.done(n), this.addRun(t, { t: "run", neg: e, state: n }, s, i);
+      case "star":
+        if (this.restricted(s, i))
+          return;
+        this.#i(t, e) && this.add(t, e.next, s, i);
+        return;
+      case "match":
+        t.match = true;
+        return;
+      default:
+        this.#i(t, e);
+    }
+  }
+  addRun(t, e, s, i) {
+    for (let n of t.runs)
+      if (n.neg === e.neg && es(n.state, e.state))
+        return;
+    t.runs.push(e), e.state.match || this.add(t, e.neg.next, s, i);
+  }
+  step(t, e, s, i) {
+    let n = this.state();
+    for (let o of t.threads)
+      switch (o.t) {
+        case "lit":
+          ge(o, e) && this.add(n, o.next, s + 1, i);
+          break;
+        case "any":
+          this.restricted(s, i) || this.add(n, o.next, s + 1, i);
+          break;
+        case "class":
+          !this.restricted(s, i) && o.re.test(e) && this.add(n, o.next, s + 1, i);
+          break;
+        case "star":
+          this.restricted(s, i) || this.add(n, o, s + 1, i);
+      }
+    if (!this.restricted(s, i))
+      for (let o of t.runs) {
+        if (o.state.dead) {
+          this.addRun(n, o, s + 1, i);
+          continue;
+        }
+        let h = this.step(o.state, e, s, false);
+        this.addRun(n, { t: "run", neg: o.neg, state: h }, s + 1, i);
+      }
+    return this.done(n);
+  }
+};
+var ss = (r) => {
+  let t = r.ids.join();
+  if (!r.runs.length)
+    return t;
+  let e = r.runs.map((s) => `${s.neg.id}(${ss(s.state)})`);
+  return `${t}|${e.sort().join("|")}`;
+};
+var pi = 1 << 18;
+var me = class {
+  #t;
+  #n = new Map;
+  #i = 0;
+  #o;
+  #r;
+  #d;
+  #u;
+  constructor(t, e) {
+    this.#t = t, this.#d = new dt(false, false, e), this.#u = new dt(false, true, e);
+  }
+  #f(t) {
+    return { state: t, match: t.match, dead: t.dead, next: new Map };
+  }
+  #h(t) {
+    let e = ss(t), s = this.#n.get(e);
+    if (s)
+      return s;
+    this.#i > pi && this.#m();
+    let i = this.#f(t);
+    return this.#n.set(e, i), this.#i += e.length + 1, i;
+  }
+  #m() {
+    this.#n.clear(), this.#i = 0, this.#o = undefined, this.#r = undefined;
+  }
+  start(t) {
+    if (t) {
+      if (this.#r)
+        return this.#r;
+      let s = this.#u.state();
+      return this.#u.add(s, this.#t, 0, true), this.#r = this.#f(this.#u.done(s));
+    }
+    if (this.#o)
+      return this.#o;
+    let e = this.#d.state();
+    return this.#d.add(e, this.#t, 0, true), this.#o = this.#h(this.#d.done(e));
+  }
+  next(t, e) {
+    let s = e.charCodeAt(0), i = s < 128 ? undefined : t.next.get(e);
+    if (i)
+      return i;
+    let n = t === this.#r ? this.#h(this.#u.step(t.state, e, 0, true)) : this.#h(this.#d.step(t.state, e, 1, true));
+    return s < 128 ? (t.ascii || (t.ascii = new Array(128), this.#i += 128), t.ascii[s] = n) : t.next.set(e, n), this.#i++, n;
+  }
+};
+var mi = (r) => {
+  let t = [];
+  for (let e = r;e.t !== "match"; e = e.next) {
+    if (e.t === "split" || e.t === "neg")
+      return;
+    t.push(e);
+  }
+  return t;
+};
+var gi = (r, t, e, s) => {
+  let i = 0, n = e, o = -1, h = 0;
+  for (;n < s; ) {
+    let a = r[i];
+    if (a?.t === "star") {
+      o = i++, h = n;
+      continue;
+    }
+    let l = t[n];
+    if (a && (a.t === "any" || a.t === "lit" && ge(a, l) || a.t === "class" && a.re.test(l))) {
+      i++, n++;
+      continue;
+    }
+    if (o === -1)
+      return false;
+    i = o + 1, n = ++h;
+  }
+  for (;r[i]?.t === "star"; )
+    i++;
+  return i === r.length;
+};
+var is = (r) => {
+  let t = 0, e = 0;
+  for (let s of r) {
+    let [i, n] = wi(s);
+    t += i, e += n;
+  }
+  return [t, e];
+};
+var wi = (r) => {
+  if (r.t === "star")
+    return [0, 1 / 0];
+  if (r.t !== "ext")
+    return [1, 1];
+  if (r.type === "!")
+    return [0, 1 / 0];
+  let t = r.alts.map(is), e = Math.min(...t.map((n) => n[0])), s = Math.max(...t.map((n) => n[1])), i = s === 0 ? 0 : 1 / 0;
+  return r.type === "@" ? [e, s] : r.type === "?" ? [0, s] : r.type === "*" ? [0, i] : [e, i];
+};
+var Ve = (r, t, e) => {
+  for (let s = 0;s < r.length; s++)
+    if (!ge(r[s], t[e + s]))
+      return false;
+  return true;
+};
+var bi = /[/\ud800-\udfff]/;
+var yi = /[\ud800-\udfff]/;
+var Nt = (r) => yi.test(r) ? [...r] : r;
+var Ye = (r) => {
+  if (r.includes("/"))
+    throw new Error("can only match a single path portion, got: " + r);
+};
+var pt = class {
+  pattern;
+  options;
+  #t;
+  #n;
+  #i;
+  #o;
+  #r;
+  #d = false;
+  #u;
+  #f;
+  #h = false;
+  #m = 0;
+  #l = 1 / 0;
+  #a = [];
+  #s = [];
+  #b;
+  #E;
+  #y = false;
+  #g;
+  #w;
+  constructor(t, e = {}) {
+    if (t.includes("/"))
+      throw new Error("can only match a single path portion, got pattern: " + t);
+    this.pattern = t, this.options = e;
+    let { nocase: s = false, noext: i = false, normalize: n } = e;
+    this.#w = n === true ? "NFC" : n || undefined;
+    let o = /^[?*+@]\(\)$/.test(t), h = ci(t, s, i || o, this.#w, e.rangeMark), [a] = Qe(h, fi(h), 0, h.length, true);
+    this.#w && (a = ts(a, this.#w));
+    let [l, c] = ui(a, s);
+    if (this.#t = l, this.#n = c, a.every((f) => f.t === "lit"))
+      this.#r = a.map((f) => f.ch).join(""), this.#d = s;
+    else {
+      let f = (g) => g.t !== "lit" ? undefined : s ? { ch: g.ch, re: Ze(g.ch) } : { ch: g.ch };
+      for (let g of a) {
+        let d = f(g);
+        if (!d)
+          break;
+        this.#a.push(d);
+      }
+      for (let g = a.length - 1;g >= 0; g--) {
+        let d = f(a[g]);
+        if (!d)
+          break;
+        this.#s.unshift(d);
+      }
+      this.#y = !!(this.#a.length || this.#s.length), s || (this.#b = this.#a.map((g) => g.ch).join(""), this.#E = this.#s.map((g) => g.ch).join("")), this.#f = mi(this.#t)?.slice(this.#a.length, -this.#s.length || undefined), this.#h = !!this.#f?.every((g) => g.t === "star" || g.t === "any");
+      let [u, p] = is(a);
+      this.#m = u, this.#l = p;
+    }
+  }
+  test(t) {
+    return this.#w ? (Ye(t), this.#p(t.normalize(this.#w))) : bi.test(t) ? (Ye(t), this.#p(t, [...t])) : this.#p(t, t);
+  }
+  testUnchecked(t) {
+    return this.#p(this.#w ? t.normalize(this.#w) : t);
+  }
+  #p(t, e) {
+    if (this.#r !== undefined)
+      return this.#d ? (this.#u ??= Je(this.#r)).test(t) : t === this.#r;
+    let s = this.#m, i = this.#l;
+    if (e === undefined) {
+      let c = t.length, f = c + 1 >> 1;
+      if (c < s || f > i)
+        return false;
+      (f < s || c > i) && (e = Nt(t));
+    }
+    if (e !== undefined && (e.length < s || e.length > i))
+      return false;
+    let n = this.#a.length;
+    if (this.#y)
+      if (this.#b !== undefined && this.#E !== undefined) {
+        if (!t.startsWith(this.#b) || !t.endsWith(this.#E))
+          return false;
+      } else {
+        e ??= Nt(t);
+        let c = e.length - this.#s.length;
+        if (!Ve(this.#a, e, 0) || !Ve(this.#s, e, c))
+          return false;
+      }
+    let o = !this.options.dot && t.startsWith(".");
+    if (this.#f) {
+      if (t === "." || t === ".." || o && !n)
+        return false;
+      if (this.#h)
+        return true;
+      e ??= Nt(t);
+      let c = e.length - this.#s.length;
+      return gi(this.#f, e, n, c);
+    }
+    if (e ??= Nt(t), t === "." || t === "..") {
+      this.#i ??= Xe(this.#n);
+      let c = this.#o ??= new dt(true, false, this.#i), f = c.state();
+      c.add(f, this.#t, 0, true);
+      let u = c.done(f);
+      for (let p = 0;p < e.length; p++)
+        u = c.step(u, e[p], p, true);
+      return u.match;
+    }
+    this.#i ??= Xe(this.#n);
+    let h = this.#g ??= new me(this.#t, this.#i), a = h.start(o), l = e === t;
+    for (let c = 0;c < e.length; c++) {
+      if (a.dead)
+        return false;
+      let f = l ? t.charCodeAt(c) : e[c].charCodeAt(0);
+      a = a.ascii?.[f] ?? h.next(a, e[c]);
+    }
+    return a.match;
   }
   toString() {
-    return this.#u !== undefined ? this.#u : this.type ? this.#u = this.type + "(" + this.#r.map((t) => String(t)).join("|") + ")" : this.#u = this.#r.map((t) => String(t)).join("");
-  }
-  #a() {
-    if (this !== this.#t)
-      throw new Error("should only call on root");
-    if (this.#c)
-      return this;
-    this.toString(), this.#c = true;
-    let t;
-    for (;t = this.#w.pop(); ) {
-      if (t.type !== "!")
-        continue;
-      let e = t, s = e.#o;
-      for (;s; ) {
-        for (let i = e.#S + 1;!s.type && i < s.#r.length; i++)
-          for (let r of t.#r) {
-            if (typeof r == "string")
-              throw new Error("string part in extglob AST??");
-            r.copyIn(s.#r[i]);
-          }
-        e = s, s = e.#o;
-      }
-    }
-    return this;
-  }
-  push(...t) {
-    for (let e of t)
-      if (e !== "") {
-        if (typeof e != "string" && !(e instanceof n && e.#o === this))
-          throw new Error("invalid part: " + e);
-        this.#r.push(e);
-      }
-  }
-  toJSON() {
-    let t = this.type === null ? this.#r.slice().map((e) => typeof e == "string" ? e : e.toJSON()) : [this.type, ...this.#r.map((e) => e.toJSON())];
-    return this.isStart() && !this.type && t.unshift([]), this.isEnd() && (this === this.#t || this.#t.#c && this.#o?.type === "!") && t.push({}), t;
-  }
-  isStart() {
-    if (this.#t === this)
-      return true;
-    if (!this.#o?.isStart())
-      return false;
-    if (this.#S === 0)
-      return true;
-    let t = this.#o;
-    for (let e = 0;e < this.#S; e++) {
-      let s = t.#r[e];
-      if (!(s instanceof n && s.type === "!"))
-        return false;
-    }
-    return true;
-  }
-  isEnd() {
-    if (this.#t === this || this.#o?.type === "!")
-      return true;
-    if (!this.#o?.isEnd())
-      return false;
-    if (!this.type)
-      return this.#o?.isEnd();
-    let t = this.#o ? this.#o.#r.length : 0;
-    return this.#S === t - 1;
-  }
-  copyIn(t) {
-    typeof t == "string" ? this.push(t) : this.push(t.clone(this));
-  }
-  clone(t) {
-    let e = new n(this.type, t);
-    for (let s of this.#r)
-      e.copyIn(s);
-    return e;
-  }
-  static #i(t, e, s, i) {
-    let r = false, o = false, h = -1, a = false;
-    if (e.type === null) {
-      let f = s, m = "";
-      for (;f < t.length; ) {
-        let p = t.charAt(f++);
-        if (r || p === "\\") {
-          r = !r, m += p;
-          continue;
-        }
-        if (o) {
-          f === h + 1 ? (p === "^" || p === "!") && (a = true) : p === "]" && !(f === h + 2 && a) && (o = false), m += p;
-          continue;
-        } else if (p === "[") {
-          o = true, h = f, a = false, m += p;
-          continue;
-        }
-        if (!i.noext && be(p) && t.charAt(f) === "(") {
-          e.push(m), m = "";
-          let w = new n(p, e);
-          f = n.#i(t, w, f, i), e.push(w);
-          continue;
-        }
-        m += p;
-      }
-      return e.push(m), f;
-    }
-    let l = s + 1, u = new n(null, e), c = [], d = "";
-    for (;l < t.length; ) {
-      let f = t.charAt(l++);
-      if (r || f === "\\") {
-        r = !r, d += f;
-        continue;
-      }
-      if (o) {
-        l === h + 1 ? (f === "^" || f === "!") && (a = true) : f === "]" && !(l === h + 2 && a) && (o = false), d += f;
-        continue;
-      } else if (f === "[") {
-        o = true, h = l, a = false, d += f;
-        continue;
-      }
-      if (be(f) && t.charAt(l) === "(") {
-        u.push(d), d = "";
-        let m = new n(f, u);
-        u.push(m), l = n.#i(t, m, l, i);
-        continue;
-      }
-      if (f === "|") {
-        u.push(d), d = "", c.push(u), u = new n(null, e);
-        continue;
-      }
-      if (f === ")")
-        return d === "" && e.#r.length === 0 && (e.#f = true), u.push(d), d = "", e.push(...c, u), l;
-      d += f;
-    }
-    return e.type = null, e.#s = undefined, e.#r = [t.substring(s - 1)], l;
-  }
-  static fromGlob(t, e = {}) {
-    let s = new n(null, undefined, e);
-    return n.#i(t, s, 0, e), s;
-  }
-  toMMPattern() {
-    if (this !== this.#t)
-      return this.#t.toMMPattern();
-    let t = this.toString(), [e, s, i, r] = this.toRegExpSource();
-    if (!(i || this.#s || this.#h.nocase && !this.#h.nocaseMagicOnly && t.toUpperCase() !== t.toLowerCase()))
-      return s;
-    let h = (this.#h.nocase ? "i" : "") + (r ? "u" : "");
-    return Object.assign(new RegExp(`^${e}$`, h), { _src: e, _glob: t });
-  }
-  get options() {
-    return this.#h;
-  }
-  toRegExpSource(t) {
-    let e = t ?? !!this.#h.dot;
-    if (this.#t === this && this.#a(), !this.type) {
-      let a = this.isStart() && this.isEnd() && !this.#r.some((f) => typeof f != "string"), l = this.#r.map((f) => {
-        let [m, p, w, g] = typeof f == "string" ? n.#E(f, this.#s, a) : f.toRegExpSource(t);
-        return this.#s = this.#s || w, this.#n = this.#n || g, m;
-      }).join(""), u = "";
-      if (this.isStart() && typeof this.#r[0] == "string" && !(this.#r.length === 1 && Ts.has(this.#r[0]))) {
-        let m = Cs, p = e && m.has(l.charAt(0)) || l.startsWith("\\.") && m.has(l.charAt(2)) || l.startsWith("\\.\\.") && m.has(l.charAt(4)), w = !e && !t && m.has(l.charAt(0));
-        u = p ? vs : w ? Ct : "";
-      }
-      let c = "";
-      return this.isEnd() && this.#t.#c && this.#o?.type === "!" && (c = "(?:$|\\/)"), [u + l + c, W(l), this.#s = !!this.#s, this.#n];
-    }
-    let s = this.type === "*" || this.type === "+", i = this.type === "!" ? "(?:(?!(?:" : "(?:", r = this.#d(e);
-    if (this.isStart() && this.isEnd() && !r && this.type !== "!") {
-      let a = this.toString();
-      return this.#r = [a], this.type = null, this.#s = undefined, [a, W(this.toString()), false, false];
-    }
-    let o = !s || t || e || !Ct ? "" : this.#d(true);
-    o === r && (o = ""), o && (r = `(?:${r})(?:${o})*?`);
-    let h = "";
-    if (this.type === "!" && this.#f)
-      h = (this.isStart() && !e ? Ct : "") + Ee;
-    else {
-      let a = this.type === "!" ? "))" + (this.isStart() && !e && !t ? Ct : "") + Se + ")" : this.type === "@" ? ")" : this.type === "?" ? ")?" : this.type === "+" && o ? ")" : this.type === "*" && o ? ")?" : `)${this.type}`;
-      h = i + r + a;
-    }
-    return [h, W(r), this.#s = !!this.#s, this.#n];
-  }
-  #d(t) {
-    return this.#r.map((e) => {
-      if (typeof e == "string")
-        throw new Error("string type in extglob ast??");
-      let [s, i, r, o] = e.toRegExpSource(t);
-      return this.#n = this.#n || o, s;
-    }).filter((e) => !(this.isStart() && this.isEnd()) || !!e).join("|");
-  }
-  static #E(t, e, s = false) {
-    let i = false, r = "", o = false, h = false;
-    for (let a = 0;a < t.length; a++) {
-      let l = t.charAt(a);
-      if (i) {
-        i = false, r += (As.has(l) ? "\\" : "") + l;
-        continue;
-      }
-      if (l === "*") {
-        if (h)
-          continue;
-        h = true, r += s && /^[*]+$/.test(t) ? Ee : Se, e = true;
-        continue;
-      } else
-        h = false;
-      if (l === "\\") {
-        a === t.length - 1 ? r += "\\\\" : i = true;
-        continue;
-      }
-      if (l === "[") {
-        let [u, c, d, f] = ye(t, a);
-        if (d) {
-          r += u, o = o || c, a += d - 1, e = e || f;
-          continue;
-        }
-      }
-      if (l === "?") {
-        r += Kt, e = true;
-        continue;
-      }
-      r += ks(l);
-    }
-    return [r, W(t), !!e, o];
+    return di(this.#t);
   }
 };
-var tt = (n2, { windowsPathsNoEscape: t = false, magicalBraces: e = false } = {}) => e ? t ? n2.replace(/[?*()[\]{}]/g, "[$&]") : n2.replace(/[?*()[\]\\{}]/g, "\\$&") : t ? n2.replace(/[?*()[\]]/g, "[$&]") : n2.replace(/[?*()[\]\\]/g, "\\$&");
-var O = (n2, t, e = {}) => (at(t), !e.nocomment && t.charAt(0) === "#" ? false : new D(t, e).match(n2));
-var Rs = /^\*+([^+@!?\*\[\(]*)$/;
-var Os = (n2) => (t) => !t.startsWith(".") && t.endsWith(n2);
-var Fs = (n2) => (t) => t.endsWith(n2);
-var Ds = (n2) => (n2 = n2.toLowerCase(), (t) => !t.startsWith(".") && t.toLowerCase().endsWith(n2));
-var Ms = (n2) => (n2 = n2.toLowerCase(), (t) => t.toLowerCase().endsWith(n2));
-var Ns = /^\*+\.\*+$/;
-var _s = (n2) => !n2.startsWith(".") && n2.includes(".");
-var Ls = (n2) => n2 !== "." && n2 !== ".." && n2.includes(".");
-var Ws = /^\.\*+$/;
-var Ps = (n2) => n2 !== "." && n2 !== ".." && n2.startsWith(".");
-var js = /^\*+$/;
-var Is = (n2) => n2.length !== 0 && !n2.startsWith(".");
-var zs = (n2) => n2.length !== 0 && n2 !== "." && n2 !== "..";
-var Bs = /^\?+([^+@!?\*\[\(]*)?$/;
-var Us = ([n2, t = ""]) => {
-  let e = Ce([n2]);
-  return t ? (t = t.toLowerCase(), (s) => e(s) && s.toLowerCase().endsWith(t)) : e;
+var mt = (r) => {
+  if (typeof r != "string")
+    throw new TypeError("invalid pattern");
+  if (r.length > 65536)
+    throw new TypeError("pattern is too long");
 };
-var $s = ([n2, t = ""]) => {
-  let e = Te([n2]);
-  return t ? (t = t.toLowerCase(), (s) => e(s) && s.toLowerCase().endsWith(t)) : e;
+var K = (r, { windowsPathsNoEscape: t = false, magicalBraces: e = false } = {}) => e ? t ? r.replace(/[?*()[\]{}]/g, "[$&]") : r.replace(/[?*()[\]\\{}]/g, "\\$&") : t ? r.replace(/[?*()[\]]/g, "[$&]") : r.replace(/[?*()[\]\\]/g, "\\$&");
+var st = (r, { windowsPathsNoEscape: t = false, magicalBraces: e = true } = {}) => e ? t ? r.replace(/\[([^/\\])\]/g, "$1") : r.replace(/((?!\\).|^)\[([^/\\])\]/g, "$1$2").replace(/\\([^/])/g, "$1") : t ? r.replace(/\[([^/\\{}])\]/g, "$1") : r.replace(/((?!\\).|^)\[([^/\\{}])\]/g, "$1$2").replace(/\\([^/{}])/g, "$1");
+var T = (r, t, e = {}) => (mt(t), !e.nocomment && t.charAt(0) === "#" ? false : xi(t, e).match(r));
+var it = new Map;
+var Si = 256;
+var xi = (r, t) => {
+  let e = r + "\x00" + JSON.stringify(t), s = it.get(e);
+  return s ? it.delete(e) : (s = new D(r, { ...t }), it.size >= Si && it.delete(it.keys().next().value)), it.set(e, s), s;
 };
-var Gs = ([n2, t = ""]) => {
-  let e = Te([n2]);
-  return t ? (s) => e(s) && s.endsWith(t) : e;
-};
-var Hs = ([n2, t = ""]) => {
-  let e = Ce([n2]);
-  return t ? (s) => e(s) && s.endsWith(t) : e;
-};
-var Ce = ([n2]) => {
-  let t = n2.length;
-  return (e) => e.length === t && !e.startsWith(".");
-};
-var Te = ([n2]) => {
-  let t = n2.length;
-  return (e) => e.length === t && e !== "." && e !== "..";
-};
-var Ae = typeof process == "object" && process ? typeof process.env == "object" && process.env && process.env.__MINIMATCH_TESTING_PLATFORM__ || process.platform : "posix";
-var xe = { win32: { sep: "\\" }, posix: { sep: "/" } };
-var qs = Ae === "win32" ? xe.win32.sep : xe.posix.sep;
-O.sep = qs;
-var A = Symbol("globstar **");
-O.GLOBSTAR = A;
-var Ks = "[^/]";
-var Vs = Ks + "*?";
-var Ys = "(?:(?!(?:\\/|^)(?:\\.{1,2})($|\\/)).)*?";
-var Xs = "(?:(?!(?:\\/|^)\\.).)*?";
-var Js = (n2, t = {}) => (e) => O(e, n2, t);
-O.filter = Js;
-var N = (n2, t = {}) => Object.assign({}, n2, t);
-var Zs = (n2) => {
-  if (!n2 || typeof n2 != "object" || !Object.keys(n2).length)
-    return O;
-  let t = O;
-  return Object.assign((s, i, r = {}) => t(s, i, N(n2, r)), { Minimatch: class extends t.Minimatch {
-    constructor(i, r = {}) {
-      super(i, N(n2, r));
+var ls = typeof process == "object" && process ? process.env?.__MINIMATCH_TESTING_PLATFORM__ || process.platform : "posix";
+var ns = { win32: { sep: "\\" }, posix: { sep: "/" } };
+var vi = ls === "win32" ? ns.win32.sep : ns.posix.sep;
+T.sep = vi;
+var v = Symbol("globstar **");
+T.GLOBSTAR = v;
+var Ei = (r, t = {}) => (e) => T(e, r, t);
+T.filter = Ei;
+var U = (r, t = {}) => Object.assign({}, r, t);
+var ki = (r) => {
+  if (!r || typeof r != "object" || !Object.keys(r).length)
+    return T;
+  let t = T;
+  return Object.assign((s, i, n = {}) => t(s, i, U(r, n)), { Minimatch: class extends t.Minimatch {
+    constructor(i, n = {}) {
+      super(i, U(r, n));
     }
     static defaults(i) {
-      return t.defaults(N(n2, i)).Minimatch;
+      return t.defaults(U(r, i)).Minimatch;
     }
-  }, AST: class extends t.AST {
-    constructor(i, r, o = {}) {
-      super(i, r, N(n2, o));
-    }
-    static fromGlob(i, r = {}) {
-      return t.AST.fromGlob(i, N(n2, r));
-    }
-  }, unescape: (s, i = {}) => t.unescape(s, N(n2, i)), escape: (s, i = {}) => t.escape(s, N(n2, i)), filter: (s, i = {}) => t.filter(s, N(n2, i)), defaults: (s) => t.defaults(N(n2, s)), makeRe: (s, i = {}) => t.makeRe(s, N(n2, i)), braceExpand: (s, i = {}) => t.braceExpand(s, N(n2, i)), match: (s, i, r = {}) => t.match(s, i, N(n2, r)), sep: t.sep, GLOBSTAR: A });
+  }, unescape: (s, i = {}) => t.unescape(s, U(r, i)), escape: (s, i = {}) => t.escape(s, U(r, i)), filter: (s, i = {}) => t.filter(s, U(r, i)), defaults: (s) => t.defaults(U(r, s)), braceExpand: (s, i = {}) => t.braceExpand(s, U(r, i)), match: (s, i, n = {}) => t.match(s, i, U(r, n)), sep: t.sep, GLOBSTAR: v });
 };
-O.defaults = Zs;
-var ke = (n2, t = {}) => (at(n2), t.nobrace || !/\{(?:(?!\{).)*\}/.test(n2) ? [n2] : ge(n2, { max: t.braceExpandMax }));
-O.braceExpand = ke;
-var Qs = (n2, t = {}) => new D(n2, t).makeRe();
-O.makeRe = Qs;
-var ti = (n2, t, e = {}) => {
+T.defaults = ki;
+var xe = (r, t = {}) => (mt(r), t.nobrace || !/\{(?:(?!\{).)*\}/.test(r) ? [r] : Ge(r, { max: t.braceExpandMax }));
+T.braceExpand = xe;
+var Ci = 100;
+var Ai = /(?<![\\$])\{(-?\d+)\.\.(-?\d+)\}/g;
+var Mi = (r, t, e = {}) => {
   let s = new D(t, e);
-  return n2 = n2.filter((i) => s.match(i)), s.options.nonull && !n2.length && n2.push(t), n2;
+  return r = r.filter((i) => s.match(i)), s.options.nonull && !r.length && r.push(t), r;
 };
-O.match = ti;
-var ve = /[?*]|[+@!]\(.*?\)|\[|\]/;
-var ei = (n2) => n2.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+T.match = Mi;
+var rs = /[?*]|[+@!]\(.*?\)|\[|\]/;
+var cs = (r, t) => {
+  let e = t + 1;
+  (r.charAt(e) === "!" || r.charAt(e) === "^") && e++;
+  let s = false;
+  for (;e < r.length; e++) {
+    let i = r.charAt(e);
+    if (i === "]" && s)
+      return e;
+    s = true, i === "\\" && e++;
+  }
+  return -1;
+};
+var Ri = (r, t) => {
+  if (!t && (r === "+()" || r === "@()"))
+    return r;
+  let e = "";
+  for (let s = 0;s < r.length; s++) {
+    let i = r.charAt(s);
+    if (i === "\\")
+      e += r.charAt(++s) || i;
+    else {
+      if (i === "*" || i === "?")
+        return;
+      if (i === "[") {
+        let n = cs(r, s);
+        if (n === -1) {
+          e += i;
+          continue;
+        }
+        let o = r.slice(s + 1, n);
+        if (o.startsWith("\\") && (o = o.slice(1)), [...o].length !== 1 || "!^".includes(r.charAt(s + 1)))
+          return;
+        e += o, s = n;
+      } else {
+        if (!t && "+@!".includes(i) && r.charAt(s + 1) === "(" && r.includes(")", s + 2))
+          return;
+        e += i;
+      }
+    }
+  }
+  return e;
+};
+var Oi = (r) => {
+  if (/^[?*+@]\(\)$/.test(r) || r.includes("[:"))
+    return false;
+  let t = 0;
+  for (let e = 0;e < r.length; e++) {
+    let s = r.charAt(e);
+    if (s === "\\") {
+      if (++e === r.length)
+        return false;
+    } else if (s === "[") {
+      let i = cs(r, e);
+      i !== -1 && (e = i);
+    } else if ("+@!?*".includes(s) && r.charAt(e + 1) === "(")
+      t++, e++;
+    else if (s === ")") {
+      if (!t--)
+        return false;
+    } else if (s === "|" && !t)
+      return false;
+  }
+  return !t;
+};
+var we;
+var os5;
+var X = (r, t) => typeof r == "string" ? t === r : t !== "" && r.testUnchecked(t);
+var hs = (r, t, e, s, i) => X(r, t) ? e : s !== undefined && X(r, s) ? i : -1;
+var ve = (r) => r === "." || r === "..";
+var be = (r) => typeof r == "string" && /^[a-z]:$/i.test(r);
+var zt = (r) => typeof r == "string" && /^unc$/i.test(r);
+var ye = (r) => {
+  if (r[0] !== "" || r[1] !== "")
+    return -1;
+  let t = r[2] !== "?" ? 2 : zt(r[3]) ? 4 : -1, e = r[t], s = r[t + 1];
+  return t !== -1 && e !== undefined && e !== "" && e !== v && s !== undefined && s !== "" && s !== v ? t : -1;
+};
+var Pt = (r, t) => !ve(r) && (t || !r.startsWith("."));
+var gt = (r, t, e, s, i) => {
+  for (let n = t;n < e; ) {
+    if (r.charCodeAt(n) === 46) {
+      if (!s)
+        return true;
+      let h = r.charCodeAt(n + 1) === 46 ? n + 2 : n + 1;
+      if (h >= e || Lt(r.charCodeAt(h), i))
+        return true;
+    }
+    let o = Ee(r, n, i);
+    if (o === -1)
+      return false;
+    for (n = o + 1;n < e && Lt(r.charCodeAt(n), i); )
+      n++;
+  }
+  return false;
+};
+var Lt = (r, t) => t === "/" ? r === 47 : t === "\\" ? r === 92 : r === 47 || r === 92;
+var Ee = (r, t, e) => {
+  if (e !== "both")
+    return r.indexOf(e, t);
+  let s = r.indexOf("/", t), i = r.indexOf("\\", t);
+  return s === -1 ? i : i === -1 ? s : Math.min(s, i);
+};
+var as = (r, t, e) => e !== "both" ? r.lastIndexOf(e, t) : Math.max(r.lastIndexOf("/", t), r.lastIndexOf("\\", t));
+var Se = {};
 var D = class {
   options;
   set;
@@ -75475,11 +75842,54 @@ var D = class {
   isWindows;
   platform;
   windowsNoMagicRoot;
-  regexp;
+  maxGlobstarRecursion;
+  #t;
+  #n;
+  #i;
+  #o;
+  #r = [];
+  #d = [];
+  #u = [];
+  #f = new Map;
+  #h = false;
+  #m;
+  #l = new WeakMap;
   constructor(t, e = {}) {
-    at(t), e = e || {}, this.options = e, this.pattern = t, this.platform = e.platform || Ae, this.isWindows = this.platform === "win32";
+    mt(t), e = e || {}, this.options = e, this.maxGlobstarRecursion = e.maxGlobstarRecursion ?? 200, this.pattern = t, this.platform = e.platform || ls, this.isWindows = this.platform === "win32";
     let s = "allowWindowsEscape";
-    this.windowsPathsNoEscape = !!e.windowsPathsNoEscape || e[s] === false, this.windowsPathsNoEscape && (this.pattern = this.pattern.replace(/\\/g, "/")), this.preserveMultipleSlashes = !!e.preserveMultipleSlashes, this.regexp = null, this.negate = false, this.nonegate = !!e.nonegate, this.comment = false, this.empty = false, this.partial = !!e.partial, this.nocase = !!this.options.nocase, this.windowsNoMagicRoot = e.windowsNoMagicRoot !== undefined ? e.windowsNoMagicRoot : !!(this.isWindows && this.nocase), this.globSet = [], this.globParts = [], this.set = [], this.make();
+    this.windowsPathsNoEscape = !!e.windowsPathsNoEscape || e[s] === false, this.windowsPathsNoEscape && (this.pattern = this.pattern.replace(/\\/g, "/")), this.preserveMultipleSlashes = !!e.preserveMultipleSlashes, this.negate = false, this.nonegate = !!e.nonegate, this.comment = false, this.empty = false, this.partial = !!e.partial, this.nocase = !!this.options.nocase, this.windowsNoMagicRoot = e.windowsNoMagicRoot !== undefined ? e.windowsNoMagicRoot : !!(this.isWindows && this.nocase), this.globSet = [], this.globParts = [], this.set = [], this.#t = !this.preserveMultipleSlashes, this.#i = (e.optimizationLevel ?? 1) >= 2;
+    let i = e.normalize;
+    this.#o = i === true ? "NFC" : i || undefined, this.make();
+    let n = this.set.map((o) => this.#s(o));
+    this.#u = this.set.map((o, h) => this.#t && o.length - 1 > n[h]), this.#r = this.set.map((o, h) => {
+      let a = this.#u[h] ? o.length - 1 : o.length, l = o.slice(n[h] + 1, a).filter((c) => typeof c == "string" && !!c);
+      return [...new Set(l)];
+    }), this.#n = this.#r.some((o) => o.length), this.#d = this.set.map((o, h) => {
+      let [a, l, c] = o;
+      if (this.#u[h] && o.length === 2 && a === v && l !== v)
+        return "tail";
+      if (this.#u[h] && e.matchBase && o.length === 1 && a !== v && a !== "")
+        return "base";
+      if (!(!this.#t || n[h] !== -1)) {
+        if (o.length === 3 && a === v && c === v && l !== v && l !== "" && this.maxGlobstarRecursion > 0)
+          return "mid";
+        if (o.length === 2 && l === v && a !== v && a !== "")
+          return "head";
+      }
+    });
+  }
+  #a(t) {
+    return this.#o ? t.normalize(this.#o) : t;
+  }
+  #s(t) {
+    if (!this.isWindows)
+      return -1;
+    if (be(t[0]))
+      return 0;
+    if (t[0] === "" && t[1] === "" && t[2] === "?" && be(t[3]))
+      return 3;
+    let s = ye(t);
+    return s === -1 ? -1 : s + 1;
   }
   hasMagic() {
     if (this.options.magicalBraces && this.set.length > 1)
@@ -75490,7 +75900,6 @@ var D = class {
           return true;
     return false;
   }
-  debug(...t) {}
   make() {
     let t = this.pattern, e = this.options;
     if (!e.nocomment && t.charAt(0) === "#") {
@@ -75501,31 +75910,62 @@ var D = class {
       this.empty = true;
       return;
     }
-    this.parseNegate(), this.globSet = [...new Set(this.braceExpand())], e.debug && (this.debug = (...r) => console.error(...r)), this.debug(this.pattern, this.globSet);
-    let s = this.globSet.map((r) => this.slashSplit(r));
-    this.globParts = this.preprocess(s), this.debug(this.pattern, this.globParts);
-    let i = this.globParts.map((r, o, h) => {
+    this.parseNegate(), this.globSet = [...new Set(this.#M())];
+    let s = this.globSet.map((n) => this.#e(n));
+    this.globParts = this.preprocess(s), this.#h = true;
+    let i = this.globParts.map((n, o, h) => {
       if (this.isWindows && this.windowsNoMagicRoot) {
-        let a = r[0] === "" && r[1] === "" && (r[2] === "?" || !ve.test(r[2])) && !ve.test(r[3]), l = /^[a-z]:/i.test(r[0]);
-        if (a)
-          return [...r.slice(0, 4), ...r.slice(4).map((u) => this.parse(u))];
+        let a = n[2] === "?" && zt(n[3]) ? 6 : 4, l = n[0] === "" && n[1] === "" && (n[2] === "?" || !rs.test(n[2])) && n.slice(3, a).every((f) => !rs.test(f)), c = /^[a-z]:/i.test(n[0]);
         if (l)
-          return [r[0], ...r.slice(1).map((u) => this.parse(u))];
+          return [...n.slice(0, a).map((f) => this.#a(f)), ...n.slice(a).map((f) => this.parse(f))];
+        if (c)
+          return [this.#a(n[0]), ...n.slice(1).map((f) => this.parse(f))];
       }
-      return r.map((a) => this.parse(a));
+      return n.map((a) => this.parse(a));
     });
-    if (this.debug(this.pattern, i), this.set = i.filter((r) => r.indexOf(false) === -1), this.isWindows)
-      for (let r = 0;r < this.set.length; r++) {
-        let o = this.set[r];
-        o[0] === "" && o[1] === "" && this.globParts[r][2] === "?" && typeof o[3] == "string" && /^[a-z]:$/i.test(o[3]) && (o[2] = "?");
+    if (this.set = i.filter((n) => n.indexOf(false) === -1), this.isWindows)
+      for (let n = 0;n < this.set.length; n++) {
+        let o = this.set[n];
+        o[0] === "" && o[1] === "" && this.globParts[n][2] === "?" && (be(o[3]) || zt(this.globParts[n][3])) && (zt(this.globParts[n][3]) && (o[3] = "UNC"), o[2] = "?");
       }
-    this.debug(this.pattern, this.set);
+    e.noext || this.mergeRows(), this.#h = false, this.set.forEach((n, o) => {
+      for (let h = 0;h < n.length; h++)
+        n[h] === Se && (n[h] = this.parse(this.globParts[o][h]));
+    });
+  }
+  mergeRows() {
+    let t = true;
+    for (;t; ) {
+      t = false;
+      let e = Math.max(0, ...this.set.map((s) => s.length));
+      for (let s = 0;s < e; s++) {
+        let i = new Map;
+        this.set.forEach((o, h) => {
+          if (!(o[s] instanceof pt || o[s] === Se) || !Oi(this.globParts[h][s]))
+            return;
+          let a = [...this.globParts[h]];
+          a[s] = "";
+          let l = `${o.length}/${a.join("/")}`, c = i.get(l);
+          c ? c.push(h) : i.set(l, [h]);
+        });
+        let n = new Set;
+        for (let o of i.values()) {
+          if (o.length < 2)
+            continue;
+          let [h, ...a] = o, c = `@(${o.map((f) => this.globParts[f][s]).join("|")})`;
+          this.globParts[h][s] = c, this.set[h][s] = this.parse(c);
+          for (let f of a)
+            n.add(f);
+        }
+        n.size && (t = true, this.set = this.set.filter((o, h) => !n.has(h)), this.globParts = this.globParts.filter((o, h) => !n.has(h)));
+      }
+    }
   }
   preprocess(t) {
     if (this.options.noglobstar)
-      for (let s = 0;s < t.length; s++)
-        for (let i = 0;i < t[s].length; i++)
-          t[s][i] === "**" && (t[s][i] = "*");
+      for (let s of t)
+        for (let i = 0;i < s.length; i++)
+          s[i] === "**" && (s[i] = "*");
     let { optimizationLevel: e = 1 } = this.options;
     return e >= 2 ? (t = this.firstPhasePreProcess(t), t = this.secondPhasePreProcess(t)) : e >= 1 ? t = this.levelOneOptimize(t) : t = this.adjascentGlobstarOptimize(t), t;
   }
@@ -75542,99 +75982,210 @@ var D = class {
     });
   }
   levelOneOptimize(t) {
-    return t.map((e) => (e = e.reduce((s, i) => {
-      let r = s[s.length - 1];
-      return i === "**" && r === "**" ? s : i === ".." && r && r !== ".." && r !== "." && r !== "**" ? (s.pop(), s) : (s.push(i), s);
-    }, []), e.length === 0 ? [""] : e));
+    return t.map((e) => {
+      let s = this.#s(e) + 1;
+      return e = e.reduce((i, n) => {
+        let o = i[i.length - 1];
+        return n === "**" && o === "**" ? i : n === ".." && i.length > s && o && o !== ".." && o !== "." && o !== "**" ? (i.pop(), i) : (i.push(n), i);
+      }, []), e.length === 0 ? [""] : e;
+    });
   }
-  levelTwoFileOptimize(t) {
-    Array.isArray(t) || (t = this.slashSplit(t));
-    let e = false;
-    do {
-      if (e = false, !this.preserveMultipleSlashes) {
-        for (let i = 1;i < t.length - 1; i++) {
-          let r = t[i];
-          i === 1 && r === "" && t[0] === "" || (r === "." || r === "") && (e = true, t.splice(i, 1), i--);
+  #b(t) {
+    let e = !this.isWindows || !t.includes("\\") ? "/" : t.includes("/") ? "both" : "\\", s = this.#t ? 0 : -1, i = "", n = 0, o, h = 0, a = !!this.options.dot;
+    t:
+      for (let l = 0;l < this.set.length; l++) {
+        let c = this.set[l], f = c[c.length - 1], u = s !== -1 && this.#u[l] && f !== v;
+        if (u && s === 0) {
+          let d = as(t, t.length, e);
+          if (n = d + 1, i = t.slice(n), i === "" && d >= 0) {
+            let m = d;
+            for (;m > 0 && Lt(t.charCodeAt(m - 1), e); )
+              m--;
+            h = m === 0 ? 0 : as(t, m - 1, e) + 1, o = t.slice(h, m);
+          }
+          let w = this.#i && (ve(i) || i === "" && o !== undefined && ve(o));
+          s = w ? -1 : 1, u = !w;
         }
-        t[0] === "." && t.length === 2 && (t[1] === "." || t[1] === "") && (e = true, t.pop());
+        let p = -1;
+        if (u && typeof f == "string" && (p = hs(f, i, n, o, h), p === -1))
+          continue;
+        if (this.#n) {
+          for (let d of this.#r[l])
+            if (!t.includes(d))
+              continue t;
+        }
+        if (u && typeof f == "object" && (p = hs(f, i, n, o, h), p === -1))
+          continue;
+        let g = this.#d[l];
+        if (g === "base" && u)
+          return "yes";
+        if (g === "tail" && u) {
+          if (this.#i && gt(t, 0, p, true, e))
+            return "maybe";
+          if (!gt(t, 0, p, a, e))
+            return "yes";
+          continue;
+        }
+        if (g === "mid" || g === "head") {
+          let d = this.#y(t, c, g === "head", a, e);
+          if (d !== "no")
+            return d;
+          continue;
+        }
+        return "maybe";
       }
-      let s = 0;
-      for (;(s = t.indexOf("..", s + 1)) !== -1; ) {
-        let i = t[s - 1];
-        i && i !== "." && i !== ".." && i !== "**" && (e = true, t.splice(s - 1, 2), s -= 2);
+    return "no";
+  }
+  #E(t, e, s) {
+    let i = !!this.options.dot, n = t.length;
+    if (s === "head") {
+      if (n < 2 || !X(e[0], t[0]))
+        return false;
+      for (let h = 1;h < n; h++)
+        if (!Pt(t[h], i))
+          return false;
+      return true;
+    }
+    let o = e[1];
+    if (s === "tail") {
+      let h = n - 1;
+      if (!X(o, t[h]) && (t[h] !== "" || n === 1 || !X(o, t[--h])))
+        return false;
+      for (let a = 0;a < h; a++)
+        if (!Pt(t[a], i))
+          return false;
+      return true;
+    }
+    for (let h = 0;h < n; h++) {
+      if (X(o, t[h]) && h + 1 < n) {
+        let a = h + 1;
+        for (;a < n && Pt(t[a], i); )
+          a++;
+        if (a === n)
+          return true;
       }
-    } while (e);
-    return t.length === 0 ? [""] : t;
+      if (!Pt(t[h], i))
+        return false;
+    }
+    return false;
+  }
+  #y(t, e, s, i, n) {
+    if (this.#i && gt(t, 0, t.length, true, n))
+      return "maybe";
+    let o = e[s ? 0 : 1], h = 0;
+    for (let a = Ee(t, h, n);a !== -1; a = Ee(t, h, n)) {
+      let l = a + 1;
+      for (;l < t.length && Lt(t.charCodeAt(l), n); )
+        l++;
+      if ((typeof o == "string" ? a - h === o.length && t.startsWith(o, h) : a > h && o.testUnchecked(t.slice(h, a))) && !gt(t, l, t.length, i, n))
+        return "yes";
+      if (s || gt(t, h, l, i, n))
+        return "no";
+      h = l;
+    }
+    return "no";
+  }
+  #g(t) {
+    let e = we;
+    return e?.f === t && e.isWindows === this.isWindows && e.preserveMultipleSlashes === this.preserveMultipleSlashes && e.normalize === this.#o ? e : undefined;
+  }
+  #w(t) {
+    let { isWindows: e, preserveMultipleSlashes: s } = this, i = this.#e(e ? t.split("\\").join("/") : t), n = this.#o;
+    return n && (i = i.map((o) => o.normalize(n))), we = { f: t, isWindows: e, preserveMultipleSlashes: s, normalize: n, parts: i }, we;
+  }
+  #p(t) {
+    let e = [...t], s = false;
+    do {
+      if (s = false, !this.preserveMultipleSlashes) {
+        for (let o = 1;o < e.length - 1; o++) {
+          let h = e[o];
+          o === 1 && h === "" && e[0] === "" || (h === "." || h === "") && (s = true, e.splice(o, 1), o--);
+        }
+        e[0] === "." && e.length === 2 && (e[1] === "." || e[1] === "") && (s = true, e.pop());
+      }
+      let i = this.#s(e) + 1, n = i;
+      for (;(n = e.indexOf("..", n + 1)) !== -1; ) {
+        let o = e[n - 1];
+        o && o !== "." && o !== ".." && o !== "**" && (s = true, e.splice(n - 1, 2), n = Math.max(n - 2, i));
+      }
+    } while (s);
+    return e.length === 0 ? [""] : e;
   }
   firstPhasePreProcess(t) {
-    let e = false;
+    let { braceExpandMax: e = 1e5 } = this.options, s = 0, i = 1e6, n = false;
     do {
-      e = false;
-      for (let s of t) {
-        let i = -1;
-        for (;(i = s.indexOf("**", i + 1)) !== -1; ) {
-          let o = i;
-          for (;s[o + 1] === "**"; )
-            o++;
-          o > i && s.splice(i + 1, o - i);
-          let h = s[i + 1], a = s[i + 2], l = s[i + 3];
-          if (h !== ".." || !a || a === "." || a === ".." || !l || l === "." || l === "..")
+      n = false;
+      for (let o of t) {
+        let h = -1;
+        for (;(h = o.indexOf("**", h + 1)) !== -1; ) {
+          let c = h;
+          for (;o[c + 1] === "**"; )
+            c++;
+          c > h && o.splice(h + 1, c - h);
+          let f = o[h + 1], u = o[h + 2], p = o[h + 3];
+          if (f !== ".." || !u || u === "." || u === ".." || !p || p === "." || p === "..")
             continue;
-          e = true, s.splice(i, 1);
-          let u = s.slice(0);
-          u[i] = "**", t.push(u), i--;
+          let g = o.length - 1;
+          if (t.length >= e || s + g > i)
+            throw new RangeError("optimizationLevel 2: too many patterns from '**/..'");
+          n = true, o.splice(h, 1);
+          let d = o.slice(0);
+          d[h] = "**", s += g, t.push(d), h--;
         }
         if (!this.preserveMultipleSlashes) {
-          for (let o = 1;o < s.length - 1; o++) {
-            let h = s[o];
-            o === 1 && h === "" && s[0] === "" || (h === "." || h === "") && (e = true, s.splice(o, 1), o--);
+          for (let c = 1;c < o.length - 1; c++) {
+            let f = o[c];
+            c === 1 && f === "" && o[0] === "" || (f === "." || f === "") && (n = true, o.splice(c, 1), c--);
           }
-          s[0] === "." && s.length === 2 && (s[1] === "." || s[1] === "") && (e = true, s.pop());
+          o[0] === "." && o.length === 2 && (o[1] === "." || o[1] === "") && (n = true, o.pop());
         }
-        let r = 0;
-        for (;(r = s.indexOf("..", r + 1)) !== -1; ) {
-          let o = s[r - 1];
-          if (o && o !== "." && o !== ".." && o !== "**") {
-            e = true;
-            let a = r === 1 && s[r + 1] === "**" ? ["."] : [];
-            s.splice(r - 1, 2, ...a), s.length === 0 && s.push(""), r -= 2;
+        let a = this.#s(o) + 1, l = a;
+        for (;(l = o.indexOf("..", l + 1)) !== -1; ) {
+          let c = o[l - 1];
+          if (c && c !== "." && c !== ".." && c !== "**") {
+            n = true;
+            let u = l === 1 && o[l + 1] === "**" ? ["."] : [];
+            o.splice(l - 1, 2, ...u), o.length === 0 && o.push(""), l = Math.max(l - 2, a);
           }
         }
       }
-    } while (e);
+    } while (n);
     return t;
   }
   secondPhasePreProcess(t) {
-    for (let e = 0;e < t.length - 1; e++)
-      for (let s = e + 1;s < t.length; s++) {
-        let i = this.partsMatch(t[e], t[s], !this.preserveMultipleSlashes);
-        if (i) {
-          t[e] = [], t[s] = i;
-          break;
+    let e = new Set, s = t.filter((o) => {
+      let h = o.join("/");
+      return e.has(h) ? false : (e.add(h), true);
+    }), i = new Map;
+    for (let o of s) {
+      let h = [];
+      for (let a = 0;a < o.length; a++)
+        o[a] === "*" && h.push(a);
+      h.length && i.set(h.join(","), h);
+    }
+    if (!i.size || s.length * i.size > 1e5)
+      return s;
+    let { dot: n } = this.options;
+    return s.filter((o) => {
+      for (let h of i.values()) {
+        if (h[h.length - 1] >= o.length)
+          continue;
+        let a = [...o], l = true, c = false;
+        for (let f of h) {
+          let u = o[f];
+          if (u !== "*") {
+            if (!u || u === "**" || !n && u.startsWith(".")) {
+              l = false;
+              break;
+            }
+            a[f] = "*", c = true;
+          }
         }
+        if (l && c && e.has(a.join("/")))
+          return false;
       }
-    return t.filter((e) => e.length);
-  }
-  partsMatch(t, e, s = false) {
-    let i = 0, r = 0, o = [], h = "";
-    for (;i < t.length && r < e.length; )
-      if (t[i] === e[r])
-        o.push(h === "b" ? e[r] : t[i]), i++, r++;
-      else if (s && t[i] === "**" && e[r] === t[i + 1])
-        o.push(t[i]), i++;
-      else if (s && e[r] === "**" && t[i] === e[r + 1])
-        o.push(e[r]), r++;
-      else if (t[i] === "*" && e[r] && (this.options.dot || !e[r].startsWith(".")) && e[r] !== "**") {
-        if (h === "b")
-          return false;
-        h = "a", o.push(t[i]), i++, r++;
-      } else if (e[r] === "*" && t[i] && (this.options.dot || !t[i].startsWith(".")) && t[i] !== "**") {
-        if (h === "a")
-          return false;
-        h = "b", o.push(e[r]), i++, r++;
-      } else
-        return false;
-    return t.length === e.length && o;
+      return true;
+    });
   }
   parseNegate() {
     if (this.nonegate)
@@ -75644,198 +76195,226 @@ var D = class {
       e = !e, s++;
     s && (this.pattern = t.slice(s)), this.negate = e;
   }
-  matchOne(t, e, s = false) {
-    let i = this.options;
-    if (this.isWindows) {
-      let p = typeof t[0] == "string" && /^[a-z]:$/i.test(t[0]), w = !p && t[0] === "" && t[1] === "" && t[2] === "?" && /^[a-z]:$/i.test(t[3]), g = typeof e[0] == "string" && /^[a-z]:$/i.test(e[0]), S = !g && e[0] === "" && e[1] === "" && e[2] === "?" && typeof e[3] == "string" && /^[a-z]:$/i.test(e[3]), E = w ? 3 : p ? 0 : undefined, y = S ? 3 : g ? 0 : undefined;
-      if (typeof E == "number" && typeof y == "number") {
-        let [b, z] = [t[E], e[y]];
-        b.toLowerCase() === z.toLowerCase() && (e[y] = b, y > E ? e = e.slice(y) : E > y && (t = t.slice(E)));
+  #k(t, e, s, i) {
+    let n = 0, o = 0, h = this.isWindows ? ye(e) : -1, a = h === -1 ? -1 : ye(s);
+    if (a !== -1) {
+      let l = s[a], c = s[a + 1];
+      typeof l != "string" || typeof c != "string" ? (n = h, o = a) : e[h].toLowerCase() === l.toLowerCase() && e[h + 1].toLowerCase() === c.toLowerCase() && (n = h + 2, o = a + 2);
+    } else if (this.isWindows) {
+      let l = typeof t[0] == "string" && /^[a-z]:$/i.test(t[0]), c = !l && t[0] === "" && t[1] === "" && t[2] === "?" && /^[a-z]:$/i.test(t[3]), f = typeof s[0] == "string" && /^[a-z]:$/i.test(s[0]), u = !f && s[0] === "" && s[1] === "" && s[2] === "?" && typeof s[3] == "string" && /^[a-z]:$/i.test(s[3]), p = c ? 3 : l ? 0 : undefined, g = u ? 3 : f ? 0 : undefined;
+      if (typeof p == "number" && typeof g == "number") {
+        let [d, w] = [t[p], s[g]];
+        d.toLowerCase() === w.toLowerCase() && (o = g + 1, n = p + 1);
       }
     }
-    let { optimizationLevel: r = 1 } = this.options;
-    r >= 2 && (t = this.levelTwoFileOptimize(t)), this.debug("matchOne", this, { file: t, pattern: e }), this.debug("matchOne", t.length, e.length);
-    for (var o = 0, h = 0, a = t.length, l = e.length;o < a && h < l; o++, h++) {
-      this.debug("matchOne loop");
-      var u = e[h], c = t[o];
-      if (this.debug(e, u, c), u === false)
+    return t = e, s.includes(v) ? this.#C(t, s, i, n, o) : this.#S(t, s, i, n, o);
+  }
+  #C(t, e, s, i, n) {
+    let { head: o, body: h, tail: a, segments: l } = this.#x(e, s, n);
+    if (o.length) {
+      let f = i + o.length;
+      if (!this.#S(t, o, s, i, 0, f))
         return false;
-      if (u === A) {
-        this.debug("GLOBSTAR", [e, u, c]);
-        var d = o, f = h + 1;
-        if (f === l) {
-          for (this.debug("** at the end");o < a; o++)
-            if (t[o] === "." || t[o] === ".." || !i.dot && t[o].charAt(0) === ".")
-              return false;
-          return true;
-        }
-        for (;d < a; ) {
-          var m = t[d];
-          if (this.debug(`
-globstar while`, t, d, e, f, m), this.matchOne(t.slice(d), e.slice(f), s))
-            return this.debug("globstar found match!", d, a, m), true;
-          if (m === "." || m === ".." || !i.dot && m.charAt(0) === ".") {
-            this.debug("dot detected!", t, d, e, f);
-            break;
-          }
-          this.debug("globstar swallow a segment, and continue"), d++;
-        }
-        return !!(s && (this.debug(`
->>> no match, partial?`, t, d, e, f), d === a));
+      i += o.length, n += o.length;
+    }
+    let c = 0;
+    if (a.length) {
+      if (a.length + i > t.length)
+        return false;
+      let f = t.length - a.length;
+      if (this.#S(t, a, s, f, 0))
+        c = a.length;
+      else {
+        if (t[t.length - 1] !== "" || i + a.length === t.length || (f--, !this.#S(t, a, s, f, 0)))
+          return false;
+        c = a.length + 1;
       }
-      let p;
-      if (typeof u == "string" ? (p = c === u, this.debug("string match", u, c, p)) : (p = u.test(c), this.debug("pattern match", u, c, p)), !p)
+    }
+    if (!h.length) {
+      let f = !!c;
+      for (let u = i;u < t.length - c; u++) {
+        let p = String(t[u]);
+        if (f = true, p === "." || p === ".." || !this.options.dot && p.startsWith("."))
+          return false;
+      }
+      return s || f;
+    }
+    return !!this.#v(t, l, t.length - c, i, 0, s, 0, !!c, new Set);
+  }
+  #x(t, e, s) {
+    let i = this.#l.get(t);
+    i || (i = [], this.#l.set(t, i));
+    let n = s * 2 + (e ? 1 : 0), o = i[n];
+    if (o)
+      return o;
+    let h = t.indexOf(v, s), a = t.lastIndexOf(v), l = t.slice(s, h), c = t.slice(h + 1, e ? undefined : a), f = e ? [] : t.slice(a + 1), u = [[[], 0]], p = u[0], g = 0, d = [0];
+    for (let m of c)
+      m === v ? (d.push(g), p = [[], 0], u.push(p)) : (p[0].push(m), g++);
+    u.forEach((m, b) => {
+      m[1] = g - d[b];
+    });
+    let w = { head: l, body: c, tail: f, segments: u };
+    return i[n] = w, w;
+  }
+  #v(t, e, s, i, n, o, h, a, l) {
+    let c = e[n];
+    if (!c) {
+      if (o)
+        return i >= s || i === s - 1 && t[i] === "";
+      for (let g = i;g < s; g++) {
+        a = true;
+        let d = t[g];
+        if (d === "." || d === ".." || !this.options.dot && d.startsWith("."))
+          return false;
+      }
+      return a;
+    }
+    let [f, u] = c, p = o ? s : s - u;
+    for (;i <= p; ) {
+      let g = n * (t.length + 1) + i;
+      if (l.has(g))
+        return false;
+      if (l.add(g), this.#S(t, f, o, i, 0, i + f.length) && h < this.maxGlobstarRecursion) {
+        let m = this.#v(t, e, s, i + f.length, n + 1, o, h + 1, a, l);
+        if (m !== false)
+          return m;
+      }
+      if (i === p)
+        break;
+      let w = t[i];
+      if (w === "." || w === ".." || !this.options.dot && w.startsWith("."))
+        return false;
+      i++;
+    }
+    return o || null;
+  }
+  #S(t, e, s, i, n, o = t.length) {
+    let h, a, l, c;
+    for (h = i, a = n, c = Math.min(o, t.length), l = e.length;h < c && a < l; h++, a++) {
+      let f = e[a], u = t[h];
+      if (f === false || f === v || !X(f, u))
         return false;
     }
-    if (o === a && h === l)
+    if (h === c && a === l)
       return true;
-    if (o === a)
+    if (h === c)
       return s;
-    if (h === l)
-      return o === a - 1 && t[o] === "";
+    if (a === l)
+      return h === c - 1 && t[h] === "";
     throw new Error("wtf?");
   }
   braceExpand() {
-    return ke(this.pattern, this.options);
+    return xe(this.pattern, this.options);
+  }
+  #M() {
+    let { pattern: t } = this;
+    if (this.options.nobrace)
+      return this.braceExpand();
+    let e = 57344;
+    for (;t.includes(String.fromCharCode(e)); )
+      if (++e > 63743)
+        return this.braceExpand();
+    let s = String.fromCharCode(e), i = false, n = t.replace(Ai, (h, a, l) => {
+      let c = Number(a), f = Number(l);
+      return !Number.isSafeInteger(c) || !Number.isSafeInteger(f) || Math.abs(c - f) + 1 < Ci ? h : (i = true, `${s}${a}..${l}${s}`);
+    });
+    if (!i)
+      return this.braceExpand();
+    let o = xe(n, this.options);
+    for (let h of o)
+      for (let a of h.split("/")) {
+        let l = a.indexOf("[");
+        if (l !== -1 && l < a.lastIndexOf(s))
+          return this.braceExpand();
+      }
+    return this.#m = s, o;
   }
   parse(t) {
-    at(t);
+    mt(t);
     let e = this.options;
     if (t === "**")
-      return A;
+      return v;
     if (t === "")
       return "";
-    let s, i = null;
-    (s = t.match(js)) ? i = e.dot ? zs : Is : (s = t.match(Rs)) ? i = (e.nocase ? e.dot ? Ms : Ds : e.dot ? Fs : Os)(s[1]) : (s = t.match(Bs)) ? i = (e.nocase ? e.dot ? $s : Us : e.dot ? Gs : Hs)(s) : (s = t.match(Ns)) ? i = e.dot ? Ls : _s : (s = t.match(Ws)) && (i = Ps);
-    let r = Q.fromGlob(t, this.options).toMMPattern();
-    return i && typeof r == "object" && Reflect.defineProperty(r, "test", { value: i }), r;
+    let { nocase: s, nocaseMagicOnly: i, noext: n = false, dot: o, normalize: h } = e, a = this.#m, l = a && t.includes(a) ? undefined : Ri(t, n);
+    if (l !== undefined && !(s && !i && t.toUpperCase() !== t.toLowerCase()))
+      return this.#a(l);
+    if (this.#h)
+      return Se;
+    let c = this.#f.get(t);
+    return c || (c = new pt(t, { nocase: s, noext: n, dot: o, normalize: h, ...a && { rangeMark: a } }), this.#f.set(t, c)), c;
   }
-  makeRe() {
-    if (this.regexp || this.regexp === false)
-      return this.regexp;
-    let t = this.set;
-    if (!t.length)
-      return this.regexp = false, this.regexp;
-    let e = this.options, s = e.noglobstar ? Vs : e.dot ? Ys : Xs, i = new Set(e.nocase ? ["i"] : []), r = t.map((a) => {
-      let l = a.map((c) => {
-        if (c instanceof RegExp)
-          for (let d of c.flags.split(""))
-            i.add(d);
-        return typeof c == "string" ? ei(c) : c === A ? A : c._src;
-      });
-      l.forEach((c, d) => {
-        let f = l[d + 1], m = l[d - 1];
-        c !== A || m === A || (m === undefined ? f !== undefined && f !== A ? l[d + 1] = "(?:\\/|" + s + "\\/)?" + f : l[d] = s : f === undefined ? l[d - 1] = m + "(?:\\/|\\/" + s + ")?" : f !== A && (l[d - 1] = m + "(?:\\/|\\/" + s + "\\/)" + f, l[d + 1] = A));
-      });
-      let u = l.filter((c) => c !== A);
-      if (this.partial && u.length >= 1) {
-        let c = [];
-        for (let d = 1;d <= u.length; d++)
-          c.push(u.slice(0, d).join("/"));
-        return "(?:" + c.join("|") + ")";
-      }
-      return u.join("/");
-    }).join("|"), [o, h] = t.length > 1 ? ["(?:", ")"] : ["", ""];
-    r = "^" + o + r + h + "$", this.partial && (r = "^(?:\\/|" + o + r.slice(1, -1) + h + ")$"), this.negate && (r = "^(?!" + r + ").+$");
-    try {
-      this.regexp = new RegExp(r, [...i].join(""));
-    } catch {
-      this.regexp = false;
-    }
-    return this.regexp;
-  }
-  slashSplit(t) {
-    return this.preserveMultipleSlashes ? t.split("/") : this.isWindows && /^\/\/[^\/]+/.test(t) ? ["", ...t.split(/\/+/)] : t.split(/\/+/);
+  #e(t) {
+    return this.preserveMultipleSlashes ? t.split("/") : this.isWindows && /^\/\/[^/]+/.test(t) ? ["", ...t.split(/\/+/)] : t.split(/\/+/);
   }
   match(t, e = this.partial) {
-    if (this.debug("match", t, this.pattern), this.comment)
+    if (this.comment)
       return false;
     if (this.empty)
       return t === "";
     if (t === "/" && e)
       return true;
-    let s = this.options;
-    this.isWindows && (t = t.split("\\").join("/"));
-    let i = this.slashSplit(t);
-    this.debug(this.pattern, "split", i);
-    let r = this.set;
-    this.debug(this.pattern, "set", r);
-    let o = i[i.length - 1];
-    if (!o)
-      for (let h = i.length - 2;!o && h >= 0; h--)
-        o = i[h];
-    for (let h = 0;h < r.length; h++) {
-      let a = r[h], l = i;
-      if (s.matchBase && a.length === 1 && (l = [o]), this.matchOne(l, a, e))
+    let s = this.options, i = this.#g(t);
+    if (!i) {
+      if (!e && !this.#o && (this.#t || this.#n) && os5 !== t) {
+        os5 = t;
+        let l = this.#b(t);
+        if (l === "no")
+          return s.flipNegate ? false : this.negate;
+        if (l === "yes")
+          return s.flipNegate ? true : !this.negate;
+      }
+      i = this.#w(t);
+    }
+    let n = i.parts, o = this.#i ? i.resolved ??= this.#p(n) : n, h = this.set, a = n[n.length - 1];
+    if (!a)
+      for (let l = n.length - 2;!a && l >= 0; l--)
+        a = n[l];
+    for (let l = 0;l < h.length; l++) {
+      let c = h[l], f = e ? undefined : this.#d[l];
+      if (f === "base" ? X(c[0], a) : f ? this.#E(o, c, f) : s.matchBase && c.length === 1 ? this.#k([a], [a], c, e) : this.#k(n, o, c, e))
         return s.flipNegate ? true : !this.negate;
     }
     return s.flipNegate ? false : this.negate;
   }
   static defaults(t) {
-    return O.defaults(t).Minimatch;
+    return T.defaults(t).Minimatch;
   }
 };
-O.AST = Q;
-O.Minimatch = D;
-O.escape = tt;
-O.unescape = W;
-var si = typeof performance == "object" && performance && typeof performance.now == "function" ? performance : Date;
-var Oe = new Set;
-var Vt = typeof process == "object" && process ? process : {};
-var Fe = (n2, t, e, s) => {
-  typeof Vt.emitWarning == "function" ? Vt.emitWarning(n2, t, e, s) : console.error(`[${e}] ${t}: ${n2}`);
+T.Minimatch = D;
+T.escape = K;
+T.unescape = st;
+var M = Ti("lru-cache:metrics");
+var wt = Fi("lru-cache");
+var _i = typeof performance == "object" && performance && typeof performance.now == "function" ? performance : Date;
+var ke = () => M.hasSubscribers || wt.hasSubscribers;
+var us = new Set;
+var fs2 = typeof process == "object" && process ? process : {};
+var Di = (r, t, e, s) => {
+  typeof fs2.emitWarning == "function" ? fs2.emitWarning(r, t, e, s) : console.error(`[${e}] ${t}: ${r}`);
 };
-var At = globalThis.AbortController;
-var Re = globalThis.AbortSignal;
-if (typeof At > "u") {
-  Re = class {
-    onabort;
-    _onabort = [];
-    reason;
-    aborted = false;
-    addEventListener(e, s) {
-      this._onabort.push(s);
-    }
-  }, At = class {
-    constructor() {
-      t();
-    }
-    signal = new Re;
-    abort(e) {
-      if (!this.signal.aborted) {
-        this.signal.reason = e, this.signal.aborted = true;
-        for (let s of this.signal._onabort)
-          s(e);
-        this.signal.onabort?.(e);
-      }
-    }
-  };
-  let n2 = Vt.env?.LRU_CACHE_IGNORE_AC_WARNING !== "1", t = () => {
-    n2 && (n2 = false, Fe("AbortController is not defined. If using lru-cache in node 14, load an AbortController polyfill from the `node-abort-controller` package. A minimal polyfill is provided for use by LRUCache.fetch(), but it should not be relied upon in other contexts (eg, passing it to other APIs that use AbortController/AbortSignal might have undesirable effects). You may disable this with LRU_CACHE_IGNORE_AC_WARNING=1 in the env.", "NO_ABORT_CONTROLLER", "ENOTSUP", t));
-  };
-}
-var ii = (n2) => !Oe.has(n2);
-var q = (n2) => n2 && n2 === Math.floor(n2) && n2 > 0 && isFinite(n2);
-var De = (n2) => q(n2) ? n2 <= Math.pow(2, 8) ? Uint8Array : n2 <= Math.pow(2, 16) ? Uint16Array : n2 <= Math.pow(2, 32) ? Uint32Array : n2 <= Number.MAX_SAFE_INTEGER ? Tt : null : null;
-var Tt = class extends Array {
-  constructor(n2) {
-    super(n2), this.fill(0);
+var Ni = (r) => !us.has(r);
+var V = (r) => !!r && r === Math.floor(r) && r > 0 && isFinite(r);
+var ds = (r) => V(r) ? r <= Math.pow(2, 8) ? Uint8Array : r <= Math.pow(2, 16) ? Uint16Array : r <= Math.pow(2, 32) ? Uint32Array : r <= Number.MAX_SAFE_INTEGER ? jt : null : null;
+var jt = class extends Array {
+  constructor(r) {
+    super(r), this.fill(0);
   }
 };
-var ri = class ct {
+var Pi = class bt {
   heap;
   length;
   static #t = false;
   static create(t) {
-    let e = De(t);
+    let e = ds(t);
     if (!e)
       return [];
-    ct.#t = true;
-    let s = new ct(t, e);
-    return ct.#t = false, s;
+    bt.#t = true;
+    let s = new bt(t, e);
+    return bt.#t = false, s;
   }
   constructor(t, e) {
-    if (!ct.#t)
+    if (!bt.#t)
       throw new TypeError("instantiate Stack using Stack.create(n)");
     this.heap = new e(t), this.length = 0;
   }
@@ -75846,17 +76425,17 @@ var ri = class ct {
     return this.heap[--this.length];
   }
 };
-var ft = class Me {
+var yt = class ps {
   #t;
-  #s;
   #n;
-  #r;
+  #i;
   #o;
-  #S;
-  #w;
-  #c;
+  #r;
+  #d;
+  #u;
+  #f;
   get perf() {
-    return this.#c;
+    return this.#f;
   }
   ttl;
   ttlResolution;
@@ -75873,282 +76452,290 @@ var ft = class Me {
   allowStaleOnFetchAbort;
   allowStaleOnFetchRejection;
   ignoreFetchAbort;
+  backgroundFetchSize;
   #h;
-  #u;
-  #f;
-  #a;
-  #i;
-  #d;
-  #E;
-  #b;
-  #p;
-  #R;
   #m;
-  #C;
-  #T;
-  #g;
+  #l;
+  #a;
+  #s;
+  #b;
+  #E;
   #y;
+  #g;
+  #w;
+  #p;
+  #k;
+  #C;
   #x;
-  #A;
+  #v;
+  #S;
+  #M;
   #e;
-  #_;
+  #T;
   static unsafeExposeInternals(t) {
-    return { starts: t.#T, ttls: t.#g, autopurgeTimers: t.#y, sizes: t.#C, keyMap: t.#f, keyList: t.#a, valList: t.#i, next: t.#d, prev: t.#E, get head() {
-      return t.#b;
+    return { starts: t.#C, ttls: t.#x, autopurgeTimers: t.#v, sizes: t.#k, keyMap: t.#l, keyList: t.#a, valList: t.#s, next: t.#b, prev: t.#E, get head() {
+      return t.#y;
     }, get tail() {
-      return t.#p;
-    }, free: t.#R, isBackgroundFetch: (e) => t.#l(e), backgroundFetch: (e, s, i, r) => t.#U(e, s, i, r), moveToTail: (e) => t.#W(e), indexes: (e) => t.#F(e), rindexes: (e) => t.#D(e), isStale: (e) => t.#v(e) };
+      return t.#g;
+    }, free: t.#w, isBackgroundFetch: (e) => t.#c(e), backgroundFetch: (e, s, i, n) => t.#L(e, s, i, n), moveToTail: (e) => t.#X(e), indexes: (e) => t.#O(e), rindexes: (e) => t.#F(e), isStale: (e) => t.#A(e) };
   }
   get max() {
     return this.#t;
   }
   get maxSize() {
-    return this.#s;
+    return this.#n;
   }
   get calculatedSize() {
-    return this.#u;
+    return this.#m;
   }
   get size() {
     return this.#h;
   }
   get fetchMethod() {
-    return this.#S;
+    return this.#d;
   }
   get memoMethod() {
-    return this.#w;
+    return this.#u;
   }
   get dispose() {
-    return this.#n;
+    return this.#i;
   }
   get onInsert() {
-    return this.#r;
-  }
-  get disposeAfter() {
     return this.#o;
   }
+  get disposeAfter() {
+    return this.#r;
+  }
   constructor(t) {
-    let { max: e = 0, ttl: s, ttlResolution: i = 1, ttlAutopurge: r, updateAgeOnGet: o, updateAgeOnHas: h, allowStale: a, dispose: l, onInsert: u, disposeAfter: c, noDisposeOnSet: d, noUpdateTTL: f, maxSize: m = 0, maxEntrySize: p = 0, sizeCalculation: w, fetchMethod: g, memoMethod: S, noDeleteOnFetchRejection: E, noDeleteOnStaleGet: y, allowStaleOnFetchRejection: b, allowStaleOnFetchAbort: z, ignoreFetchAbort: $, perf: J } = t;
-    if (J !== undefined && typeof J?.now != "function")
+    let { max: e = 0, ttl: s, ttlResolution: i = 1, ttlAutopurge: n, updateAgeOnGet: o, updateAgeOnHas: h, allowStale: a, dispose: l, onInsert: c, disposeAfter: f, noDisposeOnSet: u, noUpdateTTL: p, maxSize: g = 0, maxEntrySize: d = 0, sizeCalculation: w, fetchMethod: m, memoMethod: b, noDeleteOnFetchRejection: x, noDeleteOnStaleGet: S, allowStaleOnFetchRejection: y, allowStaleOnFetchAbort: q, ignoreFetchAbort: W, backgroundFetchSize: B = 1, perf: et } = t;
+    if (this.backgroundFetchSize = B, et !== undefined && typeof et?.now != "function")
       throw new TypeError("perf option must have a now() method if specified");
-    if (this.#c = J ?? si, e !== 0 && !q(e))
+    if (this.#f = et ?? _i, e !== 0 && !V(e))
       throw new TypeError("max option must be a nonnegative integer");
-    let Z = e ? De(e) : Array;
-    if (!Z)
+    let ie = e ? ds(e) : Array;
+    if (!ie)
       throw new Error("invalid max value: " + e);
-    if (this.#t = e, this.#s = m, this.maxEntrySize = p || this.#s, this.sizeCalculation = w, this.sizeCalculation) {
-      if (!this.#s && !this.maxEntrySize)
+    if (this.#t = e, this.#n = g, this.maxEntrySize = d || this.#n, this.sizeCalculation = w, this.sizeCalculation) {
+      if (!this.#n && !this.maxEntrySize)
         throw new TypeError("cannot set sizeCalculation without setting maxSize or maxEntrySize");
       if (typeof this.sizeCalculation != "function")
         throw new TypeError("sizeCalculation set to non-function");
     }
-    if (S !== undefined && typeof S != "function")
+    if (b !== undefined && typeof b != "function")
       throw new TypeError("memoMethod must be a function if defined");
-    if (this.#w = S, g !== undefined && typeof g != "function")
+    if (this.#u = b, m !== undefined && typeof m != "function")
       throw new TypeError("fetchMethod must be a function if specified");
-    if (this.#S = g, this.#A = !!g, this.#f = new Map, this.#a = new Array(e).fill(undefined), this.#i = new Array(e).fill(undefined), this.#d = new Z(e), this.#E = new Z(e), this.#b = 0, this.#p = 0, this.#R = ri.create(e), this.#h = 0, this.#u = 0, typeof l == "function" && (this.#n = l), typeof u == "function" && (this.#r = u), typeof c == "function" ? (this.#o = c, this.#m = []) : (this.#o = undefined, this.#m = undefined), this.#x = !!this.#n, this.#_ = !!this.#r, this.#e = !!this.#o, this.noDisposeOnSet = !!d, this.noUpdateTTL = !!f, this.noDeleteOnFetchRejection = !!E, this.allowStaleOnFetchRejection = !!b, this.allowStaleOnFetchAbort = !!z, this.ignoreFetchAbort = !!$, this.maxEntrySize !== 0) {
-      if (this.#s !== 0 && !q(this.#s))
+    if (this.#d = m, this.#M = !!m, this.#l = new Map, this.#a = Array.from({ length: e }).fill(undefined), this.#s = Array.from({ length: e }).fill(undefined), this.#b = new ie(e), this.#E = new ie(e), this.#y = 0, this.#g = 0, this.#w = Pi.create(e), this.#h = 0, this.#m = 0, typeof l == "function" && (this.#i = l), typeof c == "function" && (this.#o = c), typeof f == "function" ? (this.#r = f, this.#p = []) : (this.#r = undefined, this.#p = undefined), this.#S = !!this.#i, this.#T = !!this.#o, this.#e = !!this.#r, this.noDisposeOnSet = !!u, this.noUpdateTTL = !!p, this.noDeleteOnFetchRejection = !!x, this.allowStaleOnFetchRejection = !!y, this.allowStaleOnFetchAbort = !!q, this.ignoreFetchAbort = !!W, this.maxEntrySize !== 0) {
+      if (this.#n !== 0 && !V(this.#n))
         throw new TypeError("maxSize must be a positive integer if specified");
-      if (!q(this.maxEntrySize))
+      if (!V(this.maxEntrySize))
         throw new TypeError("maxEntrySize must be a positive integer if specified");
       this.#G();
     }
-    if (this.allowStale = !!a, this.noDeleteOnStaleGet = !!y, this.updateAgeOnGet = !!o, this.updateAgeOnHas = !!h, this.ttlResolution = q(i) || i === 0 ? i : 1, this.ttlAutopurge = !!r, this.ttl = s || 0, this.ttl) {
-      if (!q(this.ttl))
+    if (this.allowStale = !!a, this.noDeleteOnStaleGet = !!S, this.updateAgeOnGet = !!o, this.updateAgeOnHas = !!h, this.ttlResolution = V(i) || i === 0 ? i : 1, this.ttlAutopurge = !!n, this.ttl = s || 0, this.ttl) {
+      if (!V(this.ttl))
         throw new TypeError("ttl must be a positive integer if specified");
-      this.#M();
+      this.#_();
     }
-    if (this.#t === 0 && this.ttl === 0 && this.#s === 0)
+    if (this.#t === 0 && this.ttl === 0 && this.#n === 0)
       throw new TypeError("At least one of max, maxSize, or ttl is required");
-    if (!this.ttlAutopurge && !this.#t && !this.#s) {
-      let $t = "LRU_CACHE_UNBOUNDED";
-      ii($t) && (Oe.add($t), Fe("TTL caching without ttlAutopurge, max, or maxSize can result in unbounded memory consumption.", "UnboundedCacheWarning", $t, Me));
+    if (!this.ttlAutopurge && !this.#t && !this.#n) {
+      let ne = "LRU_CACHE_UNBOUNDED";
+      Ni(ne) && (us.add(ne), Di("TTL caching without ttlAutopurge, max, or maxSize can result in unbounded memory consumption.", "UnboundedCacheWarning", ne, ps));
     }
   }
   getRemainingTTL(t) {
-    return this.#f.has(t) ? 1 / 0 : 0;
+    return this.#l.has(t) ? 1 / 0 : 0;
   }
-  #M() {
-    let t = new Tt(this.#t), e = new Tt(this.#t);
-    this.#g = t, this.#T = e;
-    let s = this.ttlAutopurge ? new Array(this.#t) : undefined;
-    this.#y = s, this.#j = (o, h, a = this.#c.now()) => {
-      if (e[o] = h !== 0 ? a : 0, t[o] = h, s?.[o] && (clearTimeout(s[o]), s[o] = undefined), h !== 0 && s) {
-        let l = setTimeout(() => {
-          this.#v(o) && this.#O(this.#a[o], "expire");
-        }, h + 1);
-        l.unref && l.unref(), s[o] = l;
+  #_() {
+    let t = new jt(this.#t), e = new jt(this.#t);
+    this.#x = t, this.#C = e;
+    let s = this.ttlAutopurge ? Array.from({ length: this.#t }) : undefined;
+    this.#v = s, this.#W = (a, l, c = this.#f.now()) => {
+      e[a] = l !== 0 ? c : 0, t[a] = l, i(a, l);
+    }, this.#R = (a) => {
+      e[a] = t[a] !== 0 ? this.#f.now() : 0, i(a, t[a]);
+    };
+    let i = this.ttlAutopurge ? (a, l) => {
+      if (s?.[a] && (clearTimeout(s[a]), s[a] = undefined), l && l !== 0 && s) {
+        let c = setTimeout(() => {
+          this.#A(a) ? (this.#j(this.#a[a], "expire"), s[a] = undefined) : i(a, h(a));
+        }, l + 1);
+        c.unref && c.unref(), s[a] = c;
       }
-    }, this.#k = (o) => {
-      e[o] = t[o] !== 0 ? this.#c.now() : 0;
-    }, this.#N = (o, h) => {
-      if (t[h]) {
-        let a = t[h], l = e[h];
-        if (!a || !l)
+    } : () => {};
+    this.#D = (a, l) => {
+      if (t[l]) {
+        let c = t[l], f = e[l];
+        if (!c || !f)
           return;
-        o.ttl = a, o.start = l, o.now = i || r();
-        let u = o.now - l;
-        o.remainingTTL = a - u;
+        a.ttl = c, a.start = f, a.now = n || o();
+        let u = a.now - f;
+        a.remainingTTL = c - u;
       }
     };
-    let i = 0, r = () => {
-      let o = this.#c.now();
+    let n = 0, o = () => {
+      let a = this.#f.now();
       if (this.ttlResolution > 0) {
-        i = o;
-        let h = setTimeout(() => i = 0, this.ttlResolution);
-        h.unref && h.unref();
+        n = a;
+        let l = setTimeout(() => n = 0, this.ttlResolution);
+        l.unref && l.unref();
       }
-      return o;
+      return a;
     };
-    this.getRemainingTTL = (o) => {
-      let h = this.#f.get(o);
-      if (h === undefined)
-        return 0;
-      let a = t[h], l = e[h];
-      if (!a || !l)
+    this.getRemainingTTL = (a) => {
+      let l = this.#l.get(a);
+      return l === undefined ? 0 : h(l);
+    };
+    let h = (a) => {
+      let l = t[a], c = e[a];
+      if (!l || !c)
         return 1 / 0;
-      let u = (i || r()) - l;
-      return a - u;
-    }, this.#v = (o) => {
-      let h = e[o], a = t[o];
-      return !!a && !!h && (i || r()) - h > a;
+      let f = (n || o()) - c;
+      return l - f;
+    };
+    this.#A = (a) => {
+      let l = e[a], c = t[a];
+      return !!c && !!l && (n || o()) - l > c;
     };
   }
-  #k = () => {};
-  #N = () => {};
-  #j = () => {};
-  #v = () => false;
+  #R = () => {};
+  #D = () => {};
+  #W = () => {};
+  #A = () => false;
   #G() {
-    let t = new Tt(this.#t);
-    this.#u = 0, this.#C = t, this.#P = (e) => {
-      this.#u -= t[e], t[e] = 0;
-    }, this.#I = (e, s, i, r) => {
-      if (this.#l(s))
-        return 0;
-      if (!q(i))
-        if (r) {
-          if (typeof r != "function")
+    let t = new jt(this.#t);
+    this.#m = 0, this.#k = t, this.#P = (e) => {
+      this.#m -= t[e], t[e] = 0;
+    }, this.#$ = (e, s, i, n) => {
+      if (!V(i)) {
+        if (this.#c(s))
+          return this.backgroundFetchSize;
+        if (n) {
+          if (typeof n != "function")
             throw new TypeError("sizeCalculation must be a function");
-          if (i = r(s, e), !q(i))
+          if (i = n(s, e), !V(i))
             throw new TypeError("sizeCalculation return invalid (expect positive integer)");
         } else
           throw new TypeError("invalid size value (must be positive integer). When maxSize or maxEntrySize is used, sizeCalculation or size must be set.");
-      return i;
-    }, this.#L = (e, s, i) => {
-      if (t[e] = s, this.#s) {
-        let r = this.#s - t[e];
-        for (;this.#u > r; )
-          this.#B(true);
       }
-      this.#u += t[e], i && (i.entrySize = s, i.totalCalculatedSize = this.#u);
+      return i;
+    }, this.#N = (e, s, i) => {
+      if (t[e] = s, this.#n) {
+        let n = this.#n - t[e];
+        for (;this.#m > n; )
+          this.#U(true);
+      }
+      this.#m += t[e], i && (i.entrySize = s, i.totalCalculatedSize = this.#m);
     };
   }
   #P = (t) => {};
-  #L = (t, e, s) => {};
-  #I = (t, e, s, i) => {
+  #N = (t, e, s) => {};
+  #$ = (t, e, s, i) => {
     if (s || i)
       throw new TypeError("cannot set size without setting maxSize or maxEntrySize on cache");
     return 0;
   };
-  *#F({ allowStale: t = this.allowStale } = {}) {
+  *#O({ allowStale: t = this.allowStale } = {}) {
     if (this.#h)
-      for (let e = this.#p;!(!this.#z(e) || ((t || !this.#v(e)) && (yield e), e === this.#b)); )
+      for (let e = this.#g;this.#I(e) && ((t || !this.#A(e)) && (yield e), e !== this.#y); )
         e = this.#E[e];
   }
-  *#D({ allowStale: t = this.allowStale } = {}) {
+  *#F({ allowStale: t = this.allowStale } = {}) {
     if (this.#h)
-      for (let e = this.#b;!(!this.#z(e) || ((t || !this.#v(e)) && (yield e), e === this.#p)); )
-        e = this.#d[e];
+      for (let e = this.#y;this.#I(e) && ((t || !this.#A(e)) && (yield e), e !== this.#g); )
+        e = this.#b[e];
   }
-  #z(t) {
-    return t !== undefined && this.#f.get(this.#a[t]) === t;
+  #I(t) {
+    return t !== undefined && this.#l.get(this.#a[t]) === t;
   }
   *entries() {
-    for (let t of this.#F())
-      this.#i[t] !== undefined && this.#a[t] !== undefined && !this.#l(this.#i[t]) && (yield [this.#a[t], this.#i[t]]);
+    for (let t of this.#O())
+      this.#s[t] !== undefined && this.#a[t] !== undefined && !this.#c(this.#s[t]) && (yield [this.#a[t], this.#s[t]]);
   }
   *rentries() {
-    for (let t of this.#D())
-      this.#i[t] !== undefined && this.#a[t] !== undefined && !this.#l(this.#i[t]) && (yield [this.#a[t], this.#i[t]]);
+    for (let t of this.#F())
+      this.#s[t] !== undefined && this.#a[t] !== undefined && !this.#c(this.#s[t]) && (yield [this.#a[t], this.#s[t]]);
   }
   *keys() {
-    for (let t of this.#F()) {
+    for (let t of this.#O()) {
       let e = this.#a[t];
-      e !== undefined && !this.#l(this.#i[t]) && (yield e);
+      e !== undefined && !this.#c(this.#s[t]) && (yield e);
     }
   }
   *rkeys() {
-    for (let t of this.#D()) {
+    for (let t of this.#F()) {
       let e = this.#a[t];
-      e !== undefined && !this.#l(this.#i[t]) && (yield e);
+      e !== undefined && !this.#c(this.#s[t]) && (yield e);
     }
   }
   *values() {
-    for (let t of this.#F())
-      this.#i[t] !== undefined && !this.#l(this.#i[t]) && (yield this.#i[t]);
+    for (let t of this.#O())
+      this.#s[t] !== undefined && !this.#c(this.#s[t]) && (yield this.#s[t]);
   }
   *rvalues() {
-    for (let t of this.#D())
-      this.#i[t] !== undefined && !this.#l(this.#i[t]) && (yield this.#i[t]);
+    for (let t of this.#F())
+      this.#s[t] !== undefined && !this.#c(this.#s[t]) && (yield this.#s[t]);
   }
   [Symbol.iterator]() {
     return this.entries();
   }
   [Symbol.toStringTag] = "LRUCache";
   find(t, e = {}) {
-    for (let s of this.#F()) {
-      let i = this.#i[s], r = this.#l(i) ? i.__staleWhileFetching : i;
-      if (r !== undefined && t(r, this.#a[s], this))
-        return this.get(this.#a[s], e);
+    for (let s of this.#O()) {
+      let i = this.#s[s], n = this.#c(i) ? i.__staleWhileFetching : i;
+      if (n !== undefined && t(n, this.#a[s], this))
+        return this.#K(this.#a[s], e);
     }
   }
   forEach(t, e = this) {
-    for (let s of this.#F()) {
-      let i = this.#i[s], r = this.#l(i) ? i.__staleWhileFetching : i;
-      r !== undefined && t.call(e, r, this.#a[s], this);
+    for (let s of this.#O()) {
+      let i = this.#s[s], n = this.#c(i) ? i.__staleWhileFetching : i;
+      n !== undefined && t.call(e, n, this.#a[s], this);
     }
   }
   rforEach(t, e = this) {
-    for (let s of this.#D()) {
-      let i = this.#i[s], r = this.#l(i) ? i.__staleWhileFetching : i;
-      r !== undefined && t.call(e, r, this.#a[s], this);
+    for (let s of this.#F()) {
+      let i = this.#s[s], n = this.#c(i) ? i.__staleWhileFetching : i;
+      n !== undefined && t.call(e, n, this.#a[s], this);
     }
   }
   purgeStale() {
     let t = false;
-    for (let e of this.#D({ allowStale: true }))
-      this.#v(e) && (this.#O(this.#a[e], "expire"), t = true);
+    for (let e of this.#F({ allowStale: true }))
+      this.#A(e) && (this.#j(this.#a[e], "expire"), t = true);
     return t;
   }
   info(t) {
-    let e = this.#f.get(t);
+    let e = this.#l.get(t);
     if (e === undefined)
       return;
-    let s = this.#i[e], i = this.#l(s) ? s.__staleWhileFetching : s;
+    let s = this.#s[e], i = this.#c(s) ? s.__staleWhileFetching : s;
     if (i === undefined)
       return;
-    let r = { value: i };
-    if (this.#g && this.#T) {
-      let o = this.#g[e], h = this.#T[e];
+    let n = { value: i };
+    if (this.#x && this.#C) {
+      let o = this.#x[e], h = this.#C[e];
       if (o && h) {
-        let a = o - (this.#c.now() - h);
-        r.ttl = a, r.start = Date.now();
+        let a = o - (this.#f.now() - h);
+        n.ttl = a, n.start = Date.now();
       }
     }
-    return this.#C && (r.size = this.#C[e]), r;
+    return this.#k && (n.size = this.#k[e]), n;
   }
   dump() {
     let t = [];
-    for (let e of this.#F({ allowStale: true })) {
-      let s = this.#a[e], i = this.#i[e], r = this.#l(i) ? i.__staleWhileFetching : i;
-      if (r === undefined || s === undefined)
+    for (let e of this.#O({ allowStale: true })) {
+      let s = this.#a[e], i = this.#s[e], n = this.#c(i) ? i.__staleWhileFetching : i;
+      if (n === undefined || s === undefined)
         continue;
-      let o = { value: r };
-      if (this.#g && this.#T) {
-        o.ttl = this.#g[e];
-        let h = this.#c.now() - this.#T[e];
+      let o = { value: n };
+      if (this.#x && this.#C) {
+        o.ttl = this.#x[e];
+        let h = this.#f.now() - this.#C[e];
         o.start = Math.floor(Date.now() - h);
       }
-      this.#C && (o.size = this.#C[e]), t.unshift([s, o]);
+      this.#k && (o.size = this.#k[e]), t.unshift([s, o]);
     }
     return t;
   }
@@ -76157,281 +76744,333 @@ var ft = class Me {
     for (let [e, s] of t) {
       if (s.start) {
         let i = Date.now() - s.start;
-        s.start = this.#c.now() - i;
+        s.start = this.#f.now() - i;
       }
-      this.set(e, s.value, s);
+      this.#z(e, s.value, s);
     }
   }
   set(t, e, s = {}) {
+    let { status: i = M.hasSubscribers ? {} : undefined } = s;
+    s.status = i, i && (i.op = "set", i.key = t, e !== undefined && (i.value = e), i.cache = this);
+    let n = this.#z(t, e, s);
+    return i && M.hasSubscribers && M.publish(i), n;
+  }
+  #z(t, e, s, i) {
+    let { ttl: n = this.ttl, start: o, noDisposeOnSet: h = this.noDisposeOnSet, sizeCalculation: a = this.sizeCalculation, status: l } = s, c = this.#c(e);
     if (e === undefined)
-      return this.delete(t), this;
-    let { ttl: i = this.ttl, start: r, noDisposeOnSet: o = this.noDisposeOnSet, sizeCalculation: h = this.sizeCalculation, status: a } = s, { noUpdateTTL: l = this.noUpdateTTL } = s, u = this.#I(t, e, s.size || 0, h);
+      return l && (l.set = "deleted"), this.delete(t), this;
+    let { noUpdateTTL: f = this.noUpdateTTL } = s;
+    l && !c && (l.value = e);
+    let u = this.#$(t, e, s.size || 0, a, l);
     if (this.maxEntrySize && u > this.maxEntrySize)
-      return a && (a.set = "miss", a.maxEntrySizeExceeded = true), this.#O(t, "set"), this;
-    let c = this.#h === 0 ? undefined : this.#f.get(t);
-    if (c === undefined)
-      c = this.#h === 0 ? this.#p : this.#R.length !== 0 ? this.#R.pop() : this.#h === this.#t ? this.#B(false) : this.#h, this.#a[c] = t, this.#i[c] = e, this.#f.set(t, c), this.#d[this.#p] = c, this.#E[c] = this.#p, this.#p = c, this.#h++, this.#L(c, u, a), a && (a.set = "add"), l = false, this.#_ && this.#r?.(e, t, "add");
+      return this.#j(t, "set"), l && (l.set = "miss", l.maxEntrySizeExceeded = true), this;
+    let p = this.#h === 0 ? undefined : this.#l.get(t);
+    if (p === undefined)
+      p = this.#h === 0 ? this.#g : this.#w.length !== 0 ? this.#w.pop() : this.#h === this.#t ? this.#U(false) : this.#h, this.#a[p] = t, this.#s[p] = e, this.#l.set(t, p), this.#b[this.#g] = p, this.#E[p] = this.#g, this.#g = p, this.#h++, this.#N(p, u, l), l && (l.set = "add"), f = false, this.#T && !c && this.#o?.(e, t, "add");
     else {
-      this.#W(c);
-      let d = this.#i[c];
-      if (e !== d) {
-        if (this.#A && this.#l(d)) {
-          d.__abortController.abort(new Error("replaced"));
-          let { __staleWhileFetching: f } = d;
-          f !== undefined && !o && (this.#x && this.#n?.(f, t, "set"), this.#e && this.#m?.push([f, t, "set"]));
-        } else
-          o || (this.#x && this.#n?.(d, t, "set"), this.#e && this.#m?.push([d, t, "set"]));
-        if (this.#P(c), this.#L(c, u, a), this.#i[c] = e, a) {
-          a.set = "replace";
-          let f = d && this.#l(d) ? d.__staleWhileFetching : d;
-          f !== undefined && (a.oldValue = f);
+      this.#X(p);
+      let g = this.#s[p];
+      if (e !== g) {
+        if (!h)
+          if (this.#c(g)) {
+            g !== i && g.__abortController.abort(new Error("replaced"));
+            let { __staleWhileFetching: d } = g;
+            d !== undefined && d !== e && (this.#S && this.#i?.(d, t, "set"), this.#e && this.#p?.push([d, t, "set"]));
+          } else
+            this.#S && this.#i?.(g, t, "set"), this.#e && this.#p?.push([g, t, "set"]);
+        if (this.#P(p), this.#N(p, u, l), this.#s[p] = e, !c) {
+          let d = g && this.#c(g) ? g.__staleWhileFetching : g, w = d === undefined ? "add" : e !== d ? "replace" : "update";
+          l && (l.set = w, d !== undefined && (l.oldValue = d)), this.#T && this.onInsert?.(e, t, w);
         }
       } else
-        a && (a.set = "update");
-      this.#_ && this.onInsert?.(e, t, e === d ? "update" : "replace");
+        c || (l && (l.set = "update"), this.#T && this.onInsert?.(e, t, "update"));
     }
-    if (i !== 0 && !this.#g && this.#M(), this.#g && (l || this.#j(c, i, r), a && this.#N(a, c)), !o && this.#e && this.#m) {
-      let d = this.#m, f;
-      for (;f = d?.shift(); )
-        this.#o?.(...f);
+    if (n !== 0 && !this.#x && this.#_(), this.#x && (f || this.#W(p, n, o), l && this.#D(l, p)), !h && this.#e && this.#p) {
+      let g = this.#p, d;
+      for (;d = g?.shift(); )
+        this.#r?.(...d);
     }
     return this;
   }
   pop() {
     try {
       for (;this.#h; ) {
-        let t = this.#i[this.#b];
-        if (this.#B(true), this.#l(t)) {
+        let t = this.#s[this.#y];
+        if (this.#U(true), this.#c(t)) {
           if (t.__staleWhileFetching)
             return t.__staleWhileFetching;
         } else if (t !== undefined)
           return t;
       }
     } finally {
-      if (this.#e && this.#m) {
-        let t = this.#m, e;
+      if (this.#e && this.#p) {
+        let t = this.#p, e;
         for (;e = t?.shift(); )
-          this.#o?.(...e);
+          this.#r?.(...e);
       }
     }
   }
-  #B(t) {
-    let e = this.#b, s = this.#a[e], i = this.#i[e];
-    return this.#A && this.#l(i) ? i.__abortController.abort(new Error("evicted")) : (this.#x || this.#e) && (this.#x && this.#n?.(i, s, "evict"), this.#e && this.#m?.push([i, s, "evict"])), this.#P(e), this.#y?.[e] && (clearTimeout(this.#y[e]), this.#y[e] = undefined), t && (this.#a[e] = undefined, this.#i[e] = undefined, this.#R.push(e)), this.#h === 1 ? (this.#b = this.#p = 0, this.#R.length = 0) : this.#b = this.#d[e], this.#f.delete(s), this.#h--, e;
+  #U(t) {
+    let e = this.#y, s = this.#a[e], i = this.#s[e], n = this.#c(i);
+    n && i.__abortController.abort(new Error("evicted"));
+    let o = n ? i.__staleWhileFetching : i;
+    return (this.#S || this.#e) && o !== undefined && (this.#S && this.#i?.(o, s, "evict"), this.#e && this.#p?.push([o, s, "evict"])), this.#P(e), this.#v?.[e] && (clearTimeout(this.#v[e]), this.#v[e] = undefined), t && (this.#a[e] = undefined, this.#s[e] = undefined, this.#w.push(e)), this.#h === 1 ? (this.#y = this.#g = 0, this.#w.length = 0) : this.#y = this.#b[e], this.#l.delete(s), this.#h--, e;
   }
   has(t, e = {}) {
-    let { updateAgeOnHas: s = this.updateAgeOnHas, status: i } = e, r = this.#f.get(t);
-    if (r !== undefined) {
-      let o = this.#i[r];
-      if (this.#l(o) && o.__staleWhileFetching === undefined)
+    let { status: s = M.hasSubscribers ? {} : undefined } = e;
+    e.status = s, s && (s.op = "has", s.key = t, s.cache = this);
+    let i = this.#V(t, e);
+    return M.hasSubscribers && M.publish(s), i;
+  }
+  #V(t, e = {}) {
+    let { updateAgeOnHas: s = this.updateAgeOnHas, status: i } = e, n = this.#l.get(t);
+    if (n !== undefined) {
+      let o = this.#s[n];
+      if (this.#c(o) && o.__staleWhileFetching === undefined)
         return false;
-      if (this.#v(r))
-        i && (i.has = "stale", this.#N(i, r));
+      if (this.#A(n))
+        i && (i.has = "stale", this.#D(i, n));
       else
-        return s && this.#k(r), i && (i.has = "hit", this.#N(i, r)), true;
+        return s && this.#R(n), i && (i.has = "hit", this.#D(i, n)), true;
     } else
       i && (i.has = "miss");
     return false;
   }
   peek(t, e = {}) {
-    let { allowStale: s = this.allowStale } = e, i = this.#f.get(t);
-    if (i === undefined || !s && this.#v(i))
-      return;
-    let r = this.#i[i];
-    return this.#l(r) ? r.__staleWhileFetching : r;
+    let { status: s = ke() ? {} : undefined } = e;
+    s && (s.op = "peek", s.key = t, s.cache = this), e.status = s;
+    let i = this.#H(t, e);
+    return M.hasSubscribers && M.publish(s), i;
   }
-  #U(t, e, s, i) {
-    let r = e === undefined ? undefined : this.#i[e];
-    if (this.#l(r))
-      return r;
-    let o = new At, { signal: h } = s;
+  #H(t, e) {
+    let { status: s, allowStale: i = this.allowStale } = e, n = this.#l.get(t);
+    if (n === undefined || !i && this.#A(n)) {
+      s && (s.peek = n === undefined ? "miss" : "stale");
+      return;
+    }
+    let o = this.#s[n], h = this.#c(o) ? o.__staleWhileFetching : o;
+    return s && (h !== undefined ? (s.peek = "hit", s.value = h) : s.peek = "miss"), h;
+  }
+  #L(t, e, s, i) {
+    let n = e === undefined ? undefined : this.#s[e];
+    if (this.#c(n))
+      return n;
+    let o = new AbortController, { signal: h } = s;
     h?.addEventListener("abort", () => o.abort(h.reason), { signal: o.signal });
-    let a = { signal: o.signal, options: s, context: i }, l = (p, w = false) => {
-      let { aborted: g } = o.signal, S = s.ignoreFetchAbort && p !== undefined, E = s.ignoreFetchAbort || !!(s.allowStaleOnFetchAbort && p !== undefined);
-      if (s.status && (g && !w ? (s.status.fetchAborted = true, s.status.fetchError = o.signal.reason, S && (s.status.fetchAbortIgnored = true)) : s.status.fetchResolved = true), g && !S && !w)
-        return c(o.signal.reason, E);
-      let y = f, b = this.#i[e];
-      return (b === f || S && w && b === undefined) && (p === undefined ? y.__staleWhileFetching !== undefined ? this.#i[e] = y.__staleWhileFetching : this.#O(t, "fetch") : (s.status && (s.status.fetchUpdated = true), this.set(t, p, a.options))), p;
-    }, u = (p) => (s.status && (s.status.fetchRejected = true, s.status.fetchError = p), c(p, false)), c = (p, w) => {
-      let { aborted: g } = o.signal, S = g && s.allowStaleOnFetchAbort, E = S || s.allowStaleOnFetchRejection, y = E || s.noDeleteOnFetchRejection, b = f;
-      if (this.#i[e] === f && (!y || !w && b.__staleWhileFetching === undefined ? this.#O(t, "fetch") : S || (this.#i[e] = b.__staleWhileFetching)), E)
-        return s.status && b.__staleWhileFetching !== undefined && (s.status.returnedStale = true), b.__staleWhileFetching;
-      if (b.__returned === b)
-        throw p;
-    }, d = (p, w) => {
-      let g = this.#S?.(t, r, a);
-      g && g instanceof Promise && g.then((S) => p(S === undefined ? undefined : S), w), o.signal.addEventListener("abort", () => {
-        (!s.ignoreFetchAbort || s.allowStaleOnFetchAbort) && (p(undefined), s.allowStaleOnFetchAbort && (p = (S) => l(S, true)));
-      });
+    let a = { signal: o.signal, options: s, context: i }, l = (d, w = false) => {
+      let { aborted: m } = o.signal, b = s.ignoreFetchAbort && d !== undefined, x = s.ignoreFetchAbort || !!(s.allowStaleOnFetchAbort && d !== undefined);
+      if (s.status && (m && !w ? (s.status.fetchAborted = true, s.status.fetchError = o.signal.reason, b && (s.status.fetchAbortIgnored = true)) : s.status.fetchResolved = true), m && !b && !w)
+        return f(o.signal.reason, x);
+      let S = p, y = this.#s[e];
+      return (y === p || y === undefined && b && w) && (d === undefined ? S.__staleWhileFetching !== undefined ? this.#s[e] = S.__staleWhileFetching : this.#j(t, "fetch") : (s.status && (s.status.fetchUpdated = true), this.#z(t, d, a.options, S))), d;
+    }, c = (d) => (s.status && (s.status.fetchRejected = true, s.status.fetchError = d), f(d, false)), f = (d, w) => {
+      let { aborted: m } = o.signal, b = m && s.allowStaleOnFetchAbort, x = b || s.allowStaleOnFetchRejection, S = x || s.noDeleteOnFetchRejection, y = p;
+      if (this.#s[e] === p && (!S || !w && y.__staleWhileFetching === undefined ? this.#j(t, "fetch") : b || (this.#s[e] = y.__staleWhileFetching)), x)
+        return s.status && y.__staleWhileFetching !== undefined && (s.status.returnedStale = true), y.__staleWhileFetching;
+      if (y.__returned === y)
+        throw d;
+    }, u = (d, w) => {
+      let m = this.#d?.(t, n, a);
+      o.signal.addEventListener("abort", () => {
+        (!s.ignoreFetchAbort || s.allowStaleOnFetchAbort) && (d(undefined), s.allowStaleOnFetchAbort && (d = (b) => l(b, true)));
+      }), m && m instanceof Promise ? m.then((b) => d(b === undefined ? undefined : b), w) : m !== undefined && d(m);
     };
     s.status && (s.status.fetchDispatched = true);
-    let f = new Promise(d).then(l, u), m = Object.assign(f, { __abortController: o, __staleWhileFetching: r, __returned: undefined });
-    return e === undefined ? (this.set(t, m, { ...a.options, status: undefined }), e = this.#f.get(t)) : this.#i[e] = m, m;
+    let p = new Promise(u).then(l, c), g = Object.assign(p, { __abortController: o, __staleWhileFetching: n, __returned: undefined });
+    return e === undefined ? (this.#z(t, g, { ...a.options, status: undefined }), e = this.#l.get(t)) : this.#s[e] = g, g;
   }
-  #l(t) {
-    if (!this.#A)
+  #c(t) {
+    if (!this.#M)
       return false;
     let e = t;
-    return !!e && e instanceof Promise && e.hasOwnProperty("__staleWhileFetching") && e.__abortController instanceof At;
+    return !!e && e instanceof Promise && e.hasOwnProperty("__staleWhileFetching") && e.__abortController instanceof AbortController;
   }
-  async fetch(t, e = {}) {
-    let { allowStale: s = this.allowStale, updateAgeOnGet: i = this.updateAgeOnGet, noDeleteOnStaleGet: r = this.noDeleteOnStaleGet, ttl: o = this.ttl, noDisposeOnSet: h = this.noDisposeOnSet, size: a = 0, sizeCalculation: l = this.sizeCalculation, noUpdateTTL: u = this.noUpdateTTL, noDeleteOnFetchRejection: c = this.noDeleteOnFetchRejection, allowStaleOnFetchRejection: d = this.allowStaleOnFetchRejection, ignoreFetchAbort: f = this.ignoreFetchAbort, allowStaleOnFetchAbort: m = this.allowStaleOnFetchAbort, context: p, forceRefresh: w = false, status: g, signal: S } = e;
-    if (!this.#A)
-      return g && (g.fetch = "get"), this.get(t, { allowStale: s, updateAgeOnGet: i, noDeleteOnStaleGet: r, status: g });
-    let E = { allowStale: s, updateAgeOnGet: i, noDeleteOnStaleGet: r, ttl: o, noDisposeOnSet: h, size: a, sizeCalculation: l, noUpdateTTL: u, noDeleteOnFetchRejection: c, allowStaleOnFetchRejection: d, allowStaleOnFetchAbort: m, ignoreFetchAbort: f, status: g, signal: S }, y = this.#f.get(t);
-    if (y === undefined) {
-      g && (g.fetch = "miss");
-      let b = this.#U(t, y, E, p);
-      return b.__returned = b;
+  fetch(t, e = {}) {
+    let s = wt.hasSubscribers, { status: i = ke() ? {} : undefined } = e;
+    e.status = i, i && e.context && (i.context = e.context);
+    let n = this.#q(t, e);
+    return i && s && (i.trace = true, wt.tracePromise(() => n, i).catch(() => {})), n;
+  }
+  async#q(t, e = {}) {
+    let { allowStale: s = this.allowStale, updateAgeOnGet: i = this.updateAgeOnGet, noDeleteOnStaleGet: n = this.noDeleteOnStaleGet, ttl: o = this.ttl, noDisposeOnSet: h = this.noDisposeOnSet, size: a = 0, sizeCalculation: l = this.sizeCalculation, noUpdateTTL: c = this.noUpdateTTL, noDeleteOnFetchRejection: f = this.noDeleteOnFetchRejection, allowStaleOnFetchRejection: u = this.allowStaleOnFetchRejection, ignoreFetchAbort: p = this.ignoreFetchAbort, allowStaleOnFetchAbort: g = this.allowStaleOnFetchAbort, context: d, forceRefresh: w = false, status: m, signal: b } = e;
+    if (m && (m.op = "fetch", m.key = t, w && (m.forceRefresh = true), m.cache = this), !this.#M)
+      return m && (m.fetch = "get"), this.#K(t, { allowStale: s, updateAgeOnGet: i, noDeleteOnStaleGet: n, status: m });
+    let x = { allowStale: s, updateAgeOnGet: i, noDeleteOnStaleGet: n, ttl: o, noDisposeOnSet: h, size: a, sizeCalculation: l, noUpdateTTL: c, noDeleteOnFetchRejection: f, allowStaleOnFetchRejection: u, allowStaleOnFetchAbort: g, ignoreFetchAbort: p, status: m, signal: b }, S = this.#l.get(t);
+    if (S === undefined) {
+      m && (m.fetch = "miss");
+      let y = this.#L(t, S, x, d);
+      return y.__returned = y;
     } else {
-      let b = this.#i[y];
-      if (this.#l(b)) {
-        let Z = s && b.__staleWhileFetching !== undefined;
-        return g && (g.fetch = "inflight", Z && (g.returnedStale = true)), Z ? b.__staleWhileFetching : b.__returned = b;
+      let y = this.#s[S];
+      if (this.#c(y)) {
+        let et = s && y.__staleWhileFetching !== undefined;
+        return m && (m.fetch = "inflight", et && (m.returnedStale = true)), et ? y.__staleWhileFetching : y.__returned = y;
       }
-      let z = this.#v(y);
-      if (!w && !z)
-        return g && (g.fetch = "hit"), this.#W(y), i && this.#k(y), g && this.#N(g, y), b;
-      let $ = this.#U(t, y, E, p), J = $.__staleWhileFetching !== undefined && s;
-      return g && (g.fetch = z ? "stale" : "refresh", J && z && (g.returnedStale = true)), J ? $.__staleWhileFetching : $.__returned = $;
+      let q = this.#A(S);
+      if (!w && !q)
+        return m && (m.fetch = "hit"), this.#X(S), i && this.#R(S), m && this.#D(m, S), y;
+      let W = this.#L(t, S, x, d), B = W.__staleWhileFetching !== undefined && s;
+      return m && (m.fetch = q ? "stale" : "refresh", B && q && (m.returnedStale = true)), B ? W.__staleWhileFetching : W.__returned = W;
     }
   }
-  async forceFetch(t, e = {}) {
-    let s = await this.fetch(t, e);
+  forceFetch(t, e = {}) {
+    let s = wt.hasSubscribers, { status: i = ke() ? {} : undefined } = e;
+    e.status = i, i && e.context && (i.context = e.context);
+    let n = this.#B(t, e);
+    return i && s && (i.trace = true, wt.tracePromise(() => n, i).catch(() => {})), n;
+  }
+  async#B(t, e = {}) {
+    let s = await this.#q(t, e);
     if (s === undefined)
       throw new Error("fetch() returned undefined");
     return s;
   }
   memo(t, e = {}) {
-    let s = this.#w;
+    let { status: s = M.hasSubscribers ? {} : undefined } = e;
+    e.status = s, s && (s.op = "memo", s.key = t, e.context && (s.context = e.context), s.cache = this);
+    let i = this.#Z(t, e);
+    return s && (s.value = i), M.hasSubscribers && M.publish(s), i;
+  }
+  #Z(t, e = {}) {
+    let s = this.#u;
     if (!s)
       throw new Error("no memoMethod provided to constructor");
-    let { context: i, forceRefresh: r, ...o } = e, h = this.get(t, o);
-    if (!r && h !== undefined)
-      return h;
-    let a = s(t, h, { options: o, context: i });
-    return this.set(t, a, o), a;
+    let { context: i, status: n, forceRefresh: o, ...h } = e;
+    n && o && (n.forceRefresh = true);
+    let a = this.#K(t, h), l = o || a === undefined;
+    if (n && (n.memo = l ? "miss" : "hit", l || (n.value = a)), !l)
+      return a;
+    let c = s(t, a, { options: h, context: i });
+    return n && (n.value = c), this.#z(t, c, h), c;
   }
   get(t, e = {}) {
-    let { allowStale: s = this.allowStale, updateAgeOnGet: i = this.updateAgeOnGet, noDeleteOnStaleGet: r = this.noDeleteOnStaleGet, status: o } = e, h = this.#f.get(t);
-    if (h !== undefined) {
-      let a = this.#i[h], l = this.#l(a);
-      return o && this.#N(o, h), this.#v(h) ? (o && (o.get = "stale"), l ? (o && s && a.__staleWhileFetching !== undefined && (o.returnedStale = true), s ? a.__staleWhileFetching : undefined) : (r || this.#O(t, "expire"), o && s && (o.returnedStale = true), s ? a : undefined)) : (o && (o.get = "hit"), l ? a.__staleWhileFetching : (this.#W(h), i && this.#k(h), a));
-    } else
+    let { status: s = M.hasSubscribers ? {} : undefined } = e;
+    e.status = s, s && (s.op = "get", s.key = t, s.cache = this);
+    let i = this.#K(t, e);
+    return s && (i !== undefined && (s.value = i), M.hasSubscribers && M.publish(s)), i;
+  }
+  #K(t, e = {}) {
+    let { allowStale: s = this.allowStale, updateAgeOnGet: i = this.updateAgeOnGet, noDeleteOnStaleGet: n = this.noDeleteOnStaleGet, status: o } = e, h = this.#l.get(t);
+    if (h === undefined) {
       o && (o.get = "miss");
+      return;
+    }
+    let a = this.#s[h], l = this.#c(a);
+    return o && this.#D(o, h), this.#A(h) ? l ? (o && (o.get = "stale-fetching"), s && a.__staleWhileFetching !== undefined ? (o && (o.returnedStale = true), a.__staleWhileFetching) : undefined) : (n || this.#j(t, "expire"), o && (o.get = "stale"), s ? (o && (o.returnedStale = true), a) : undefined) : (o && (o.get = l ? "fetching" : "hit"), this.#X(h), i && this.#R(h), l ? a.__staleWhileFetching : a);
   }
-  #$(t, e) {
-    this.#E[e] = t, this.#d[t] = e;
+  #Y(t, e) {
+    this.#E[e] = t, this.#b[t] = e;
   }
-  #W(t) {
-    t !== this.#p && (t === this.#b ? this.#b = this.#d[t] : this.#$(this.#E[t], this.#d[t]), this.#$(this.#p, t), this.#p = t);
+  #X(t) {
+    t !== this.#g && (t === this.#y ? this.#y = this.#b[t] : this.#Y(this.#E[t], this.#b[t]), this.#Y(this.#g, t), this.#g = t);
   }
   delete(t) {
-    return this.#O(t, "delete");
+    return this.#j(t, "delete");
   }
-  #O(t, e) {
+  #j(t, e) {
+    M.hasSubscribers && M.publish({ op: "delete", delete: e, key: t, cache: this });
     let s = false;
     if (this.#h !== 0) {
-      let i = this.#f.get(t);
+      let i = this.#l.get(t);
       if (i !== undefined)
-        if (this.#y?.[i] && (clearTimeout(this.#y?.[i]), this.#y[i] = undefined), s = true, this.#h === 1)
-          this.#H(e);
+        if (this.#v?.[i] && (clearTimeout(this.#v[i]), this.#v[i] = undefined), s = true, this.#h === 1)
+          this.#J(e);
         else {
           this.#P(i);
-          let r = this.#i[i];
-          if (this.#l(r) ? r.__abortController.abort(new Error("deleted")) : (this.#x || this.#e) && (this.#x && this.#n?.(r, t, e), this.#e && this.#m?.push([r, t, e])), this.#f.delete(t), this.#a[i] = undefined, this.#i[i] = undefined, i === this.#p)
-            this.#p = this.#E[i];
-          else if (i === this.#b)
-            this.#b = this.#d[i];
+          let n = this.#s[i];
+          if (this.#c(n) ? n.__abortController.abort(new Error("deleted")) : (this.#S || this.#e) && (this.#S && this.#i?.(n, t, e), this.#e && this.#p?.push([n, t, e])), this.#l.delete(t), this.#a[i] = undefined, this.#s[i] = undefined, i === this.#g)
+            this.#g = this.#E[i];
+          else if (i === this.#y)
+            this.#y = this.#b[i];
           else {
             let o = this.#E[i];
-            this.#d[o] = this.#d[i];
-            let h = this.#d[i];
+            this.#b[o] = this.#b[i];
+            let h = this.#b[i];
             this.#E[h] = this.#E[i];
           }
-          this.#h--, this.#R.push(i);
+          this.#h--, this.#w.push(i);
         }
     }
-    if (this.#e && this.#m?.length) {
-      let i = this.#m, r;
-      for (;r = i?.shift(); )
-        this.#o?.(...r);
+    if (this.#e && this.#p?.length) {
+      let i = this.#p, n;
+      for (;n = i?.shift(); )
+        this.#r?.(...n);
     }
     return s;
   }
   clear() {
-    return this.#H("delete");
+    return this.#J("delete");
   }
-  #H(t) {
-    for (let e of this.#D({ allowStale: true })) {
-      let s = this.#i[e];
-      if (this.#l(s))
+  #J(t) {
+    for (let e of this.#F({ allowStale: true })) {
+      let s = this.#s[e];
+      if (this.#c(s))
         s.__abortController.abort(new Error("deleted"));
       else {
         let i = this.#a[e];
-        this.#x && this.#n?.(s, i, t), this.#e && this.#m?.push([s, i, t]);
+        this.#S && this.#i?.(s, i, t), this.#e && this.#p?.push([s, i, t]);
       }
     }
-    if (this.#f.clear(), this.#i.fill(undefined), this.#a.fill(undefined), this.#g && this.#T) {
-      this.#g.fill(0), this.#T.fill(0);
-      for (let e of this.#y ?? [])
+    if (this.#l.clear(), this.#s.fill(undefined), this.#a.fill(undefined), this.#x && this.#C) {
+      this.#x.fill(0), this.#C.fill(0);
+      for (let e of this.#v ?? [])
         e !== undefined && clearTimeout(e);
-      this.#y?.fill(undefined);
+      this.#v?.fill(undefined);
     }
-    if (this.#C && this.#C.fill(0), this.#b = 0, this.#p = 0, this.#R.length = 0, this.#u = 0, this.#h = 0, this.#e && this.#m) {
-      let e = this.#m, s;
+    if (this.#k && this.#k.fill(0), this.#y = 0, this.#g = 0, this.#w.length = 0, this.#m = 0, this.#h = 0, this.#e && this.#p) {
+      let e = this.#p, s;
       for (;s = e?.shift(); )
-        this.#o?.(...s);
+        this.#r?.(...s);
     }
   }
 };
-var Ne = typeof process == "object" && process ? process : { stdout: null, stderr: null };
-var oi = (n2) => !!n2 && typeof n2 == "object" && (n2 instanceof V || n2 instanceof Pe || hi(n2) || ai(n2));
-var hi = (n2) => !!n2 && typeof n2 == "object" && n2 instanceof ee && typeof n2.pipe == "function" && n2.pipe !== Pe.Writable.prototype.pipe;
-var ai = (n2) => !!n2 && typeof n2 == "object" && n2 instanceof ee && typeof n2.write == "function" && typeof n2.end == "function";
+var ms = typeof process == "object" && process ? process : { stdout: null, stderr: null };
+var Li = (r) => !!r && typeof r == "object" && (r instanceof J || r instanceof ys || ji(r) || Wi(r));
+var ji = (r) => !!r && typeof r == "object" && r instanceof Te && typeof r.pipe == "function" && r.pipe !== ys.Writable.prototype.pipe;
+var Wi = (r) => !!r && typeof r == "object" && r instanceof Te && typeof r.write == "function" && typeof r.end == "function";
 var G = Symbol("EOF");
 var H = Symbol("maybeEmitEnd");
-var K = Symbol("emittedEnd");
-var kt = Symbol("emittingEnd");
-var ut = Symbol("emittedError");
-var Rt = Symbol("closed");
-var _e = Symbol("read");
-var Ot = Symbol("flush");
-var Le = Symbol("flushChunk");
-var P = Symbol("encoding");
-var et = Symbol("decoder");
-var v = Symbol("flowing");
-var dt = Symbol("paused");
-var st = Symbol("resume");
+var Y = Symbol("emittedEnd");
+var Wt = Symbol("emittingEnd");
+var St = Symbol("emittedError");
+var $t = Symbol("closed");
+var gs = Symbol("read");
+var It = Symbol("flush");
+var ws = Symbol("flushChunk");
+var z = Symbol("encoding");
+var nt = Symbol("decoder");
+var k = Symbol("flowing");
+var xt = Symbol("paused");
+var rt = Symbol("resume");
 var C = Symbol("buffer");
 var F = Symbol("pipes");
-var T = Symbol("bufferLength");
-var Yt = Symbol("bufferPush");
-var Ft = Symbol("bufferShift");
-var k = Symbol("objectMode");
-var x = Symbol("destroyed");
-var Xt = Symbol("error");
-var Jt = Symbol("emitData");
-var We = Symbol("emitEnd");
-var Zt = Symbol("emitEnd2");
-var B = Symbol("async");
-var Qt = Symbol("abort");
-var Dt = Symbol("aborted");
-var pt = Symbol("signal");
-var Y = Symbol("dataListeners");
-var M = Symbol("discarded");
-var mt = (n2) => Promise.resolve().then(n2);
-var li = (n2) => n2();
-var ci = (n2) => n2 === "end" || n2 === "finish" || n2 === "prefinish";
-var fi = (n2) => n2 instanceof ArrayBuffer || !!n2 && typeof n2 == "object" && n2.constructor && n2.constructor.name === "ArrayBuffer" && n2.byteLength >= 0;
-var ui = (n2) => !Buffer.isBuffer(n2) && ArrayBuffer.isView(n2);
-var Mt = class {
+var A = Symbol("bufferLength");
+var Ce = Symbol("bufferPush");
+var Bt = Symbol("bufferShift");
+var R = Symbol("objectMode");
+var E = Symbol("destroyed");
+var Ae = Symbol("error");
+var Me = Symbol("emitData");
+var bs = Symbol("emitEnd");
+var Re = Symbol("emitEnd2");
+var $ = Symbol("async");
+var Oe = Symbol("abort");
+var Ut = Symbol("aborted");
+var vt = Symbol("signal");
+var Q = Symbol("dataListeners");
+var _ = Symbol("discarded");
+var Et = (r) => Promise.resolve().then(r);
+var $i = (r) => r();
+var Ii = (r) => r === "end" || r === "finish" || r === "prefinish";
+var Bi = (r) => r instanceof ArrayBuffer || !!r && typeof r == "object" && r.constructor && r.constructor.name === "ArrayBuffer" && r.byteLength >= 0;
+var Ui = (r) => !Buffer.isBuffer(r) && ArrayBuffer.isView(r);
+var Gt = class {
   src;
   dest;
   opts;
   ondrain;
   constructor(t, e, s) {
-    this.src = t, this.dest = e, this.opts = s, this.ondrain = () => t[st](), this.dest.on("drain", this.ondrain);
+    this.src = t, this.dest = e, this.opts = s, this.ondrain = () => t[rt](), this.dest.on("drain", this.ondrain);
   }
   unpipe() {
     this.dest.removeListener("drain", this.ondrain);
@@ -76441,7 +77080,7 @@ var Mt = class {
     this.unpipe(), this.opts.end && this.dest.end();
   }
 };
-var te = class extends Mt {
+var Fe = class extends Gt {
   unpipe() {
     this.src.removeListener("error", this.proxyErrors), super.unpipe();
   }
@@ -76449,43 +77088,43 @@ var te = class extends Mt {
     super(t, e, s), this.proxyErrors = (i) => this.dest.emit("error", i), t.on("error", this.proxyErrors);
   }
 };
-var di = (n2) => !!n2.objectMode;
-var pi = (n2) => !n2.objectMode && !!n2.encoding && n2.encoding !== "buffer";
-var V = class extends ee {
-  [v] = false;
-  [dt] = false;
+var Gi = (r) => !!r.objectMode;
+var Hi = (r) => !r.objectMode && !!r.encoding && r.encoding !== "buffer";
+var J = class extends Te {
+  [k] = false;
+  [xt] = false;
   [F] = [];
   [C] = [];
-  [k];
-  [P];
-  [B];
-  [et];
+  [R];
+  [z];
+  [$];
+  [nt];
   [G] = false;
-  [K] = false;
-  [kt] = false;
-  [Rt] = false;
-  [ut] = null;
-  [T] = 0;
-  [x] = false;
-  [pt];
-  [Dt] = false;
-  [Y] = 0;
-  [M] = false;
+  [Y] = false;
+  [Wt] = false;
+  [$t] = false;
+  [St] = null;
+  [A] = 0;
+  [E] = false;
+  [vt];
+  [Ut] = false;
+  [Q] = 0;
+  [_] = false;
   writable = true;
   readable = true;
   constructor(...t) {
     let e = t[0] || {};
     if (super(), e.objectMode && typeof e.encoding == "string")
       throw new TypeError("Encoding and objectMode may not be used together");
-    di(e) ? (this[k] = true, this[P] = null) : pi(e) ? (this[P] = e.encoding, this[k] = false) : (this[k] = false, this[P] = null), this[B] = !!e.async, this[et] = this[P] ? new ni(this[P]) : null, e && e.debugExposeBuffer === true && Object.defineProperty(this, "buffer", { get: () => this[C] }), e && e.debugExposePipes === true && Object.defineProperty(this, "pipes", { get: () => this[F] });
+    Gi(e) ? (this[R] = true, this[z] = null) : Hi(e) ? (this[z] = e.encoding, this[R] = false) : (this[R] = false, this[z] = null), this[$] = !!e.async, this[nt] = this[z] ? new zi(this[z]) : null, e && e.debugExposeBuffer === true && Object.defineProperty(this, "buffer", { get: () => this[C] }), e && e.debugExposePipes === true && Object.defineProperty(this, "pipes", { get: () => this[F] });
     let { signal: s } = e;
-    s && (this[pt] = s, s.aborted ? this[Qt]() : s.addEventListener("abort", () => this[Qt]()));
+    s && (this[vt] = s, s.aborted ? this[Oe]() : s.addEventListener("abort", () => this[Oe]()));
   }
   get bufferLength() {
-    return this[T];
+    return this[A];
   }
   get encoding() {
-    return this[P];
+    return this[z];
   }
   set encoding(t) {
     throw new Error("Encoding must be set at instantiation time");
@@ -76494,107 +77133,107 @@ var V = class extends ee {
     throw new Error("Encoding must be set at instantiation time");
   }
   get objectMode() {
-    return this[k];
+    return this[R];
   }
   set objectMode(t) {
     throw new Error("objectMode must be set at instantiation time");
   }
   get async() {
-    return this[B];
+    return this[$];
   }
   set async(t) {
-    this[B] = this[B] || !!t;
+    this[$] = this[$] || !!t;
   }
-  [Qt]() {
-    this[Dt] = true, this.emit("abort", this[pt]?.reason), this.destroy(this[pt]?.reason);
+  [Oe]() {
+    this[Ut] = true, this.emit("abort", this[vt]?.reason), this.destroy(this[vt]?.reason);
   }
   get aborted() {
-    return this[Dt];
+    return this[Ut];
   }
   set aborted(t) {}
   write(t, e, s) {
-    if (this[Dt])
+    if (this[Ut])
       return false;
     if (this[G])
       throw new Error("write after end");
-    if (this[x])
+    if (this[E])
       return this.emit("error", Object.assign(new Error("Cannot call write after a stream was destroyed"), { code: "ERR_STREAM_DESTROYED" })), true;
     typeof e == "function" && (s = e, e = "utf8"), e || (e = "utf8");
-    let i = this[B] ? mt : li;
-    if (!this[k] && !Buffer.isBuffer(t)) {
-      if (ui(t))
+    let i = this[$] ? Et : $i;
+    if (!this[R] && !Buffer.isBuffer(t)) {
+      if (Ui(t))
         t = Buffer.from(t.buffer, t.byteOffset, t.byteLength);
-      else if (fi(t))
+      else if (Bi(t))
         t = Buffer.from(t);
       else if (typeof t != "string")
         throw new Error("Non-contiguous data written to non-objectMode stream");
     }
-    return this[k] ? (this[v] && this[T] !== 0 && this[Ot](true), this[v] ? this.emit("data", t) : this[Yt](t), this[T] !== 0 && this.emit("readable"), s && i(s), this[v]) : t.length ? (typeof t == "string" && !(e === this[P] && !this[et]?.lastNeed) && (t = Buffer.from(t, e)), Buffer.isBuffer(t) && this[P] && (t = this[et].write(t)), this[v] && this[T] !== 0 && this[Ot](true), this[v] ? this.emit("data", t) : this[Yt](t), this[T] !== 0 && this.emit("readable"), s && i(s), this[v]) : (this[T] !== 0 && this.emit("readable"), s && i(s), this[v]);
+    return this[R] ? (this[k] && this[A] !== 0 && this[It](true), this[k] ? this.emit("data", t) : this[Ce](t), this[A] !== 0 && this.emit("readable"), s && i(s), this[k]) : t.length ? (typeof t == "string" && !(e === this[z] && !this[nt]?.lastNeed) && (t = Buffer.from(t, e)), Buffer.isBuffer(t) && this[z] && (t = this[nt].write(t)), this[k] && this[A] !== 0 && this[It](true), this[k] ? this.emit("data", t) : this[Ce](t), this[A] !== 0 && this.emit("readable"), s && i(s), this[k]) : (this[A] !== 0 && this.emit("readable"), s && i(s), this[k]);
   }
   read(t) {
-    if (this[x])
+    if (this[E])
       return null;
-    if (this[M] = false, this[T] === 0 || t === 0 || t && t > this[T])
+    if (this[_] = false, this[A] === 0 || t === 0 || t && t > this[A])
       return this[H](), null;
-    this[k] && (t = null), this[C].length > 1 && !this[k] && (this[C] = [this[P] ? this[C].join("") : Buffer.concat(this[C], this[T])]);
-    let e = this[_e](t || null, this[C][0]);
+    this[R] && (t = null), this[C].length > 1 && !this[R] && (this[C] = [this[z] ? this[C].join("") : Buffer.concat(this[C], this[A])]);
+    let e = this[gs](t || null, this[C][0]);
     return this[H](), e;
   }
-  [_e](t, e) {
-    if (this[k])
-      this[Ft]();
+  [gs](t, e) {
+    if (this[R])
+      this[Bt]();
     else {
       let s = e;
-      t === s.length || t === null ? this[Ft]() : typeof s == "string" ? (this[C][0] = s.slice(t), e = s.slice(0, t), this[T] -= t) : (this[C][0] = s.subarray(t), e = s.subarray(0, t), this[T] -= t);
+      t === s.length || t === null ? this[Bt]() : typeof s == "string" ? (this[C][0] = s.slice(t), e = s.slice(0, t), this[A] -= t) : (this[C][0] = s.subarray(t), e = s.subarray(0, t), this[A] -= t);
     }
     return this.emit("data", e), !this[C].length && !this[G] && this.emit("drain"), e;
   }
   end(t, e, s) {
-    return typeof t == "function" && (s = t, t = undefined), typeof e == "function" && (s = e, e = "utf8"), t !== undefined && this.write(t, e), s && this.once("end", s), this[G] = true, this.writable = false, (this[v] || !this[dt]) && this[H](), this;
+    return typeof t == "function" && (s = t, t = undefined), typeof e == "function" && (s = e, e = "utf8"), t !== undefined && this.write(t, e), s && this.once("end", s), this[G] = true, this.writable = false, (this[k] || !this[xt]) && this[H](), this;
   }
-  [st]() {
-    this[x] || (!this[Y] && !this[F].length && (this[M] = true), this[dt] = false, this[v] = true, this.emit("resume"), this[C].length ? this[Ot]() : this[G] ? this[H]() : this.emit("drain"));
+  [rt]() {
+    this[E] || (!this[Q] && !this[F].length && (this[_] = true), this[xt] = false, this[k] = true, this.emit("resume"), this[C].length ? this[It]() : this[G] ? this[H]() : this.emit("drain"));
   }
   resume() {
-    return this[st]();
+    return this[rt]();
   }
   pause() {
-    this[v] = false, this[dt] = true, this[M] = false;
+    this[k] = false, this[xt] = true, this[_] = false;
   }
   get destroyed() {
-    return this[x];
+    return this[E];
   }
   get flowing() {
-    return this[v];
+    return this[k];
   }
   get paused() {
-    return this[dt];
+    return this[xt];
   }
-  [Yt](t) {
-    this[k] ? this[T] += 1 : this[T] += t.length, this[C].push(t);
+  [Ce](t) {
+    this[R] ? this[A] += 1 : this[A] += t.length, this[C].push(t);
   }
-  [Ft]() {
-    return this[k] ? this[T] -= 1 : this[T] -= this[C][0].length, this[C].shift();
+  [Bt]() {
+    return this[R] ? this[A] -= 1 : this[A] -= this[C][0].length, this[C].shift();
   }
-  [Ot](t = false) {
+  [It](t = false) {
     do
       ;
-    while (this[Le](this[Ft]()) && this[C].length);
+    while (this[ws](this[Bt]()) && this[C].length);
     !t && !this[C].length && !this[G] && this.emit("drain");
   }
-  [Le](t) {
-    return this.emit("data", t), this[v];
+  [ws](t) {
+    return this.emit("data", t), this[k];
   }
   pipe(t, e) {
-    if (this[x])
+    if (this[E])
       return t;
-    this[M] = false;
-    let s = this[K];
-    return e = e || {}, t === Ne.stdout || t === Ne.stderr ? e.end = false : e.end = e.end !== false, e.proxyErrors = !!e.proxyErrors, s ? e.end && t.end() : (this[F].push(e.proxyErrors ? new te(this, t, e) : new Mt(this, t, e)), this[B] ? mt(() => this[st]()) : this[st]()), t;
+    this[_] = false;
+    let s = this[Y];
+    return e = e || {}, t === ms.stdout || t === ms.stderr ? e.end = false : e.end = e.end !== false, e.proxyErrors = !!e.proxyErrors, s ? e.end && t.end() : (this[F].push(e.proxyErrors ? new Fe(this, t, e) : new Gt(this, t, e)), this[$] ? Et(() => this[rt]()) : this[rt]()), t;
   }
   unpipe(t) {
     let e = this[F].find((s) => s.dest === t);
-    e && (this[F].length === 1 ? (this[v] && this[Y] === 0 && (this[v] = false), this[F] = []) : this[F].splice(this[F].indexOf(e), 1), e.unpipe());
+    e && (this[F].length === 1 ? (this[k] && this[Q] === 0 && (this[k] = false), this[F] = []) : this[F].splice(this[F].indexOf(e), 1), e.unpipe());
   }
   addListener(t, e) {
     return this.on(t, e);
@@ -76602,14 +77241,14 @@ var V = class extends ee {
   on(t, e) {
     let s = super.on(t, e);
     if (t === "data")
-      this[M] = false, this[Y]++, !this[F].length && !this[v] && this[st]();
-    else if (t === "readable" && this[T] !== 0)
+      this[_] = false, this[Q]++, !this[F].length && !this[k] && this[rt]();
+    else if (t === "readable" && this[A] !== 0)
       super.emit("readable");
-    else if (ci(t) && this[K])
+    else if (Ii(t) && this[Y])
       super.emit(t), this.removeAllListeners(t);
-    else if (t === "error" && this[ut]) {
+    else if (t === "error" && this[St]) {
       let i = e;
-      this[B] ? mt(() => i.call(this, this[ut])) : i.call(this, this[ut]);
+      this[$] ? Et(() => i.call(this, this[St])) : i.call(this, this[St]);
     }
     return s;
   }
@@ -76618,61 +77257,61 @@ var V = class extends ee {
   }
   off(t, e) {
     let s = super.off(t, e);
-    return t === "data" && (this[Y] = this.listeners("data").length, this[Y] === 0 && !this[M] && !this[F].length && (this[v] = false)), s;
+    return t === "data" && (this[Q] = this.listeners("data").length, this[Q] === 0 && !this[_] && !this[F].length && (this[k] = false)), s;
   }
   removeAllListeners(t) {
     let e = super.removeAllListeners(t);
-    return (t === "data" || t === undefined) && (this[Y] = 0, !this[M] && !this[F].length && (this[v] = false)), e;
+    return (t === "data" || t === undefined) && (this[Q] = 0, !this[_] && !this[F].length && (this[k] = false)), e;
   }
   get emittedEnd() {
-    return this[K];
+    return this[Y];
   }
   [H]() {
-    !this[kt] && !this[K] && !this[x] && this[C].length === 0 && this[G] && (this[kt] = true, this.emit("end"), this.emit("prefinish"), this.emit("finish"), this[Rt] && this.emit("close"), this[kt] = false);
+    !this[Wt] && !this[Y] && !this[E] && this[C].length === 0 && this[G] && (this[Wt] = true, this.emit("end"), this.emit("prefinish"), this.emit("finish"), this[$t] && this.emit("close"), this[Wt] = false);
   }
   emit(t, ...e) {
     let s = e[0];
-    if (t !== "error" && t !== "close" && t !== x && this[x])
+    if (t !== "error" && t !== "close" && t !== E && this[E])
       return false;
     if (t === "data")
-      return !this[k] && !s ? false : this[B] ? (mt(() => this[Jt](s)), true) : this[Jt](s);
+      return !this[R] && !s ? false : this[$] ? (Et(() => this[Me](s)), true) : this[Me](s);
     if (t === "end")
-      return this[We]();
+      return this[bs]();
     if (t === "close") {
-      if (this[Rt] = true, !this[K] && !this[x])
+      if (this[$t] = true, !this[Y] && !this[E])
         return false;
-      let r = super.emit("close");
-      return this.removeAllListeners("close"), r;
+      let n = super.emit("close");
+      return this.removeAllListeners("close"), n;
     } else if (t === "error") {
-      this[ut] = s, super.emit(Xt, s);
-      let r = !this[pt] || this.listeners("error").length ? super.emit("error", s) : false;
-      return this[H](), r;
+      this[St] = s, super.emit(Ae, s);
+      let n = !this[vt] || this.listeners("error").length ? super.emit("error", s) : false;
+      return this[H](), n;
     } else if (t === "resume") {
-      let r = super.emit("resume");
-      return this[H](), r;
+      let n = super.emit("resume");
+      return this[H](), n;
     } else if (t === "finish" || t === "prefinish") {
-      let r = super.emit(t);
-      return this.removeAllListeners(t), r;
+      let n = super.emit(t);
+      return this.removeAllListeners(t), n;
     }
     let i = super.emit(t, ...e);
     return this[H](), i;
   }
-  [Jt](t) {
+  [Me](t) {
     for (let s of this[F])
       s.dest.write(t) === false && this.pause();
-    let e = this[M] ? false : super.emit("data", t);
+    let e = this[_] ? false : super.emit("data", t);
     return this[H](), e;
   }
-  [We]() {
-    return this[K] ? false : (this[K] = true, this.readable = false, this[B] ? (mt(() => this[Zt]()), true) : this[Zt]());
+  [bs]() {
+    return this[Y] ? false : (this[Y] = true, this.readable = false, this[$] ? (Et(() => this[Re]()), true) : this[Re]());
   }
-  [Zt]() {
-    if (this[et]) {
-      let e = this[et].end();
+  [Re]() {
+    if (this[nt]) {
+      let e = this[nt].end();
       if (e) {
         for (let s of this[F])
           s.dest.write(e);
-        this[M] || super.emit("data", e);
+        this[_] || super.emit("data", e);
       }
     }
     for (let e of this[F])
@@ -76682,25 +77321,25 @@ var V = class extends ee {
   }
   async collect() {
     let t = Object.assign([], { dataLength: 0 });
-    this[k] || (t.dataLength = 0);
+    this[R] || (t.dataLength = 0);
     let e = this.promise();
     return this.on("data", (s) => {
-      t.push(s), this[k] || (t.dataLength += s.length);
+      t.push(s), this[R] || (t.dataLength += s.length);
     }), await e, t;
   }
   async concat() {
-    if (this[k])
+    if (this[R])
       throw new Error("cannot concat in objectMode");
     let t = await this.collect();
-    return this[P] ? t.join("") : Buffer.concat(t, t.dataLength);
+    return this[z] ? t.join("") : Buffer.concat(t, t.dataLength);
   }
   async promise() {
     return new Promise((t, e) => {
-      this.on(x, () => e(new Error("stream destroyed"))), this.on("error", (s) => e(s)), this.on("end", () => t());
+      this.on(E, () => e(new Error("stream destroyed"))), this.on("error", (s) => e(s)), this.on("end", () => t());
     });
   }
   [Symbol.asyncIterator]() {
-    this[M] = false;
+    this[_] = false;
     let t = false, e = async () => (this.pause(), t = true, { value: undefined, done: true });
     return { next: () => {
       if (t)
@@ -76710,96 +77349,101 @@ var V = class extends ee {
         return Promise.resolve({ done: false, value: i });
       if (this[G])
         return e();
-      let r, o, h = (c) => {
-        this.off("data", a), this.off("end", l), this.off(x, u), e(), o(c);
-      }, a = (c) => {
-        this.off("error", h), this.off("end", l), this.off(x, u), this.pause(), r({ value: c, done: !!this[G] });
+      let n, o, h = (f) => {
+        this.off("data", a), this.off("end", l), this.off(E, c), e(), o(f);
+      }, a = (f) => {
+        this.off("error", h), this.off("end", l), this.off(E, c), this.pause(), n({ value: f, done: !!this[G] });
       }, l = () => {
-        this.off("error", h), this.off("data", a), this.off(x, u), e(), r({ done: true, value: undefined });
-      }, u = () => h(new Error("stream destroyed"));
-      return new Promise((c, d) => {
-        o = d, r = c, this.once(x, u), this.once("error", h), this.once("end", l), this.once("data", a);
+        this.off("error", h), this.off("data", a), this.off(E, c), e(), n({ done: true, value: undefined });
+      }, c = () => h(new Error("stream destroyed"));
+      return new Promise((f, u) => {
+        o = u, n = f, this.once(E, c), this.once("error", h), this.once("end", l), this.once("data", a);
       });
     }, throw: e, return: e, [Symbol.asyncIterator]() {
       return this;
     }, [Symbol.asyncDispose]: async () => {} };
   }
   [Symbol.iterator]() {
-    this[M] = false;
-    let t = false, e = () => (this.pause(), this.off(Xt, e), this.off(x, e), this.off("end", e), t = true, { done: true, value: undefined }), s = () => {
+    this[_] = false;
+    let t = false, e = () => (this.pause(), this.off(Ae, e), this.off(E, e), this.off("end", e), t = true, { done: true, value: undefined }), s = () => {
       if (t)
         return e();
       let i = this.read();
       return i === null ? e() : { done: false, value: i };
     };
-    return this.once("end", e), this.once(Xt, e), this.once(x, e), { next: s, throw: e, return: e, [Symbol.iterator]() {
+    return this.once("end", e), this.once(Ae, e), this.once(E, e), { next: s, throw: e, return: e, [Symbol.iterator]() {
       return this;
     }, [Symbol.dispose]: () => {} };
   }
   destroy(t) {
-    if (this[x])
-      return t ? this.emit("error", t) : this.emit(x), this;
-    this[x] = true, this[M] = true, this[C].length = 0, this[T] = 0;
+    if (this[E])
+      return t ? this.emit("error", t) : this.emit(E), this;
+    this[E] = true, this[_] = true, this[C].length = 0, this[A] = 0;
     let e = this;
-    return typeof e.close == "function" && !this[Rt] && e.close(), t ? this.emit("error", t) : this.emit(x), this;
+    return typeof e.close == "function" && !this[$t] && e.close(), t ? this.emit("error", t) : this.emit(E), this;
   }
   static get isStream() {
-    return oi;
+    return Li;
   }
 };
-var vi = Ei.native;
-var wt = { lstatSync: wi, readdir: yi, readdirSync: bi, readlinkSync: Si, realpathSync: vi, promises: { lstat: Ci, readdir: Ti, readlink: Ai, realpath: ki } };
-var Ue = (n2) => !n2 || n2 === wt || n2 === xi ? wt : { ...wt, ...n2, promises: { ...wt.promises, ...n2.promises || {} } };
-var $e = /^\\\\\?\\([a-z]:)\\?$/i;
-var Ri = (n2) => n2.replace(/\//g, "\\").replace($e, "$1\\");
-var Oi = /[\\\/]/;
-var L = 0;
-var Ge = 1;
-var He = 2;
-var U = 4;
-var qe = 6;
-var Ke = 8;
-var X = 10;
-var Ve = 12;
-var _ = 15;
-var gt = ~_;
-var se = 16;
-var je = 32;
-var yt = 64;
-var j = 128;
-var Nt = 256;
-var Lt = 512;
-var Ie = yt | j | Lt;
-var Fi = 1023;
-var ie = (n2) => n2.isFile() ? Ke : n2.isDirectory() ? U : n2.isSymbolicLink() ? X : n2.isCharacterDevice() ? He : n2.isBlockDevice() ? qe : n2.isSocket() ? Ve : n2.isFIFO() ? Ge : L;
-var ze = new ft({ max: 2 ** 12 });
-var bt = (n2) => {
-  let t = ze.get(n2);
+var tn = Zi.native;
+var Ct = { lstatSync: Xi, readdir: Vi, readdirSync: Yi, readlinkSync: Ji, realpathSync: tn, promises: { lstat: en, readdir: sn, readlink: nn, realpath: rn } };
+var Cs = (r) => !r || r === Ct || r === Qi ? Ct : { ...Ct, ...r, promises: { ...Ct.promises, ...r.promises } };
+var on = /^\\\\\?\\([a-z]:)\\?$/i;
+var hn = /^\\\\\?\\UNC\\([^\\]+\\[^\\]+)\\?$/i;
+var an = /^\\\\[^\\?]+\\[^\\]+$/;
+var Ss = (r) => r.replace(/\//g, "\\").replace(on, "$1\\").replace(hn, "\\\\$1\\").replace(an, "$&\\");
+var ln = /^[\\/]{2}\?[\\/]unc[\\/][^\\/]+[\\/][^\\/]+(?:[\\/]|$)/i;
+var cn = /^[\\/]{2}\?[\\/](?=[a-z]:)/i;
+var fn = /^[\\/]{2}\?[\\/]unc(?=[\\/][^\\/]+[\\/][^\\/])/i;
+var un = /[\\/]/;
+var P = 0;
+var As = 1;
+var Ms = 2;
+var I = 4;
+var Rs = 6;
+var Os = 8;
+var tt = 10;
+var Fs = 12;
+var N = 15;
+var kt = ~N;
+var _e = 16;
+var xs = 32;
+var At = 64;
+var L = 128;
+var Ht = 256;
+var Kt = 512;
+var vs = At | L | Kt;
+var dn = 1023;
+var De = (r) => r.isFile() ? Os : r.isDirectory() ? I : r.isSymbolicLink() ? tt : r.isCharacterDevice() ? Ms : r.isBlockDevice() ? Rs : r.isSocket() ? Fs : r.isFIFO() ? As : P;
+var Es = new yt({ max: 2 ** 12 });
+var Mt = (r) => {
+  let t = Es.get(r);
   if (t)
     return t;
-  let e = n2.normalize("NFKD");
-  return ze.set(n2, e), e;
+  let e = r.normalize("NFKD");
+  return Es.set(r, e), e;
 };
-var Be = new ft({ max: 2 ** 12 });
-var _t = (n2) => {
-  let t = Be.get(n2);
+var ks = new yt({ max: 2 ** 12 });
+var qt = (r) => {
+  let t = ks.get(r);
   if (t)
     return t;
-  let e = bt(n2.toLowerCase());
-  return Be.set(n2, e), e;
+  let e = Mt(r.toLowerCase());
+  return ks.set(r, e), e;
 };
-var Wt = class extends ft {
+var Xt = class extends yt {
   constructor() {
     super({ max: 256 });
   }
 };
-var ne = class extends ft {
+var Pe = class extends yt {
   constructor(t = 16 * 1024) {
     super({ maxSize: t, sizeCalculation: (e) => e.length + 1 });
   }
 };
-var Ye = Symbol("PathScurry setAsCwd");
-var R = class {
+var Ts = Symbol("PathScurry setAsCwd");
+var O = class {
   name;
   root;
   roots;
@@ -76807,142 +77451,145 @@ var R = class {
   nocase;
   isCWD = false;
   #t;
-  #s;
-  get dev() {
-    return this.#s;
-  }
   #n;
-  get mode() {
+  get dev() {
     return this.#n;
   }
-  #r;
-  get nlink() {
-    return this.#r;
+  #i;
+  get mode() {
+    return this.#i;
   }
   #o;
-  get uid() {
+  get nlink() {
     return this.#o;
   }
-  #S;
+  #r;
+  get uid() {
+    return this.#r;
+  }
+  #d;
   get gid() {
-    return this.#S;
+    return this.#d;
   }
-  #w;
+  #u;
   get rdev() {
-    return this.#w;
+    return this.#u;
   }
-  #c;
+  #f;
   get blksize() {
-    return this.#c;
+    return this.#f;
   }
   #h;
   get ino() {
     return this.#h;
   }
-  #u;
+  #m;
   get size() {
-    return this.#u;
+    return this.#m;
   }
-  #f;
+  #l;
   get blocks() {
-    return this.#f;
+    return this.#l;
   }
   #a;
   get atimeMs() {
     return this.#a;
   }
-  #i;
+  #s;
   get mtimeMs() {
-    return this.#i;
+    return this.#s;
   }
-  #d;
+  #b;
   get ctimeMs() {
-    return this.#d;
+    return this.#b;
   }
   #E;
   get birthtimeMs() {
     return this.#E;
   }
-  #b;
+  #y;
   get atime() {
-    return this.#b;
+    return this.#y;
+  }
+  #g;
+  get mtime() {
+    return this.#g;
+  }
+  #w;
+  get ctime() {
+    return this.#w;
   }
   #p;
-  get mtime() {
+  get birthtime() {
     return this.#p;
   }
-  #R;
-  get ctime() {
-    return this.#R;
-  }
-  #m;
-  get birthtime() {
-    return this.#m;
-  }
-  #C;
-  #T;
-  #g;
-  #y;
-  #x;
-  #A;
-  #e;
-  #_;
-  #M;
   #k;
+  #C;
+  #x;
+  #v;
+  #S;
+  #M;
+  #e;
+  #T;
+  #_;
+  #R;
   get parentPath() {
     return (this.parent || this).fullpath();
   }
   get path() {
     return this.parentPath;
   }
-  constructor(t, e = L, s, i, r, o, h) {
-    this.name = t, this.#C = r ? _t(t) : bt(t), this.#e = e & Fi, this.nocase = r, this.roots = i, this.root = s || this, this.#_ = o, this.#g = h.fullpath, this.#x = h.relative, this.#A = h.relativePosix, this.parent = h.parent, this.parent ? this.#t = this.parent.#t : this.#t = Ue(h.fs);
+  constructor(t, e = P, s, i, n, o, h) {
+    this.name = t, this.#k = n ? qt(t) : Mt(t), this.#e = e & dn, this.nocase = n, this.roots = i, this.root = s || this, this.#T = o, this.#x = h.fullpath, this.#S = h.relative, this.#M = h.relativePosix, this.parent = h.parent, this.parent ? this.#t = this.parent.#t : this.#t = Cs(h.fs);
+  }
+  get fs() {
+    return this.#t;
   }
   depth() {
-    return this.#T !== undefined ? this.#T : this.parent ? this.#T = this.parent.depth() + 1 : this.#T = 0;
+    return this.#C !== undefined ? this.#C : this.parent ? this.#C = this.parent.depth() + 1 : this.#C = 0;
   }
   childrenCache() {
-    return this.#_;
+    return this.#T;
   }
   resolve(t) {
     if (!t)
       return this;
     let e = this.getRootString(t), i = t.substring(e.length).split(this.splitSep);
-    return e ? this.getRoot(e).#N(i) : this.#N(i);
+    return e ? this.getRoot(e).#D(i) : this.#D(i);
   }
-  #N(t) {
+  #D(t) {
     let e = this;
     for (let s of t)
       e = e.child(s);
     return e;
   }
   children() {
-    let t = this.#_.get(this);
+    let t = this.#T.get(this);
     if (t)
       return t;
     let e = Object.assign([], { provisional: 0 });
-    return this.#_.set(this, e), this.#e &= ~se, e;
+    return this.#T.set(this, e), this.#e &= ~_e, e;
   }
   child(t, e) {
     if (t === "" || t === ".")
       return this;
     if (t === "..")
       return this.parent || this;
-    let s = this.children(), i = this.nocase ? _t(t) : bt(t);
+    let s = this.children(), i = this.nocase ? qt(t) : Mt(t);
     for (let a of s)
-      if (a.#C === i)
+      if (a.#k === i)
         return a;
-    let r = this.parent ? this.sep : "", o = this.#g ? this.#g + r + t : undefined, h = this.newChild(t, L, { ...e, parent: this, fullpath: o });
-    return this.canReaddir() || (h.#e |= j), s.push(h), h;
+    let n = this.parent ? this.sep : "", o = this.#x ? this.#x + n + t : undefined, h = this.newChild(t, P, { ...e, parent: this, fullpath: o });
+    return this.canReaddir() || (h.#e |= L), s.push(h), h;
   }
   relative() {
     if (this.isCWD)
       return "";
-    if (this.#x !== undefined)
-      return this.#x;
+    if (this.#S !== undefined)
+      return this.#S;
     let t = this.name, e = this.parent;
     if (!e)
-      return this.#x = this.name;
+      return this.#S = this.name;
     let s = e.relative();
     return s + (!s || !e.parent ? "" : this.sep) + t;
   }
@@ -76951,37 +77598,37 @@ var R = class {
       return this.relative();
     if (this.isCWD)
       return "";
-    if (this.#A !== undefined)
-      return this.#A;
+    if (this.#M !== undefined)
+      return this.#M;
     let t = this.name, e = this.parent;
     if (!e)
-      return this.#A = this.fullpathPosix();
+      return this.#M = this.fullpathPosix();
     let s = e.relativePosix();
     return s + (!s || !e.parent ? "" : "/") + t;
   }
   fullpath() {
-    if (this.#g !== undefined)
-      return this.#g;
+    if (this.#x !== undefined)
+      return this.#x;
     let t = this.name, e = this.parent;
     if (!e)
-      return this.#g = this.name;
+      return this.#x = this.name;
     let i = e.fullpath() + (e.parent ? this.sep : "") + t;
-    return this.#g = i;
+    return this.#x = i;
   }
   fullpathPosix() {
-    if (this.#y !== undefined)
-      return this.#y;
+    if (this.#v !== undefined)
+      return this.#v;
     if (this.sep === "/")
-      return this.#y = this.fullpath();
+      return this.#v = this.fullpath();
     if (!this.parent) {
       let i = this.fullpath().replace(/\\/g, "/");
-      return /^[a-z]:\//i.test(i) ? this.#y = `//?/${i}` : this.#y = i;
+      return /^[a-z]:\//i.test(i) ? this.#v = `//?/${i}` : this.#v = i;
     }
     let t = this.parent, e = t.fullpathPosix(), s = e + (!e || !t.parent ? "" : "/") + this.name;
-    return this.#y = s;
+    return this.#v = s;
   }
   isUnknown() {
-    return (this.#e & _) === L;
+    return (this.#e & N) === P;
   }
   isType(t) {
     return this[`is${t}`]();
@@ -76990,165 +77637,165 @@ var R = class {
     return this.isUnknown() ? "Unknown" : this.isDirectory() ? "Directory" : this.isFile() ? "File" : this.isSymbolicLink() ? "SymbolicLink" : this.isFIFO() ? "FIFO" : this.isCharacterDevice() ? "CharacterDevice" : this.isBlockDevice() ? "BlockDevice" : this.isSocket() ? "Socket" : "Unknown";
   }
   isFile() {
-    return (this.#e & _) === Ke;
+    return (this.#e & N) === Os;
   }
   isDirectory() {
-    return (this.#e & _) === U;
+    return (this.#e & N) === I;
   }
   isCharacterDevice() {
-    return (this.#e & _) === He;
+    return (this.#e & N) === Ms;
   }
   isBlockDevice() {
-    return (this.#e & _) === qe;
+    return (this.#e & N) === Rs;
   }
   isFIFO() {
-    return (this.#e & _) === Ge;
+    return (this.#e & N) === As;
   }
   isSocket() {
-    return (this.#e & _) === Ve;
+    return (this.#e & N) === Fs;
   }
   isSymbolicLink() {
-    return (this.#e & X) === X;
+    return (this.#e & tt) === tt;
   }
   lstatCached() {
-    return this.#e & je ? this : undefined;
+    return this.#e & xs ? this : undefined;
   }
   readlinkCached() {
-    return this.#M;
+    return this.#_;
   }
   realpathCached() {
-    return this.#k;
+    return this.#R;
   }
   readdirCached() {
     let t = this.children();
     return t.slice(0, t.provisional);
   }
   canReadlink() {
-    if (this.#M)
+    if (this.#_)
       return true;
     if (!this.parent)
       return false;
-    let t = this.#e & _;
-    return !(t !== L && t !== X || this.#e & Nt || this.#e & j);
+    let t = this.#e & N;
+    return !(t !== P && t !== tt || this.#e & Ht || this.#e & L);
   }
   calledReaddir() {
-    return !!(this.#e & se);
+    return !!(this.#e & _e);
   }
   isENOENT() {
-    return !!(this.#e & j);
+    return !!(this.#e & L);
   }
   isNamed(t) {
-    return this.nocase ? this.#C === _t(t) : this.#C === bt(t);
+    return this.nocase ? this.#k === qt(t) : this.#k === Mt(t);
   }
   async readlink() {
-    let t = this.#M;
+    let t = this.#_;
     if (t)
       return t;
     if (this.canReadlink() && this.parent)
       try {
         let e = await this.#t.promises.readlink(this.fullpath()), s = (await this.parent.realpath())?.resolve(e);
         if (s)
-          return this.#M = s;
+          return this.#_ = s;
       } catch (e) {
-        this.#D(e.code);
+        this.#F(e.code);
         return;
       }
   }
   readlinkSync() {
-    let t = this.#M;
+    let t = this.#_;
     if (t)
       return t;
     if (this.canReadlink() && this.parent)
       try {
         let e = this.#t.readlinkSync(this.fullpath()), s = this.parent.realpathSync()?.resolve(e);
         if (s)
-          return this.#M = s;
+          return this.#_ = s;
       } catch (e) {
-        this.#D(e.code);
+        this.#F(e.code);
         return;
       }
   }
-  #j(t) {
-    this.#e |= se;
+  #W(t) {
+    this.#e |= _e;
     for (let e = t.provisional;e < t.length; e++) {
       let s = t[e];
-      s && s.#v();
+      s && s.#A();
     }
   }
-  #v() {
-    this.#e & j || (this.#e = (this.#e | j) & gt, this.#G());
+  #A() {
+    this.#e & L || (this.#e = (this.#e | L) & kt, this.#G());
   }
   #G() {
     let t = this.children();
     t.provisional = 0;
     for (let e of t)
-      e.#v();
+      e.#A();
   }
   #P() {
-    this.#e |= Lt, this.#L();
+    this.#e |= Kt, this.#N();
   }
-  #L() {
-    if (this.#e & yt)
+  #N() {
+    if (this.#e & At)
       return;
     let t = this.#e;
-    (t & _) === U && (t &= gt), this.#e = t | yt, this.#G();
+    (t & N) === I && (t &= kt), this.#e = t | At, this.#G();
   }
-  #I(t = "") {
-    t === "ENOTDIR" || t === "EPERM" ? this.#L() : t === "ENOENT" ? this.#v() : this.children().provisional = 0;
+  #$(t = "") {
+    t === "ENOTDIR" || t === "EPERM" ? this.#N() : t === "ENOENT" ? this.#A() : this.children().provisional = 0;
+  }
+  #O(t = "") {
+    t === "ENOTDIR" ? this.parent.#N() : t === "ENOENT" && this.#A();
   }
   #F(t = "") {
-    t === "ENOTDIR" ? this.parent.#L() : t === "ENOENT" && this.#v();
-  }
-  #D(t = "") {
     let e = this.#e;
-    e |= Nt, t === "ENOENT" && (e |= j), (t === "EINVAL" || t === "UNKNOWN") && (e &= gt), this.#e = e, t === "ENOTDIR" && this.parent && this.parent.#L();
+    e |= Ht, t === "ENOENT" && (e |= L), (t === "EINVAL" || t === "UNKNOWN") && (e &= kt), this.#e = e, t === "ENOTDIR" && this.parent && this.parent.#N();
+  }
+  #I(t, e) {
+    return this.#U(t, e) || this.#z(t, e);
   }
   #z(t, e) {
-    return this.#U(t, e) || this.#B(t, e);
-  }
-  #B(t, e) {
-    let s = ie(t), i = this.newChild(t.name, s, { parent: this }), r = i.#e & _;
-    return r !== U && r !== X && r !== L && (i.#e |= yt), e.unshift(i), e.provisional++, i;
+    let s = De(t), i = this.newChild(t.name, s, { parent: this }), n = i.#e & N;
+    return n !== I && n !== tt && n !== P && (i.#e |= At), e.unshift(i), e.provisional++, i;
   }
   #U(t, e) {
     for (let s = e.provisional;s < e.length; s++) {
       let i = e[s];
-      if ((this.nocase ? _t(t.name) : bt(t.name)) === i.#C)
-        return this.#l(t, i, s, e);
+      if ((this.nocase ? qt(t.name) : Mt(t.name)) === i.#k)
+        return this.#V(t, i, s, e);
     }
   }
-  #l(t, e, s, i) {
-    let r = e.name;
-    return e.#e = e.#e & gt | ie(t), r !== t.name && (e.name = t.name), s !== i.provisional && (s === i.length - 1 ? i.pop() : i.splice(s, 1), i.unshift(e)), i.provisional++, e;
+  #V(t, e, s, i) {
+    let n = e.name;
+    return e.#e = e.#e & kt | De(t), n !== t.name && (e.name = t.name), s !== i.provisional && (s === i.length - 1 ? i.pop() : i.splice(s, 1), i.unshift(e)), i.provisional++, e;
   }
   async lstat() {
-    if ((this.#e & j) === 0)
+    if ((this.#e & L) === 0)
       try {
-        return this.#$(await this.#t.promises.lstat(this.fullpath())), this;
+        return this.#H(await this.#t.promises.lstat(this.fullpath())), this;
       } catch (t) {
-        this.#F(t.code);
+        this.#O(t.code);
       }
   }
   lstatSync() {
-    if ((this.#e & j) === 0)
+    if ((this.#e & L) === 0)
       try {
-        return this.#$(this.#t.lstatSync(this.fullpath())), this;
+        return this.#H(this.#t.lstatSync(this.fullpath())), this;
       } catch (t) {
-        this.#F(t.code);
+        this.#O(t.code);
       }
   }
-  #$(t) {
-    let { atime: e, atimeMs: s, birthtime: i, birthtimeMs: r, blksize: o, blocks: h, ctime: a, ctimeMs: l, dev: u, gid: c, ino: d, mode: f, mtime: m, mtimeMs: p, nlink: w, rdev: g, size: S, uid: E } = t;
-    this.#b = e, this.#a = s, this.#m = i, this.#E = r, this.#c = o, this.#f = h, this.#R = a, this.#d = l, this.#s = u, this.#S = c, this.#h = d, this.#n = f, this.#p = m, this.#i = p, this.#r = w, this.#w = g, this.#u = S, this.#o = E;
-    let y = ie(t);
-    this.#e = this.#e & gt | y | je, y !== L && y !== U && y !== X && (this.#e |= yt);
-  }
-  #W = [];
-  #O = false;
   #H(t) {
-    this.#O = false;
-    let e = this.#W.slice();
-    this.#W.length = 0, e.forEach((s) => s(null, t));
+    let { atime: e, atimeMs: s, birthtime: i, birthtimeMs: n, blksize: o, blocks: h, ctime: a, ctimeMs: l, dev: c, gid: f, ino: u, mode: p, mtime: g, mtimeMs: d, nlink: w, rdev: m, size: b, uid: x } = t;
+    this.#y = e, this.#a = s, this.#p = i, this.#E = n, this.#f = o, this.#l = h, this.#w = a, this.#b = l, this.#n = c, this.#d = f, this.#h = u, this.#i = p, this.#g = g, this.#s = d, this.#o = w, this.#u = m, this.#m = b, this.#r = x;
+    let S = De(t);
+    this.#e = this.#e & kt | S | xs, S !== P && S !== I && S !== tt && (this.#e |= At);
+  }
+  #L = [];
+  #c = false;
+  #q(t) {
+    this.#c = false;
+    let e = this.#L.slice();
+    this.#L.length = 0, e.forEach((s) => s(null, t));
   }
   readdirCB(t, e = false) {
     if (!this.canReaddir()) {
@@ -77157,26 +77804,26 @@ var R = class {
     }
     let s = this.children();
     if (this.calledReaddir()) {
-      let r = s.slice(0, s.provisional);
-      e ? t(null, r) : queueMicrotask(() => t(null, r));
+      let n = s.slice(0, s.provisional);
+      e ? t(null, n) : queueMicrotask(() => t(null, n));
       return;
     }
-    if (this.#W.push(t), this.#O)
+    if (this.#L.push(t), this.#c)
       return;
-    this.#O = true;
+    this.#c = true;
     let i = this.fullpath();
-    this.#t.readdir(i, { withFileTypes: true }, (r, o) => {
-      if (r)
-        this.#I(r.code), s.provisional = 0;
+    this.#t.readdir(i, { withFileTypes: true }, (n, o) => {
+      if (n)
+        this.#$(n.code), s.provisional = 0;
       else {
         for (let h of o)
-          this.#z(h, s);
-        this.#j(s);
+          this.#I(h, s);
+        this.#W(s);
       }
-      this.#H(s.slice(0, s.provisional));
+      this.#q(s.slice(0, s.provisional));
     });
   }
-  #q;
+  #B;
   async readdir() {
     if (!this.canReaddir())
       return [];
@@ -77184,19 +77831,19 @@ var R = class {
     if (this.calledReaddir())
       return t.slice(0, t.provisional);
     let e = this.fullpath();
-    if (this.#q)
-      await this.#q;
+    if (this.#B)
+      await this.#B;
     else {
       let s = () => {};
-      this.#q = new Promise((i) => s = i);
+      this.#B = new Promise((i) => s = i);
       try {
         for (let i of await this.#t.promises.readdir(e, { withFileTypes: true }))
-          this.#z(i, t);
-        this.#j(t);
+          this.#I(i, t);
+        this.#W(t);
       } catch (i) {
-        this.#I(i.code), t.provisional = 0;
+        this.#$(i.code), t.provisional = 0;
       }
-      this.#q = undefined, s();
+      this.#B = undefined, s();
     }
     return t.slice(0, t.provisional);
   }
@@ -77209,84 +77856,84 @@ var R = class {
     let e = this.fullpath();
     try {
       for (let s of this.#t.readdirSync(e, { withFileTypes: true }))
-        this.#z(s, t);
-      this.#j(t);
+        this.#I(s, t);
+      this.#W(t);
     } catch (s) {
-      this.#I(s.code), t.provisional = 0;
+      this.#$(s.code), t.provisional = 0;
     }
     return t.slice(0, t.provisional);
   }
   canReaddir() {
-    if (this.#e & Ie)
+    if (this.#e & vs)
       return false;
-    let t = _ & this.#e;
-    return t === L || t === U || t === X;
+    let t = N & this.#e;
+    return t === P || t === I || t === tt;
   }
   shouldWalk(t, e) {
-    return (this.#e & U) === U && !(this.#e & Ie) && !t.has(this) && (!e || e(this));
+    return (this.#e & I) === I && !(this.#e & vs) && !t.has(this) && (!e || e(this));
   }
   async realpath() {
-    if (this.#k)
-      return this.#k;
-    if (!((Lt | Nt | j) & this.#e))
+    if (this.#R)
+      return this.#R;
+    if (!((Kt | Ht | L) & this.#e))
       try {
         let t = await this.#t.promises.realpath(this.fullpath());
-        return this.#k = this.resolve(t);
+        return this.#R = this.resolve(t);
       } catch {
         this.#P();
       }
   }
   realpathSync() {
-    if (this.#k)
-      return this.#k;
-    if (!((Lt | Nt | j) & this.#e))
+    if (this.#R)
+      return this.#R;
+    if (!((Kt | Ht | L) & this.#e))
       try {
         let t = this.#t.realpathSync(this.fullpath());
-        return this.#k = this.resolve(t);
+        return this.#R = this.resolve(t);
       } catch {
         this.#P();
       }
   }
-  [Ye](t) {
+  [Ts](t) {
     if (t === this)
       return;
     t.isCWD = false, this.isCWD = true;
     let e = new Set([]), s = [], i = this;
     for (;i && i.parent; )
-      e.add(i), i.#x = s.join(this.sep), i.#A = s.join("/"), i = i.parent, s.push("..");
+      e.add(i), i.#S = s.join(this.sep), i.#M = s.join("/"), i = i.parent, s.push("..");
     for (i = t;i && i.parent && !e.has(i); )
-      i.#x = undefined, i.#A = undefined, i = i.parent;
+      i.#S = undefined, i.#M = undefined, i = i.parent;
   }
 };
-var Pt = class n2 extends R {
+var Vt = class r extends O {
   sep = "\\";
-  splitSep = Oi;
-  constructor(t, e = L, s, i, r, o, h) {
-    super(t, e, s, i, r, o, h);
+  splitSep = un;
+  constructor(t, e = P, s, i, n, o, h) {
+    super(t, e, s, i, n, o, h);
   }
-  newChild(t, e = L, s = {}) {
-    return new n2(t, e, this.root, this.roots, this.nocase, this.childrenCache(), s);
+  newChild(t, e = P, s = {}) {
+    return new r(t, e, this.root, this.roots, this.nocase, this.childrenCache(), s);
   }
   getRootString(t) {
-    return re.parse(t).root;
+    return ln.exec(t)?.[0] ?? Ne.parse(t).root;
   }
   getRoot(t) {
-    if (t = Ri(t.toUpperCase()), t === this.root.name)
+    if (t = Ss(t.toUpperCase()), t === this.root.name || /^[\\/]$/.test(t))
       return this.root;
     for (let [e, s] of Object.entries(this.roots))
       if (this.sameRoot(t, e))
         return this.roots[t] = s;
-    return this.roots[t] = new it(t, this).root;
+    return this.roots[t] = new ot(t, { nocase: this.nocase, fs: this.fs }).root;
   }
   sameRoot(t, e = this.root.name) {
-    return t = t.toUpperCase().replace(/\//g, "\\").replace($e, "$1\\"), t === e;
+    return Ss(t.toUpperCase()) === e;
   }
 };
-var jt = class n3 extends R {
+var Yt = class r2 extends O {
   splitSep = "/";
   sep = "/";
-  constructor(t, e = L, s, i, r, o, h) {
-    super(t, e, s, i, r, o, h);
+  constructor(t, e = P, s, i, n, o, h) {
+    super(t, e, s, i, n, o, h);
   }
   getRootString(t) {
     return t.startsWith("/") ? "/" : "";
@@ -77294,32 +77941,32 @@ var jt = class n3 extends R {
   getRoot(t) {
     return this.root;
   }
-  newChild(t, e = L, s = {}) {
-    return new n3(t, e, this.root, this.roots, this.nocase, this.childrenCache(), s);
+  newChild(t, e = P, s = {}) {
+    return new r2(t, e, this.root, this.roots, this.nocase, this.childrenCache(), s);
   }
 };
-var It = class {
+var Jt = class {
   root;
   rootPath;
   roots;
   cwd;
   #t;
-  #s;
   #n;
+  #i;
   nocase;
-  #r;
-  constructor(t = process.cwd(), e, s, { nocase: i, childrenCacheSize: r = 16 * 1024, fs: o = wt } = {}) {
-    this.#r = Ue(o), (t instanceof URL || t.startsWith("file://")) && (t = gi(t));
+  #o;
+  constructor(t = process.cwd(), e, s, { nocase: i, childrenCacheSize: n = 16 * 1024, fs: o = Ct } = {}) {
+    this.#o = Cs(o), (t instanceof URL || t.startsWith("file://")) && (t = Ki(t));
     let h = e.resolve(t);
-    this.roots = Object.create(null), this.rootPath = this.parseRootPath(h), this.#t = new Wt, this.#s = new Wt, this.#n = new ne(r);
+    this.roots = Object.create(null), this.rootPath = this.parseRootPath(h), this.#t = new Xt, this.#n = new Xt, this.#i = new Pe(n);
     let a = h.substring(this.rootPath.length).split(s);
     if (a.length === 1 && !a[0] && a.pop(), i === undefined)
       throw new TypeError("must provide nocase setting to PathScurryBase ctor");
-    this.nocase = i, this.root = this.newRoot(this.#r), this.roots[this.rootPath] = this.root;
-    let l = this.root, u = a.length - 1, c = e.sep, d = this.rootPath, f = false;
-    for (let m of a) {
-      let p = u--;
-      l = l.child(m, { relative: new Array(p).fill("..").join(c), relativePosix: new Array(p).fill("..").join("/"), fullpath: d += (f ? "" : c) + m }), f = true;
+    this.nocase = i, this.root = this.newRoot(this.#o), this.roots[this.rootPath] = this.root;
+    let l = this.root, c = a.length - 1, f = e.sep, u = this.rootPath, p = false;
+    for (let g of a) {
+      let d = c--;
+      l = l.child(g, { relative: new Array(d).fill("..").join(f), relativePosix: new Array(d).fill("..").join("/"), fullpath: u += (p ? "" : f) + g }), p = true;
     }
     this.cwd = l;
   }
@@ -77327,12 +77974,12 @@ var It = class {
     return typeof t == "string" && (t = this.cwd.resolve(t)), t.depth();
   }
   childrenCache() {
-    return this.#n;
+    return this.#i;
   }
   resolve(...t) {
     let e = "";
-    for (let r = t.length - 1;r >= 0; r--) {
-      let o = t[r];
+    for (let n = t.length - 1;n >= 0; n--) {
+      let o = t[n];
       if (!(!o || o === ".") && (e = e ? `${o}/${e}` : o, this.isAbsolute(o)))
         break;
     }
@@ -77344,16 +77991,16 @@ var It = class {
   }
   resolvePosix(...t) {
     let e = "";
-    for (let r = t.length - 1;r >= 0; r--) {
-      let o = t[r];
+    for (let n = t.length - 1;n >= 0; n--) {
+      let o = t[n];
       if (!(!o || o === ".") && (e = e ? `${o}/${e}` : o, this.isAbsolute(o)))
         break;
     }
-    let s = this.#s.get(e);
+    let s = this.#n.get(e);
     if (s !== undefined)
       return s;
     let i = this.cwd.resolve(e).fullpathPosix();
-    return this.#s.set(e, i), i;
+    return this.#n.set(e, i), i;
   }
   relative(t = this.cwd) {
     return typeof t == "string" && (t = this.cwd.resolve(t)), t.relative();
@@ -77368,16 +78015,16 @@ var It = class {
     return typeof t == "string" && (t = this.cwd.resolve(t)), (t.parent || t).fullpath();
   }
   async readdir(t = this.cwd, e = { withFileTypes: true }) {
-    typeof t == "string" ? t = this.cwd.resolve(t) : t instanceof R || (e = t, t = this.cwd);
+    typeof t == "string" ? t = this.cwd.resolve(t) : t instanceof O || (e = t, t = this.cwd);
     let { withFileTypes: s } = e;
     if (t.canReaddir()) {
       let i = await t.readdir();
-      return s ? i : i.map((r) => r.name);
+      return s ? i : i.map((n) => n.name);
     } else
       return [];
   }
   readdirSync(t = this.cwd, e = { withFileTypes: true }) {
-    typeof t == "string" ? t = this.cwd.resolve(t) : t instanceof R || (e = t, t = this.cwd);
+    typeof t == "string" ? t = this.cwd.resolve(t) : t instanceof O || (e = t, t = this.cwd);
     let { withFileTypes: s = true } = e;
     return t.canReaddir() ? s ? t.readdirSync() : t.readdirSync().map((i) => i.name) : [];
   }
@@ -77388,67 +78035,67 @@ var It = class {
     return typeof t == "string" && (t = this.cwd.resolve(t)), t.lstatSync();
   }
   async readlink(t = this.cwd, { withFileTypes: e } = { withFileTypes: false }) {
-    typeof t == "string" ? t = this.cwd.resolve(t) : t instanceof R || (e = t.withFileTypes, t = this.cwd);
+    typeof t == "string" ? t = this.cwd.resolve(t) : t instanceof O || (e = t.withFileTypes, t = this.cwd);
     let s = await t.readlink();
     return e ? s : s?.fullpath();
   }
   readlinkSync(t = this.cwd, { withFileTypes: e } = { withFileTypes: false }) {
-    typeof t == "string" ? t = this.cwd.resolve(t) : t instanceof R || (e = t.withFileTypes, t = this.cwd);
+    typeof t == "string" ? t = this.cwd.resolve(t) : t instanceof O || (e = t.withFileTypes, t = this.cwd);
     let s = t.readlinkSync();
     return e ? s : s?.fullpath();
   }
   async realpath(t = this.cwd, { withFileTypes: e } = { withFileTypes: false }) {
-    typeof t == "string" ? t = this.cwd.resolve(t) : t instanceof R || (e = t.withFileTypes, t = this.cwd);
+    typeof t == "string" ? t = this.cwd.resolve(t) : t instanceof O || (e = t.withFileTypes, t = this.cwd);
     let s = await t.realpath();
     return e ? s : s?.fullpath();
   }
   realpathSync(t = this.cwd, { withFileTypes: e } = { withFileTypes: false }) {
-    typeof t == "string" ? t = this.cwd.resolve(t) : t instanceof R || (e = t.withFileTypes, t = this.cwd);
+    typeof t == "string" ? t = this.cwd.resolve(t) : t instanceof O || (e = t.withFileTypes, t = this.cwd);
     let s = t.realpathSync();
     return e ? s : s?.fullpath();
   }
   async walk(t = this.cwd, e = {}) {
-    typeof t == "string" ? t = this.cwd.resolve(t) : t instanceof R || (e = t, t = this.cwd);
-    let { withFileTypes: s = true, follow: i = false, filter: r, walkFilter: o } = e, h = [];
-    (!r || r(t)) && h.push(s ? t : t.fullpath());
-    let a = new Set, l = (c, d) => {
-      a.add(c), c.readdirCB((f, m) => {
-        if (f)
-          return d(f);
-        let p = m.length;
-        if (!p)
-          return d();
+    typeof t == "string" ? t = this.cwd.resolve(t) : t instanceof O || (e = t, t = this.cwd);
+    let { withFileTypes: s = true, follow: i = false, filter: n, walkFilter: o } = e, h = [];
+    (!n || n(t)) && h.push(s ? t : t.fullpath());
+    let a = new Set, l = (f, u) => {
+      a.add(f), f.readdirCB((p, g) => {
+        if (p)
+          return u(p);
+        let d = g.length;
+        if (!d)
+          return u();
         let w = () => {
-          --p === 0 && d();
+          --d === 0 && u();
         };
-        for (let g of m)
-          (!r || r(g)) && h.push(s ? g : g.fullpath()), i && g.isSymbolicLink() ? g.realpath().then((S) => S?.isUnknown() ? S.lstat() : S).then((S) => S?.shouldWalk(a, o) ? l(S, w) : w()) : g.shouldWalk(a, o) ? l(g, w) : w();
+        for (let m of g)
+          (!n || n(m)) && h.push(s ? m : m.fullpath()), i && m.isSymbolicLink() ? m.realpath().then((b) => b?.isUnknown() ? b.lstat() : b).then((b) => b?.shouldWalk(a, o) ? l(b, w) : w()) : m.shouldWalk(a, o) ? l(m, w) : w();
       }, true);
-    }, u = t;
-    return new Promise((c, d) => {
-      l(u, (f) => {
-        if (f)
-          return d(f);
-        c(h);
+    }, c = t;
+    return new Promise((f, u) => {
+      l(c, (p) => {
+        if (p)
+          return u(p);
+        f(h);
       });
     });
   }
   walkSync(t = this.cwd, e = {}) {
-    typeof t == "string" ? t = this.cwd.resolve(t) : t instanceof R || (e = t, t = this.cwd);
-    let { withFileTypes: s = true, follow: i = false, filter: r, walkFilter: o } = e, h = [];
-    (!r || r(t)) && h.push(s ? t : t.fullpath());
+    typeof t == "string" ? t = this.cwd.resolve(t) : t instanceof O || (e = t, t = this.cwd);
+    let { withFileTypes: s = true, follow: i = false, filter: n, walkFilter: o } = e, h = [];
+    (!n || n(t)) && h.push(s ? t : t.fullpath());
     let a = new Set([t]);
     for (let l of a) {
-      let u = l.readdirSync();
-      for (let c of u) {
-        (!r || r(c)) && h.push(s ? c : c.fullpath());
-        let d = c;
-        if (c.isSymbolicLink()) {
-          if (!(i && (d = c.realpathSync())))
+      let c = l.readdirSync();
+      for (let f of c) {
+        (!n || n(f)) && h.push(s ? f : f.fullpath());
+        let u = f;
+        if (f.isSymbolicLink()) {
+          if (!(i && (u = f.realpathSync())))
             continue;
-          d.isUnknown() && d.lstatSync();
+          u.isUnknown() && u.lstatSync();
         }
-        d.shouldWalk(a, o) && a.add(d);
+        u.shouldWalk(a, o) && a.add(u);
       }
     }
     return h;
@@ -77457,216 +78104,220 @@ var It = class {
     return this.iterate();
   }
   iterate(t = this.cwd, e = {}) {
-    return typeof t == "string" ? t = this.cwd.resolve(t) : t instanceof R || (e = t, t = this.cwd), this.stream(t, e)[Symbol.asyncIterator]();
+    return typeof t == "string" ? t = this.cwd.resolve(t) : t instanceof O || (e = t, t = this.cwd), this.stream(t, e)[Symbol.asyncIterator]();
   }
   [Symbol.iterator]() {
     return this.iterateSync();
   }
   *iterateSync(t = this.cwd, e = {}) {
-    typeof t == "string" ? t = this.cwd.resolve(t) : t instanceof R || (e = t, t = this.cwd);
-    let { withFileTypes: s = true, follow: i = false, filter: r, walkFilter: o } = e;
-    (!r || r(t)) && (yield s ? t : t.fullpath());
+    typeof t == "string" ? t = this.cwd.resolve(t) : t instanceof O || (e = t, t = this.cwd);
+    let { withFileTypes: s = true, follow: i = false, filter: n, walkFilter: o } = e;
+    (!n || n(t)) && (yield s ? t : t.fullpath());
     let h = new Set([t]);
     for (let a of h) {
       let l = a.readdirSync();
-      for (let u of l) {
-        (!r || r(u)) && (yield s ? u : u.fullpath());
-        let c = u;
-        if (u.isSymbolicLink()) {
-          if (!(i && (c = u.realpathSync())))
+      for (let c of l) {
+        (!n || n(c)) && (yield s ? c : c.fullpath());
+        let f = c;
+        if (c.isSymbolicLink()) {
+          if (!(i && (f = c.realpathSync())))
             continue;
-          c.isUnknown() && c.lstatSync();
+          f.isUnknown() && f.lstatSync();
         }
-        c.shouldWalk(h, o) && h.add(c);
+        f.shouldWalk(h, o) && h.add(f);
       }
     }
   }
   stream(t = this.cwd, e = {}) {
-    typeof t == "string" ? t = this.cwd.resolve(t) : t instanceof R || (e = t, t = this.cwd);
-    let { withFileTypes: s = true, follow: i = false, filter: r, walkFilter: o } = e, h = new V({ objectMode: true });
-    (!r || r(t)) && h.write(s ? t : t.fullpath());
-    let a = new Set, l = [t], u = 0, c = () => {
-      let d = false;
-      for (;!d; ) {
-        let f = l.shift();
-        if (!f) {
-          u === 0 && h.end();
+    typeof t == "string" ? t = this.cwd.resolve(t) : t instanceof O || (e = t, t = this.cwd);
+    let { withFileTypes: s = true, follow: i = false, filter: n, walkFilter: o } = e, h = new J({ objectMode: true });
+    (!n || n(t)) && h.write(s ? t : t.fullpath());
+    let a = new Set, l = [t], c = 0, f = () => {
+      let u = false;
+      for (;!u; ) {
+        let p = l.shift();
+        if (!p) {
+          c === 0 && h.end();
           return;
         }
-        u++, a.add(f);
-        let m = (w, g, S = false) => {
+        c++, a.add(p);
+        let g = (w, m, b = false) => {
           if (w)
             return h.emit("error", w);
-          if (i && !S) {
-            let E = [];
-            for (let y of g)
-              y.isSymbolicLink() && E.push(y.realpath().then((b) => b?.isUnknown() ? b.lstat() : b));
-            if (E.length) {
-              Promise.all(E).then(() => m(null, g, true));
+          if (i && !b) {
+            let x = [];
+            for (let S of m)
+              S.isSymbolicLink() && x.push(S.realpath().then((y) => y?.isUnknown() ? y.lstat() : y));
+            if (x.length) {
+              Promise.all(x).then(() => g(null, m, true));
               return;
             }
           }
-          for (let E of g)
-            E && (!r || r(E)) && (h.write(s ? E : E.fullpath()) || (d = true));
-          u--;
-          for (let E of g) {
-            let y = E.realpathCached() || E;
-            y.shouldWalk(a, o) && l.push(y);
+          for (let x of m)
+            x && (!n || n(x)) && (h.write(s ? x : x.fullpath()) || (u = true));
+          c--;
+          for (let x of m) {
+            let S = x.realpathCached() || x;
+            S.shouldWalk(a, o) && l.push(S);
           }
-          d && !h.flowing ? h.once("drain", c) : p || c();
-        }, p = true;
-        f.readdirCB(m, true), p = false;
+          u && !h.flowing ? h.once("drain", f) : d || f();
+        }, d = true;
+        p.readdirCB(g, true), d = false;
       }
     };
-    return c(), h;
+    return f(), h;
   }
   streamSync(t = this.cwd, e = {}) {
-    typeof t == "string" ? t = this.cwd.resolve(t) : t instanceof R || (e = t, t = this.cwd);
-    let { withFileTypes: s = true, follow: i = false, filter: r, walkFilter: o } = e, h = new V({ objectMode: true }), a = new Set;
-    (!r || r(t)) && h.write(s ? t : t.fullpath());
-    let l = [t], u = 0, c = () => {
-      let d = false;
-      for (;!d; ) {
-        let f = l.shift();
-        if (!f) {
-          u === 0 && h.end();
+    typeof t == "string" ? t = this.cwd.resolve(t) : t instanceof O || (e = t, t = this.cwd);
+    let { withFileTypes: s = true, follow: i = false, filter: n, walkFilter: o } = e, h = new J({ objectMode: true }), a = new Set;
+    (!n || n(t)) && h.write(s ? t : t.fullpath());
+    let l = [t], c = 0, f = () => {
+      let u = false;
+      for (;!u; ) {
+        let p = l.shift();
+        if (!p) {
+          c === 0 && h.end();
           return;
         }
-        u++, a.add(f);
-        let m = f.readdirSync();
-        for (let p of m)
-          (!r || r(p)) && (h.write(s ? p : p.fullpath()) || (d = true));
-        u--;
-        for (let p of m) {
-          let w = p;
-          if (p.isSymbolicLink()) {
-            if (!(i && (w = p.realpathSync())))
+        c++, a.add(p);
+        let g = p.readdirSync();
+        for (let d of g)
+          (!n || n(d)) && (h.write(s ? d : d.fullpath()) || (u = true));
+        c--;
+        for (let d of g) {
+          let w = d;
+          if (d.isSymbolicLink()) {
+            if (!(i && (w = d.realpathSync())))
               continue;
             w.isUnknown() && w.lstatSync();
           }
           w.shouldWalk(a, o) && l.push(w);
         }
       }
-      d && !h.flowing && h.once("drain", c);
+      u && !h.flowing && h.once("drain", f);
     };
-    return c(), h;
+    return f(), h;
   }
   chdir(t = this.cwd) {
     let e = this.cwd;
-    this.cwd = typeof t == "string" ? this.cwd.resolve(t) : t, this.cwd[Ye](e);
+    this.cwd = typeof t == "string" ? this.cwd.resolve(t) : t, this.cwd[Ts](e);
   }
 };
-var it = class extends It {
+var ot = class extends Jt {
   sep = "\\";
   constructor(t = process.cwd(), e = {}) {
     let { nocase: s = true } = e;
-    super(t, re, "\\", { ...e, nocase: s }), this.nocase = s;
+    typeof t == "string" && !t.startsWith("file://") && (t = t.replace(cn, "").replace(fn, "\\")), super(t, Ne, "\\", { ...e, nocase: s }), this.nocase = s;
     for (let i = this.cwd;i; i = i.parent)
       i.nocase = this.nocase;
   }
   parseRootPath(t) {
-    return re.parse(t).root.toUpperCase();
+    return Ne.parse(t).root.toUpperCase();
   }
   newRoot(t) {
-    return new Pt(this.rootPath, U, undefined, this.roots, this.nocase, this.childrenCache(), { fs: t });
+    return new Vt(this.rootPath, I, undefined, this.roots, this.nocase, this.childrenCache(), { fs: t });
   }
   isAbsolute(t) {
     return t.startsWith("/") || t.startsWith("\\") || /^[a-z]:(\/|\\)/i.test(t);
   }
 };
-var rt = class extends It {
+var ht = class extends Jt {
   sep = "/";
   constructor(t = process.cwd(), e = {}) {
     let { nocase: s = false } = e;
-    super(t, mi, "/", { ...e, nocase: s }), this.nocase = s;
+    super(t, qi, "/", { ...e, nocase: s }), this.nocase = s;
   }
   parseRootPath(t) {
     return "/";
   }
   newRoot(t) {
-    return new jt(this.rootPath, U, undefined, this.roots, this.nocase, this.childrenCache(), { fs: t });
+    return new Yt(this.rootPath, I, undefined, this.roots, this.nocase, this.childrenCache(), { fs: t });
   }
   isAbsolute(t) {
     return t.startsWith("/");
   }
 };
-var St = class extends rt {
+var Rt = class extends ht {
   constructor(t = process.cwd(), e = {}) {
     let { nocase: s = true } = e;
     super(t, { ...e, nocase: s });
   }
 };
-var Cr = process.platform === "win32" ? Pt : jt;
-var Xe = process.platform === "win32" ? it : process.platform === "darwin" ? St : rt;
-var Di = (n4) => n4.length >= 1;
-var Mi = (n4) => n4.length >= 1;
-var Ni = Symbol.for("nodejs.util.inspect.custom");
-var nt = class n4 {
+var rr = process.platform === "win32" ? Vt : Yt;
+var _s = process.platform === "win32" ? ot : process.platform === "darwin" ? Rt : ht;
+var pn = (r3) => r3.length >= 1;
+var mn = (r3) => r3.length >= 1;
+var gn = Symbol.for("nodejs.util.inspect.custom");
+var at = class r3 {
   #t;
-  #s;
   #n;
+  #i;
   length;
-  #r;
   #o;
-  #S;
-  #w;
-  #c;
+  #r;
+  #d;
+  #u;
+  #f;
   #h;
-  #u = true;
+  #m = true;
   constructor(t, e, s, i) {
-    if (!Di(t))
+    if (!pn(t))
       throw new TypeError("empty pattern list");
-    if (!Mi(e))
+    if (!mn(e))
       throw new TypeError("empty glob list");
     if (e.length !== t.length)
       throw new TypeError("mismatched pattern list and glob list lengths");
     if (this.length = t.length, s < 0 || s >= this.length)
       throw new TypeError("index out of range");
-    if (this.#t = t, this.#s = e, this.#n = s, this.#r = i, this.#n === 0) {
+    if (this.#t = t, this.#n = e, this.#i = s, this.#o = i, this.#i === 0) {
       if (this.isUNC()) {
-        let [r, o, h, a, ...l] = this.#t, [u, c, d, f, ...m] = this.#s;
-        l[0] === "" && (l.shift(), m.shift());
-        let p = [r, o, h, a, ""].join("/"), w = [u, c, d, f, ""].join("/");
-        this.#t = [p, ...l], this.#s = [w, ...m], this.length = this.#t.length;
+        let n = this.#l() ? 6 : 4, o = this.#t.slice(0, n), h = this.#n.slice(0, n), a = this.#t.slice(n), l = this.#n.slice(n);
+        a[0] === "" && (a.shift(), l.shift());
+        let c = [...o, ""].join("/"), f = [...h, ""].join("/");
+        this.#t = [c, ...a], this.#n = [f, ...l], this.length = this.#t.length;
       } else if (this.isDrive() || this.isAbsolute()) {
-        let [r, ...o] = this.#t, [h, ...a] = this.#s;
+        let [n, ...o] = this.#t, [h, ...a] = this.#n;
         o[0] === "" && (o.shift(), a.shift());
-        let l = r + "/", u = h + "/";
-        this.#t = [l, ...o], this.#s = [u, ...a], this.length = this.#t.length;
+        let l = `${n}/`, c = `${h}/`;
+        this.#t = [l, ...o], this.#n = [c, ...a], this.length = this.#t.length;
       }
     }
   }
-  [Ni]() {
-    return "Pattern <" + this.#s.slice(this.#n).join("/") + ">";
+  [gn]() {
+    return `Pattern <${this.#n.slice(this.#i).join("/")}>`;
   }
   pattern() {
-    return this.#t[this.#n];
+    return this.#t[this.#i];
   }
   isString() {
-    return typeof this.#t[this.#n] == "string";
+    return typeof this.#t[this.#i] == "string";
   }
   isGlobstar() {
-    return this.#t[this.#n] === A;
+    return this.#t[this.#i] === v;
   }
-  isRegExp() {
-    return this.#t[this.#n] instanceof RegExp;
+  isMatcher() {
+    return typeof this.#t[this.#i] == "object";
   }
   globString() {
-    return this.#S = this.#S || (this.#n === 0 ? this.isAbsolute() ? this.#s[0] + this.#s.slice(1).join("/") : this.#s.join("/") : this.#s.slice(this.#n).join("/"));
+    return this.#d = this.#d || (this.#i === 0 ? this.isAbsolute() ? this.#n[0] + this.#n.slice(1).join("/") : this.#n.join("/") : this.#n.slice(this.#i).join("/"));
   }
   hasMore() {
-    return this.length > this.#n + 1;
+    return this.length > this.#i + 1;
   }
   rest() {
-    return this.#o !== undefined ? this.#o : this.hasMore() ? (this.#o = new n4(this.#t, this.#s, this.#n + 1, this.#r), this.#o.#h = this.#h, this.#o.#c = this.#c, this.#o.#w = this.#w, this.#o) : this.#o = null;
+    return this.#r !== undefined ? this.#r : this.hasMore() ? (this.#r = new r3(this.#t, this.#n, this.#i + 1, this.#o), this.#r.#h = this.#h, this.#r.#f = this.#f, this.#r.#u = this.#u, this.#r) : this.#r = null;
+  }
+  #l() {
+    let t = this.#t;
+    return t[2] === "?" && typeof t[3] == "string" && /^unc$/i.test(t[3]);
   }
   isUNC() {
-    let t = this.#t;
-    return this.#c !== undefined ? this.#c : this.#c = this.#r === "win32" && this.#n === 0 && t[0] === "" && t[1] === "" && typeof t[2] == "string" && !!t[2] && typeof t[3] == "string" && !!t[3];
+    let t = this.#t, e = this.#l() ? 4 : 2;
+    return this.#f !== undefined ? this.#f : this.#f = this.#o === "win32" && this.#i === 0 && t[0] === "" && t[1] === "" && typeof t[e] == "string" && !!t[e] && typeof t[e + 1] == "string" && !!t[e + 1];
   }
   isDrive() {
     let t = this.#t;
-    return this.#w !== undefined ? this.#w : this.#w = this.#r === "win32" && this.#n === 0 && this.length > 1 && typeof t[0] == "string" && /^[a-z]:$/i.test(t[0]);
+    return this.#u !== undefined ? this.#u : this.#u = this.#o === "win32" && this.#i === 0 && this.length > 1 && typeof t[0] == "string" && /^[a-z]:$/i.test(t[0]);
   }
   isAbsolute() {
     let t = this.#t;
@@ -77674,44 +78325,47 @@ var nt = class n4 {
   }
   root() {
     let t = this.#t[0];
-    return typeof t == "string" && this.isAbsolute() && this.#n === 0 ? t : "";
+    return typeof t == "string" && this.isAbsolute() && this.#i === 0 ? t : "";
   }
   checkFollowGlobstar() {
-    return !(this.#n === 0 || !this.isGlobstar() || !this.#u);
+    return !(this.#i === 0 || !this.isGlobstar() || !this.#m);
   }
   markFollowGlobstar() {
-    return this.#n === 0 || !this.isGlobstar() || !this.#u ? false : (this.#u = false, true);
+    return this.#i === 0 || !this.isGlobstar() || !this.#m ? false : (this.#m = false, true);
   }
 };
-var _i = typeof process == "object" && process && typeof process.platform == "string" ? process.platform : "linux";
-var ot = class {
+var wn = typeof process == "object" && process && typeof process.platform == "string" ? process.platform : "linux";
+var lt = class {
   relative;
   relativeChildren;
   absolute;
   absoluteChildren;
   platform;
   mmopts;
-  constructor(t, { nobrace: e, nocase: s, noext: i, noglobstar: r, platform: o = _i }) {
-    this.relative = [], this.absolute = [], this.relativeChildren = [], this.absoluteChildren = [], this.platform = o, this.mmopts = { dot: true, nobrace: e, nocase: s, noext: i, noglobstar: r, optimizationLevel: 2, platform: o, nocomment: true, nonegate: true };
-    for (let h of t)
-      this.add(h);
+  slashRoot;
+  constructor(t, { nobrace: e, nocase: s, noext: i, noglobstar: n, normalize: o, platform: h = wn, root: a, windowsPathsNoEscape: l, allowWindowsEscape: c }, f) {
+    this.relative = [], this.absolute = [], this.relativeChildren = [], this.absoluteChildren = [], this.platform = h, l = !!l || c === false, this.mmopts = { dot: true, nobrace: e, nocase: s, noext: i, noglobstar: n, normalize: o, optimizationLevel: 2, platform: h, nocomment: true, nonegate: true, windowsPathsNoEscape: l };
+    let u = f?.resolve(a ?? "/").fullpath() ?? "/";
+    this.slashRoot = K(u.replace(/\\/g, "/").replace(/\/$/, ""), { windowsPathsNoEscape: l });
+    for (let p of t)
+      this.add(p);
   }
   add(t) {
     let e = new D(t, this.mmopts);
     for (let s = 0;s < e.set.length; s++) {
-      let i = e.set[s], r = e.globParts[s];
-      if (!i || !r)
+      let i = e.set[s], n = e.globParts[s];
+      if (!i || !n)
         throw new Error("invalid pattern object");
-      for (;i[0] === "." && r[0] === "."; )
-        i.shift(), r.shift();
-      let o = new nt(i, r, 0, this.platform), h = new D(o.globString(), this.mmopts), a = r[r.length - 1] === "**", l = o.isAbsolute();
-      l ? this.absolute.push(h) : this.relative.push(h), a && (l ? this.absoluteChildren.push(h) : this.relativeChildren.push(h));
+      for (;i[0] === "." && n[0] === "."; )
+        i.shift(), n.shift();
+      let o = new at(i, n, 0, this.platform), h = o.root() === "/" ? `${this.slashRoot}/${o.rest()?.globString() ?? ""}` : o.globString(), a = new D(h, this.mmopts), l = n[n.length - 1] === "**", c = o.isAbsolute();
+      c ? this.absolute.push(a) : this.relative.push(a), l && (c ? this.absoluteChildren.push(a) : this.relativeChildren.push(a));
     }
   }
   ignored(t) {
-    let e = t.fullpath(), s = `${e}/`, i = t.relative() || ".", r = `${i}/`;
+    let e = t.fullpath(), s = `${e}/`, i = t.relative() || ".", n = `${i}/`;
     for (let o of this.relative)
-      if (o.match(i) || o.match(r))
+      if (o.match(i) || o.match(n))
         return true;
     for (let o of this.absolute)
       if (o.match(e) || o.match(s))
@@ -77719,7 +78373,7 @@ var ot = class {
     return false;
   }
   childrenIgnored(t) {
-    let e = t.fullpath() + "/", s = (t.relative() || ".") + "/";
+    let e = `${t.fullpath()}/`, s = `${t.relative() || "."}/`;
     for (let i of this.relativeChildren)
       if (i.match(s))
         return true;
@@ -77729,33 +78383,37 @@ var ot = class {
     return false;
   }
 };
-var oe = class n5 {
+var ze = class r4 {
+  parent;
   store;
-  constructor(t = new Map) {
-    this.store = t;
+  constructor(t) {
+    this.parent = t;
   }
   copy() {
-    return new n5(new Map(this.store));
+    return new r4(this);
+  }
+  #t(t) {
+    let e = this.store?.get(t);
+    return e || !this.parent ? e : this.parent.#t(t);
   }
   hasWalked(t, e) {
-    return this.store.get(t.fullpath())?.has(e.globString());
+    return !!this.#t(t.fullpath())?.has(e.globString());
   }
   storeWalked(t, e) {
-    let s = t.fullpath(), i = this.store.get(s);
-    i ? i.add(e.globString()) : this.store.set(s, new Set([e.globString()]));
+    let s = t.fullpath(), i = this.#t(s);
+    i ? i.add(e.globString()) : (this.store ??= new Map).set(s, new Set([e.globString()]));
   }
 };
-var he = class {
+var Ot = class r5 {
+  static ABSOLUTE = 2;
+  static IF_DIR = 1;
   store = new Map;
   add(t, e, s) {
-    let i = (e ? 2 : 0) | (s ? 1 : 0), r = this.store.get(t);
-    this.store.set(t, r === undefined ? i : i & r);
-  }
-  entries() {
-    return [...this.store.entries()].map(([t, e]) => [t, !!(e & 2), !!(e & 1)]);
+    let i = (e ? r5.ABSOLUTE : 0) | (s ? r5.IF_DIR : 0), n = this.store.get(t);
+    this.store.set(t, n === undefined ? i : i & n);
   }
 };
-var ae = class {
+var Le = class {
   store = new Map;
   add(t, e) {
     if (!t.canReaddir())
@@ -77776,28 +78434,28 @@ var ae = class {
     return [...this.store.keys()].filter((t) => t.canReaddir());
   }
 };
-var Et = class n6 {
+var Ft = class r6 {
   hasWalkedCache;
-  matches = new he;
-  subwalks = new ae;
+  matches = new Ot;
+  subwalks = new Le;
   patterns;
   follow;
   dot;
   opts;
   constructor(t, e) {
-    this.opts = t, this.follow = !!t.follow, this.dot = !!t.dot, this.hasWalkedCache = e ? e.copy() : new oe;
+    this.opts = t, this.follow = !!t.follow, this.dot = !!t.dot, this.hasWalkedCache = e ? e.copy() : new ze;
   }
   processPatterns(t, e) {
     this.patterns = e;
     let s = e.map((i) => [t, i]);
-    for (let [i, r] of s) {
-      this.hasWalkedCache.storeWalked(i, r);
-      let o = r.root(), h = r.isAbsolute() && this.opts.absolute !== false;
+    for (let [i, n] of s) {
+      this.hasWalkedCache.storeWalked(i, n);
+      let o = n.root(), h = n.isAbsolute() && this.opts.absolute !== false;
       if (o) {
         i = i.resolve(o === "/" && this.opts.root !== undefined ? this.opts.root : o);
-        let c = r.rest();
-        if (c)
-          r = c;
+        let f = n.rest();
+        if (f)
+          n = f;
         else {
           this.matches.add(i, true, false);
           continue;
@@ -77805,29 +78463,29 @@ var Et = class n6 {
       }
       if (i.isENOENT())
         continue;
-      let a, l, u = false;
-      for (;typeof (a = r.pattern()) == "string" && (l = r.rest()); )
-        i = i.resolve(a), r = l, u = true;
-      if (a = r.pattern(), l = r.rest(), u) {
-        if (this.hasWalkedCache.hasWalked(i, r))
+      let a, l, c = false;
+      for (;typeof (a = n.pattern()) == "string" && (l = n.rest()); )
+        i = i.resolve(a), n = l, c = true;
+      if (a = n.pattern(), l = n.rest(), c) {
+        if (this.hasWalkedCache.hasWalked(i, n))
           continue;
-        this.hasWalkedCache.storeWalked(i, r);
+        this.hasWalkedCache.storeWalked(i, n);
       }
       if (typeof a == "string") {
-        let c = a === ".." || a === "" || a === ".";
-        this.matches.add(i.resolve(a), h, c);
+        let f = a === ".." || a === "" || a === ".";
+        this.matches.add(i.resolve(a), h, f);
         continue;
-      } else if (a === A) {
-        (!i.isSymbolicLink() || this.follow || r.checkFollowGlobstar()) && this.subwalks.add(i, r);
-        let c = l?.pattern(), d = l?.rest();
-        if (!l || (c === "" || c === ".") && !d)
-          this.matches.add(i, h, c === "" || c === ".");
-        else if (c === "..") {
-          let f = i.parent || i;
-          d ? this.hasWalkedCache.hasWalked(f, d) || this.subwalks.add(f, d) : this.matches.add(f, h, true);
+      } else if (a === v) {
+        (!i.isSymbolicLink() || this.follow || n.checkFollowGlobstar()) && this.subwalks.add(i, n);
+        let f = l?.pattern(), u = l?.rest();
+        if (!l || (f === "" || f === ".") && !u)
+          this.matches.add(i, h, f === "" || f === ".");
+        else if (f === "..") {
+          let p = i.parent || i;
+          u ? this.hasWalkedCache.hasWalked(p, u) || this.subwalks.add(p, u) : this.matches.add(p, h, true);
         }
       } else
-        a instanceof RegExp && this.subwalks.add(i, r);
+        typeof a == "object" && this.subwalks.add(i, n);
     }
     return this;
   }
@@ -77835,38 +78493,39 @@ var Et = class n6 {
     return this.subwalks.keys();
   }
   child() {
-    return new n6(this.opts, this.hasWalkedCache);
+    return new r6(this.opts, this.hasWalkedCache);
   }
   filterEntries(t, e) {
     let s = this.subwalks.get(t), i = this.child();
-    for (let r of e)
+    for (let n of e)
       for (let o of s) {
         let h = o.isAbsolute(), a = o.pattern(), l = o.rest();
-        a === A ? i.testGlobstar(r, o, l, h) : a instanceof RegExp ? i.testRegExp(r, a, l, h) : i.testString(r, a, l, h);
+        a === v ? i.testGlobstar(n, o, l, h) : typeof a == "object" ? i.testMatcher(n, a, l, h) : i.testString(n, a, l, h);
       }
     return i;
   }
   testGlobstar(t, e, s, i) {
     if ((this.dot || !t.name.startsWith(".")) && (e.hasMore() || this.matches.add(t, i, false), t.canReaddir() && (this.follow || !t.isSymbolicLink() ? this.subwalks.add(t, e) : t.isSymbolicLink() && (s && e.checkFollowGlobstar() ? this.subwalks.add(t, s) : e.markFollowGlobstar() && this.subwalks.add(t, e)))), s) {
-      let r = s.pattern();
-      if (typeof r == "string" && r !== ".." && r !== "" && r !== ".")
-        this.testString(t, r, s.rest(), i);
-      else if (r === "..") {
+      let n = s.pattern();
+      if (typeof n == "string" && n !== ".." && n !== "" && n !== ".")
+        this.testString(t, n, s.rest(), i);
+      else if (n === "..") {
         let o = t.parent || t;
         this.subwalks.add(o, s);
       } else
-        r instanceof RegExp && this.testRegExp(t, r, s.rest(), i);
+        typeof n == "object" && this.testMatcher(t, n, s.rest(), i);
     }
   }
-  testRegExp(t, e, s, i) {
-    e.test(t.name) && (s ? this.subwalks.add(t, s) : this.matches.add(t, i, false));
+  testMatcher(t, e, s, i) {
+    e.testUnchecked(t.name) && (s ? this.subwalks.add(t, s) : this.matches.add(t, i, false));
   }
   testString(t, e, s, i) {
     t.isNamed(e) && (s ? this.subwalks.add(t, s) : this.matches.add(t, i, false));
   }
 };
-var Li = (n7, t) => typeof n7 == "string" ? new ot([n7], t) : Array.isArray(n7) ? new ot(n7, t) : n7;
-var zt = class {
+var { ABSOLUTE: Zt, IF_DIR: Qt } = Ot;
+var bn = (r7, t, e) => typeof r7 == "string" ? new lt([r7], t, e) : Array.isArray(r7) ? new lt(r7, t, e) : r7;
+var te = class {
   path;
   patterns;
   opts;
@@ -77874,13 +78533,13 @@ var zt = class {
   paused = false;
   aborted = false;
   #t = [];
-  #s;
   #n;
+  #i;
   signal;
   maxDepth;
   includeChildMatches;
   constructor(t, e, s) {
-    if (this.patterns = t, this.path = e, this.opts = s, this.#n = !s.posix && s.platform === "win32" ? "\\" : "/", this.includeChildMatches = s.includeChildMatches !== false, (s.ignore || !this.includeChildMatches) && (this.#s = Li(s.ignore ?? [], s), !this.includeChildMatches && typeof this.#s.add != "function")) {
+    if (this.patterns = t, this.path = e, this.opts = s, this.#i = !s.posix && s.platform === "win32" ? "\\" : "/", this.includeChildMatches = s.includeChildMatches !== false, (s.ignore || !this.includeChildMatches) && (this.#n = bn(s.ignore ?? [], s, e), !this.includeChildMatches && typeof this.#n.add != "function")) {
       let i = "cannot ignore child matches, ignore lacks add() method.";
       throw new Error(i);
     }
@@ -77888,11 +78547,11 @@ var zt = class {
       this.#t.length = 0;
     }));
   }
-  #r(t) {
-    return this.seen.has(t) || !!this.#s?.ignored?.(t);
-  }
   #o(t) {
-    return !!this.#s?.childrenIgnored?.(t);
+    return this.seen.has(t) || !!this.#n?.ignored?.(t);
+  }
+  #r(t) {
+    return !!this.#n?.childrenIgnored?.(t);
   }
   pause() {
     this.paused = true;
@@ -77906,61 +78565,64 @@ var zt = class {
       t();
   }
   onResume(t) {
-    this.signal?.aborted || (this.paused ? this.#t.push(t) : t());
+    this.paused ? this.#t.push(t) : t();
   }
   async matchCheck(t, e) {
     if (e && this.opts.nodir)
       return;
-    let s;
+    let s, i;
     if (this.opts.realpath) {
       if (s = t.realpathCached() || await t.realpath(), !s)
         return;
-      t = s;
+      i = s;
+    } else
+      i = t;
+    let o = i.isUnknown() || this.opts.stat ? await i.lstat() : i;
+    if (this.opts.follow && this.opts.nodir && o?.isSymbolicLink()) {
+      let h = await o.realpath();
+      h && (h.isUnknown() || this.opts.stat) && await h.lstat();
     }
-    let r = t.isUnknown() || this.opts.stat ? await t.lstat() : t;
-    if (this.opts.follow && this.opts.nodir && r?.isSymbolicLink()) {
-      let o = await r.realpath();
-      o && (o.isUnknown() || this.opts.stat) && await o.lstat();
-    }
-    return this.matchCheckTest(r, e);
+    return this.matchCheckTest(o, e);
   }
   matchCheckTest(t, e) {
-    return t && (this.maxDepth === 1 / 0 || t.depth() <= this.maxDepth) && (!e || t.canReaddir()) && (!this.opts.nodir || !t.isDirectory()) && (!this.opts.nodir || !this.opts.follow || !t.isSymbolicLink() || !t.realpathCached()?.isDirectory()) && !this.#r(t) ? t : undefined;
+    return t && (this.maxDepth === 1 / 0 || t.depth() <= this.maxDepth) && (!e || t.canReaddir()) && (!this.opts.nodir || !t.isDirectory()) && (!this.opts.nodir || !this.opts.follow || !t.isSymbolicLink() || !t.realpathCached()?.isDirectory()) && !this.#o(t) ? t : undefined;
   }
   matchCheckSync(t, e) {
     if (e && this.opts.nodir)
       return;
-    let s;
+    let s, i;
     if (this.opts.realpath) {
       if (s = t.realpathCached() || t.realpathSync(), !s)
         return;
-      t = s;
+      i = s;
+    } else
+      i = t;
+    let o = i.isUnknown() || this.opts.stat ? i.lstatSync() : i;
+    if (this.opts.follow && this.opts.nodir && o?.isSymbolicLink()) {
+      let h = o.realpathSync();
+      h && (h?.isUnknown() || this.opts.stat) && h.lstatSync();
     }
-    let r = t.isUnknown() || this.opts.stat ? t.lstatSync() : t;
-    if (this.opts.follow && this.opts.nodir && r?.isSymbolicLink()) {
-      let o = r.realpathSync();
-      o && (o?.isUnknown() || this.opts.stat) && o.lstatSync();
-    }
-    return this.matchCheckTest(r, e);
+    return this.matchCheckTest(o, e);
   }
   matchFinish(t, e) {
-    if (this.#r(t))
-      return;
-    if (!this.includeChildMatches && this.#s?.add) {
-      let r = `${t.relativePosix()}/**`;
-      this.#s.add(r);
+    this.#o(t) || this.#d(t, e);
+  }
+  #d(t, e) {
+    if (!this.includeChildMatches && this.#n?.add) {
+      let n = `${t.relativePosix()}/**`;
+      this.#n.add(n);
     }
     let s = this.opts.absolute === undefined ? e : this.opts.absolute;
     this.seen.add(t);
-    let i = this.opts.mark && t.isDirectory() ? this.#n : "";
+    let i = this.opts.mark && t.isDirectory() ? this.#i : "";
     if (this.opts.withFileTypes)
       this.matchEmit(t);
     else if (s) {
-      let r = this.opts.posix ? t.fullpathPosix() : t.fullpath();
-      this.matchEmit(r + i);
+      let n = this.opts.posix ? t.fullpathPosix() : t.fullpath();
+      this.matchEmit(n + i);
     } else {
-      let r = this.opts.posix ? t.relativePosix() : t.relative(), o = this.opts.dotRelative && !r.startsWith(".." + this.#n) ? "." + this.#n : "";
-      this.matchEmit(r ? o + r + i : "." + i);
+      let n = this.opts.posix ? t.relativePosix() : t.relative(), o = this.opts.dotRelative && !n.startsWith(`..${this.#i}`) ? `.${this.#i}` : "";
+      this.matchEmit(n ? o + n + i : `.${i}`);
     }
   }
   async match(t, e, s) {
@@ -77969,88 +78631,90 @@ var zt = class {
   }
   matchSync(t, e, s) {
     let i = this.matchCheckSync(t, s);
-    i && this.matchFinish(i, e);
+    i && this.#d(i, e);
   }
   walkCB(t, e, s) {
-    this.signal?.aborted && s(), this.walkCB2(t, e, new Et(this.opts), s);
+    if (this.signal?.aborted)
+      return s();
+    this.walkCB2(t, e, new Ft(this.opts), s);
   }
   walkCB2(t, e, s, i) {
-    if (this.#o(t))
+    if (this.#r(t) || this.signal?.aborted)
       return i();
-    if (this.signal?.aborted && i(), this.paused) {
+    if (this.paused) {
       this.onResume(() => this.walkCB2(t, e, s, i));
       return;
     }
     s.processPatterns(t, e);
-    let r = 1, o = () => {
-      --r === 0 && i();
+    let n = 1, o = () => {
+      --n === 0 && i();
     };
-    for (let [h, a, l] of s.matches.entries())
-      this.#r(h) || (r++, this.match(h, a, l).then(() => o()));
+    for (let [h, a] of s.matches.store)
+      this.#o(h) || (n++, this.match(h, !!(a & Zt), !!(a & Qt)).then(() => o()));
     for (let h of s.subwalkTargets()) {
       if (this.maxDepth !== 1 / 0 && h.depth() >= this.maxDepth)
         continue;
-      r++;
+      n++;
       let a = h.readdirCached();
-      h.calledReaddir() ? this.walkCB3(h, a, s, o) : h.readdirCB((l, u) => this.walkCB3(h, u, s, o), true);
+      h.calledReaddir() ? this.walkCB3(h, a, s, o) : h.readdirCB((l, c) => this.walkCB3(h, c, s, o), true);
     }
     o();
   }
   walkCB3(t, e, s, i) {
-    s = s.filterEntries(t, e);
-    let r = 1, o = () => {
-      --r === 0 && i();
+    let n = s.filterEntries(t, e), o = 1, h = () => {
+      --o === 0 && i();
     };
-    for (let [h, a, l] of s.matches.entries())
-      this.#r(h) || (r++, this.match(h, a, l).then(() => o()));
-    for (let [h, a] of s.subwalks.entries())
-      r++, this.walkCB2(h, a, s.child(), o);
-    o();
+    for (let [a, l] of n.matches.store)
+      this.#o(a) || (o++, this.match(a, !!(l & Zt), !!(l & Qt)).then(() => h()));
+    for (let [a, l] of n.subwalks.entries())
+      o++, this.walkCB2(a, l, n.child(), h);
+    h();
   }
   walkCBSync(t, e, s) {
-    this.signal?.aborted && s(), this.walkCB2Sync(t, e, new Et(this.opts), s);
+    if (this.signal?.aborted)
+      return s();
+    this.walkCB2Sync(t, e, new Ft(this.opts), s);
   }
   walkCB2Sync(t, e, s, i) {
-    if (this.#o(t))
+    if (this.#r(t) || this.signal?.aborted)
       return i();
-    if (this.signal?.aborted && i(), this.paused) {
+    if (this.paused) {
       this.onResume(() => this.walkCB2Sync(t, e, s, i));
       return;
     }
     s.processPatterns(t, e);
-    let r = 1, o = () => {
-      --r === 0 && i();
+    let n = 1, o = () => {
+      --n === 0 && i();
     };
-    for (let [h, a, l] of s.matches.entries())
-      this.#r(h) || this.matchSync(h, a, l);
+    for (let [h, a] of s.matches.store)
+      this.#o(h) || this.matchSync(h, !!(a & Zt), !!(a & Qt));
     for (let h of s.subwalkTargets()) {
       if (this.maxDepth !== 1 / 0 && h.depth() >= this.maxDepth)
         continue;
-      r++;
+      n++;
       let a = h.readdirSync();
       this.walkCB3Sync(h, a, s, o);
     }
     o();
   }
   walkCB3Sync(t, e, s, i) {
-    s = s.filterEntries(t, e);
-    let r = 1, o = () => {
-      --r === 0 && i();
+    let n = s.filterEntries(t, e), o = 1, h = () => {
+      --o === 0 && i();
     };
-    for (let [h, a, l] of s.matches.entries())
-      this.#r(h) || this.matchSync(h, a, l);
-    for (let [h, a] of s.subwalks.entries())
-      r++, this.walkCB2Sync(h, a, s.child(), o);
-    o();
+    for (let [a, l] of n.matches.store)
+      this.#o(a) || this.matchSync(a, !!(l & Zt), !!(l & Qt));
+    for (let [a, l] of n.subwalks.entries())
+      o++, this.walkCB2Sync(a, l, n.child(), h);
+    h();
   }
 };
-var xt = class extends zt {
-  matches = new Set;
+var Tt = class extends te {
+  matches = [];
   constructor(t, e, s) {
     super(t, e, s);
   }
   matchEmit(t) {
-    this.matches.add(t);
+    this.matches.push(t);
   }
   async walk() {
     if (this.signal?.aborted)
@@ -78070,10 +78734,10 @@ var xt = class extends zt {
     }), this.matches;
   }
 };
-var vt = class extends zt {
+var _t = class extends te {
   results;
   constructor(t, e, s) {
-    super(t, e, s), this.results = new V({ signal: this.signal, objectMode: true }), this.results.on("drain", () => this.resume()), this.results.on("resume", () => this.resume());
+    super(t, e, s), this.results = new J({ signal: this.signal, objectMode: true }), this.results.on("drain", () => this.resume()), this.results.on("resume", () => this.resume());
   }
   matchEmit(t) {
     this.results.write(t), this.results.flowing || this.pause();
@@ -78088,8 +78752,8 @@ var vt = class extends zt {
     return this.path.isUnknown() && this.path.lstatSync(), this.walkCBSync(this.path, this.patterns, () => this.results.end()), this.results;
   }
 };
-var Pi = typeof process == "object" && process && typeof process.platform == "string" ? process.platform : "linux";
-var I = class {
+var Sn = typeof process == "object" && process && typeof process.platform == "string" ? process.platform : "linux";
+var j = class {
   absolute;
   cwd;
   root;
@@ -78120,40 +78784,41 @@ var I = class {
   constructor(t, e) {
     if (!e)
       throw new TypeError("glob options required");
-    if (this.withFileTypes = !!e.withFileTypes, this.signal = e.signal, this.follow = !!e.follow, this.dot = !!e.dot, this.dotRelative = !!e.dotRelative, this.nodir = !!e.nodir, this.mark = !!e.mark, e.cwd ? (e.cwd instanceof URL || e.cwd.startsWith("file://")) && (e.cwd = Wi(e.cwd)) : this.cwd = "", this.cwd = e.cwd || "", this.root = e.root, this.magicalBraces = !!e.magicalBraces, this.nobrace = !!e.nobrace, this.noext = !!e.noext, this.realpath = !!e.realpath, this.absolute = e.absolute, this.includeChildMatches = e.includeChildMatches !== false, this.noglobstar = !!e.noglobstar, this.matchBase = !!e.matchBase, this.maxDepth = typeof e.maxDepth == "number" ? e.maxDepth : 1 / 0, this.stat = !!e.stat, this.ignore = e.ignore, this.withFileTypes && this.absolute !== undefined)
+    if (this.withFileTypes = !!e.withFileTypes, this.signal = e.signal, this.follow = !!e.follow, this.dot = !!e.dot, this.dotRelative = !!e.dotRelative, this.nodir = !!e.nodir, this.mark = !!e.mark, e.cwd ? (e.cwd instanceof URL || e.cwd.startsWith("file://")) && (e.cwd = yn(e.cwd)) : this.cwd = "", this.cwd = e.cwd || "", this.root = e.root, this.magicalBraces = !!e.magicalBraces, this.nobrace = !!e.nobrace, this.noext = !!e.noext, this.realpath = !!e.realpath, this.absolute = e.absolute, this.includeChildMatches = e.includeChildMatches !== false, this.noglobstar = !!e.noglobstar, this.matchBase = !!e.matchBase, this.maxDepth = typeof e.maxDepth == "number" ? e.maxDepth : 1 / 0, this.stat = !!e.stat, this.ignore = e.ignore, this.withFileTypes && this.absolute !== undefined)
       throw new Error("cannot set absolute and withFileTypes:true");
-    if (typeof t == "string" && (t = [t]), this.windowsPathsNoEscape = !!e.windowsPathsNoEscape || e.allowWindowsEscape === false, this.windowsPathsNoEscape && (t = t.map((a) => a.replace(/\\/g, "/"))), this.matchBase) {
+    let s = typeof t == "string" ? [t] : t;
+    if (this.windowsPathsNoEscape = !!e.windowsPathsNoEscape || e.allowWindowsEscape === false, this.windowsPathsNoEscape && (s = s.map((l) => l.replace(/\\/g, "/"))), this.matchBase) {
       if (e.noglobstar)
         throw new TypeError("base matching requires globstar");
-      t = t.map((a) => a.includes("/") ? a : `./**/${a}`);
+      s = s.map((l) => l.includes("/") ? l : `./**/${l}`);
     }
-    if (this.pattern = t, this.platform = e.platform || Pi, this.opts = { ...e, platform: this.platform }, e.scurry) {
+    if (this.pattern = s, this.platform = e.platform || Sn, this.opts = { ...e, platform: this.platform }, e.scurry) {
       if (this.scurry = e.scurry, e.nocase !== undefined && e.nocase !== e.scurry.nocase)
         throw new Error("nocase option contradicts provided scurry option");
     } else {
-      let a = e.platform === "win32" ? it : e.platform === "darwin" ? St : e.platform ? rt : Xe;
-      this.scurry = new a(this.cwd, { nocase: e.nocase, fs: e.fs });
+      let l = e.platform === "win32" ? ot : e.platform === "darwin" ? Rt : e.platform ? ht : _s;
+      this.scurry = new l(this.cwd, { nocase: e.nocase, fs: e.fs });
     }
     this.nocase = this.scurry.nocase;
-    let s = this.platform === "darwin" || this.platform === "win32", i = { braceExpandMax: 1e4, ...e, dot: this.dot, matchBase: this.matchBase, nobrace: this.nobrace, nocase: this.nocase, nocaseMagicOnly: s, nocomment: true, noext: this.noext, nonegate: true, optimizationLevel: 2, platform: this.platform, windowsPathsNoEscape: this.windowsPathsNoEscape, debug: !!this.opts.debug }, r = this.pattern.map((a) => new D(a, i)), [o, h] = r.reduce((a, l) => (a[0].push(...l.set), a[1].push(...l.globParts), a), [[], []]);
-    this.patterns = o.map((a, l) => {
-      let u = h[l];
-      if (!u)
+    let i = this.platform === "darwin" || this.platform === "win32", n = { braceExpandMax: 1e4, ...e, dot: this.dot, matchBase: this.matchBase, nobrace: this.nobrace, nocase: this.nocase, nocaseMagicOnly: i, nocomment: true, noext: this.noext, nonegate: true, optimizationLevel: 2, platform: this.platform, windowsPathsNoEscape: this.windowsPathsNoEscape }, o = this.pattern.map((l) => new D(l, n)), [h, a] = o.reduce((l, c) => (l[0].push(...c.set), l[1].push(...c.globParts), l), [[], []]);
+    this.patterns = h.map((l, c) => {
+      let f = a[c];
+      if (!f)
         throw new Error("invalid pattern object");
-      return new nt(a, u, 0, this.platform);
+      return new at(l, f, 0, this.platform);
     });
   }
   async walk() {
-    return [...await new xt(this.patterns, this.scurry.cwd, { ...this.opts, maxDepth: this.maxDepth !== 1 / 0 ? this.maxDepth + this.scurry.cwd.depth() : 1 / 0, platform: this.platform, nocase: this.nocase, includeChildMatches: this.includeChildMatches }).walk()];
+    return await new Tt(this.patterns, this.scurry.cwd, { ...this.opts, maxDepth: this.maxDepth !== 1 / 0 ? this.maxDepth + this.scurry.cwd.depth() : 1 / 0, platform: this.platform, nocase: this.nocase, includeChildMatches: this.includeChildMatches }).walk();
   }
   walkSync() {
-    return [...new xt(this.patterns, this.scurry.cwd, { ...this.opts, maxDepth: this.maxDepth !== 1 / 0 ? this.maxDepth + this.scurry.cwd.depth() : 1 / 0, platform: this.platform, nocase: this.nocase, includeChildMatches: this.includeChildMatches }).walkSync()];
+    return new Tt(this.patterns, this.scurry.cwd, { ...this.opts, maxDepth: this.maxDepth !== 1 / 0 ? this.maxDepth + this.scurry.cwd.depth() : 1 / 0, platform: this.platform, nocase: this.nocase, includeChildMatches: this.includeChildMatches }).walkSync();
   }
   stream() {
-    return new vt(this.patterns, this.scurry.cwd, { ...this.opts, maxDepth: this.maxDepth !== 1 / 0 ? this.maxDepth + this.scurry.cwd.depth() : 1 / 0, platform: this.platform, nocase: this.nocase, includeChildMatches: this.includeChildMatches }).stream();
+    return new _t(this.patterns, this.scurry.cwd, { ...this.opts, maxDepth: this.maxDepth !== 1 / 0 ? this.maxDepth + this.scurry.cwd.depth() : 1 / 0, platform: this.platform, nocase: this.nocase, includeChildMatches: this.includeChildMatches }).stream();
   }
   streamSync() {
-    return new vt(this.patterns, this.scurry.cwd, { ...this.opts, maxDepth: this.maxDepth !== 1 / 0 ? this.maxDepth + this.scurry.cwd.depth() : 1 / 0, platform: this.platform, nocase: this.nocase, includeChildMatches: this.includeChildMatches }).streamSync();
+    return new _t(this.patterns, this.scurry.cwd, { ...this.opts, maxDepth: this.maxDepth !== 1 / 0 ? this.maxDepth + this.scurry.cwd.depth() : 1 / 0, platform: this.platform, nocase: this.nocase, includeChildMatches: this.includeChildMatches }).streamSync();
   }
   iterateSync() {
     return this.streamSync()[Symbol.iterator]();
@@ -78168,38 +78833,37 @@ var I = class {
     return this.iterate();
   }
 };
-var le = (n7, t = {}) => {
-  Array.isArray(n7) || (n7 = [n7]);
-  for (let e of n7)
+var je = (r7, t = {}) => {
+  for (let e of Array.isArray(r7) ? r7 : [r7])
     if (new D(e, t).hasMagic())
       return true;
   return false;
 };
-function Bt(n7, t = {}) {
-  return new I(n7, t).streamSync();
+function ee(r7, t = {}) {
+  return new j(r7, t).streamSync();
 }
-function Qe(n7, t = {}) {
-  return new I(n7, t).stream();
+function Ps(r7, t = {}) {
+  return new j(r7, t).stream();
 }
-function ts(n7, t = {}) {
-  return new I(n7, t).walkSync();
+function zs(r7, t = {}) {
+  return new j(r7, t).walkSync();
 }
-async function Je(n7, t = {}) {
-  return new I(n7, t).walk();
+async function Ds(r7, t = {}) {
+  return new j(r7, t).walk();
 }
-function Ut(n7, t = {}) {
-  return new I(n7, t).iterateSync();
+function se(r7, t = {}) {
+  return new j(r7, t).iterateSync();
 }
-function es(n7, t = {}) {
-  return new I(n7, t).iterate();
+function Ls(r7, t = {}) {
+  return new j(r7, t).iterate();
 }
-var ji = Bt;
-var Ii = Object.assign(Qe, { sync: Bt });
-var zi = Ut;
-var Bi = Object.assign(es, { sync: Ut });
-var Ui = Object.assign(ts, { stream: Bt, iterate: Ut });
-var Ze = Object.assign(Je, { glob: Je, globSync: ts, sync: Ui, globStream: Qe, stream: Ii, globStreamSync: Bt, streamSync: ji, globIterate: es, iterate: Bi, globIterateSync: Ut, iterateSync: zi, Glob: I, hasMagic: le, escape: tt, unescape: W });
-Ze.glob = Ze;
+var xn = ee;
+var vn = Object.assign(Ps, { sync: ee });
+var En = se;
+var kn = Object.assign(Ls, { sync: se });
+var Cn = Object.assign(zs, { stream: ee, iterate: se });
+var Ns = Object.assign(Ds, { glob: Ds, globSync: zs, sync: Cn, globStream: Ps, stream: vn, globStreamSync: ee, streamSync: xn, globIterate: Ls, iterate: kn, globIterateSync: se, iterateSync: En, Glob: j, hasMagic: je, escape: K, unescape: st });
+Ns.glob = Ns;
 
 // ../node_modules/bmp-ts/dist/esm/header-types.js
 var HeaderTypes;
@@ -78223,10 +78887,10 @@ function maskColor(maskRed, maskGreen, maskBlue, maskAlpha) {
   const shiftedMaskBlueL = maskBlue / maskBlueR + 1;
   const shiftedMaskAlphaL = maskAlpha / maskAlphaR + 1;
   return {
-    shiftRed: (x2) => (x2 & maskRed) / maskRedR * 256 / shiftedMaskRedL,
-    shiftGreen: (x2) => (x2 & maskGreen) / maskGreenR * 256 / shiftedMaskGreenL,
-    shiftBlue: (x2) => (x2 & maskBlue) / maskBlueR * 256 / shiftedMaskBlueL,
-    shiftAlpha: maskAlpha !== 0 ? (x2) => (x2 & maskAlpha) / maskAlphaR * 256 / shiftedMaskAlphaL : () => 255
+    shiftRed: (x) => (x & maskRed) / maskRedR * 256 / shiftedMaskRedL,
+    shiftGreen: (x) => (x & maskGreen) / maskGreenR * 256 / shiftedMaskGreenL,
+    shiftBlue: (x) => (x & maskBlue) / maskBlueR * 256 / shiftedMaskBlueL,
+    shiftAlpha: maskAlpha !== 0 ? (x) => (x & maskAlpha) / maskAlphaR * 256 / shiftedMaskAlphaL : () => 255
   };
 }
 
@@ -78394,14 +79058,14 @@ class BmpDecoder {
     const mode = xLen % 4;
     const padding = mode !== 0 ? 4 - mode : 0;
     let lastLine;
-    this.scanImage(padding, xLen, (x2, line) => {
+    this.scanImage(padding, xLen, (x, line) => {
       if (line !== lastLine) {
         lastLine = line;
       }
       const b = this.buffer.readUInt8(this.pos++);
-      const location = line * this.width * 4 + x2 * 8 * 4;
+      const location = line * this.width * 4 + x * 8 * 4;
       for (let i = 0;i < 8; i++) {
-        if (x2 * 8 + i < this.width) {
+        if (x * 8 + i < this.width) {
           const rgb = this.palette[b >> 7 - i & 1];
           this.data[location + i * this.locAlpha] = 0;
           this.data[location + i * 4 + this.locBlue] = rgb.blue;
@@ -78433,10 +79097,10 @@ class BmpDecoder {
             break;
           }
           if (b === 2) {
-            const x2 = this.buffer.readUInt8(this.pos++);
+            const x = this.buffer.readUInt8(this.pos++);
             const y = this.buffer.readUInt8(this.pos++);
             lines += this.bottomUp ? -y : y;
-            location += y * this.width * 4 + x2 * 4;
+            location += y * this.width * 4 + x * 4;
           } else {
             let c = this.buffer.readUInt8(this.pos++);
             for (let i = 0;i < b; i++) {
@@ -78461,16 +79125,16 @@ class BmpDecoder {
       const xLen = Math.ceil(this.width / 2);
       const mode = xLen % 4;
       const padding = mode !== 0 ? 4 - mode : 0;
-      this.scanImage(padding, xLen, (x2, line) => {
+      this.scanImage(padding, xLen, (x, line) => {
         const b = this.buffer.readUInt8(this.pos++);
-        const location = line * this.width * 4 + x2 * 2 * 4;
+        const location = line * this.width * 4 + x * 2 * 4;
         const first4 = b >> 4;
         let rgb = this.palette[first4];
         this.data[location] = 0;
         this.data[location + 1] = rgb.blue;
         this.data[location + 2] = rgb.green;
         this.data[location + 3] = rgb.red;
-        if (x2 * 2 + 1 >= this.width) {
+        if (x * 2 + 1 >= this.width) {
           return false;
         }
         const last4 = b & 15;
@@ -78500,10 +79164,10 @@ class BmpDecoder {
             break;
           }
           if (b === 2) {
-            const x2 = this.buffer.readUInt8(this.pos++);
+            const x = this.buffer.readUInt8(this.pos++);
             const y = this.buffer.readUInt8(this.pos++);
             lines += this.bottomUp ? -y : y;
-            location += y * this.width * 4 + x2 * 4;
+            location += y * this.width * 4 + x * 4;
           } else {
             for (let i = 0;i < b; i++) {
               const c = this.buffer.readUInt8(this.pos++);
@@ -78523,9 +79187,9 @@ class BmpDecoder {
     } else {
       const mode = this.width % 4;
       const padding = mode !== 0 ? 4 - mode : 0;
-      this.scanImage(padding, this.width, (x2, line) => {
+      this.scanImage(padding, this.width, (x, line) => {
         const b = this.buffer.readUInt8(this.pos++);
-        const location = line * this.width * 4 + x2 * 4;
+        const location = line * this.width * 4 + x * 4;
         if (b < this.palette.length) {
           const rgb = this.palette[b];
           this.data[location] = 0;
@@ -78543,8 +79207,8 @@ class BmpDecoder {
   }
   bit16() {
     const padding = this.width % 2 * 2;
-    this.scanImage(padding, this.width, (x2, line) => {
-      const loc = line * this.width * 4 + x2 * 4;
+    this.scanImage(padding, this.width, (x, line) => {
+      const loc = line * this.width * 4 + x * 4;
       const px = this.buffer.readUInt16LE(this.pos);
       this.pos += 2;
       this.data[loc + this.locRed] = this.shiftRed(px);
@@ -78555,8 +79219,8 @@ class BmpDecoder {
   }
   bit24() {
     const padding = this.width % 4;
-    this.scanImage(padding, this.width, (x2, line) => {
-      const loc = line * this.width * 4 + x2 * 4;
+    this.scanImage(padding, this.width, (x, line) => {
+      const loc = line * this.width * 4 + x * 4;
       const blue = this.buffer.readUInt8(this.pos++);
       const green = this.buffer.readUInt8(this.pos++);
       const red = this.buffer.readUInt8(this.pos++);
@@ -78567,8 +79231,8 @@ class BmpDecoder {
     });
   }
   bit32() {
-    this.scanImage(0, this.width, (x2, line) => {
-      const loc = line * this.width * 4 + x2 * 4;
+    this.scanImage(0, this.width, (x, line) => {
+      const loc = line * this.width * 4 + x * 4;
       const px = this.readUInt32LE();
       this.data[loc + this.locRed] = this.shiftRed(px);
       this.data[loc + this.locGreen] = this.shiftGreen(px);
@@ -78579,8 +79243,8 @@ class BmpDecoder {
   scanImage(padding = 0, width = this.width, processPixel) {
     for (let y = this.height - 1;y >= 0; y--) {
       const line = this.bottomUp ? y : this.height - 1 - y;
-      for (let x2 = 0;x2 < width; x2++) {
-        const result = processPixel.call(this, x2, line);
+      for (let x = 0;x < width; x++) {
+        const result = processPixel.call(this, x, line);
         if (result === false) {
           return;
         }
@@ -78605,7 +79269,7 @@ class BmpDecoder {
 
 // ../node_modules/bmp-ts/dist/esm/encoder.js
 function createInteger(numbers) {
-  return numbers.reduce((final, n7) => final << 1 | n7, 0);
+  return numbers.reduce((final, n) => final << 1 | n, 0);
 }
 function createColor(color) {
   return color.quad << 24 | color.red << 16 | color.green << 8 | color.blue;
@@ -78737,18 +79401,18 @@ class BmpEncoder {
     }
     this.pos += 1;
     let lineArr = [];
-    this.writeImage((p, index, x2) => {
+    this.writeImage((p, index, x) => {
       let i = index;
       i++;
       const b = this.buffer[i++];
       const g = this.buffer[i++];
-      const r = this.buffer[i++];
-      const brightness = r * 0.2126 + g * 0.7152 + b * 0.0722;
+      const r7 = this.buffer[i++];
+      const brightness = r7 * 0.2126 + g * 0.7152 + b * 0.0722;
       lineArr.push(brightness > 127 ? 0 : 1);
-      if ((x2 + 1) % 8 === 0) {
+      if ((x + 1) % 8 === 0) {
         this.data[p - 1] = createInteger(lineArr);
         lineArr = [];
-      } else if (x2 === this.width - 1 && lineArr.length > 0) {
+      } else if (x === this.width - 1 && lineArr.length > 0) {
         this.data[p - 1] = createInteger(lineArr) << 4;
         lineArr = [];
       }
@@ -78758,7 +79422,7 @@ class BmpEncoder {
   bit4() {
     const colors = this.initColors(4);
     let integerPair = [];
-    this.writeImage((p, index, x2) => {
+    this.writeImage((p, index, x) => {
       let i = index;
       const colorInt = createColor({
         quad: this.buffer[i++],
@@ -78772,7 +79436,7 @@ class BmpEncoder {
       } else {
         integerPair.push(0);
       }
-      if ((x2 + 1) % 2 === 0) {
+      if ((x + 1) % 2 === 0) {
         this.data[p] = integerPair[0] << 4 | integerPair[1];
         integerPair = [];
       }
@@ -78803,8 +79467,8 @@ class BmpEncoder {
       let i = index + 1;
       const b = this.buffer[i++] / 8;
       const g = this.buffer[i++] / 8;
-      const r = this.buffer[i++] / 8;
-      const color = r << 10 | g << 5 | b;
+      const r7 = this.buffer[i++] / 8;
+      const color = r7 << 10 | g << 5 | b;
       this.data[p] = color & 255;
       this.data[p + 1] = (color & 65280) >> 8;
       return i;
@@ -78833,9 +79497,9 @@ class BmpEncoder {
     const rowBytes = this.extraBytes + this.width * this.bytesInColor;
     let i = 0;
     for (let y = 0;y < this.height; y++) {
-      for (let x2 = 0;x2 < this.width; x2++) {
-        const p = Math.floor(this.pos + (this.height - 1 - y) * rowBytes + x2 * this.bytesInColor);
-        i = writePixel.call(this, p, i, x2, y);
+      for (let x = 0;x < this.width; x++) {
+        const p = Math.floor(this.pos + (this.height - 1 - y) * rowBytes + x * this.bytesInColor);
+        i = writePixel.call(this, p, i, x, y);
       }
     }
   }
@@ -78922,7 +79586,7 @@ tinycolor.prototype = {
   },
   getLuminance: function getLuminance() {
     var rgb = this.toRgb();
-    var RsRGB, GsRGB, BsRGB, R2, G2, B2;
+    var RsRGB, GsRGB, BsRGB, R2, G2, B;
     RsRGB = rgb.r / 255;
     GsRGB = rgb.g / 255;
     BsRGB = rgb.b / 255;
@@ -78935,10 +79599,10 @@ tinycolor.prototype = {
     else
       G2 = Math.pow((GsRGB + 0.055) / 1.055, 2.4);
     if (BsRGB <= 0.03928)
-      B2 = BsRGB / 12.92;
+      B = BsRGB / 12.92;
     else
-      B2 = Math.pow((BsRGB + 0.055) / 1.055, 2.4);
-    return 0.2126 * R2 + 0.7152 * G2 + 0.0722 * B2;
+      B = Math.pow((BsRGB + 0.055) / 1.055, 2.4);
+    return 0.2126 * R2 + 0.7152 * G2 + 0.0722 * B;
   },
   setAlpha: function setAlpha(value) {
     this._a = boundAlpha(value);
@@ -79070,8 +79734,8 @@ tinycolor.prototype = {
   clone: function clone() {
     return tinycolor(this.toString());
   },
-  _applyModification: function _applyModification(fn, args) {
-    var color = fn.apply(null, [this].concat([].slice.call(args)));
+  _applyModification: function _applyModification(fn2, args) {
+    var color = fn2.apply(null, [this].concat([].slice.call(args)));
     this._r = color._r;
     this._g = color._g;
     this._b = color._b;
@@ -79099,8 +79763,8 @@ tinycolor.prototype = {
   spin: function spin() {
     return this._applyModification(_spin, arguments);
   },
-  _applyCombination: function _applyCombination(fn, args) {
-    return fn.apply(null, [this].concat([].slice.call(args)));
+  _applyCombination: function _applyCombination(fn2, args) {
+    return fn2.apply(null, [this].concat([].slice.call(args)));
   },
   analogous: function analogous() {
     return this._applyCombination(_analogous, arguments);
@@ -79184,18 +79848,18 @@ function inputToRGB(color) {
     a
   };
 }
-function rgbToRgb(r, g, b) {
+function rgbToRgb(r7, g, b) {
   return {
-    r: bound01(r, 255) * 255,
+    r: bound01(r7, 255) * 255,
     g: bound01(g, 255) * 255,
     b: bound01(b, 255) * 255
   };
 }
-function rgbToHsl(r, g, b) {
-  r = bound01(r, 255);
+function rgbToHsl(r7, g, b) {
+  r7 = bound01(r7, 255);
   g = bound01(g, 255);
   b = bound01(b, 255);
-  var max = Math.max(r, g, b), min = Math.min(r, g, b);
+  var max = Math.max(r7, g, b), min = Math.min(r7, g, b);
   var h, s, l = (max + min) / 2;
   if (max == min) {
     h = s = 0;
@@ -79203,14 +79867,14 @@ function rgbToHsl(r, g, b) {
     var d = max - min;
     s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
     switch (max) {
-      case r:
+      case r7:
         h = (g - b) / d + (g < b ? 6 : 0);
         break;
       case g:
-        h = (b - r) / d + 2;
+        h = (b - r7) / d + 2;
         break;
       case b:
-        h = (r - g) / d + 4;
+        h = (r7 - g) / d + 4;
         break;
     }
     h /= 6;
@@ -79222,43 +79886,43 @@ function rgbToHsl(r, g, b) {
   };
 }
 function hslToRgb(h, s, l) {
-  var r, g, b;
+  var r7, g, b;
   h = bound01(h, 360);
   s = bound01(s, 100);
   l = bound01(l, 100);
-  function hue2rgb(p2, q3, t) {
+  function hue2rgb(p2, q2, t) {
     if (t < 0)
       t += 1;
     if (t > 1)
       t -= 1;
     if (t < 1 / 6)
-      return p2 + (q3 - p2) * 6 * t;
+      return p2 + (q2 - p2) * 6 * t;
     if (t < 1 / 2)
-      return q3;
+      return q2;
     if (t < 2 / 3)
-      return p2 + (q3 - p2) * (2 / 3 - t) * 6;
+      return p2 + (q2 - p2) * (2 / 3 - t) * 6;
     return p2;
   }
   if (s === 0) {
-    r = g = b = l;
+    r7 = g = b = l;
   } else {
-    var q2 = l < 0.5 ? l * (1 + s) : l + s - l * s;
-    var p = 2 * l - q2;
-    r = hue2rgb(p, q2, h + 1 / 3);
-    g = hue2rgb(p, q2, h);
-    b = hue2rgb(p, q2, h - 1 / 3);
+    var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    var p = 2 * l - q;
+    r7 = hue2rgb(p, q, h + 1 / 3);
+    g = hue2rgb(p, q, h);
+    b = hue2rgb(p, q, h - 1 / 3);
   }
   return {
-    r: r * 255,
+    r: r7 * 255,
     g: g * 255,
     b: b * 255
   };
 }
-function rgbToHsv(r, g, b) {
-  r = bound01(r, 255);
+function rgbToHsv(r7, g, b) {
+  r7 = bound01(r7, 255);
   g = bound01(g, 255);
   b = bound01(b, 255);
-  var max = Math.max(r, g, b), min = Math.min(r, g, b);
+  var max = Math.max(r7, g, b), min = Math.min(r7, g, b);
   var h, s, v2 = max;
   var d = max - min;
   s = max === 0 ? 0 : d / max;
@@ -79266,14 +79930,14 @@ function rgbToHsv(r, g, b) {
     h = 0;
   } else {
     switch (max) {
-      case r:
+      case r7:
         h = (g - b) / d + (g < b ? 6 : 0);
         break;
       case g:
-        h = (b - r) / d + 2;
+        h = (b - r7) / d + 2;
         break;
       case b:
-        h = (r - g) / d + 4;
+        h = (r7 - g) / d + 4;
         break;
     }
     h /= 6;
@@ -79288,29 +79952,29 @@ function hsvToRgb(h, s, v2) {
   h = bound01(h, 360) * 6;
   s = bound01(s, 100);
   v2 = bound01(v2, 100);
-  var i = Math.floor(h), f = h - i, p = v2 * (1 - s), q2 = v2 * (1 - f * s), t = v2 * (1 - (1 - f) * s), mod = i % 6, r = [v2, q2, p, p, t, v2][mod], g = [t, v2, v2, q2, p, p][mod], b = [p, p, t, v2, v2, q2][mod];
+  var i = Math.floor(h), f = h - i, p = v2 * (1 - s), q = v2 * (1 - f * s), t = v2 * (1 - (1 - f) * s), mod = i % 6, r7 = [v2, q, p, p, t, v2][mod], g = [t, v2, v2, q, p, p][mod], b = [p, p, t, v2, v2, q][mod];
   return {
-    r: r * 255,
+    r: r7 * 255,
     g: g * 255,
     b: b * 255
   };
 }
-function rgbToHex(r, g, b, allow3Char) {
-  var hex = [pad2(Math.round(r).toString(16)), pad2(Math.round(g).toString(16)), pad2(Math.round(b).toString(16))];
+function rgbToHex(r7, g, b, allow3Char) {
+  var hex = [pad2(Math.round(r7).toString(16)), pad2(Math.round(g).toString(16)), pad2(Math.round(b).toString(16))];
   if (allow3Char && hex[0].charAt(0) == hex[0].charAt(1) && hex[1].charAt(0) == hex[1].charAt(1) && hex[2].charAt(0) == hex[2].charAt(1)) {
     return hex[0].charAt(0) + hex[1].charAt(0) + hex[2].charAt(0);
   }
   return hex.join("");
 }
-function rgbaToHex(r, g, b, a, allow4Char) {
-  var hex = [pad2(Math.round(r).toString(16)), pad2(Math.round(g).toString(16)), pad2(Math.round(b).toString(16)), pad2(convertDecimalToHex(a))];
+function rgbaToHex(r7, g, b, a, allow4Char) {
+  var hex = [pad2(Math.round(r7).toString(16)), pad2(Math.round(g).toString(16)), pad2(Math.round(b).toString(16)), pad2(convertDecimalToHex(a))];
   if (allow4Char && hex[0].charAt(0) == hex[0].charAt(1) && hex[1].charAt(0) == hex[1].charAt(1) && hex[2].charAt(0) == hex[2].charAt(1) && hex[3].charAt(0) == hex[3].charAt(1)) {
     return hex[0].charAt(0) + hex[1].charAt(0) + hex[2].charAt(0) + hex[3].charAt(0);
   }
   return hex.join("");
 }
-function rgbaToArgbHex(r, g, b, a) {
-  var hex = [pad2(convertDecimalToHex(a)), pad2(Math.round(r).toString(16)), pad2(Math.round(g).toString(16)), pad2(Math.round(b).toString(16))];
+function rgbaToArgbHex(r7, g, b, a) {
+  var hex = [pad2(convertDecimalToHex(a)), pad2(Math.round(r7).toString(16)), pad2(Math.round(g).toString(16)), pad2(Math.round(b).toString(16))];
   return hex.join("");
 }
 tinycolor.equals = function(color1, color2) {
@@ -79663,18 +80327,18 @@ function boundAlpha(a) {
   }
   return a;
 }
-function bound01(n7, max) {
-  if (isOnePointZero(n7))
-    n7 = "100%";
-  var processPercent = isPercentage(n7);
-  n7 = Math.min(max, Math.max(0, parseFloat(n7)));
+function bound01(n, max) {
+  if (isOnePointZero(n))
+    n = "100%";
+  var processPercent = isPercentage(n);
+  n = Math.min(max, Math.max(0, parseFloat(n)));
   if (processPercent) {
-    n7 = parseInt(n7 * max, 10) / 100;
+    n = parseInt(n * max, 10) / 100;
   }
-  if (Math.abs(n7 - max) < 0.000001) {
+  if (Math.abs(n - max) < 0.000001) {
     return 1;
   }
-  return n7 % max / parseFloat(max);
+  return n % max / parseFloat(max);
 }
 function clamp01(val) {
   return Math.min(1, Math.max(0, val));
@@ -79682,20 +80346,20 @@ function clamp01(val) {
 function parseIntFromHex(val) {
   return parseInt(val, 16);
 }
-function isOnePointZero(n7) {
-  return typeof n7 == "string" && n7.indexOf(".") != -1 && parseFloat(n7) === 1;
+function isOnePointZero(n) {
+  return typeof n == "string" && n.indexOf(".") != -1 && parseFloat(n) === 1;
 }
-function isPercentage(n7) {
-  return typeof n7 === "string" && n7.indexOf("%") != -1;
+function isPercentage(n) {
+  return typeof n === "string" && n.indexOf("%") != -1;
 }
 function pad2(c) {
   return c.length == 1 ? "0" + c : "" + c;
 }
-function convertToPercentage(n7) {
-  if (n7 <= 1) {
-    n7 = n7 * 100 + "%";
+function convertToPercentage(n) {
+  if (n <= 1) {
+    n = n * 100 + "%";
   }
-  return n7;
+  return n;
 }
 function convertDecimalToHex(d) {
   return Math.round(parseFloat(d) * 255).toString(16);
@@ -79853,19 +80517,19 @@ function clone2(image2) {
   return new image2.constructor(newBitmap);
 }
 function scan(image2, xArg, yArg, wArg, hArg, cbArg) {
-  let x2;
+  let x;
   let y;
   let w;
   let h;
   let cb;
   if (typeof xArg === "function") {
     cb = xArg;
-    x2 = 0;
+    x = 0;
     y = 0;
     w = image2.bitmap.width;
     h = image2.bitmap.height;
   } else {
-    x2 = xArg;
+    x = xArg;
     if (typeof yArg !== "number")
       throw new Error("y must be a number");
     y = yArg;
@@ -79879,26 +80543,26 @@ function scan(image2, xArg, yArg, wArg, hArg, cbArg) {
       throw new Error("cb must be a function");
     cb = cbArg;
   }
-  x2 = Math.round(x2);
+  x = Math.round(x);
   y = Math.round(y);
   w = Math.round(w);
   h = Math.round(h);
   const bound = cb.bind(image2);
   for (let _y = y;_y < y + h; _y++) {
-    for (let _x = x2;_x < x2 + w; _x++) {
+    for (let _x = x;_x < x + w; _x++) {
       const idx = image2.bitmap.width * _y + _x << 2;
       bound(_x, _y, idx);
     }
   }
   return image2;
 }
-function* scanIterator(image2, x2, y, w, h) {
-  x2 = Math.round(x2);
+function* scanIterator(image2, x, y, w, h) {
+  x = Math.round(x);
   y = Math.round(y);
   w = Math.round(w);
   h = Math.round(h);
   for (let _y = y;_y < y + h; _y++) {
-    for (let _x = x2;_x < x2 + w; _x++) {
+    for (let _x = x;_x < x + w; _x++) {
       const idx = image2.bitmap.width * _y + _x << 2;
       yield { x: _x, y: _y, idx, image: image2 };
     }
@@ -79921,17 +80585,17 @@ function intToRGBA(i) {
   return rgba;
 }
 function colorDiff(rgba1, rgba2) {
-  const sq = (n7) => Math.pow(n7, 2);
+  const sq = (n) => Math.pow(n, 2);
   const { max } = Math;
   const maxVal = 255 * 255 * 3;
   const rgba1A = "a" in rgba1 ? rgba1.a : 255;
   const rgba2A = "a" in rgba2 ? rgba2.a : 255;
   return (max(sq(rgba1.r - rgba2.r), sq(rgba1.r - rgba2.r - rgba1A + rgba2A)) + max(sq(rgba1.g - rgba2.g), sq(rgba1.g - rgba2.g - rgba1A + rgba2A)) + max(sq(rgba1.b - rgba2.b), sq(rgba1.b - rgba2.b - rgba1A + rgba2A))) / maxVal;
 }
-function limit255(n7) {
-  n7 = Math.max(n7, 0);
-  n7 = Math.min(n7, 255);
-  return n7;
+function limit255(n) {
+  n = Math.max(n, 0);
+  n = Math.min(n, 255);
+  return n;
 }
 function cssColorToHex(cssColor) {
   if (typeof cssColor === "number") {
@@ -80628,7 +81292,7 @@ function addIssueToContext(ctx, issueData) {
       ctx.schemaErrorMap,
       overrideMap,
       overrideMap === en_default ? undefined : en_default
-    ].filter((x2) => !!x2)
+    ].filter((x) => !!x)
   });
   ctx.common.issues.push(issue2);
 }
@@ -80692,10 +81356,10 @@ var INVALID = Object.freeze({
 });
 var DIRTY = (value) => ({ status: "dirty", value });
 var OK = (value) => ({ status: "valid", value });
-var isAborted = (x2) => x2.status === "aborted";
-var isDirty = (x2) => x2.status === "dirty";
-var isValid2 = (x2) => x2.status === "valid";
-var isAsync = (x2) => typeof Promise !== "undefined" && x2 instanceof Promise;
+var isAborted = (x) => x.status === "aborted";
+var isDirty = (x) => x.status === "dirty";
+var isValid2 = (x) => x.status === "valid";
+var isAsync = (x) => typeof Promise !== "undefined" && x instanceof Promise;
 // ../node_modules/@jimp/types/node_modules/zod/v3/helpers/errorUtil.js
 var errorUtil;
 (function(errorUtil2) {
@@ -83065,7 +83729,7 @@ class ZodTuple extends ZodType {
       if (!schema)
         return null;
       return schema._parse(new ParseInputLazyPath(ctx, item, ctx.path, itemIndex));
-    }).filter((x2) => !!x2);
+    }).filter((x) => !!x);
     if (ctx.common.async) {
       return Promise.all(items).then((results) => {
         return ParseStatus.mergeArray(status, results);
@@ -83322,7 +83986,7 @@ class ZodFunction extends ZodType {
       return makeIssue({
         data: args,
         path: ctx.path,
-        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap(), en_default].filter((x2) => !!x2),
+        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap(), en_default].filter((x) => !!x),
         issueData: {
           code: ZodIssueCode.invalid_arguments,
           argumentsError: error2
@@ -83333,7 +83997,7 @@ class ZodFunction extends ZodType {
       return makeIssue({
         data: returns,
         path: ctx.path,
-        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap(), en_default].filter((x2) => !!x2),
+        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap(), en_default].filter((x) => !!x),
         issueData: {
           code: ZodIssueCode.invalid_return_type,
           returnTypeError: error2
@@ -83341,7 +84005,7 @@ class ZodFunction extends ZodType {
       });
     }
     const params = { errorMap: ctx.common.contextualErrorMap };
-    const fn = ctx.data;
+    const fn2 = ctx.data;
     if (this._def.returns instanceof ZodPromise) {
       const me2 = this;
       return OK(async function(...args) {
@@ -83350,7 +84014,7 @@ class ZodFunction extends ZodType {
           error2.addIssue(makeArgsIssue(args, e));
           throw error2;
         });
-        const result = await Reflect.apply(fn, this, parsedArgs);
+        const result = await Reflect.apply(fn2, this, parsedArgs);
         const parsedReturns = await me2._def.returns._def.type.parseAsync(result, params).catch((e) => {
           error2.addIssue(makeReturnsIssue(result, e));
           throw error2;
@@ -83364,7 +84028,7 @@ class ZodFunction extends ZodType {
         if (!parsedArgs.success) {
           throw new ZodError([makeArgsIssue(args, parsedArgs.error)]);
         }
-        const result = Reflect.apply(fn, this, parsedArgs.data);
+        const result = Reflect.apply(fn2, this, parsedArgs.data);
         const parsedReturns = me2._def.returns.safeParse(result, params);
         if (!parsedReturns.success) {
           throw new ZodError([makeReturnsIssue(result, parsedReturns.error)]);
@@ -83978,17 +84642,17 @@ function cleanParams(params, data) {
 function custom(check, _params = {}, fatal) {
   if (check)
     return ZodAny.create().superRefine((data, ctx) => {
-      const r = check(data);
-      if (r instanceof Promise) {
-        return r.then((r2) => {
-          if (!r2) {
+      const r7 = check(data);
+      if (r7 instanceof Promise) {
+        return r7.then((r8) => {
+          if (!r8) {
             const params = cleanParams(_params, data);
             const _fatal = params.fatal ?? fatal ?? true;
             ctx.addIssue({ code: "custom", ...params, fatal: _fatal });
           }
         });
       }
-      if (!r) {
+      if (!r7) {
         const params = cleanParams(_params, data);
         const _fatal = params.fatal ?? fatal ?? true;
         ctx.addIssue({ code: "custom", ...params, fatal: _fatal });
@@ -84616,7 +85280,7 @@ function addIssueToContext2(ctx, issueData) {
       ctx.schemaErrorMap,
       overrideMap,
       overrideMap === en_default2 ? undefined : en_default2
-    ].filter((x2) => !!x2)
+    ].filter((x) => !!x)
   });
   ctx.common.issues.push(issue2);
 }
@@ -84680,10 +85344,10 @@ var INVALID2 = Object.freeze({
 });
 var DIRTY2 = (value) => ({ status: "dirty", value });
 var OK2 = (value) => ({ status: "valid", value });
-var isAborted2 = (x2) => x2.status === "aborted";
-var isDirty2 = (x2) => x2.status === "dirty";
-var isValid3 = (x2) => x2.status === "valid";
-var isAsync2 = (x2) => typeof Promise !== "undefined" && x2 instanceof Promise;
+var isAborted2 = (x) => x.status === "aborted";
+var isDirty2 = (x) => x.status === "dirty";
+var isValid3 = (x) => x.status === "valid";
+var isAsync2 = (x) => typeof Promise !== "undefined" && x instanceof Promise;
 // ../node_modules/@jimp/plugin-blit/node_modules/zod/v3/helpers/errorUtil.js
 var errorUtil2;
 (function(errorUtil3) {
@@ -87053,7 +87717,7 @@ class ZodTuple2 extends ZodType2 {
       if (!schema)
         return null;
       return schema._parse(new ParseInputLazyPath2(ctx, item, ctx.path, itemIndex));
-    }).filter((x2) => !!x2);
+    }).filter((x) => !!x);
     if (ctx.common.async) {
       return Promise.all(items).then((results) => {
         return ParseStatus2.mergeArray(status, results);
@@ -87310,7 +87974,7 @@ class ZodFunction2 extends ZodType2 {
       return makeIssue2({
         data: args,
         path: ctx.path,
-        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap2(), en_default2].filter((x2) => !!x2),
+        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap2(), en_default2].filter((x) => !!x),
         issueData: {
           code: ZodIssueCode2.invalid_arguments,
           argumentsError: error2
@@ -87321,7 +87985,7 @@ class ZodFunction2 extends ZodType2 {
       return makeIssue2({
         data: returns,
         path: ctx.path,
-        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap2(), en_default2].filter((x2) => !!x2),
+        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap2(), en_default2].filter((x) => !!x),
         issueData: {
           code: ZodIssueCode2.invalid_return_type,
           returnTypeError: error2
@@ -87329,7 +87993,7 @@ class ZodFunction2 extends ZodType2 {
       });
     }
     const params = { errorMap: ctx.common.contextualErrorMap };
-    const fn = ctx.data;
+    const fn2 = ctx.data;
     if (this._def.returns instanceof ZodPromise2) {
       const me2 = this;
       return OK2(async function(...args) {
@@ -87338,7 +88002,7 @@ class ZodFunction2 extends ZodType2 {
           error2.addIssue(makeArgsIssue(args, e));
           throw error2;
         });
-        const result = await Reflect.apply(fn, this, parsedArgs);
+        const result = await Reflect.apply(fn2, this, parsedArgs);
         const parsedReturns = await me2._def.returns._def.type.parseAsync(result, params).catch((e) => {
           error2.addIssue(makeReturnsIssue(result, e));
           throw error2;
@@ -87352,7 +88016,7 @@ class ZodFunction2 extends ZodType2 {
         if (!parsedArgs.success) {
           throw new ZodError3([makeArgsIssue(args, parsedArgs.error)]);
         }
-        const result = Reflect.apply(fn, this, parsedArgs.data);
+        const result = Reflect.apply(fn2, this, parsedArgs.data);
         const parsedReturns = me2._def.returns.safeParse(result, params);
         if (!parsedReturns.success) {
           throw new ZodError3([makeReturnsIssue(result, parsedReturns.error)]);
@@ -87966,17 +88630,17 @@ function cleanParams2(params, data) {
 function custom2(check, _params = {}, fatal) {
   if (check)
     return ZodAny2.create().superRefine((data, ctx) => {
-      const r = check(data);
-      if (r instanceof Promise) {
-        return r.then((r2) => {
-          if (!r2) {
+      const r7 = check(data);
+      if (r7 instanceof Promise) {
+        return r7.then((r8) => {
+          if (!r8) {
             const params = cleanParams2(_params, data);
             const _fatal = params.fatal ?? fatal ?? true;
             ctx.addIssue({ code: "custom", ...params, fatal: _fatal });
           }
         });
       }
-      if (!r) {
+      if (!r7) {
         const params = cleanParams2(_params, data);
         const _fatal = params.fatal ?? fatal ?? true;
         ctx.addIssue({ code: "custom", ...params, fatal: _fatal });
@@ -88094,7 +88758,7 @@ var methods = {
     const parsed = BlitOptionsSchema.parse(options);
     let {
       src,
-      x: x2 = 0,
+      x = 0,
       y = 0,
       srcX = 0,
       srcY = 0,
@@ -88104,10 +88768,10 @@ var methods = {
     if (!("bitmap" in src)) {
       throw new Error("The source must be a Jimp image");
     }
-    if (typeof x2 !== "number" || typeof y !== "number") {
+    if (typeof x !== "number" || typeof y !== "number") {
       throw new Error("x and y must be numbers");
     }
-    x2 = Math.round(x2);
+    x = Math.round(x);
     y = Math.round(y);
     srcX = Math.round(srcX);
     srcY = Math.round(srcY);
@@ -88116,7 +88780,7 @@ var methods = {
     const maxWidth = image2.bitmap.width;
     const maxHeight = image2.bitmap.height;
     scan(src, srcX, srcY, srcW, srcH, function(sx, sy, idx) {
-      const xOffset = x2 + sx - srcX;
+      const xOffset = x + sx - srcX;
       const yOffset = y + sy - srcY;
       if (xOffset >= 0 && yOffset >= 0 && maxWidth - xOffset > 0 && maxHeight - yOffset > 0) {
         const dstIdx = image2.getPixelIndex(xOffset, yOffset);
@@ -88664,18 +89328,18 @@ var shgTable = [
 
 // ../node_modules/@jimp/plugin-blur/dist/esm/index.js
 var methods2 = {
-  blur(image2, r) {
-    if (typeof r !== "number") {
+  blur(image2, r7) {
+    if (typeof r7 !== "number") {
       throw new Error("r must be a number");
     }
-    if (r < 1) {
+    if (r7 < 1) {
       throw new Error("r must be greater than 0");
     }
     let rsum;
     let gsum;
     let bsum;
     let asum;
-    let x2;
+    let x;
     let y;
     let i;
     let p;
@@ -88686,9 +89350,9 @@ var methods2 = {
     let yw;
     const wm = image2.bitmap.width - 1;
     const hm = image2.bitmap.height - 1;
-    const rad1 = r + 1;
-    const mulSum = mulTable[r];
-    const shgSum = shgTable[r];
+    const rad1 = r7 + 1;
+    const mulSum = mulTable[r7];
+    const shgSum = shgTable[r7];
     const red = [];
     const green = [];
     const blue = [];
@@ -88704,24 +89368,24 @@ var methods2 = {
         gsum = image2.bitmap.data[yw + 1] * rad1;
         bsum = image2.bitmap.data[yw + 2] * rad1;
         asum = image2.bitmap.data[yw + 3] * rad1;
-        for (i = 1;i <= r; i++) {
+        for (i = 1;i <= r7; i++) {
           p = yw + ((i > wm ? wm : i) << 2);
           rsum += image2.bitmap.data[p++];
           gsum += image2.bitmap.data[p++];
           bsum += image2.bitmap.data[p++];
           asum += image2.bitmap.data[p];
         }
-        for (x2 = 0;x2 < image2.bitmap.width; x2++) {
+        for (x = 0;x < image2.bitmap.width; x++) {
           red[yi2] = rsum;
           green[yi2] = gsum;
           blue[yi2] = bsum;
           alpha[yi2] = asum;
           if (y === 0) {
-            vmin[x2] = ((p = x2 + rad1) < wm ? p : wm) << 2;
-            vmax[x2] = (p = x2 - r) > 0 ? p << 2 : 0;
+            vmin[x] = ((p = x + rad1) < wm ? p : wm) << 2;
+            vmax[x] = (p = x - r7) > 0 ? p << 2 : 0;
           }
-          p1 = yw + vmin[x2];
-          p2 = yw + vmax[x2];
+          p1 = yw + vmin[x];
+          p2 = yw + vmax[x];
           rsum += image2.bitmap.data[p1++] - image2.bitmap.data[p2++];
           gsum += image2.bitmap.data[p1++] - image2.bitmap.data[p2++];
           bsum += image2.bitmap.data[p1++] - image2.bitmap.data[p2++];
@@ -88730,31 +89394,31 @@ var methods2 = {
         }
         yw += image2.bitmap.width << 2;
       }
-      for (x2 = 0;x2 < image2.bitmap.width; x2++) {
-        yp = x2;
+      for (x = 0;x < image2.bitmap.width; x++) {
+        yp = x;
         rsum = red[yp] * rad1;
         gsum = green[yp] * rad1;
         bsum = blue[yp] * rad1;
         asum = alpha[yp] * rad1;
-        for (i = 1;i <= r; i++) {
+        for (i = 1;i <= r7; i++) {
           yp += i > hm ? 0 : image2.bitmap.width;
           rsum += red[yp];
           gsum += green[yp];
           bsum += blue[yp];
           asum += alpha[yp];
         }
-        yi2 = x2 << 2;
+        yi2 = x << 2;
         for (y = 0;y < image2.bitmap.height; y++) {
           image2.bitmap.data[yi2] = limit255(rsum * mulSum >>> shgSum);
           image2.bitmap.data[yi2 + 1] = limit255(gsum * mulSum >>> shgSum);
           image2.bitmap.data[yi2 + 2] = limit255(bsum * mulSum >>> shgSum);
           image2.bitmap.data[yi2 + 3] = limit255(asum * mulSum >>> shgSum);
-          if (x2 === 0) {
+          if (x === 0) {
             vmin[y] = ((p = y + rad1) < hm ? p : hm) * image2.bitmap.width;
-            vmax[y] = (p = y - r) > 0 ? p * image2.bitmap.width : 0;
+            vmax[y] = (p = y - r7) > 0 ? p * image2.bitmap.width : 0;
           }
-          p1 = x2 + vmin[y];
-          p2 = x2 + vmax[y];
+          p1 = x + vmin[y];
+          p2 = x + vmax[y];
           rsum += red[p1] - red[p2];
           gsum += green[p1] - green[p2];
           bsum += blue[p1] - blue[p2];
@@ -88765,28 +89429,28 @@ var methods2 = {
     }
     return image2;
   },
-  gaussian(image2, r) {
-    if (typeof r !== "number") {
+  gaussian(image2, r7) {
+    if (typeof r7 !== "number") {
       throw new Error("r must be a number");
     }
-    if (r < 1) {
+    if (r7 < 1) {
       throw new Error("r must be greater than 0");
     }
-    const rs2 = Math.ceil(r * 2.57);
+    const rs2 = Math.ceil(r7 * 2.57);
     const range = rs2 * 2 + 1;
-    const rr2 = r * r * 2;
+    const rr2 = r7 * r7 * 2;
     const rr2pi = rr2 * Math.PI;
     const weights = [];
     for (let y = 0;y < range; y++) {
       const weightsRow = [];
-      for (let x2 = 0;x2 < range; x2++) {
-        const dsq = (x2 - rs2) ** 2 + (y - rs2) ** 2;
-        weightsRow[x2] = Math.exp(-dsq / rr2) / rr2pi;
+      for (let x = 0;x < range; x++) {
+        const dsq = (x - rs2) ** 2 + (y - rs2) ** 2;
+        weightsRow[x] = Math.exp(-dsq / rr2) / rr2pi;
       }
       weights.push(weightsRow);
     }
     for (let y = 0;y < image2.bitmap.height; y++) {
-      for (let x2 = 0;x2 < image2.bitmap.width; x2++) {
+      for (let x = 0;x < image2.bitmap.width; x++) {
         let red = 0;
         let green = 0;
         let blue = 0;
@@ -88794,7 +89458,7 @@ var methods2 = {
         let wsum = 0;
         for (let iy = 0;iy < range; iy++) {
           for (let ix = 0;ix < range; ix++) {
-            const x1 = Math.min(image2.bitmap.width - 1, Math.max(0, ix + x2 - rs2));
+            const x1 = Math.min(image2.bitmap.width - 1, Math.max(0, ix + x - rs2));
             const y1 = Math.min(image2.bitmap.height - 1, Math.max(0, iy + y - rs2));
             const weight = weights[iy][ix];
             const idx2 = y1 * image2.bitmap.width + x1 << 2;
@@ -88804,7 +89468,7 @@ var methods2 = {
             alpha += image2.bitmap.data[idx2 + 3] * weight;
             wsum += weight;
           }
-          const idx = y * image2.bitmap.width + x2 << 2;
+          const idx = y * image2.bitmap.width + x << 2;
           image2.bitmap.data[idx] = Math.round(red / wsum);
           image2.bitmap.data[idx + 1] = Math.round(green / wsum);
           image2.bitmap.data[idx + 2] = Math.round(blue / wsum);
@@ -89327,7 +89991,7 @@ function addIssueToContext3(ctx, issueData) {
       ctx.schemaErrorMap,
       overrideMap,
       overrideMap === en_default3 ? undefined : en_default3
-    ].filter((x2) => !!x2)
+    ].filter((x) => !!x)
   });
   ctx.common.issues.push(issue2);
 }
@@ -89391,10 +90055,10 @@ var INVALID3 = Object.freeze({
 });
 var DIRTY3 = (value) => ({ status: "dirty", value });
 var OK3 = (value) => ({ status: "valid", value });
-var isAborted3 = (x2) => x2.status === "aborted";
-var isDirty3 = (x2) => x2.status === "dirty";
-var isValid4 = (x2) => x2.status === "valid";
-var isAsync3 = (x2) => typeof Promise !== "undefined" && x2 instanceof Promise;
+var isAborted3 = (x) => x.status === "aborted";
+var isDirty3 = (x) => x.status === "dirty";
+var isValid4 = (x) => x.status === "valid";
+var isAsync3 = (x) => typeof Promise !== "undefined" && x instanceof Promise;
 // ../node_modules/@jimp/plugin-circle/node_modules/zod/v3/helpers/errorUtil.js
 var errorUtil3;
 (function(errorUtil4) {
@@ -91764,7 +92428,7 @@ class ZodTuple3 extends ZodType3 {
       if (!schema)
         return null;
       return schema._parse(new ParseInputLazyPath3(ctx, item, ctx.path, itemIndex));
-    }).filter((x2) => !!x2);
+    }).filter((x) => !!x);
     if (ctx.common.async) {
       return Promise.all(items).then((results) => {
         return ParseStatus3.mergeArray(status, results);
@@ -92021,7 +92685,7 @@ class ZodFunction3 extends ZodType3 {
       return makeIssue3({
         data: args,
         path: ctx.path,
-        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap3(), en_default3].filter((x2) => !!x2),
+        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap3(), en_default3].filter((x) => !!x),
         issueData: {
           code: ZodIssueCode3.invalid_arguments,
           argumentsError: error2
@@ -92032,7 +92696,7 @@ class ZodFunction3 extends ZodType3 {
       return makeIssue3({
         data: returns,
         path: ctx.path,
-        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap3(), en_default3].filter((x2) => !!x2),
+        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap3(), en_default3].filter((x) => !!x),
         issueData: {
           code: ZodIssueCode3.invalid_return_type,
           returnTypeError: error2
@@ -92040,7 +92704,7 @@ class ZodFunction3 extends ZodType3 {
       });
     }
     const params = { errorMap: ctx.common.contextualErrorMap };
-    const fn = ctx.data;
+    const fn2 = ctx.data;
     if (this._def.returns instanceof ZodPromise3) {
       const me2 = this;
       return OK3(async function(...args) {
@@ -92049,7 +92713,7 @@ class ZodFunction3 extends ZodType3 {
           error2.addIssue(makeArgsIssue(args, e));
           throw error2;
         });
-        const result = await Reflect.apply(fn, this, parsedArgs);
+        const result = await Reflect.apply(fn2, this, parsedArgs);
         const parsedReturns = await me2._def.returns._def.type.parseAsync(result, params).catch((e) => {
           error2.addIssue(makeReturnsIssue(result, e));
           throw error2;
@@ -92063,7 +92727,7 @@ class ZodFunction3 extends ZodType3 {
         if (!parsedArgs.success) {
           throw new ZodError5([makeArgsIssue(args, parsedArgs.error)]);
         }
-        const result = Reflect.apply(fn, this, parsedArgs.data);
+        const result = Reflect.apply(fn2, this, parsedArgs.data);
         const parsedReturns = me2._def.returns.safeParse(result, params);
         if (!parsedReturns.success) {
           throw new ZodError5([makeReturnsIssue(result, parsedReturns.error)]);
@@ -92677,17 +93341,17 @@ function cleanParams3(params, data) {
 function custom3(check, _params = {}, fatal) {
   if (check)
     return ZodAny3.create().superRefine((data, ctx) => {
-      const r = check(data);
-      if (r instanceof Promise) {
-        return r.then((r2) => {
-          if (!r2) {
+      const r7 = check(data);
+      if (r7 instanceof Promise) {
+        return r7.then((r8) => {
+          if (!r8) {
             const params = cleanParams3(_params, data);
             const _fatal = params.fatal ?? fatal ?? true;
             ctx.addIssue({ code: "custom", ...params, fatal: _fatal });
           }
         });
       }
-      if (!r) {
+      if (!r7) {
         const params = cleanParams3(_params, data);
         const _fatal = params.fatal ?? fatal ?? true;
         ctx.addIssue({ code: "custom", ...params, fatal: _fatal });
@@ -92803,8 +93467,8 @@ var methods3 = {
       x: typeof parsed.x === "number" ? parsed.x : image2.bitmap.width / 2,
       y: typeof parsed.y === "number" ? parsed.y : image2.bitmap.height / 2
     };
-    image2.scan((x2, y, idx) => {
-      const curR = Math.sqrt(Math.pow(x2 - center.x, 2) + Math.pow(y - center.y, 2));
+    image2.scan((x, y, idx) => {
+      const curR = Math.sqrt(Math.pow(x - center.x, 2) + Math.pow(y - center.y, 2));
       if (radius - curR <= 0) {
         image2.bitmap.data[idx + 3] = 0;
       } else if (radius - curR < 1) {
@@ -93326,7 +93990,7 @@ function addIssueToContext4(ctx, issueData) {
       ctx.schemaErrorMap,
       overrideMap,
       overrideMap === en_default4 ? undefined : en_default4
-    ].filter((x2) => !!x2)
+    ].filter((x) => !!x)
   });
   ctx.common.issues.push(issue2);
 }
@@ -93390,10 +94054,10 @@ var INVALID4 = Object.freeze({
 });
 var DIRTY4 = (value) => ({ status: "dirty", value });
 var OK4 = (value) => ({ status: "valid", value });
-var isAborted4 = (x2) => x2.status === "aborted";
-var isDirty4 = (x2) => x2.status === "dirty";
-var isValid5 = (x2) => x2.status === "valid";
-var isAsync4 = (x2) => typeof Promise !== "undefined" && x2 instanceof Promise;
+var isAborted4 = (x) => x.status === "aborted";
+var isDirty4 = (x) => x.status === "dirty";
+var isValid5 = (x) => x.status === "valid";
+var isAsync4 = (x) => typeof Promise !== "undefined" && x instanceof Promise;
 // ../node_modules/@jimp/plugin-color/node_modules/zod/v3/helpers/errorUtil.js
 var errorUtil4;
 (function(errorUtil5) {
@@ -95763,7 +96427,7 @@ class ZodTuple4 extends ZodType4 {
       if (!schema)
         return null;
       return schema._parse(new ParseInputLazyPath4(ctx, item, ctx.path, itemIndex));
-    }).filter((x2) => !!x2);
+    }).filter((x) => !!x);
     if (ctx.common.async) {
       return Promise.all(items).then((results) => {
         return ParseStatus4.mergeArray(status, results);
@@ -96020,7 +96684,7 @@ class ZodFunction4 extends ZodType4 {
       return makeIssue4({
         data: args,
         path: ctx.path,
-        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap4(), en_default4].filter((x2) => !!x2),
+        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap4(), en_default4].filter((x) => !!x),
         issueData: {
           code: ZodIssueCode4.invalid_arguments,
           argumentsError: error2
@@ -96031,7 +96695,7 @@ class ZodFunction4 extends ZodType4 {
       return makeIssue4({
         data: returns,
         path: ctx.path,
-        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap4(), en_default4].filter((x2) => !!x2),
+        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap4(), en_default4].filter((x) => !!x),
         issueData: {
           code: ZodIssueCode4.invalid_return_type,
           returnTypeError: error2
@@ -96039,7 +96703,7 @@ class ZodFunction4 extends ZodType4 {
       });
     }
     const params = { errorMap: ctx.common.contextualErrorMap };
-    const fn = ctx.data;
+    const fn2 = ctx.data;
     if (this._def.returns instanceof ZodPromise4) {
       const me2 = this;
       return OK4(async function(...args) {
@@ -96048,7 +96712,7 @@ class ZodFunction4 extends ZodType4 {
           error2.addIssue(makeArgsIssue(args, e));
           throw error2;
         });
-        const result = await Reflect.apply(fn, this, parsedArgs);
+        const result = await Reflect.apply(fn2, this, parsedArgs);
         const parsedReturns = await me2._def.returns._def.type.parseAsync(result, params).catch((e) => {
           error2.addIssue(makeReturnsIssue(result, e));
           throw error2;
@@ -96062,7 +96726,7 @@ class ZodFunction4 extends ZodType4 {
         if (!parsedArgs.success) {
           throw new ZodError7([makeArgsIssue(args, parsedArgs.error)]);
         }
-        const result = Reflect.apply(fn, this, parsedArgs.data);
+        const result = Reflect.apply(fn2, this, parsedArgs.data);
         const parsedReturns = me2._def.returns.safeParse(result, params);
         if (!parsedReturns.success) {
           throw new ZodError7([makeReturnsIssue(result, parsedReturns.error)]);
@@ -96676,17 +97340,17 @@ function cleanParams4(params, data) {
 function custom4(check, _params = {}, fatal) {
   if (check)
     return ZodAny4.create().superRefine((data, ctx) => {
-      const r = check(data);
-      if (r instanceof Promise) {
-        return r.then((r2) => {
-          if (!r2) {
+      const r7 = check(data);
+      if (r7 instanceof Promise) {
+        return r7.then((r8) => {
+          if (!r8) {
             const params = cleanParams4(_params, data);
             const _fatal = params.fatal ?? fatal ?? true;
             ctx.addIssue({ code: "custom", ...params, fatal: _fatal });
           }
         });
       }
-      if (!r) {
+      if (!r7) {
         const params = cleanParams4(_params, data);
         const _fatal = params.fatal ?? fatal ?? true;
         ctx.addIssue({ code: "custom", ...params, fatal: _fatal });
@@ -96821,12 +97485,12 @@ var PixelateOptionsSchema = exports_external4.union([
   PixelateSize,
   PixelateComplexOptionsSchema
 ]);
-function applyKernel(image2, kernel, x2, y) {
+function applyKernel(image2, kernel, x, y) {
   const value = [0, 0, 0, 0];
   const size = (kernel.length - 1) / 2;
   for (let kx = 0;kx < kernel.length; kx += 1) {
     for (let ky = 0;ky < kernel[kx].length; ky += 1) {
-      const idx = image2.getPixelIndex(x2 + kx - size, y + ky - size);
+      const idx = image2.getPixelIndex(x + kx - size, y + ky - size);
       value[0] += image2.bitmap.data[idx] * kernel[kx][ky];
       value[1] += image2.bitmap.data[idx + 1] * kernel[kx][ky];
       value[2] += image2.bitmap.data[idx + 2] * kernel[kx][ky];
@@ -96975,10 +97639,10 @@ var methods4 = {
       b: getBounds(h.b)
     };
     image2.scan((_2, __, idx) => {
-      const r = image2.bitmap.data[idx + 0];
+      const r7 = image2.bitmap.data[idx + 0];
       const g = image2.bitmap.data[idx + 1];
       const b = image2.bitmap.data[idx + 2];
-      image2.bitmap.data[idx + 0] = normalizeValue(r, bounds.r[0], bounds.r[1]);
+      image2.bitmap.data[idx + 0] = normalizeValue(r7, bounds.r[0], bounds.r[1]);
       image2.bitmap.data[idx + 1] = normalizeValue(g, bounds.g[0], bounds.g[1]);
       image2.bitmap.data[idx + 2] = normalizeValue(b, bounds.b[0], bounds.b[1]);
     });
@@ -97022,20 +97686,20 @@ var methods4 = {
     });
     return image2;
   },
-  posterize(image2, n7) {
-    if (typeof n7 !== "number") {
+  posterize(image2, n) {
+    if (typeof n !== "number") {
       throw new Error("n must be numbers");
     }
-    if (n7 < 2) {
-      n7 = 2;
+    if (n < 2) {
+      n = 2;
     }
     image2.scan((_2, __, idx) => {
-      const r = image2.bitmap.data[idx];
+      const r7 = image2.bitmap.data[idx];
       const g = image2.bitmap.data[idx + 1];
       const b = image2.bitmap.data[idx + 2];
-      image2.bitmap.data[idx] = Math.floor(r / 255 * (n7 - 1)) / (n7 - 1) * 255;
-      image2.bitmap.data[idx + 1] = Math.floor(g / 255 * (n7 - 1)) / (n7 - 1) * 255;
-      image2.bitmap.data[idx + 2] = Math.floor(b / 255 * (n7 - 1)) / (n7 - 1) * 255;
+      image2.bitmap.data[idx] = Math.floor(r7 / 255 * (n - 1)) / (n - 1) * 255;
+      image2.bitmap.data[idx + 1] = Math.floor(g / 255 * (n - 1)) / (n - 1) * 255;
+      image2.bitmap.data[idx + 2] = Math.floor(b / 255 * (n - 1)) / (n - 1) * 255;
     });
     return image2;
   },
@@ -97107,13 +97771,13 @@ var methods4 = {
     let xi2;
     let yi2;
     let idxi;
-    image2.scan((x2, y, idx) => {
+    image2.scan((x, y, idx) => {
       bSum = 0;
       gSum = 0;
       rSum = 0;
       for (let row = rowIni;row <= rowEnd; row++) {
         for (let col = colIni;col <= colEnd; col++) {
-          xi2 = x2 + col;
+          xi2 = x + col;
           yi2 = y + row;
           weight = kernel[row + rowEnd][col + colEnd];
           idxi = image2.getPixelIndex(xi2, yi2, edgeHandling);
@@ -97164,14 +97828,14 @@ var methods4 = {
   },
   pixelate(image2, options) {
     const parsed = PixelateOptionsSchema.parse(options);
-    const { size, x: x2 = 0, y = 0, w = image2.bitmap.width - x2, h = image2.bitmap.height - y } = typeof parsed === "number" ? { size: parsed } : parsed;
+    const { size, x = 0, y = 0, w = image2.bitmap.width - x, h = image2.bitmap.height - y } = typeof parsed === "number" ? { size: parsed } : parsed;
     const kernel = [
       [1 / 16, 2 / 16, 1 / 16],
       [2 / 16, 4 / 16, 2 / 16],
       [1 / 16, 2 / 16, 1 / 16]
     ];
     const source = clone2(image2);
-    scan(source, x2, y, w, h, (xx, yx, idx) => {
+    scan(source, x, y, w, h, (xx, yx, idx) => {
       xx = size * Math.floor(xx / size);
       yx = size * Math.floor(yx / size);
       const value = applyKernel(source, kernel, xx, yx);
@@ -97184,9 +97848,9 @@ var methods4 = {
   },
   convolute(image2, options) {
     const parsed = ConvoluteOptionsSchema.parse(options);
-    const { kernel, x: x2 = 0, y = 0, w = image2.bitmap.width - x2, h = image2.bitmap.height - y } = "kernel" in parsed ? parsed : { kernel: parsed };
+    const { kernel, x = 0, y = 0, w = image2.bitmap.width - x, h = image2.bitmap.height - y } = "kernel" in parsed ? parsed : { kernel: parsed };
     const source = clone2(image2);
-    scan(source, x2, y, w, h, (xx, yx, idx) => {
+    scan(source, x, y, w, h, (xx, yx, idx) => {
       const value = applyKernel(source, kernel, xx, yx);
       image2.bitmap.data[idx] = limit255(value[0]);
       image2.bitmap.data[idx + 1] = limit255(value[1]);
@@ -97237,11 +97901,11 @@ var methods4 = {
             action.apply = "spin";
           }
           const tnyClr = tinycolor(clr);
-          const fn = tnyClr[action.apply].bind(tnyClr);
-          if (!fn) {
+          const fn2 = tnyClr[action.apply].bind(tnyClr);
+          if (!fn2) {
             throw new Error("action " + action.apply + " not supported");
           }
-          clr = fn(...action.params || []).toRgb();
+          clr = fn2(...action.params || []).toRgb();
         }
       });
       image2.bitmap.data[idx] = clr.r;
@@ -97311,18 +97975,18 @@ __export(exports_composite_modes, {
 function srcOver(src, dst, ops = 1) {
   src.a *= ops;
   const a = dst.a + src.a - dst.a * src.a;
-  const r = (src.r * src.a + dst.r * dst.a * (1 - src.a)) / a;
+  const r7 = (src.r * src.a + dst.r * dst.a * (1 - src.a)) / a;
   const g = (src.g * src.a + dst.g * dst.a * (1 - src.a)) / a;
   const b = (src.b * src.a + dst.b * dst.a * (1 - src.a)) / a;
-  return { r, g, b, a };
+  return { r: r7, g, b, a };
 }
 function dstOver(src, dst, ops = 1) {
   src.a *= ops;
   const a = dst.a + src.a - dst.a * src.a;
-  const r = (dst.r * dst.a + src.r * src.a * (1 - dst.a)) / a;
+  const r7 = (dst.r * dst.a + src.r * src.a * (1 - dst.a)) / a;
   const g = (dst.g * dst.a + src.g * src.a * (1 - dst.a)) / a;
   const b = (dst.b * dst.a + src.b * src.a * (1 - dst.a)) / a;
-  return { r, g, b, a };
+  return { r: r7, g, b, a };
 }
 function multiply(src, dst, ops = 1) {
   src.a *= ops;
@@ -97333,10 +97997,10 @@ function multiply(src, dst, ops = 1) {
   const dra = dst.r * dst.a;
   const dga = dst.g * dst.a;
   const dba = dst.b * dst.a;
-  const r = (sra * dra + sra * (1 - dst.a) + dra * (1 - src.a)) / a;
+  const r7 = (sra * dra + sra * (1 - dst.a) + dra * (1 - src.a)) / a;
   const g = (sga * dga + sga * (1 - dst.a) + dga * (1 - src.a)) / a;
   const b = (sba * dba + sba * (1 - dst.a) + dba * (1 - src.a)) / a;
-  return { r, g, b, a };
+  return { r: r7, g, b, a };
 }
 function add(src, dst, ops = 1) {
   src.a *= ops;
@@ -97347,10 +98011,10 @@ function add(src, dst, ops = 1) {
   const dra = dst.r * dst.a;
   const dga = dst.g * dst.a;
   const dba = dst.b * dst.a;
-  const r = (sra + dra) / a;
+  const r7 = (sra + dra) / a;
   const g = (sga + dga) / a;
   const b = (sba + dba) / a;
-  return { r, g, b, a };
+  return { r: r7, g, b, a };
 }
 function screen(src, dst, ops = 1) {
   src.a *= ops;
@@ -97361,10 +98025,10 @@ function screen(src, dst, ops = 1) {
   const dra = dst.r * dst.a;
   const dga = dst.g * dst.a;
   const dba = dst.b * dst.a;
-  const r = (sra * dst.a + dra * src.a - sra * dra + sra * (1 - dst.a) + dra * (1 - src.a)) / a;
+  const r7 = (sra * dst.a + dra * src.a - sra * dra + sra * (1 - dst.a) + dra * (1 - src.a)) / a;
   const g = (sga * dst.a + dga * src.a - sga * dga + sga * (1 - dst.a) + dga * (1 - src.a)) / a;
   const b = (sba * dst.a + dba * src.a - sba * dba + sba * (1 - dst.a) + dba * (1 - src.a)) / a;
-  return { r, g, b, a };
+  return { r: r7, g, b, a };
 }
 function overlay(src, dst, ops = 1) {
   src.a *= ops;
@@ -97375,10 +98039,10 @@ function overlay(src, dst, ops = 1) {
   const dra = dst.r * dst.a;
   const dga = dst.g * dst.a;
   const dba = dst.b * dst.a;
-  const r = (2 * dra <= dst.a ? 2 * sra * dra + sra * (1 - dst.a) + dra * (1 - src.a) : sra * (1 + dst.a) + dra * (1 + src.a) - 2 * dra * sra - dst.a * src.a) / a;
+  const r7 = (2 * dra <= dst.a ? 2 * sra * dra + sra * (1 - dst.a) + dra * (1 - src.a) : sra * (1 + dst.a) + dra * (1 + src.a) - 2 * dra * sra - dst.a * src.a) / a;
   const g = (2 * dga <= dst.a ? 2 * sga * dga + sga * (1 - dst.a) + dga * (1 - src.a) : sga * (1 + dst.a) + dga * (1 + src.a) - 2 * dga * sga - dst.a * src.a) / a;
   const b = (2 * dba <= dst.a ? 2 * sba * dba + sba * (1 - dst.a) + dba * (1 - src.a) : sba * (1 + dst.a) + dba * (1 + src.a) - 2 * dba * sba - dst.a * src.a) / a;
-  return { r, g, b, a };
+  return { r: r7, g, b, a };
 }
 function darken2(src, dst, ops = 1) {
   src.a *= ops;
@@ -97389,10 +98053,10 @@ function darken2(src, dst, ops = 1) {
   const dra = dst.r * dst.a;
   const dga = dst.g * dst.a;
   const dba = dst.b * dst.a;
-  const r = (Math.min(sra * dst.a, dra * src.a) + sra * (1 - dst.a) + dra * (1 - src.a)) / a;
+  const r7 = (Math.min(sra * dst.a, dra * src.a) + sra * (1 - dst.a) + dra * (1 - src.a)) / a;
   const g = (Math.min(sga * dst.a, dga * src.a) + sga * (1 - dst.a) + dga * (1 - src.a)) / a;
   const b = (Math.min(sba * dst.a, dba * src.a) + sba * (1 - dst.a) + dba * (1 - src.a)) / a;
-  return { r, g, b, a };
+  return { r: r7, g, b, a };
 }
 function lighten2(src, dst, ops = 1) {
   src.a *= ops;
@@ -97403,10 +98067,10 @@ function lighten2(src, dst, ops = 1) {
   const dra = dst.r * dst.a;
   const dga = dst.g * dst.a;
   const dba = dst.b * dst.a;
-  const r = (Math.max(sra * dst.a, dra * src.a) + sra * (1 - dst.a) + dra * (1 - src.a)) / a;
+  const r7 = (Math.max(sra * dst.a, dra * src.a) + sra * (1 - dst.a) + dra * (1 - src.a)) / a;
   const g = (Math.max(sga * dst.a, dga * src.a) + sga * (1 - dst.a) + dga * (1 - src.a)) / a;
   const b = (Math.max(sba * dst.a, dba * src.a) + sba * (1 - dst.a) + dba * (1 - src.a)) / a;
-  return { r, g, b, a };
+  return { r: r7, g, b, a };
 }
 function hardLight(src, dst, ops = 1) {
   src.a *= ops;
@@ -97417,10 +98081,10 @@ function hardLight(src, dst, ops = 1) {
   const dra = dst.r * dst.a;
   const dga = dst.g * dst.a;
   const dba = dst.b * dst.a;
-  const r = (2 * sra <= src.a ? 2 * sra * dra + sra * (1 - dst.a) + dra * (1 - src.a) : sra * (1 + dst.a) + dra * (1 + src.a) - 2 * dra * sra - dst.a * src.a) / a;
+  const r7 = (2 * sra <= src.a ? 2 * sra * dra + sra * (1 - dst.a) + dra * (1 - src.a) : sra * (1 + dst.a) + dra * (1 + src.a) - 2 * dra * sra - dst.a * src.a) / a;
   const g = (2 * sga <= src.a ? 2 * sga * dga + sga * (1 - dst.a) + dga * (1 - src.a) : sga * (1 + dst.a) + dga * (1 + src.a) - 2 * dga * sga - dst.a * src.a) / a;
   const b = (2 * sba <= src.a ? 2 * sba * dba + sba * (1 - dst.a) + dba * (1 - src.a) : sba * (1 + dst.a) + dba * (1 + src.a) - 2 * dba * sba - dst.a * src.a) / a;
-  return { r, g, b, a };
+  return { r: r7, g, b, a };
 }
 function difference(src, dst, ops = 1) {
   src.a *= ops;
@@ -97431,10 +98095,10 @@ function difference(src, dst, ops = 1) {
   const dra = dst.r * dst.a;
   const dga = dst.g * dst.a;
   const dba = dst.b * dst.a;
-  const r = (sra + dra - 2 * Math.min(sra * dst.a, dra * src.a)) / a;
+  const r7 = (sra + dra - 2 * Math.min(sra * dst.a, dra * src.a)) / a;
   const g = (sga + dga - 2 * Math.min(sga * dst.a, dga * src.a)) / a;
   const b = (sba + dba - 2 * Math.min(sba * dst.a, dba * src.a)) / a;
-  return { r, g, b, a };
+  return { r: r7, g, b, a };
 }
 function exclusion(src, dst, ops = 1) {
   src.a *= ops;
@@ -97445,10 +98109,10 @@ function exclusion(src, dst, ops = 1) {
   const dra = dst.r * dst.a;
   const dga = dst.g * dst.a;
   const dba = dst.b * dst.a;
-  const r = (sra * dst.a + dra * src.a - 2 * sra * dra + sra * (1 - dst.a) + dra * (1 - src.a)) / a;
+  const r7 = (sra * dst.a + dra * src.a - 2 * sra * dra + sra * (1 - dst.a) + dra * (1 - src.a)) / a;
   const g = (sga * dst.a + dga * src.a - 2 * sga * dga + sga * (1 - dst.a) + dga * (1 - src.a)) / a;
   const b = (sba * dst.a + dba * src.a - 2 * sba * dba + sba * (1 - dst.a) + dba * (1 - src.a)) / a;
-  return { r, g, b, a };
+  return { r: r7, g, b, a };
 }
 var names2 = [
   srcOver,
@@ -97465,11 +98129,11 @@ var names2 = [
 ];
 
 // ../node_modules/@jimp/core/dist/esm/utils/composite.js
-function composite(baseImage, src, x2 = 0, y = 0, options = {}) {
+function composite(baseImage, src, x = 0, y = 0, options = {}) {
   if (!(src instanceof baseImage.constructor)) {
     throw new Error("The source must be a Jimp image");
   }
-  if (typeof x2 !== "number" || typeof y !== "number") {
+  if (typeof x !== "number" || typeof y !== "number") {
     throw new Error("x and y must be numbers");
   }
   const { mode = BlendMode.SRC_OVER } = options;
@@ -97481,7 +98145,7 @@ function composite(baseImage, src, x2 = 0, y = 0, options = {}) {
     opacityDest = 1;
   }
   const blendmode = exports_composite_modes[mode];
-  x2 = Math.round(x2);
+  x = Math.round(x);
   y = Math.round(y);
   if (opacityDest !== 1) {
     baseImage.scan((_2, __, idx) => {
@@ -97490,7 +98154,7 @@ function composite(baseImage, src, x2 = 0, y = 0, options = {}) {
     });
   }
   src.scan((sx, sy, idx) => {
-    const dstIdx = baseImage.getPixelIndex(x2 + sx, y + sy, Edge.CROP);
+    const dstIdx = baseImage.getPixelIndex(x + sx, y + sy, Edge.CROP);
     if (dstIdx === -1) {
       return;
     }
@@ -97526,32 +98190,32 @@ function getExifOrientationTransformation(img) {
     case 1:
       return null;
     case 2:
-      return function(x2, y) {
-        return [w - x2 - 1, y];
+      return function(x, y) {
+        return [w - x - 1, y];
       };
     case 3:
-      return function(x2, y) {
-        return [w - x2 - 1, h - y - 1];
+      return function(x, y) {
+        return [w - x - 1, h - y - 1];
       };
     case 4:
-      return function(x2, y) {
-        return [x2, h - y - 1];
+      return function(x, y) {
+        return [x, h - y - 1];
       };
     case 5:
-      return function(x2, y) {
-        return [y, x2];
+      return function(x, y) {
+        return [y, x];
       };
     case 6:
-      return function(x2, y) {
-        return [y, h - x2 - 1];
+      return function(x, y) {
+        return [y, h - x - 1];
       };
     case 7:
-      return function(x2, y) {
-        return [w - y - 1, h - x2 - 1];
+      return function(x, y) {
+        return [w - y - 1, h - x - 1];
       };
     case 8:
-      return function(x2, y) {
-        return [w - y - 1, x2];
+      return function(x, y) {
+        return [w - y - 1, x];
       };
     default:
       return null;
@@ -97561,10 +98225,10 @@ function transformBitmap(img, width, height, transformation) {
   const _data = img.bitmap.data;
   const _width = img.bitmap.width;
   const data = Buffer.alloc(_data.length);
-  for (let x2 = 0;x2 < width; x2++) {
+  for (let x = 0;x < width; x++) {
     for (let y = 0;y < height; y++) {
-      const [_x, _y] = transformation(x2, y);
-      const idx = width * y + x2 << 2;
+      const [_x, _y] = transformation(x, y);
+      const idx = width * y + x << 2;
       const _idx = _width * _y + _x << 2;
       const pixel = _data.readUInt32BE(_idx);
       data.writeUInt32BE(pixel, idx);
@@ -97753,23 +98417,23 @@ function createJimp({ plugins: pluginsArg, formats: formatsArg } = {}) {
         data: Buffer.from(this.bitmap.data)
       });
     }
-    getPixelIndex(x2, y, edgeHandling) {
+    getPixelIndex(x, y, edgeHandling) {
       let xi2;
       let yi2;
       if (!edgeHandling) {
         edgeHandling = Edge.EXTEND;
       }
-      if (typeof x2 !== "number" || typeof y !== "number") {
+      if (typeof x !== "number" || typeof y !== "number") {
         throw new Error("x and y must be numbers");
       }
-      x2 = Math.round(x2);
+      x = Math.round(x);
       y = Math.round(y);
-      xi2 = x2;
+      xi2 = x;
       yi2 = y;
       if (edgeHandling === Edge.EXTEND) {
-        if (x2 < 0)
+        if (x < 0)
           xi2 = 0;
-        if (x2 >= this.bitmap.width)
+        if (x >= this.bitmap.width)
           xi2 = this.bitmap.width - 1;
         if (y < 0)
           yi2 = 0;
@@ -97777,11 +98441,11 @@ function createJimp({ plugins: pluginsArg, formats: formatsArg } = {}) {
           yi2 = this.bitmap.height - 1;
       }
       if (edgeHandling === Edge.WRAP) {
-        if (x2 < 0) {
-          xi2 = this.bitmap.width + x2;
+        if (x < 0) {
+          xi2 = this.bitmap.width + x;
         }
-        if (x2 >= this.bitmap.width) {
-          xi2 = x2 % this.bitmap.width;
+        if (x >= this.bitmap.width) {
+          xi2 = x % this.bitmap.width;
         }
         if (y < 0) {
           yi2 = this.bitmap.height + y;
@@ -97799,18 +98463,18 @@ function createJimp({ plugins: pluginsArg, formats: formatsArg } = {}) {
       }
       return i;
     }
-    getPixelColor(x2, y) {
-      if (typeof x2 !== "number" || typeof y !== "number") {
+    getPixelColor(x, y) {
+      if (typeof x !== "number" || typeof y !== "number") {
         throw new Error("x and y must be numbers");
       }
-      const idx = this.getPixelIndex(x2, y);
+      const idx = this.getPixelIndex(x, y);
       return this.bitmap.data.readUInt32BE(idx);
     }
-    setPixelColor(hex, x2, y) {
-      if (typeof hex !== "number" || typeof x2 !== "number" || typeof y !== "number") {
+    setPixelColor(hex, x, y) {
+      if (typeof hex !== "number" || typeof x !== "number" || typeof y !== "number") {
         throw new Error("hex, x and y must be numbers");
       }
-      const idx = this.getPixelIndex(x2, y);
+      const idx = this.getPixelIndex(x, y);
       this.bitmap.data.writeUInt32BE(hex, idx);
       return this;
     }
@@ -97824,20 +98488,20 @@ function createJimp({ plugins: pluginsArg, formats: formatsArg } = {}) {
       }
       return false;
     }
-    composite(src, x2 = 0, y = 0, options = {}) {
-      return composite(this, src, x2, y, options);
+    composite(src, x = 0, y = 0, options = {}) {
+      return composite(this, src, x, y, options);
     }
-    scan(x2, y, w, h, f) {
-      return scan(this, x2, y, w, h, f);
+    scan(x, y, w, h, f) {
+      return scan(this, x, y, w, h, f);
     }
-    scanIterator(x2 = 0, y = 0, w = this.bitmap.width, h = this.bitmap.height) {
-      if (typeof x2 !== "number" || typeof y !== "number") {
+    scanIterator(x = 0, y = 0, w = this.bitmap.width, h = this.bitmap.height) {
+      if (typeof x !== "number" || typeof y !== "number") {
         throw new Error("x and y must be numbers");
       }
       if (typeof w !== "number" || typeof h !== "number") {
         throw new Error("w and h must be numbers");
       }
-      return scanIterator(this, x2, y, w, h);
+      return scanIterator(this, x, y, w, h);
     }
   };
   return CustomJimp;
@@ -98364,7 +99028,7 @@ function addIssueToContext5(ctx, issueData) {
       ctx.schemaErrorMap,
       overrideMap,
       overrideMap === en_default5 ? undefined : en_default5
-    ].filter((x2) => !!x2)
+    ].filter((x) => !!x)
   });
   ctx.common.issues.push(issue2);
 }
@@ -98428,10 +99092,10 @@ var INVALID5 = Object.freeze({
 });
 var DIRTY5 = (value) => ({ status: "dirty", value });
 var OK5 = (value) => ({ status: "valid", value });
-var isAborted5 = (x2) => x2.status === "aborted";
-var isDirty5 = (x2) => x2.status === "dirty";
-var isValid6 = (x2) => x2.status === "valid";
-var isAsync5 = (x2) => typeof Promise !== "undefined" && x2 instanceof Promise;
+var isAborted5 = (x) => x.status === "aborted";
+var isDirty5 = (x) => x.status === "dirty";
+var isValid6 = (x) => x.status === "valid";
+var isAsync5 = (x) => typeof Promise !== "undefined" && x instanceof Promise;
 // ../node_modules/@jimp/plugin-resize/node_modules/zod/v3/helpers/errorUtil.js
 var errorUtil5;
 (function(errorUtil6) {
@@ -100801,7 +101465,7 @@ class ZodTuple5 extends ZodType5 {
       if (!schema)
         return null;
       return schema._parse(new ParseInputLazyPath5(ctx, item, ctx.path, itemIndex));
-    }).filter((x2) => !!x2);
+    }).filter((x) => !!x);
     if (ctx.common.async) {
       return Promise.all(items).then((results) => {
         return ParseStatus5.mergeArray(status, results);
@@ -101058,7 +101722,7 @@ class ZodFunction5 extends ZodType5 {
       return makeIssue5({
         data: args,
         path: ctx.path,
-        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap5(), en_default5].filter((x2) => !!x2),
+        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap5(), en_default5].filter((x) => !!x),
         issueData: {
           code: ZodIssueCode5.invalid_arguments,
           argumentsError: error2
@@ -101069,7 +101733,7 @@ class ZodFunction5 extends ZodType5 {
       return makeIssue5({
         data: returns,
         path: ctx.path,
-        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap5(), en_default5].filter((x2) => !!x2),
+        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap5(), en_default5].filter((x) => !!x),
         issueData: {
           code: ZodIssueCode5.invalid_return_type,
           returnTypeError: error2
@@ -101077,7 +101741,7 @@ class ZodFunction5 extends ZodType5 {
       });
     }
     const params = { errorMap: ctx.common.contextualErrorMap };
-    const fn = ctx.data;
+    const fn2 = ctx.data;
     if (this._def.returns instanceof ZodPromise5) {
       const me2 = this;
       return OK5(async function(...args) {
@@ -101086,7 +101750,7 @@ class ZodFunction5 extends ZodType5 {
           error2.addIssue(makeArgsIssue(args, e));
           throw error2;
         });
-        const result = await Reflect.apply(fn, this, parsedArgs);
+        const result = await Reflect.apply(fn2, this, parsedArgs);
         const parsedReturns = await me2._def.returns._def.type.parseAsync(result, params).catch((e) => {
           error2.addIssue(makeReturnsIssue(result, e));
           throw error2;
@@ -101100,7 +101764,7 @@ class ZodFunction5 extends ZodType5 {
         if (!parsedArgs.success) {
           throw new ZodError9([makeArgsIssue(args, parsedArgs.error)]);
         }
-        const result = Reflect.apply(fn, this, parsedArgs.data);
+        const result = Reflect.apply(fn2, this, parsedArgs.data);
         const parsedReturns = me2._def.returns.safeParse(result, params);
         if (!parsedReturns.success) {
           throw new ZodError9([makeReturnsIssue(result, parsedReturns.error)]);
@@ -101714,17 +102378,17 @@ function cleanParams5(params, data) {
 function custom5(check, _params = {}, fatal) {
   if (check)
     return ZodAny5.create().superRefine((data, ctx) => {
-      const r = check(data);
-      if (r instanceof Promise) {
-        return r.then((r2) => {
-          if (!r2) {
+      const r7 = check(data);
+      if (r7 instanceof Promise) {
+        return r7.then((r8) => {
+          if (!r8) {
             const params = cleanParams5(_params, data);
             const _fatal = params.fatal ?? fatal ?? true;
             ctx.addIssue({ code: "custom", ...params, fatal: _fatal });
           }
         });
       }
-      if (!r) {
+      if (!r7) {
         const params = cleanParams5(_params, data);
         const _fatal = params.fatal ?? fatal ?? true;
         ctx.addIssue({ code: "custom", ...params, fatal: _fatal });
@@ -101936,7 +102600,7 @@ Resize.prototype._resizeWidthRGBChannels = function(buffer, fourthChannel) {
   let pixelOffset = 0;
   let outputOffset = 0;
   let multiplier = 1;
-  let r = 0;
+  let r7 = 0;
   let g = 0;
   let b = 0;
   let a = 0;
@@ -101955,11 +102619,11 @@ Resize.prototype._resizeWidthRGBChannels = function(buffer, fourthChannel) {
       amountToNext = 1 + actualPosition - currentPosition;
       multiplier = Math.min(weight, amountToNext);
       for (line = 0, pixelOffset = actualPosition;line < this.originalHeightMultipliedByChannels; pixelOffset += nextLineOffsetOriginalWidth) {
-        r = buffer[pixelOffset];
+        r7 = buffer[pixelOffset];
         g = buffer[++pixelOffset];
         b = buffer[++pixelOffset];
         a = fourthChannel ? buffer[++pixelOffset] : 255;
-        output[line++] += (a ? r : 0) * multiplier;
+        output[line++] += (a ? r7 : 0) * multiplier;
         output[line++] += (a ? g : 0) * multiplier;
         output[line++] += (a ? b : 0) * multiplier;
         if (fourthChannel) {
@@ -102003,7 +102667,7 @@ Resize.prototype._resizeHeightRGBChannels = function(buffer, fourthChannel) {
   let outputOffset = 0;
   let caret = 0;
   let multiplier = 1;
-  let r = 0;
+  let r7 = 0;
   let g = 0;
   let b = 0;
   let a = 0;
@@ -102023,11 +102687,11 @@ Resize.prototype._resizeHeightRGBChannels = function(buffer, fourthChannel) {
       multiplier = Math.min(weight, amountToNext);
       caret = actualPosition;
       for (pixelOffset = 0;pixelOffset < this.targetWidthMultipliedByChannels; ) {
-        r = buffer[caret++];
+        r7 = buffer[caret++];
         g = buffer[caret++];
         b = buffer[caret++];
         a = fourthChannel ? buffer[caret++] : 255;
-        output[pixelOffset++] += (a ? r : 0) * multiplier;
+        output[pixelOffset++] += (a ? r7 : 0) * multiplier;
         output[pixelOffset++] += (a ? g : 0) * multiplier;
         output[pixelOffset++] += (a ? b : 0) * multiplier;
         if (fourthChannel) {
@@ -102193,32 +102857,32 @@ var operations = {
       }
       return Math.round((k2 - kMin) * vMax + (kMax - k2) * vMin);
     };
-    const assign = function(pos, offset, x2, xMin, xMax, y, yMin, yMax) {
+    const assign = function(pos, offset, x, xMin, xMax, y, yMin, yMax) {
       let posMin = (yMin * wSrc + xMin) * 4 + offset;
       let posMax = (yMin * wSrc + xMax) * 4 + offset;
-      const vMin = interpolate(x2, xMin, bufSrc[posMin], xMax, bufSrc[posMax]);
+      const vMin = interpolate(x, xMin, bufSrc[posMin], xMax, bufSrc[posMax]);
       if (yMax === yMin) {
         bufDst[pos + offset] = vMin;
       } else {
         posMin = (yMax * wSrc + xMin) * 4 + offset;
         posMax = (yMax * wSrc + xMax) * 4 + offset;
-        const vMax = interpolate(x2, xMin, bufSrc[posMin], xMax, bufSrc[posMax]);
+        const vMax = interpolate(x, xMin, bufSrc[posMin], xMax, bufSrc[posMax]);
         bufDst[pos + offset] = interpolate(y, yMin, vMin, yMax, vMax);
       }
     };
     for (let i = 0;i < hDst; i++) {
       for (let j2 = 0;j2 < wDst; j2++) {
         const posDst = (i * wDst + j2) * 4;
-        const x2 = j2 * wSrc / wDst;
-        const xMin = Math.floor(x2);
-        const xMax = Math.min(Math.ceil(x2), wSrc - 1);
+        const x = j2 * wSrc / wDst;
+        const xMin = Math.floor(x);
+        const xMax = Math.min(Math.ceil(x), wSrc - 1);
         const y = i * hSrc / hDst;
         const yMin = Math.floor(y);
         const yMax = Math.min(Math.ceil(y), hSrc - 1);
-        assign(posDst, 0, x2, xMin, xMax, y, yMin, yMax);
-        assign(posDst, 1, x2, xMin, xMax, y, yMin, yMax);
-        assign(posDst, 2, x2, xMin, xMax, y, yMin, yMax);
-        assign(posDst, 3, x2, xMin, xMax, y, yMin, yMax);
+        assign(posDst, 0, x, xMin, xMax, y, yMin, yMax);
+        assign(posDst, 1, x, xMin, xMax, y, yMin, yMax);
+        assign(posDst, 2, x, xMin, xMax, y, yMin, yMax);
+        assign(posDst, 3, x, xMin, xMax, y, yMin, yMax);
       }
     }
   },
@@ -102236,18 +102900,18 @@ var operations = {
     const buf1 = Buffer.alloc(wDst2 * hSrc * 4);
     for (let i = 0;i < hSrc; i++) {
       for (let j2 = 0;j2 < wDst2; j2++) {
-        const x2 = j2 * (wSrc - 1) / wDst2;
-        const xPos = Math.floor(x2);
-        const t = x2 - xPos;
+        const x = j2 * (wSrc - 1) / wDst2;
+        const xPos = Math.floor(x);
+        const t = x - xPos;
         const srcPos = (i * wSrc + xPos) * 4;
         const buf1Pos = (i * wDst2 + j2) * 4;
         for (let k2 = 0;k2 < 4; k2++) {
           const kPos = srcPos + k2;
           const x0 = xPos > 0 ? bufSrc[kPos - 4] : 2 * bufSrc[kPos] - bufSrc[kPos + 4];
           const x1 = bufSrc[kPos];
-          const x22 = bufSrc[kPos + 4];
+          const x2 = bufSrc[kPos + 4];
           const x3 = xPos < wSrc - 2 ? bufSrc[kPos + 8] : 2 * bufSrc[kPos + 4] - bufSrc[kPos];
-          buf1[buf1Pos + k2] = interpolate(x0, x1, x22, x3, t);
+          buf1[buf1Pos + k2] = interpolate(x0, x1, x2, x3, t);
         }
       }
     }
@@ -102273,19 +102937,19 @@ var operations = {
     if (m > 1) {
       for (let i = 0;i < hDst; i++) {
         for (let j2 = 0;j2 < wDst; j2++) {
-          let r = 0;
+          let r7 = 0;
           let g = 0;
           let b = 0;
           let a = 0;
           let realColors = 0;
           for (let y = 0;y < hM; y++) {
             const yPos = i * hM + y;
-            for (let x2 = 0;x2 < wM; x2++) {
-              const xPos = j2 * wM + x2;
+            for (let x = 0;x < wM; x++) {
+              const xPos = j2 * wM + x;
               const xyPos = (yPos * wDst2 + xPos) * 4;
               const pixelAlpha = buf2[xyPos + 3];
               if (pixelAlpha) {
-                r += buf2[xyPos];
+                r7 += buf2[xyPos];
                 g += buf2[xyPos + 1];
                 b += buf2[xyPos + 2];
                 realColors++;
@@ -102294,7 +102958,7 @@ var operations = {
             }
           }
           const pos = (i * wDst + j2) * 4;
-          bufDst[pos] = realColors ? Math.round(r / realColors) : 0;
+          bufDst[pos] = realColors ? Math.round(r7 / realColors) : 0;
           bufDst[pos + 1] = realColors ? Math.round(g / realColors) : 0;
           bufDst[pos + 2] = realColors ? Math.round(b / realColors) : 0;
           bufDst[pos + 3] = Math.round(a / m);
@@ -102919,7 +103583,7 @@ function addIssueToContext6(ctx, issueData) {
       ctx.schemaErrorMap,
       overrideMap,
       overrideMap === en_default6 ? undefined : en_default6
-    ].filter((x2) => !!x2)
+    ].filter((x) => !!x)
   });
   ctx.common.issues.push(issue2);
 }
@@ -102983,10 +103647,10 @@ var INVALID6 = Object.freeze({
 });
 var DIRTY6 = (value) => ({ status: "dirty", value });
 var OK6 = (value) => ({ status: "valid", value });
-var isAborted6 = (x2) => x2.status === "aborted";
-var isDirty6 = (x2) => x2.status === "dirty";
-var isValid7 = (x2) => x2.status === "valid";
-var isAsync6 = (x2) => typeof Promise !== "undefined" && x2 instanceof Promise;
+var isAborted6 = (x) => x.status === "aborted";
+var isDirty6 = (x) => x.status === "dirty";
+var isValid7 = (x) => x.status === "valid";
+var isAsync6 = (x) => typeof Promise !== "undefined" && x instanceof Promise;
 // ../node_modules/@jimp/plugin-contain/node_modules/zod/v3/helpers/errorUtil.js
 var errorUtil6;
 (function(errorUtil7) {
@@ -105356,7 +106020,7 @@ class ZodTuple6 extends ZodType6 {
       if (!schema)
         return null;
       return schema._parse(new ParseInputLazyPath6(ctx, item, ctx.path, itemIndex));
-    }).filter((x2) => !!x2);
+    }).filter((x) => !!x);
     if (ctx.common.async) {
       return Promise.all(items).then((results) => {
         return ParseStatus6.mergeArray(status, results);
@@ -105613,7 +106277,7 @@ class ZodFunction6 extends ZodType6 {
       return makeIssue6({
         data: args,
         path: ctx.path,
-        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap6(), en_default6].filter((x2) => !!x2),
+        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap6(), en_default6].filter((x) => !!x),
         issueData: {
           code: ZodIssueCode6.invalid_arguments,
           argumentsError: error2
@@ -105624,7 +106288,7 @@ class ZodFunction6 extends ZodType6 {
       return makeIssue6({
         data: returns,
         path: ctx.path,
-        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap6(), en_default6].filter((x2) => !!x2),
+        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap6(), en_default6].filter((x) => !!x),
         issueData: {
           code: ZodIssueCode6.invalid_return_type,
           returnTypeError: error2
@@ -105632,7 +106296,7 @@ class ZodFunction6 extends ZodType6 {
       });
     }
     const params = { errorMap: ctx.common.contextualErrorMap };
-    const fn = ctx.data;
+    const fn2 = ctx.data;
     if (this._def.returns instanceof ZodPromise6) {
       const me2 = this;
       return OK6(async function(...args) {
@@ -105641,7 +106305,7 @@ class ZodFunction6 extends ZodType6 {
           error2.addIssue(makeArgsIssue(args, e));
           throw error2;
         });
-        const result = await Reflect.apply(fn, this, parsedArgs);
+        const result = await Reflect.apply(fn2, this, parsedArgs);
         const parsedReturns = await me2._def.returns._def.type.parseAsync(result, params).catch((e) => {
           error2.addIssue(makeReturnsIssue(result, e));
           throw error2;
@@ -105655,7 +106319,7 @@ class ZodFunction6 extends ZodType6 {
         if (!parsedArgs.success) {
           throw new ZodError11([makeArgsIssue(args, parsedArgs.error)]);
         }
-        const result = Reflect.apply(fn, this, parsedArgs.data);
+        const result = Reflect.apply(fn2, this, parsedArgs.data);
         const parsedReturns = me2._def.returns.safeParse(result, params);
         if (!parsedReturns.success) {
           throw new ZodError11([makeReturnsIssue(result, parsedReturns.error)]);
@@ -106269,17 +106933,17 @@ function cleanParams6(params, data) {
 function custom6(check, _params = {}, fatal) {
   if (check)
     return ZodAny6.create().superRefine((data, ctx) => {
-      const r = check(data);
-      if (r instanceof Promise) {
-        return r.then((r2) => {
-          if (!r2) {
+      const r7 = check(data);
+      if (r7 instanceof Promise) {
+        return r7.then((r8) => {
+          if (!r8) {
             const params = cleanParams6(_params, data);
             const _fatal = params.fatal ?? fatal ?? true;
             ctx.addIssue({ code: "custom", ...params, fatal: _fatal });
           }
         });
       }
-      if (!r) {
+      if (!r7) {
         const params = cleanParams6(_params, data);
         const _fatal = params.fatal ?? fatal ?? true;
         ctx.addIssue({ code: "custom", ...params, fatal: _fatal });
@@ -106924,7 +107588,7 @@ function addIssueToContext7(ctx, issueData) {
       ctx.schemaErrorMap,
       overrideMap,
       overrideMap === en_default7 ? undefined : en_default7
-    ].filter((x2) => !!x2)
+    ].filter((x) => !!x)
   });
   ctx.common.issues.push(issue2);
 }
@@ -106988,10 +107652,10 @@ var INVALID7 = Object.freeze({
 });
 var DIRTY7 = (value) => ({ status: "dirty", value });
 var OK7 = (value) => ({ status: "valid", value });
-var isAborted7 = (x2) => x2.status === "aborted";
-var isDirty7 = (x2) => x2.status === "dirty";
-var isValid8 = (x2) => x2.status === "valid";
-var isAsync7 = (x2) => typeof Promise !== "undefined" && x2 instanceof Promise;
+var isAborted7 = (x) => x.status === "aborted";
+var isDirty7 = (x) => x.status === "dirty";
+var isValid8 = (x) => x.status === "valid";
+var isAsync7 = (x) => typeof Promise !== "undefined" && x instanceof Promise;
 // ../node_modules/@jimp/plugin-crop/node_modules/zod/v3/helpers/errorUtil.js
 var errorUtil7;
 (function(errorUtil8) {
@@ -109361,7 +110025,7 @@ class ZodTuple7 extends ZodType7 {
       if (!schema)
         return null;
       return schema._parse(new ParseInputLazyPath7(ctx, item, ctx.path, itemIndex));
-    }).filter((x2) => !!x2);
+    }).filter((x) => !!x);
     if (ctx.common.async) {
       return Promise.all(items).then((results) => {
         return ParseStatus7.mergeArray(status, results);
@@ -109618,7 +110282,7 @@ class ZodFunction7 extends ZodType7 {
       return makeIssue7({
         data: args,
         path: ctx.path,
-        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap7(), en_default7].filter((x2) => !!x2),
+        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap7(), en_default7].filter((x) => !!x),
         issueData: {
           code: ZodIssueCode7.invalid_arguments,
           argumentsError: error2
@@ -109629,7 +110293,7 @@ class ZodFunction7 extends ZodType7 {
       return makeIssue7({
         data: returns,
         path: ctx.path,
-        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap7(), en_default7].filter((x2) => !!x2),
+        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap7(), en_default7].filter((x) => !!x),
         issueData: {
           code: ZodIssueCode7.invalid_return_type,
           returnTypeError: error2
@@ -109637,7 +110301,7 @@ class ZodFunction7 extends ZodType7 {
       });
     }
     const params = { errorMap: ctx.common.contextualErrorMap };
-    const fn = ctx.data;
+    const fn2 = ctx.data;
     if (this._def.returns instanceof ZodPromise7) {
       const me2 = this;
       return OK7(async function(...args) {
@@ -109646,7 +110310,7 @@ class ZodFunction7 extends ZodType7 {
           error2.addIssue(makeArgsIssue(args, e));
           throw error2;
         });
-        const result = await Reflect.apply(fn, this, parsedArgs);
+        const result = await Reflect.apply(fn2, this, parsedArgs);
         const parsedReturns = await me2._def.returns._def.type.parseAsync(result, params).catch((e) => {
           error2.addIssue(makeReturnsIssue(result, e));
           throw error2;
@@ -109660,7 +110324,7 @@ class ZodFunction7 extends ZodType7 {
         if (!parsedArgs.success) {
           throw new ZodError13([makeArgsIssue(args, parsedArgs.error)]);
         }
-        const result = Reflect.apply(fn, this, parsedArgs.data);
+        const result = Reflect.apply(fn2, this, parsedArgs.data);
         const parsedReturns = me2._def.returns.safeParse(result, params);
         if (!parsedReturns.success) {
           throw new ZodError13([makeReturnsIssue(result, parsedReturns.error)]);
@@ -110274,17 +110938,17 @@ function cleanParams7(params, data) {
 function custom7(check, _params = {}, fatal) {
   if (check)
     return ZodAny7.create().superRefine((data, ctx) => {
-      const r = check(data);
-      if (r instanceof Promise) {
-        return r.then((r2) => {
-          if (!r2) {
+      const r7 = check(data);
+      if (r7 instanceof Promise) {
+        return r7.then((r8) => {
+          if (!r8) {
             const params = cleanParams7(_params, data);
             const _fatal = params.fatal ?? fatal ?? true;
             ctx.addIssue({ code: "custom", ...params, fatal: _fatal });
           }
         });
       }
-      if (!r) {
+      if (!r7) {
         const params = cleanParams7(_params, data);
         const _fatal = params.fatal ?? fatal ?? true;
         ctx.addIssue({ code: "custom", ...params, fatal: _fatal });
@@ -110407,19 +111071,19 @@ var AutocropComplexOptionsSchema = exports_external7.object({
 });
 var methods7 = {
   crop(image2, options) {
-    let { x: x2, y, w, h } = CropOptionsSchema.parse(options);
-    x2 = Math.round(x2);
+    let { x, y, w, h } = CropOptionsSchema.parse(options);
+    x = Math.round(x);
     y = Math.round(y);
     w = Math.round(w);
     h = Math.round(h);
-    if (x2 === 0 && w === image2.bitmap.width) {
-      const start = w * y + x2 << 2;
+    if (x === 0 && w === image2.bitmap.width) {
+      const start = w * y + x << 2;
       const end = start + (h * w << 2);
       image2.bitmap.data = image2.bitmap.data.slice(start, end);
     } else {
       const bitmap = Buffer.allocUnsafe(w * h * 4);
       let offset = 0;
-      scan(image2, x2, y, w, h, function(_2, __, idx) {
+      scan(image2, x, y, w, h, function(_2, __, idx) {
         const data = image2.bitmap.data.readUInt32BE(idx);
         bitmap.writeUInt32BE(data, offset);
         offset += 4;
@@ -110452,8 +111116,8 @@ var methods7 = {
     if (!ignoreSides.north) {
       north:
         for (let y = 0;y < h - minPixelsPerSide; y++) {
-          for (let x2 = 0;x2 < w; x2++) {
-            const colorXY = image2.getPixelColor(x2, y);
+          for (let x = 0;x < w; x++) {
+            const colorXY = image2.getPixelColor(x, y);
             const rgba2 = intToRGBA(colorXY);
             if (colorDiff(rgba1, rgba2) > tolerance) {
               break north;
@@ -110465,9 +111129,9 @@ var methods7 = {
     colorTarget = image2.getPixelColor(w, 0);
     if (!ignoreSides.west) {
       west:
-        for (let x2 = 0;x2 < w - minPixelsPerSide; x2++) {
+        for (let x = 0;x < w - minPixelsPerSide; x++) {
           for (let y = 0 + northPixelsToCrop;y < h; y++) {
-            const colorXY = image2.getPixelColor(x2, y);
+            const colorXY = image2.getPixelColor(x, y);
             const rgba2 = intToRGBA(colorXY);
             if (colorDiff(rgba1, rgba2) > tolerance) {
               break west;
@@ -110480,8 +111144,8 @@ var methods7 = {
     if (!ignoreSides.south) {
       south:
         for (let y = h - 1;y >= northPixelsToCrop + minPixelsPerSide; y--) {
-          for (let x2 = w - eastPixelsToCrop - 1;x2 >= 0; x2--) {
-            const colorXY = image2.getPixelColor(x2, y);
+          for (let x = w - eastPixelsToCrop - 1;x >= 0; x--) {
+            const colorXY = image2.getPixelColor(x, y);
             const rgba2 = intToRGBA(colorXY);
             if (colorDiff(rgba1, rgba2) > tolerance) {
               break south;
@@ -110493,9 +111157,9 @@ var methods7 = {
     colorTarget = image2.getPixelColor(w, h);
     if (!ignoreSides.east) {
       east:
-        for (let x2 = w - 1;x2 >= 0 + westPixelsToCrop + minPixelsPerSide; x2--) {
+        for (let x = w - 1;x >= 0 + westPixelsToCrop + minPixelsPerSide; x--) {
           for (let y = h - 1;y >= 0 + northPixelsToCrop; y--) {
-            const colorXY = image2.getPixelColor(x2, y);
+            const colorXY = image2.getPixelColor(x, y);
             const rgba2 = intToRGBA(colorXY);
             if (colorDiff(rgba1, rgba2) > tolerance) {
               break east;
@@ -111051,7 +111715,7 @@ function addIssueToContext8(ctx, issueData) {
       ctx.schemaErrorMap,
       overrideMap,
       overrideMap === en_default8 ? undefined : en_default8
-    ].filter((x2) => !!x2)
+    ].filter((x) => !!x)
   });
   ctx.common.issues.push(issue2);
 }
@@ -111115,10 +111779,10 @@ var INVALID8 = Object.freeze({
 });
 var DIRTY8 = (value) => ({ status: "dirty", value });
 var OK8 = (value) => ({ status: "valid", value });
-var isAborted8 = (x2) => x2.status === "aborted";
-var isDirty8 = (x2) => x2.status === "dirty";
-var isValid9 = (x2) => x2.status === "valid";
-var isAsync8 = (x2) => typeof Promise !== "undefined" && x2 instanceof Promise;
+var isAborted8 = (x) => x.status === "aborted";
+var isDirty8 = (x) => x.status === "dirty";
+var isValid9 = (x) => x.status === "valid";
+var isAsync8 = (x) => typeof Promise !== "undefined" && x instanceof Promise;
 // ../node_modules/@jimp/plugin-cover/node_modules/zod/v3/helpers/errorUtil.js
 var errorUtil8;
 (function(errorUtil9) {
@@ -113488,7 +114152,7 @@ class ZodTuple8 extends ZodType8 {
       if (!schema)
         return null;
       return schema._parse(new ParseInputLazyPath8(ctx, item, ctx.path, itemIndex));
-    }).filter((x2) => !!x2);
+    }).filter((x) => !!x);
     if (ctx.common.async) {
       return Promise.all(items).then((results) => {
         return ParseStatus8.mergeArray(status, results);
@@ -113745,7 +114409,7 @@ class ZodFunction8 extends ZodType8 {
       return makeIssue8({
         data: args,
         path: ctx.path,
-        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap8(), en_default8].filter((x2) => !!x2),
+        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap8(), en_default8].filter((x) => !!x),
         issueData: {
           code: ZodIssueCode8.invalid_arguments,
           argumentsError: error2
@@ -113756,7 +114420,7 @@ class ZodFunction8 extends ZodType8 {
       return makeIssue8({
         data: returns,
         path: ctx.path,
-        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap8(), en_default8].filter((x2) => !!x2),
+        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap8(), en_default8].filter((x) => !!x),
         issueData: {
           code: ZodIssueCode8.invalid_return_type,
           returnTypeError: error2
@@ -113764,7 +114428,7 @@ class ZodFunction8 extends ZodType8 {
       });
     }
     const params = { errorMap: ctx.common.contextualErrorMap };
-    const fn = ctx.data;
+    const fn2 = ctx.data;
     if (this._def.returns instanceof ZodPromise8) {
       const me2 = this;
       return OK8(async function(...args) {
@@ -113773,7 +114437,7 @@ class ZodFunction8 extends ZodType8 {
           error2.addIssue(makeArgsIssue(args, e));
           throw error2;
         });
-        const result = await Reflect.apply(fn, this, parsedArgs);
+        const result = await Reflect.apply(fn2, this, parsedArgs);
         const parsedReturns = await me2._def.returns._def.type.parseAsync(result, params).catch((e) => {
           error2.addIssue(makeReturnsIssue(result, e));
           throw error2;
@@ -113787,7 +114451,7 @@ class ZodFunction8 extends ZodType8 {
         if (!parsedArgs.success) {
           throw new ZodError15([makeArgsIssue(args, parsedArgs.error)]);
         }
-        const result = Reflect.apply(fn, this, parsedArgs.data);
+        const result = Reflect.apply(fn2, this, parsedArgs.data);
         const parsedReturns = me2._def.returns.safeParse(result, params);
         if (!parsedReturns.success) {
           throw new ZodError15([makeReturnsIssue(result, parsedReturns.error)]);
@@ -114401,17 +115065,17 @@ function cleanParams8(params, data) {
 function custom8(check, _params = {}, fatal) {
   if (check)
     return ZodAny8.create().superRefine((data, ctx) => {
-      const r = check(data);
-      if (r instanceof Promise) {
-        return r.then((r2) => {
-          if (!r2) {
+      const r7 = check(data);
+      if (r7 instanceof Promise) {
+        return r7.then((r8) => {
+          if (!r8) {
             const params = cleanParams8(_params, data);
             const _fatal = params.fatal ?? fatal ?? true;
             ctx.addIssue({ code: "custom", ...params, fatal: _fatal });
           }
         });
       }
-      if (!r) {
+      if (!r7) {
         const params = cleanParams8(_params, data);
         const _fatal = params.fatal ?? fatal ?? true;
         ctx.addIssue({ code: "custom", ...params, fatal: _fatal });
@@ -115056,7 +115720,7 @@ function addIssueToContext9(ctx, issueData) {
       ctx.schemaErrorMap,
       overrideMap,
       overrideMap === en_default9 ? undefined : en_default9
-    ].filter((x2) => !!x2)
+    ].filter((x) => !!x)
   });
   ctx.common.issues.push(issue2);
 }
@@ -115120,10 +115784,10 @@ var INVALID9 = Object.freeze({
 });
 var DIRTY9 = (value) => ({ status: "dirty", value });
 var OK9 = (value) => ({ status: "valid", value });
-var isAborted9 = (x2) => x2.status === "aborted";
-var isDirty9 = (x2) => x2.status === "dirty";
-var isValid10 = (x2) => x2.status === "valid";
-var isAsync9 = (x2) => typeof Promise !== "undefined" && x2 instanceof Promise;
+var isAborted9 = (x) => x.status === "aborted";
+var isDirty9 = (x) => x.status === "dirty";
+var isValid10 = (x) => x.status === "valid";
+var isAsync9 = (x) => typeof Promise !== "undefined" && x instanceof Promise;
 // ../node_modules/@jimp/plugin-displace/node_modules/zod/v3/helpers/errorUtil.js
 var errorUtil9;
 (function(errorUtil10) {
@@ -117493,7 +118157,7 @@ class ZodTuple9 extends ZodType9 {
       if (!schema)
         return null;
       return schema._parse(new ParseInputLazyPath9(ctx, item, ctx.path, itemIndex));
-    }).filter((x2) => !!x2);
+    }).filter((x) => !!x);
     if (ctx.common.async) {
       return Promise.all(items).then((results) => {
         return ParseStatus9.mergeArray(status, results);
@@ -117750,7 +118414,7 @@ class ZodFunction9 extends ZodType9 {
       return makeIssue9({
         data: args,
         path: ctx.path,
-        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap9(), en_default9].filter((x2) => !!x2),
+        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap9(), en_default9].filter((x) => !!x),
         issueData: {
           code: ZodIssueCode9.invalid_arguments,
           argumentsError: error2
@@ -117761,7 +118425,7 @@ class ZodFunction9 extends ZodType9 {
       return makeIssue9({
         data: returns,
         path: ctx.path,
-        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap9(), en_default9].filter((x2) => !!x2),
+        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap9(), en_default9].filter((x) => !!x),
         issueData: {
           code: ZodIssueCode9.invalid_return_type,
           returnTypeError: error2
@@ -117769,7 +118433,7 @@ class ZodFunction9 extends ZodType9 {
       });
     }
     const params = { errorMap: ctx.common.contextualErrorMap };
-    const fn = ctx.data;
+    const fn2 = ctx.data;
     if (this._def.returns instanceof ZodPromise9) {
       const me2 = this;
       return OK9(async function(...args) {
@@ -117778,7 +118442,7 @@ class ZodFunction9 extends ZodType9 {
           error2.addIssue(makeArgsIssue(args, e));
           throw error2;
         });
-        const result = await Reflect.apply(fn, this, parsedArgs);
+        const result = await Reflect.apply(fn2, this, parsedArgs);
         const parsedReturns = await me2._def.returns._def.type.parseAsync(result, params).catch((e) => {
           error2.addIssue(makeReturnsIssue(result, e));
           throw error2;
@@ -117792,7 +118456,7 @@ class ZodFunction9 extends ZodType9 {
         if (!parsedArgs.success) {
           throw new ZodError17([makeArgsIssue(args, parsedArgs.error)]);
         }
-        const result = Reflect.apply(fn, this, parsedArgs.data);
+        const result = Reflect.apply(fn2, this, parsedArgs.data);
         const parsedReturns = me2._def.returns.safeParse(result, params);
         if (!parsedReturns.success) {
           throw new ZodError17([makeReturnsIssue(result, parsedReturns.error)]);
@@ -118406,17 +119070,17 @@ function cleanParams9(params, data) {
 function custom9(check, _params = {}, fatal) {
   if (check)
     return ZodAny9.create().superRefine((data, ctx) => {
-      const r = check(data);
-      if (r instanceof Promise) {
-        return r.then((r2) => {
-          if (!r2) {
+      const r7 = check(data);
+      if (r7 instanceof Promise) {
+        return r7.then((r8) => {
+          if (!r8) {
             const params = cleanParams9(_params, data);
             const _fatal = params.fatal ?? fatal ?? true;
             ctx.addIssue({ code: "custom", ...params, fatal: _fatal });
           }
         });
       }
-      if (!r) {
+      if (!r7) {
         const params = cleanParams9(_params, data);
         const _fatal = params.fatal ?? fatal ?? true;
         ctx.addIssue({ code: "custom", ...params, fatal: _fatal });
@@ -118527,10 +119191,10 @@ var methods9 = {
   displace(image2, options) {
     const { map: map2, offset } = DisplaceOptionsSchema.parse(options);
     const source = clone2(image2);
-    image2.scan((x2, y, idx) => {
+    image2.scan((x, y, idx) => {
       let displacement = map2.bitmap.data[idx] / 256 * offset;
       displacement = Math.round(displacement);
-      const ids = image2.getPixelIndex(x2 + displacement, y);
+      const ids = image2.getPixelIndex(x + displacement, y);
       image2.bitmap.data[ids] = source.bitmap.data[idx];
       image2.bitmap.data[ids + 1] = source.bitmap.data[idx + 1];
       image2.bitmap.data[ids + 2] = source.bitmap.data[idx + 2];
@@ -118560,8 +119224,8 @@ var methods10 = {
       14,
       6
     ];
-    image2.scan((x2, y, idx) => {
-      const thresholdId = ((y & 3) << 2) + x2 % 4;
+    image2.scan((x, y, idx) => {
+      const thresholdId = ((y & 3) << 2) + x % 4;
       const dither = rgb565Matrix[thresholdId];
       image2.bitmap.data[idx] = Math.min(image2.bitmap.data[idx] + dither, 255);
       image2.bitmap.data[idx + 1] = Math.min(image2.bitmap.data[idx + 1] + dither, 255);
@@ -119082,7 +119746,7 @@ function addIssueToContext10(ctx, issueData) {
       ctx.schemaErrorMap,
       overrideMap,
       overrideMap === en_default10 ? undefined : en_default10
-    ].filter((x2) => !!x2)
+    ].filter((x) => !!x)
   });
   ctx.common.issues.push(issue2);
 }
@@ -119146,10 +119810,10 @@ var INVALID10 = Object.freeze({
 });
 var DIRTY10 = (value) => ({ status: "dirty", value });
 var OK10 = (value) => ({ status: "valid", value });
-var isAborted10 = (x2) => x2.status === "aborted";
-var isDirty10 = (x2) => x2.status === "dirty";
-var isValid11 = (x2) => x2.status === "valid";
-var isAsync10 = (x2) => typeof Promise !== "undefined" && x2 instanceof Promise;
+var isAborted10 = (x) => x.status === "aborted";
+var isDirty10 = (x) => x.status === "dirty";
+var isValid11 = (x) => x.status === "valid";
+var isAsync10 = (x) => typeof Promise !== "undefined" && x instanceof Promise;
 // ../node_modules/@jimp/plugin-fisheye/node_modules/zod/v3/helpers/errorUtil.js
 var errorUtil10;
 (function(errorUtil11) {
@@ -121519,7 +122183,7 @@ class ZodTuple10 extends ZodType10 {
       if (!schema)
         return null;
       return schema._parse(new ParseInputLazyPath10(ctx, item, ctx.path, itemIndex));
-    }).filter((x2) => !!x2);
+    }).filter((x) => !!x);
     if (ctx.common.async) {
       return Promise.all(items).then((results) => {
         return ParseStatus10.mergeArray(status, results);
@@ -121776,7 +122440,7 @@ class ZodFunction10 extends ZodType10 {
       return makeIssue10({
         data: args,
         path: ctx.path,
-        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap10(), en_default10].filter((x2) => !!x2),
+        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap10(), en_default10].filter((x) => !!x),
         issueData: {
           code: ZodIssueCode10.invalid_arguments,
           argumentsError: error2
@@ -121787,7 +122451,7 @@ class ZodFunction10 extends ZodType10 {
       return makeIssue10({
         data: returns,
         path: ctx.path,
-        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap10(), en_default10].filter((x2) => !!x2),
+        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap10(), en_default10].filter((x) => !!x),
         issueData: {
           code: ZodIssueCode10.invalid_return_type,
           returnTypeError: error2
@@ -121795,7 +122459,7 @@ class ZodFunction10 extends ZodType10 {
       });
     }
     const params = { errorMap: ctx.common.contextualErrorMap };
-    const fn = ctx.data;
+    const fn2 = ctx.data;
     if (this._def.returns instanceof ZodPromise10) {
       const me2 = this;
       return OK10(async function(...args) {
@@ -121804,7 +122468,7 @@ class ZodFunction10 extends ZodType10 {
           error2.addIssue(makeArgsIssue(args, e));
           throw error2;
         });
-        const result = await Reflect.apply(fn, this, parsedArgs);
+        const result = await Reflect.apply(fn2, this, parsedArgs);
         const parsedReturns = await me2._def.returns._def.type.parseAsync(result, params).catch((e) => {
           error2.addIssue(makeReturnsIssue(result, e));
           throw error2;
@@ -121818,7 +122482,7 @@ class ZodFunction10 extends ZodType10 {
         if (!parsedArgs.success) {
           throw new ZodError19([makeArgsIssue(args, parsedArgs.error)]);
         }
-        const result = Reflect.apply(fn, this, parsedArgs.data);
+        const result = Reflect.apply(fn2, this, parsedArgs.data);
         const parsedReturns = me2._def.returns.safeParse(result, params);
         if (!parsedReturns.success) {
           throw new ZodError19([makeReturnsIssue(result, parsedReturns.error)]);
@@ -122432,17 +123096,17 @@ function cleanParams10(params, data) {
 function custom10(check, _params = {}, fatal) {
   if (check)
     return ZodAny10.create().superRefine((data, ctx) => {
-      const r = check(data);
-      if (r instanceof Promise) {
-        return r.then((r2) => {
-          if (!r2) {
+      const r7 = check(data);
+      if (r7 instanceof Promise) {
+        return r7.then((r8) => {
+          if (!r8) {
             const params = cleanParams10(_params, data);
             const _fatal = params.fatal ?? fatal ?? true;
             ctx.addIssue({ code: "custom", ...params, fatal: _fatal });
           }
         });
       }
-      if (!r) {
+      if (!r7) {
         const params = cleanParams10(_params, data);
         const _fatal = params.fatal ?? fatal ?? true;
         ctx.addIssue({ code: "custom", ...params, fatal: _fatal });
@@ -122553,17 +123217,17 @@ var methods11 = {
     const { radius = 2.5 } = FisheyeOptionsSchema.parse(options);
     const source = clone2(image2);
     const { width, height } = source.bitmap;
-    source.scan((x2, y) => {
-      const hx = x2 / width;
+    source.scan((x, y) => {
+      const hx = x / width;
       const hy = y / height;
       const rActual = Math.sqrt(Math.pow(hx - 0.5, 2) + Math.pow(hy - 0.5, 2));
-      const rn = 2 * Math.pow(rActual, radius);
+      const rn2 = 2 * Math.pow(rActual, radius);
       const cosA = (hx - 0.5) / rActual;
       const sinA = (hy - 0.5) / rActual;
-      const newX = Math.round((rn * cosA + 0.5) * width);
-      const newY = Math.round((rn * sinA + 0.5) * height);
+      const newX = Math.round((rn2 * cosA + 0.5) * width);
+      const newY = Math.round((rn2 * sinA + 0.5) * height);
       const color = source.getPixelColor(newX, newY);
-      image2.setPixelColor(color, x2, y);
+      image2.setPixelColor(color, x, y);
     });
     image2.setPixelColor(source.getPixelColor(width / 2, height / 2), width / 2, height / 2);
     return image2;
@@ -123081,7 +123745,7 @@ function addIssueToContext11(ctx, issueData) {
       ctx.schemaErrorMap,
       overrideMap,
       overrideMap === en_default11 ? undefined : en_default11
-    ].filter((x2) => !!x2)
+    ].filter((x) => !!x)
   });
   ctx.common.issues.push(issue2);
 }
@@ -123145,10 +123809,10 @@ var INVALID11 = Object.freeze({
 });
 var DIRTY11 = (value) => ({ status: "dirty", value });
 var OK11 = (value) => ({ status: "valid", value });
-var isAborted11 = (x2) => x2.status === "aborted";
-var isDirty11 = (x2) => x2.status === "dirty";
-var isValid12 = (x2) => x2.status === "valid";
-var isAsync11 = (x2) => typeof Promise !== "undefined" && x2 instanceof Promise;
+var isAborted11 = (x) => x.status === "aborted";
+var isDirty11 = (x) => x.status === "dirty";
+var isValid12 = (x) => x.status === "valid";
+var isAsync11 = (x) => typeof Promise !== "undefined" && x instanceof Promise;
 // ../node_modules/@jimp/plugin-flip/node_modules/zod/v3/helpers/errorUtil.js
 var errorUtil11;
 (function(errorUtil12) {
@@ -125518,7 +126182,7 @@ class ZodTuple11 extends ZodType11 {
       if (!schema)
         return null;
       return schema._parse(new ParseInputLazyPath11(ctx, item, ctx.path, itemIndex));
-    }).filter((x2) => !!x2);
+    }).filter((x) => !!x);
     if (ctx.common.async) {
       return Promise.all(items).then((results) => {
         return ParseStatus11.mergeArray(status, results);
@@ -125775,7 +126439,7 @@ class ZodFunction11 extends ZodType11 {
       return makeIssue11({
         data: args,
         path: ctx.path,
-        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap11(), en_default11].filter((x2) => !!x2),
+        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap11(), en_default11].filter((x) => !!x),
         issueData: {
           code: ZodIssueCode11.invalid_arguments,
           argumentsError: error2
@@ -125786,7 +126450,7 @@ class ZodFunction11 extends ZodType11 {
       return makeIssue11({
         data: returns,
         path: ctx.path,
-        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap11(), en_default11].filter((x2) => !!x2),
+        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap11(), en_default11].filter((x) => !!x),
         issueData: {
           code: ZodIssueCode11.invalid_return_type,
           returnTypeError: error2
@@ -125794,7 +126458,7 @@ class ZodFunction11 extends ZodType11 {
       });
     }
     const params = { errorMap: ctx.common.contextualErrorMap };
-    const fn = ctx.data;
+    const fn2 = ctx.data;
     if (this._def.returns instanceof ZodPromise11) {
       const me2 = this;
       return OK11(async function(...args) {
@@ -125803,7 +126467,7 @@ class ZodFunction11 extends ZodType11 {
           error2.addIssue(makeArgsIssue(args, e));
           throw error2;
         });
-        const result = await Reflect.apply(fn, this, parsedArgs);
+        const result = await Reflect.apply(fn2, this, parsedArgs);
         const parsedReturns = await me2._def.returns._def.type.parseAsync(result, params).catch((e) => {
           error2.addIssue(makeReturnsIssue(result, e));
           throw error2;
@@ -125817,7 +126481,7 @@ class ZodFunction11 extends ZodType11 {
         if (!parsedArgs.success) {
           throw new ZodError21([makeArgsIssue(args, parsedArgs.error)]);
         }
-        const result = Reflect.apply(fn, this, parsedArgs.data);
+        const result = Reflect.apply(fn2, this, parsedArgs.data);
         const parsedReturns = me2._def.returns.safeParse(result, params);
         if (!parsedReturns.success) {
           throw new ZodError21([makeReturnsIssue(result, parsedReturns.error)]);
@@ -126431,17 +127095,17 @@ function cleanParams11(params, data) {
 function custom11(check, _params = {}, fatal) {
   if (check)
     return ZodAny11.create().superRefine((data, ctx) => {
-      const r = check(data);
-      if (r instanceof Promise) {
-        return r.then((r2) => {
-          if (!r2) {
+      const r7 = check(data);
+      if (r7 instanceof Promise) {
+        return r7.then((r8) => {
+          if (!r8) {
             const params = cleanParams11(_params, data);
             const _fatal = params.fatal ?? fatal ?? true;
             ctx.addIssue({ code: "custom", ...params, fatal: _fatal });
           }
         });
       }
-      if (!r) {
+      if (!r7) {
         const params = cleanParams11(_params, data);
         const _fatal = params.fatal ?? fatal ?? true;
         ctx.addIssue({ code: "custom", ...params, fatal: _fatal });
@@ -126552,8 +127216,8 @@ var methods12 = {
   flip(image2, options) {
     const { horizontal, vertical } = FlipOptionsSchema.parse(options);
     const bitmap = Buffer.alloc(image2.bitmap.data.length);
-    image2.scan((x2, y, idx) => {
-      const _x = horizontal ? image2.bitmap.width - 1 - x2 : x2;
+    image2.scan((x, y, idx) => {
+      const _x = horizontal ? image2.bitmap.width - 1 - x : x;
       const _y = vertical ? image2.bitmap.height - 1 - y : y;
       const _idx = image2.bitmap.width * _y + _x << 2;
       const data = image2.bitmap.data.readUInt32BE(idx);
@@ -126589,25 +127253,25 @@ class ImagePHash {
     img = methods5.resize(clone2(img), { w: this.size, h: this.size });
     img = methods4.greyscale(img);
     const vals = [];
-    for (let x2 = 0;x2 < img.bitmap.width; x2++) {
+    for (let x = 0;x < img.bitmap.width; x++) {
       const row = [];
       for (let y = 0;y < img.bitmap.height; y++) {
-        row[y] = intToRGBA2(img.getPixelColor(x2, y)).b;
+        row[y] = intToRGBA2(img.getPixelColor(x, y)).b;
       }
-      vals[x2] = row;
+      vals[x] = row;
     }
     const dctVals = applyDCT(vals, this.size);
     let total = 0;
-    for (let x2 = 0;x2 < this.smallerSize; x2++) {
+    for (let x = 0;x < this.smallerSize; x++) {
       for (let y = 0;y < this.smallerSize; y++) {
-        total += dctVals[x2][y];
+        total += dctVals[x][y];
       }
     }
     const avg = total / (this.smallerSize * this.smallerSize);
     let hash = "";
-    for (let x2 = 0;x2 < this.smallerSize; x2++) {
+    for (let x = 0;x < this.smallerSize; x++) {
       for (let y = 0;y < this.smallerSize; y++) {
-        hash += dctVals[x2][y] > avg ? "1" : "0";
+        hash += dctVals[x][y] > avg ? "1" : "0";
       }
     }
     return hash;
@@ -126620,8 +127284,8 @@ function intToRGBA2(i) {
   i >>>= 8;
   const g = i & 255;
   i >>>= 8;
-  const r = i & 255;
-  return { r, g, b, a };
+  const r7 = i & 255;
+  return { r: r7, g, b, a };
 }
 var c = [];
 function initCoefficients(size) {
@@ -127190,7 +127854,7 @@ function addIssueToContext12(ctx, issueData) {
       ctx.schemaErrorMap,
       overrideMap,
       overrideMap === en_default12 ? undefined : en_default12
-    ].filter((x2) => !!x2)
+    ].filter((x) => !!x)
   });
   ctx.common.issues.push(issue2);
 }
@@ -127254,10 +127918,10 @@ var INVALID12 = Object.freeze({
 });
 var DIRTY12 = (value) => ({ status: "dirty", value });
 var OK12 = (value) => ({ status: "valid", value });
-var isAborted12 = (x2) => x2.status === "aborted";
-var isDirty12 = (x2) => x2.status === "dirty";
-var isValid13 = (x2) => x2.status === "valid";
-var isAsync12 = (x2) => typeof Promise !== "undefined" && x2 instanceof Promise;
+var isAborted12 = (x) => x.status === "aborted";
+var isDirty12 = (x) => x.status === "dirty";
+var isValid13 = (x) => x.status === "valid";
+var isAsync12 = (x) => typeof Promise !== "undefined" && x instanceof Promise;
 // ../node_modules/@jimp/plugin-mask/node_modules/zod/v3/helpers/errorUtil.js
 var errorUtil12;
 (function(errorUtil13) {
@@ -129627,7 +130291,7 @@ class ZodTuple12 extends ZodType12 {
       if (!schema)
         return null;
       return schema._parse(new ParseInputLazyPath12(ctx, item, ctx.path, itemIndex));
-    }).filter((x2) => !!x2);
+    }).filter((x) => !!x);
     if (ctx.common.async) {
       return Promise.all(items).then((results) => {
         return ParseStatus12.mergeArray(status, results);
@@ -129884,7 +130548,7 @@ class ZodFunction12 extends ZodType12 {
       return makeIssue12({
         data: args,
         path: ctx.path,
-        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap12(), en_default12].filter((x2) => !!x2),
+        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap12(), en_default12].filter((x) => !!x),
         issueData: {
           code: ZodIssueCode12.invalid_arguments,
           argumentsError: error2
@@ -129895,7 +130559,7 @@ class ZodFunction12 extends ZodType12 {
       return makeIssue12({
         data: returns,
         path: ctx.path,
-        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap12(), en_default12].filter((x2) => !!x2),
+        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap12(), en_default12].filter((x) => !!x),
         issueData: {
           code: ZodIssueCode12.invalid_return_type,
           returnTypeError: error2
@@ -129903,7 +130567,7 @@ class ZodFunction12 extends ZodType12 {
       });
     }
     const params = { errorMap: ctx.common.contextualErrorMap };
-    const fn = ctx.data;
+    const fn2 = ctx.data;
     if (this._def.returns instanceof ZodPromise12) {
       const me2 = this;
       return OK12(async function(...args) {
@@ -129912,7 +130576,7 @@ class ZodFunction12 extends ZodType12 {
           error2.addIssue(makeArgsIssue(args, e));
           throw error2;
         });
-        const result = await Reflect.apply(fn, this, parsedArgs);
+        const result = await Reflect.apply(fn2, this, parsedArgs);
         const parsedReturns = await me2._def.returns._def.type.parseAsync(result, params).catch((e) => {
           error2.addIssue(makeReturnsIssue(result, e));
           throw error2;
@@ -129926,7 +130590,7 @@ class ZodFunction12 extends ZodType12 {
         if (!parsedArgs.success) {
           throw new ZodError23([makeArgsIssue(args, parsedArgs.error)]);
         }
-        const result = Reflect.apply(fn, this, parsedArgs.data);
+        const result = Reflect.apply(fn2, this, parsedArgs.data);
         const parsedReturns = me2._def.returns.safeParse(result, params);
         if (!parsedReturns.success) {
           throw new ZodError23([makeReturnsIssue(result, parsedReturns.error)]);
@@ -130540,17 +131204,17 @@ function cleanParams12(params, data) {
 function custom12(check, _params = {}, fatal) {
   if (check)
     return ZodAny12.create().superRefine((data, ctx) => {
-      const r = check(data);
-      if (r instanceof Promise) {
-        return r.then((r2) => {
-          if (!r2) {
+      const r7 = check(data);
+      if (r7 instanceof Promise) {
+        return r7.then((r8) => {
+          if (!r8) {
             const params = cleanParams12(_params, data);
             const _fatal = params.fatal ?? fatal ?? true;
             ctx.addIssue({ code: "custom", ...params, fatal: _fatal });
           }
         });
       }
-      if (!r) {
+      if (!r7) {
         const params = cleanParams12(_params, data);
         const _fatal = params.fatal ?? fatal ?? true;
         ctx.addIssue({ code: "custom", ...params, fatal: _fatal });
@@ -130663,23 +131327,23 @@ var methods14 = {
   mask(image2, options) {
     MaskOptionsSchema.parse(options);
     let src;
-    let x2;
+    let x;
     let y;
     if ("bitmap" in options) {
       src = options;
-      x2 = 0;
+      x = 0;
       y = 0;
     } else {
       src = options.src;
-      x2 = options.x ?? 0;
+      x = options.x ?? 0;
       y = options.y ?? 0;
     }
-    x2 = Math.round(x2);
+    x = Math.round(x);
     y = Math.round(y);
     const w = image2.bitmap.width;
     const h = image2.bitmap.height;
     src.scan(function(sx, sy, idx) {
-      const destX = x2 + sx;
+      const destX = x + sx;
       const destY = y + sy;
       if (destX >= 0 && destY >= 0 && destX < w && destY < h) {
         const dstIdx = image2.getPixelIndex(destX, destY);
@@ -131203,7 +131867,7 @@ function addIssueToContext13(ctx, issueData) {
       ctx.schemaErrorMap,
       overrideMap,
       overrideMap === en_default13 ? undefined : en_default13
-    ].filter((x2) => !!x2)
+    ].filter((x) => !!x)
   });
   ctx.common.issues.push(issue2);
 }
@@ -131267,10 +131931,10 @@ var INVALID13 = Object.freeze({
 });
 var DIRTY13 = (value) => ({ status: "dirty", value });
 var OK13 = (value) => ({ status: "valid", value });
-var isAborted13 = (x2) => x2.status === "aborted";
-var isDirty13 = (x2) => x2.status === "dirty";
-var isValid14 = (x2) => x2.status === "valid";
-var isAsync13 = (x2) => typeof Promise !== "undefined" && x2 instanceof Promise;
+var isAborted13 = (x) => x.status === "aborted";
+var isDirty13 = (x) => x.status === "dirty";
+var isValid14 = (x) => x.status === "valid";
+var isAsync13 = (x) => typeof Promise !== "undefined" && x instanceof Promise;
 // ../node_modules/@jimp/plugin-print/node_modules/zod/v3/helpers/errorUtil.js
 var errorUtil13;
 (function(errorUtil14) {
@@ -133640,7 +134304,7 @@ class ZodTuple13 extends ZodType13 {
       if (!schema)
         return null;
       return schema._parse(new ParseInputLazyPath13(ctx, item, ctx.path, itemIndex));
-    }).filter((x2) => !!x2);
+    }).filter((x) => !!x);
     if (ctx.common.async) {
       return Promise.all(items).then((results) => {
         return ParseStatus13.mergeArray(status, results);
@@ -133897,7 +134561,7 @@ class ZodFunction13 extends ZodType13 {
       return makeIssue13({
         data: args,
         path: ctx.path,
-        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap13(), en_default13].filter((x2) => !!x2),
+        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap13(), en_default13].filter((x) => !!x),
         issueData: {
           code: ZodIssueCode13.invalid_arguments,
           argumentsError: error2
@@ -133908,7 +134572,7 @@ class ZodFunction13 extends ZodType13 {
       return makeIssue13({
         data: returns,
         path: ctx.path,
-        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap13(), en_default13].filter((x2) => !!x2),
+        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap13(), en_default13].filter((x) => !!x),
         issueData: {
           code: ZodIssueCode13.invalid_return_type,
           returnTypeError: error2
@@ -133916,7 +134580,7 @@ class ZodFunction13 extends ZodType13 {
       });
     }
     const params = { errorMap: ctx.common.contextualErrorMap };
-    const fn = ctx.data;
+    const fn2 = ctx.data;
     if (this._def.returns instanceof ZodPromise13) {
       const me2 = this;
       return OK13(async function(...args) {
@@ -133925,7 +134589,7 @@ class ZodFunction13 extends ZodType13 {
           error2.addIssue(makeArgsIssue(args, e));
           throw error2;
         });
-        const result = await Reflect.apply(fn, this, parsedArgs);
+        const result = await Reflect.apply(fn2, this, parsedArgs);
         const parsedReturns = await me2._def.returns._def.type.parseAsync(result, params).catch((e) => {
           error2.addIssue(makeReturnsIssue(result, e));
           throw error2;
@@ -133939,7 +134603,7 @@ class ZodFunction13 extends ZodType13 {
         if (!parsedArgs.success) {
           throw new ZodError25([makeArgsIssue(args, parsedArgs.error)]);
         }
-        const result = Reflect.apply(fn, this, parsedArgs.data);
+        const result = Reflect.apply(fn2, this, parsedArgs.data);
         const parsedReturns = me2._def.returns.safeParse(result, params);
         if (!parsedReturns.success) {
           throw new ZodError25([makeReturnsIssue(result, parsedReturns.error)]);
@@ -134553,17 +135217,17 @@ function cleanParams13(params, data) {
 function custom13(check, _params = {}, fatal) {
   if (check)
     return ZodAny13.create().superRefine((data, ctx) => {
-      const r = check(data);
-      if (r instanceof Promise) {
-        return r.then((r2) => {
-          if (!r2) {
+      const r7 = check(data);
+      if (r7 instanceof Promise) {
+        return r7.then((r8) => {
+          if (!r8) {
             const params = cleanParams13(_params, data);
             const _fatal = params.fatal ?? fatal ?? true;
             ctx.addIssue({ code: "custom", ...params, fatal: _fatal });
           }
         });
       }
-      if (!r) {
+      if (!r7) {
         const params = cleanParams13(_params, data);
         const _fatal = params.fatal ?? fatal ?? true;
         ctx.addIssue({ code: "custom", ...params, fatal: _fatal });
@@ -134667,7 +135331,7 @@ var coerce13 = {
 var NEVER13 = INVALID13;
 // ../node_modules/@jimp/plugin-print/dist/esm/measure-text.js
 function measureText(font, text) {
-  let x2 = 0;
+  let x = 0;
   for (let i = 0;i < text.length; i++) {
     const char = text[i];
     const fontChar = font.chars[char];
@@ -134675,10 +135339,10 @@ function measureText(font, text) {
       const fontKerning = font.kernings[char];
       const nextChar = text[i + 1];
       const kerning = fontKerning && nextChar && fontKerning[nextChar] ? fontKerning[nextChar] || 0 : 0;
-      x2 += (fontChar.xadvance || 0) + kerning;
+      x += (fontChar.xadvance || 0) + kerning;
     }
   }
-  return x2;
+  return x;
 }
 function splitLines(font, text, maxWidth) {
   const words = text.replace(/[\r\n]+/g, ` 
@@ -134758,13 +135422,13 @@ function xOffsetBasedOnAlignment(font, line, maxWidth, alignment) {
   }
   return maxWidth - measureText(font, line);
 }
-function drawCharacter(image2, font, x2, y, char) {
+function drawCharacter(image2, font, x, y, char) {
   if (char.width > 0 && char.height > 0) {
     const characterPage = font.pages[char.page];
     if (characterPage) {
       image2 = methods.blit(image2, {
         src: characterPage,
-        x: x2 + char.xoffset,
+        x: x + char.xoffset,
         y: y + char.yoffset,
         srcX: char.x,
         srcY: char.y,
@@ -134775,7 +135439,7 @@ function drawCharacter(image2, font, x2, y, char) {
   }
   return image2;
 }
-function printText(image2, font, x2, y, text, defaultCharWidth) {
+function printText(image2, font, x, y, text, defaultCharWidth) {
   for (let i = 0;i < text.length; i++) {
     const stringChar = text[i];
     let char;
@@ -134789,17 +135453,17 @@ function printText(image2, font, x2, y, text, defaultCharWidth) {
     const fontChar = font.chars[char] || { xadvance: undefined };
     const fontKerning = font.kernings[char];
     if (fontChar) {
-      drawCharacter(image2, font, x2, y, fontChar);
+      drawCharacter(image2, font, x, y, fontChar);
     }
     const nextChar = text[i + 1];
     const kerning = fontKerning && nextChar && fontKerning[nextChar] ? fontKerning[nextChar] || 0 : 0;
-    x2 += kerning + (fontChar.xadvance || defaultCharWidth);
+    x += kerning + (fontChar.xadvance || defaultCharWidth);
   }
 }
 var methods15 = {
   print(image2, { font, ...options }) {
     let {
-      x: x2,
+      x,
       y,
       text,
       maxWidth = Infinity,
@@ -134833,10 +135497,10 @@ var methods15 = {
     lines.forEach((line) => {
       const lineString = line.join(" ");
       const alignmentWidth = xOffsetBasedOnAlignment(font, lineString, maxWidth, alignmentX);
-      printText(image2, font, x2 + alignmentWidth, y, lineString, defaultCharWidth);
+      printText(image2, font, x + alignmentWidth, y, lineString, defaultCharWidth);
       y += font.common.lineHeight;
     });
-    cb.bind(image2)({ x: x2 + longestLine, y });
+    cb.bind(image2)({ x: x + longestLine, y });
     return image2;
   }
 };
@@ -135352,7 +136016,7 @@ function addIssueToContext14(ctx, issueData) {
       ctx.schemaErrorMap,
       overrideMap,
       overrideMap === en_default14 ? undefined : en_default14
-    ].filter((x2) => !!x2)
+    ].filter((x) => !!x)
   });
   ctx.common.issues.push(issue2);
 }
@@ -135416,10 +136080,10 @@ var INVALID14 = Object.freeze({
 });
 var DIRTY14 = (value) => ({ status: "dirty", value });
 var OK14 = (value) => ({ status: "valid", value });
-var isAborted14 = (x2) => x2.status === "aborted";
-var isDirty14 = (x2) => x2.status === "dirty";
-var isValid15 = (x2) => x2.status === "valid";
-var isAsync14 = (x2) => typeof Promise !== "undefined" && x2 instanceof Promise;
+var isAborted14 = (x) => x.status === "aborted";
+var isDirty14 = (x) => x.status === "dirty";
+var isValid15 = (x) => x.status === "valid";
+var isAsync14 = (x) => typeof Promise !== "undefined" && x instanceof Promise;
 // ../node_modules/@jimp/plugin-rotate/node_modules/zod/v3/helpers/errorUtil.js
 var errorUtil14;
 (function(errorUtil15) {
@@ -137789,7 +138453,7 @@ class ZodTuple14 extends ZodType14 {
       if (!schema)
         return null;
       return schema._parse(new ParseInputLazyPath14(ctx, item, ctx.path, itemIndex));
-    }).filter((x2) => !!x2);
+    }).filter((x) => !!x);
     if (ctx.common.async) {
       return Promise.all(items).then((results) => {
         return ParseStatus14.mergeArray(status, results);
@@ -138046,7 +138710,7 @@ class ZodFunction14 extends ZodType14 {
       return makeIssue14({
         data: args,
         path: ctx.path,
-        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap14(), en_default14].filter((x2) => !!x2),
+        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap14(), en_default14].filter((x) => !!x),
         issueData: {
           code: ZodIssueCode14.invalid_arguments,
           argumentsError: error2
@@ -138057,7 +138721,7 @@ class ZodFunction14 extends ZodType14 {
       return makeIssue14({
         data: returns,
         path: ctx.path,
-        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap14(), en_default14].filter((x2) => !!x2),
+        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap14(), en_default14].filter((x) => !!x),
         issueData: {
           code: ZodIssueCode14.invalid_return_type,
           returnTypeError: error2
@@ -138065,7 +138729,7 @@ class ZodFunction14 extends ZodType14 {
       });
     }
     const params = { errorMap: ctx.common.contextualErrorMap };
-    const fn = ctx.data;
+    const fn2 = ctx.data;
     if (this._def.returns instanceof ZodPromise14) {
       const me2 = this;
       return OK14(async function(...args) {
@@ -138074,7 +138738,7 @@ class ZodFunction14 extends ZodType14 {
           error2.addIssue(makeArgsIssue(args, e));
           throw error2;
         });
-        const result = await Reflect.apply(fn, this, parsedArgs);
+        const result = await Reflect.apply(fn2, this, parsedArgs);
         const parsedReturns = await me2._def.returns._def.type.parseAsync(result, params).catch((e) => {
           error2.addIssue(makeReturnsIssue(result, e));
           throw error2;
@@ -138088,7 +138752,7 @@ class ZodFunction14 extends ZodType14 {
         if (!parsedArgs.success) {
           throw new ZodError27([makeArgsIssue(args, parsedArgs.error)]);
         }
-        const result = Reflect.apply(fn, this, parsedArgs.data);
+        const result = Reflect.apply(fn2, this, parsedArgs.data);
         const parsedReturns = me2._def.returns.safeParse(result, params);
         if (!parsedReturns.success) {
           throw new ZodError27([makeReturnsIssue(result, parsedReturns.error)]);
@@ -138702,17 +139366,17 @@ function cleanParams14(params, data) {
 function custom14(check, _params = {}, fatal) {
   if (check)
     return ZodAny14.create().superRefine((data, ctx) => {
-      const r = check(data);
-      if (r instanceof Promise) {
-        return r.then((r2) => {
-          if (!r2) {
+      const r7 = check(data);
+      if (r7 instanceof Promise) {
+        return r7.then((r8) => {
+          if (!r8) {
             const params = cleanParams14(_params, data);
             const _fatal = params.fatal ?? fatal ?? true;
             ctx.addIssue({ code: "custom", ...params, fatal: _fatal });
           }
         });
       }
-      if (!r) {
+      if (!r7) {
         const params = cleanParams14(_params, data);
         const _fatal = params.fatal ?? fatal ?? true;
         ctx.addIssue({ code: "custom", ...params, fatal: _fatal });
@@ -138823,8 +139487,8 @@ var RotateOptionsSchema = exports_external14.union([
   })
 ]);
 function createIdxTranslationFunction(w) {
-  return function(x2, y) {
-    return y * w + x2 << 2;
+  return function(x, y) {
+    return y * w + x << 2;
   };
 }
 function matrixRotate(image2, deg) {
@@ -138855,20 +139519,20 @@ function matrixRotate(image2, deg) {
   const dstBuffer = Buffer.alloc(image2.bitmap.data.length);
   const srcIdxFunction = createIdxTranslationFunction(w);
   const dstIdxFunction = createIdxTranslationFunction(nW);
-  for (let x2 = 0;x2 < w; x2++) {
+  for (let x = 0;x < w; x++) {
     for (let y = 0;y < h; y++) {
-      const srcIdx = srcIdxFunction(x2, y);
+      const srcIdx = srcIdxFunction(x, y);
       const pixelRGBA = image2.bitmap.data.readUInt32BE(srcIdx);
       let dstIdx;
       switch (angle) {
         case 90:
-          dstIdx = dstIdxFunction(y, w - x2 - 1);
+          dstIdx = dstIdxFunction(y, w - x - 1);
           break;
         case -90:
-          dstIdx = dstIdxFunction(h - y - 1, x2);
+          dstIdx = dstIdxFunction(h - y - 1, x);
           break;
         case 180:
-          dstIdx = dstIdxFunction(w - x2 - 1, h - y - 1);
+          dstIdx = dstIdxFunction(w - x - 1, h - y - 1);
           break;
         default:
           throw new Error("Unsupported matrix rotation angle");
@@ -138881,9 +139545,9 @@ function matrixRotate(image2, deg) {
   image2.bitmap.height = nH;
 }
 function createTranslationFunction(deltaX, deltaY) {
-  return function(x2, y) {
+  return function(x, y) {
     return {
-      x: x2 + deltaX,
+      x: x + deltaX,
       y: y + deltaY
     };
   };
@@ -138921,10 +139585,10 @@ function advancedRotate(image2, deg, mode) {
   const translate2Cartesian = createTranslationFunction(-(bW / 2), -(bH / 2));
   const translate2Screen = createTranslationFunction(bW / 2 + 0.5, bH / 2 + 0.5);
   for (let y = 1;y <= bH; y++) {
-    for (let x2 = 1;x2 <= bW; x2++) {
-      const cartesian = translate2Cartesian(x2, y);
+    for (let x = 1;x <= bW; x++) {
+      const cartesian = translate2Cartesian(x, y);
       const source = translate2Screen(cosine * cartesian.x - sine * cartesian.y, cosine * cartesian.y + sine * cartesian.x);
-      const dstIdx = bW * (y - 1) + x2 - 1 << 2;
+      const dstIdx = bW * (y - 1) + x - 1 << 2;
       if (source.x >= 0 && source.x < bW && source.y >= 0 && source.y < bH) {
         const srcIdx = (bW * (source.y | 0) + source.x | 0) << 2;
         const pixelRGBA = image2.bitmap.data.readUInt32BE(srcIdx);
@@ -138936,9 +139600,9 @@ function advancedRotate(image2, deg, mode) {
   }
   image2.bitmap.data = dstBuffer;
   if (mode === true || typeof mode === "string") {
-    const x2 = Math.max(bW / 2 - w / 2, 0);
+    const x = Math.max(bW / 2 - w / 2, 0);
     const y = Math.max(bH / 2 - h / 2, 0);
-    image2 = methods7.crop(image2, { x: x2, y, w, h });
+    image2 = methods7.crop(image2, { x, y, w, h });
   }
 }
 var methods16 = {
@@ -139472,7 +140136,7 @@ function addIssueToContext15(ctx, issueData) {
       ctx.schemaErrorMap,
       overrideMap,
       overrideMap === en_default15 ? undefined : en_default15
-    ].filter((x2) => !!x2)
+    ].filter((x) => !!x)
   });
   ctx.common.issues.push(issue2);
 }
@@ -139536,10 +140200,10 @@ var INVALID15 = Object.freeze({
 });
 var DIRTY15 = (value) => ({ status: "dirty", value });
 var OK15 = (value) => ({ status: "valid", value });
-var isAborted15 = (x2) => x2.status === "aborted";
-var isDirty15 = (x2) => x2.status === "dirty";
-var isValid16 = (x2) => x2.status === "valid";
-var isAsync15 = (x2) => typeof Promise !== "undefined" && x2 instanceof Promise;
+var isAborted15 = (x) => x.status === "aborted";
+var isDirty15 = (x) => x.status === "dirty";
+var isValid16 = (x) => x.status === "valid";
+var isAsync15 = (x) => typeof Promise !== "undefined" && x instanceof Promise;
 // ../node_modules/@jimp/plugin-threshold/node_modules/zod/v3/helpers/errorUtil.js
 var errorUtil15;
 (function(errorUtil16) {
@@ -141909,7 +142573,7 @@ class ZodTuple15 extends ZodType15 {
       if (!schema)
         return null;
       return schema._parse(new ParseInputLazyPath15(ctx, item, ctx.path, itemIndex));
-    }).filter((x2) => !!x2);
+    }).filter((x) => !!x);
     if (ctx.common.async) {
       return Promise.all(items).then((results) => {
         return ParseStatus15.mergeArray(status, results);
@@ -142166,7 +142830,7 @@ class ZodFunction15 extends ZodType15 {
       return makeIssue15({
         data: args,
         path: ctx.path,
-        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap15(), en_default15].filter((x2) => !!x2),
+        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap15(), en_default15].filter((x) => !!x),
         issueData: {
           code: ZodIssueCode15.invalid_arguments,
           argumentsError: error2
@@ -142177,7 +142841,7 @@ class ZodFunction15 extends ZodType15 {
       return makeIssue15({
         data: returns,
         path: ctx.path,
-        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap15(), en_default15].filter((x2) => !!x2),
+        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap15(), en_default15].filter((x) => !!x),
         issueData: {
           code: ZodIssueCode15.invalid_return_type,
           returnTypeError: error2
@@ -142185,7 +142849,7 @@ class ZodFunction15 extends ZodType15 {
       });
     }
     const params = { errorMap: ctx.common.contextualErrorMap };
-    const fn = ctx.data;
+    const fn2 = ctx.data;
     if (this._def.returns instanceof ZodPromise15) {
       const me2 = this;
       return OK15(async function(...args) {
@@ -142194,7 +142858,7 @@ class ZodFunction15 extends ZodType15 {
           error2.addIssue(makeArgsIssue(args, e));
           throw error2;
         });
-        const result = await Reflect.apply(fn, this, parsedArgs);
+        const result = await Reflect.apply(fn2, this, parsedArgs);
         const parsedReturns = await me2._def.returns._def.type.parseAsync(result, params).catch((e) => {
           error2.addIssue(makeReturnsIssue(result, e));
           throw error2;
@@ -142208,7 +142872,7 @@ class ZodFunction15 extends ZodType15 {
         if (!parsedArgs.success) {
           throw new ZodError29([makeArgsIssue(args, parsedArgs.error)]);
         }
-        const result = Reflect.apply(fn, this, parsedArgs.data);
+        const result = Reflect.apply(fn2, this, parsedArgs.data);
         const parsedReturns = me2._def.returns.safeParse(result, params);
         if (!parsedReturns.success) {
           throw new ZodError29([makeReturnsIssue(result, parsedReturns.error)]);
@@ -142822,17 +143486,17 @@ function cleanParams15(params, data) {
 function custom15(check, _params = {}, fatal) {
   if (check)
     return ZodAny15.create().superRefine((data, ctx) => {
-      const r = check(data);
-      if (r instanceof Promise) {
-        return r.then((r2) => {
-          if (!r2) {
+      const r7 = check(data);
+      if (r7 instanceof Promise) {
+        return r7.then((r8) => {
+          if (!r8) {
             const params = cleanParams15(_params, data);
             const _fatal = params.fatal ?? fatal ?? true;
             ctx.addIssue({ code: "custom", ...params, fatal: _fatal });
           }
         });
       }
-      if (!r) {
+      if (!r7) {
         const params = cleanParams15(_params, data);
         const _fatal = params.fatal ?? fatal ?? true;
         ctx.addIssue({ code: "custom", ...params, fatal: _fatal });
@@ -142980,7 +143644,7 @@ __export2(constants_exports, {
 var bt709_exports = {};
 __export2(bt709_exports, {
   Y: () => Y2,
-  x: () => x2,
+  x: () => x,
   y: () => y
 });
 var Y2 = /* @__PURE__ */ ((Y22) => {
@@ -142990,13 +143654,13 @@ var Y2 = /* @__PURE__ */ ((Y22) => {
   Y22[Y22["WHITE"] = 1] = "WHITE";
   return Y22;
 })(Y2 || {});
-var x2 = /* @__PURE__ */ ((x22) => {
-  x22[x22["RED"] = 0.64] = "RED";
-  x22[x22["GREEN"] = 0.3] = "GREEN";
-  x22[x22["BLUE"] = 0.15] = "BLUE";
-  x22[x22["WHITE"] = 0.3127] = "WHITE";
-  return x22;
-})(x2 || {});
+var x = /* @__PURE__ */ ((x2) => {
+  x2[x2["RED"] = 0.64] = "RED";
+  x2[x2["GREEN"] = 0.3] = "GREEN";
+  x2[x2["BLUE"] = 0.15] = "BLUE";
+  x2[x2["WHITE"] = 0.3127] = "WHITE";
+  return x2;
+})(x || {});
 var y = /* @__PURE__ */ ((y2) => {
   y2[y2["RED"] = 0.33] = "RED";
   y2[y2["GREEN"] = 0.6] = "GREEN";
@@ -143014,17 +143678,17 @@ __export2(conversion_exports, {
   xyz2lab: () => xyz2lab,
   xyz2rgb: () => xyz2rgb
 });
-function correctGamma(n7) {
-  return n7 > 0.04045 ? ((n7 + 0.055) / 1.055) ** 2.4 : n7 / 12.92;
+function correctGamma(n) {
+  return n > 0.04045 ? ((n + 0.055) / 1.055) ** 2.4 : n / 12.92;
 }
-function rgb2xyz(r, g, b) {
-  r = correctGamma(r / 255);
+function rgb2xyz(r7, g, b) {
+  r7 = correctGamma(r7 / 255);
   g = correctGamma(g / 255);
   b = correctGamma(b / 255);
   return {
-    x: r * 0.4124 + g * 0.3576 + b * 0.1805,
-    y: r * 0.2126 + g * 0.7152 + b * 0.0722,
-    z: r * 0.0193 + g * 0.1192 + b * 0.9505
+    x: r7 * 0.4124 + g * 0.3576 + b * 0.1805,
+    y: r7 * 0.2126 + g * 0.7152 + b * 0.0722,
+    z: r7 * 0.0193 + g * 0.1192 + b * 0.9505
   };
 }
 var arithmetic_exports = {};
@@ -143037,8 +143701,8 @@ __export2(arithmetic_exports, {
   min3: () => min3,
   stableSort: () => stableSort
 });
-function degrees2radians(n7) {
-  return n7 * (Math.PI / 180);
+function degrees2radians(n) {
+  return n * (Math.PI / 180);
 }
 function max3(a, b, c2) {
   let m = a;
@@ -143063,20 +143727,20 @@ function intInRange(value, low, high) {
     value = low;
   return value | 0;
 }
-function inRange0to255Rounded(n7) {
-  n7 = Math.round(n7);
-  if (n7 > 255)
-    n7 = 255;
-  else if (n7 < 0)
-    n7 = 0;
-  return n7;
+function inRange0to255Rounded(n) {
+  n = Math.round(n);
+  if (n > 255)
+    n = 255;
+  else if (n < 0)
+    n = 0;
+  return n;
 }
-function inRange0to255(n7) {
-  if (n7 > 255)
-    n7 = 255;
-  else if (n7 < 0)
-    n7 = 0;
-  return n7;
+function inRange0to255(n) {
+  if (n > 255)
+    n = 255;
+  else if (n < 0)
+    n = 0;
+  return n;
 }
 function stableSort(arrayToSort, callback) {
   const type = typeof arrayToSort[0];
@@ -143096,9 +143760,9 @@ function stableSort(arrayToSort, callback) {
   }
   return sorted;
 }
-function rgb2hsl(r, g, b) {
-  const min = min3(r, g, b);
-  const max = max3(r, g, b);
+function rgb2hsl(r7, g, b) {
+  const min = min3(r7, g, b);
+  const max = max3(r7, g, b);
   const delta = max - min;
   const l = (min + max) / 510;
   let s = 0;
@@ -143106,12 +143770,12 @@ function rgb2hsl(r, g, b) {
     s = delta / (l < 0.5 ? max + min : 510 - max - min);
   let h = 0;
   if (delta > 0) {
-    if (max === r) {
+    if (max === r7) {
       h = (g - b) / delta;
     } else if (max === g) {
-      h = 2 + (b - r) / delta;
+      h = 2 + (b - r7) / delta;
     } else {
-      h = 4 + (r - g) / delta;
+      h = 4 + (r7 - g) / delta;
     }
     h *= 60;
     if (h < 0)
@@ -143122,50 +143786,50 @@ function rgb2hsl(r, g, b) {
 var refX = 0.95047;
 var refY = 1;
 var refZ = 1.08883;
-function pivot(n7) {
-  return n7 > 0.008856 ? n7 ** (1 / 3) : 7.787 * n7 + 16 / 116;
+function pivot(n) {
+  return n > 0.008856 ? n ** (1 / 3) : 7.787 * n + 16 / 116;
 }
-function xyz2lab(x22, y2, z) {
-  x22 = pivot(x22 / refX);
+function xyz2lab(x2, y2, z2) {
+  x2 = pivot(x2 / refX);
   y2 = pivot(y2 / refY);
-  z = pivot(z / refZ);
+  z2 = pivot(z2 / refZ);
   if (116 * y2 - 16 < 0)
     throw new Error("xxx");
   return {
     L: Math.max(0, 116 * y2 - 16),
-    a: 500 * (x22 - y2),
-    b: 200 * (y2 - z)
+    a: 500 * (x2 - y2),
+    b: 200 * (y2 - z2)
   };
 }
-function rgb2lab(r, g, b) {
-  const xyz = rgb2xyz(r, g, b);
+function rgb2lab(r7, g, b) {
+  const xyz = rgb2xyz(r7, g, b);
   return xyz2lab(xyz.x, xyz.y, xyz.z);
 }
 var refX2 = 0.95047;
 var refY2 = 1;
 var refZ2 = 1.08883;
-function pivot2(n7) {
-  return n7 > 0.206893034 ? n7 ** 3 : (n7 - 16 / 116) / 7.787;
+function pivot2(n) {
+  return n > 0.206893034 ? n ** 3 : (n - 16 / 116) / 7.787;
 }
 function lab2xyz(L2, a, b) {
   const y2 = (L2 + 16) / 116;
-  const x22 = a / 500 + y2;
-  const z = y2 - b / 200;
+  const x2 = a / 500 + y2;
+  const z2 = y2 - b / 200;
   return {
-    x: refX2 * pivot2(x22),
+    x: refX2 * pivot2(x2),
     y: refY2 * pivot2(y2),
-    z: refZ2 * pivot2(z)
+    z: refZ2 * pivot2(z2)
   };
 }
-function correctGamma2(n7) {
-  return n7 > 0.0031308 ? 1.055 * n7 ** (1 / 2.4) - 0.055 : 12.92 * n7;
+function correctGamma2(n) {
+  return n > 0.0031308 ? 1.055 * n ** (1 / 2.4) - 0.055 : 12.92 * n;
 }
-function xyz2rgb(x22, y2, z) {
-  const r = correctGamma2(x22 * 3.2406 + y2 * -1.5372 + z * -0.4986);
-  const g = correctGamma2(x22 * -0.9689 + y2 * 1.8758 + z * 0.0415);
-  const b = correctGamma2(x22 * 0.0557 + y2 * -0.204 + z * 1.057);
+function xyz2rgb(x2, y2, z2) {
+  const r7 = correctGamma2(x2 * 3.2406 + y2 * -1.5372 + z2 * -0.4986);
+  const g = correctGamma2(x2 * -0.9689 + y2 * 1.8758 + z2 * 0.0415);
+  const b = correctGamma2(x2 * 0.0557 + y2 * -0.204 + z2 * 1.057);
   return {
-    r: inRange0to255Rounded(r * 255),
+    r: inRange0to255Rounded(r7 * 255),
     g: inRange0to255Rounded(g * 255),
     b: inRange0to255Rounded(b * 255)
   };
@@ -143198,23 +143862,23 @@ var AbstractDistanceCalculator = class {
     this._setDefaults();
     this.setWhitePoint(255, 255, 255, 255);
   }
-  setWhitePoint(r, g, b, a) {
+  setWhitePoint(r7, g, b, a) {
     this._whitePoint = {
-      r: r > 0 ? 255 / r : 0,
+      r: r7 > 0 ? 255 / r7 : 0,
       g: g > 0 ? 255 / g : 0,
       b: b > 0 ? 255 / b : 0,
       a: a > 0 ? 255 / a : 0
     };
-    this._maxDistance = this.calculateRaw(r, g, b, a, 0, 0, 0, 0);
+    this._maxDistance = this.calculateRaw(r7, g, b, a, 0, 0, 0, 0);
   }
   calculateNormalized(colorA, colorB) {
     return this.calculateRaw(colorA.r, colorA.g, colorA.b, colorA.a, colorB.r, colorB.g, colorB.b, colorB.a) / this._maxDistance;
   }
 };
 var AbstractCIE94 = class extends AbstractDistanceCalculator {
-  calculateRaw(r1, g1, b1, a1, r2, g2, b2, a2) {
+  calculateRaw(r1, g1, b1, a1, r22, g2, b2, a2) {
     const lab1 = rgb2lab(inRange0to255(r1 * this._whitePoint.r), inRange0to255(g1 * this._whitePoint.g), inRange0to255(b1 * this._whitePoint.b));
-    const lab2 = rgb2lab(inRange0to255(r2 * this._whitePoint.r), inRange0to255(g2 * this._whitePoint.g), inRange0to255(b2 * this._whitePoint.b));
+    const lab2 = rgb2lab(inRange0to255(r22 * this._whitePoint.r), inRange0to255(g2 * this._whitePoint.g), inRange0to255(b2 * this._whitePoint.b));
     const dL = lab1.L - lab2.L;
     const dA = lab1.a - lab2.a;
     const dB = lab1.b - lab2.b;
@@ -143284,9 +143948,9 @@ var _CIEDE2000 = class extends AbstractDistanceCalculator {
     }
     return 2 * Math.sqrt(C1pC2p) * Math.sin(dhp / 2);
   }
-  calculateRaw(r1, g1, b1, a1, r2, g2, b2, a2) {
+  calculateRaw(r1, g1, b1, a1, r22, g2, b2, a2) {
     const lab1 = rgb2lab(inRange0to255(r1 * this._whitePoint.r), inRange0to255(g1 * this._whitePoint.g), inRange0to255(b1 * this._whitePoint.b));
-    const lab2 = rgb2lab(inRange0to255(r2 * this._whitePoint.r), inRange0to255(g2 * this._whitePoint.g), inRange0to255(b2 * this._whitePoint.b));
+    const lab2 = rgb2lab(inRange0to255(r22 * this._whitePoint.r), inRange0to255(g2 * this._whitePoint.g), inRange0to255(b2 * this._whitePoint.b));
     const dA = (a2 - a1) * this._whitePoint.a * _CIEDE2000._kA;
     const dE2 = this.calculateRawInLab(lab1, lab2);
     return Math.sqrt(dE2 + dA * dA);
@@ -143338,20 +144002,20 @@ __publicField(CIEDE2000, "_deg63InRad", degrees2radians(63));
 __publicField(CIEDE2000, "_deg275InRad", degrees2radians(275));
 __publicField(CIEDE2000, "_deg25InRad", degrees2radians(25));
 var CMetric = class extends AbstractDistanceCalculator {
-  calculateRaw(r1, g1, b1, a1, r2, g2, b2, a2) {
-    const rmean = (r1 + r2) / 2 * this._whitePoint.r;
-    const r = (r1 - r2) * this._whitePoint.r;
+  calculateRaw(r1, g1, b1, a1, r22, g2, b2, a2) {
+    const rmean = (r1 + r22) / 2 * this._whitePoint.r;
+    const r7 = (r1 - r22) * this._whitePoint.r;
     const g = (g1 - g2) * this._whitePoint.g;
     const b = (b1 - b2) * this._whitePoint.b;
-    const dE = ((512 + rmean) * r * r >> 8) + 4 * g * g + ((767 - rmean) * b * b >> 8);
+    const dE = ((512 + rmean) * r7 * r7 >> 8) + 4 * g * g + ((767 - rmean) * b * b >> 8);
     const dA = (a2 - a1) * this._whitePoint.a;
     return Math.sqrt(dE + dA * dA);
   }
   _setDefaults() {}
 };
 var AbstractEuclidean = class extends AbstractDistanceCalculator {
-  calculateRaw(r1, g1, b1, a1, r2, g2, b2, a2) {
-    const dR = r2 - r1;
+  calculateRaw(r1, g1, b1, a1, r22, g2, b2, a2) {
+    const dR = r22 - r1;
     const dG = g2 - g1;
     const dB = b2 - b1;
     const dA = a2 - a1;
@@ -143383,8 +144047,8 @@ var EuclideanBT709NoAlpha = class extends AbstractEuclidean {
   }
 };
 var AbstractManhattan = class extends AbstractDistanceCalculator {
-  calculateRaw(r1, g1, b1, a1, r2, g2, b2, a2) {
-    let dR = r2 - r1;
+  calculateRaw(r1, g1, b1, a1, r22, g2, b2, a2) {
+    let dR = r22 - r1;
     let dG = g2 - g1;
     let dB = b2 - b1;
     let dA = a2 - a1;
@@ -143424,12 +144088,12 @@ var ManhattanBT709 = class extends AbstractManhattan {
   }
 };
 var PNGQuant = class extends AbstractDistanceCalculator {
-  calculateRaw(r1, g1, b1, a1, r2, g2, b2, a2) {
+  calculateRaw(r1, g1, b1, a1, r22, g2, b2, a2) {
     const alphas = (a2 - a1) * this._whitePoint.a;
-    return this._colordifferenceCh(r1 * this._whitePoint.r, r2 * this._whitePoint.r, alphas) + this._colordifferenceCh(g1 * this._whitePoint.g, g2 * this._whitePoint.g, alphas) + this._colordifferenceCh(b1 * this._whitePoint.b, b2 * this._whitePoint.b, alphas);
+    return this._colordifferenceCh(r1 * this._whitePoint.r, r22 * this._whitePoint.r, alphas) + this._colordifferenceCh(g1 * this._whitePoint.g, g2 * this._whitePoint.g, alphas) + this._colordifferenceCh(b1 * this._whitePoint.b, b2 * this._whitePoint.b, alphas);
   }
-  _colordifferenceCh(x22, y2, alphas) {
-    const black = x22 - y2;
+  _colordifferenceCh(x2, y2, alphas) {
+    const black = x2 - y2;
     const white = black + alphas;
     return black * black + white * white;
   }
@@ -143510,15 +144174,15 @@ var Point = class {
     this.rgba[3] = point.a;
   }
   getLuminosity(useAlphaChannel) {
-    let r = this.r;
+    let r7 = this.r;
     let g = this.g;
     let b = this.b;
     if (useAlphaChannel) {
-      r = Math.min(255, 255 - this.a + this.a * r / 255);
+      r7 = Math.min(255, 255 - this.a + this.a * r7 / 255);
       g = Math.min(255, 255 - this.a + this.a * g / 255);
       b = Math.min(255, 255 - this.a + this.a * b / 255);
     }
-    return r * 0.2126 + g * 0.7152 + b * 0.0722;
+    return r7 * 0.2126 + g * 0.7152 + b * 0.0722;
   }
   _loadUINT32() {
     this.uint32 = (this.a << 24 | this.b << 16 | this.g << 8 | this.r) >>> 0;
@@ -143738,10 +144402,10 @@ var HueStatistics = class {
     if (this._groupsFull === this._numGroups + 1) {
       this.check = () => {};
     }
-    const r = i32 & 255;
+    const r7 = i32 & 255;
     const g = i32 >>> 8 & 255;
     const b = i32 >>> 16 & 255;
-    const hg = r === g && g === b ? 0 : 1 + hueGroup(rgb2hsl(r, g, b).h, this._numGroups);
+    const hg = r7 === g && g === b ? 0 : 1 + hueGroup(rgb2hsl(r7, g, b).h, this._numGroups);
     const gr = this._stats[hg];
     const min = this._minCols;
     gr.num++;
@@ -143816,8 +144480,8 @@ var Neuron = class {
   toPoint() {
     return Point.createByRGBA(this.r >> networkBiasShift, this.g >> networkBiasShift, this.b >> networkBiasShift, this.a >> networkBiasShift);
   }
-  subtract(r, g, b, a) {
-    this.r -= r | 0;
+  subtract(r7, g, b, a) {
+    this.r -= r7 | 0;
     this.g -= g | 0;
     this.b -= b | 0;
     this.a -= a | 0;
@@ -143900,12 +144564,12 @@ var _NeuQuant = class extends AbstractPaletteQuantizer {
       const point = this._pointArray[pointIndex];
       const b = point.b << networkBiasShift;
       const g = point.g << networkBiasShift;
-      const r = point.r << networkBiasShift;
+      const r7 = point.r << networkBiasShift;
       const a = point.a << networkBiasShift;
-      const neuronIndex = this._contest(b, g, r, a);
-      this._alterSingle(alpha, neuronIndex, b, g, r, a);
+      const neuronIndex = this._contest(b, g, r7, a);
+      this._alterSingle(alpha, neuronIndex, b, g, r7, a);
       if (rad !== 0)
-        this._alterNeighbour(rad, neuronIndex, b, g, r, a);
+        this._alterNeighbour(rad, neuronIndex, b, g, r7, a);
       pointIndex += step;
       if (pointIndex >= pointsNumber)
         pointIndex -= pointsNumber;
@@ -143932,7 +144596,7 @@ var _NeuQuant = class extends AbstractPaletteQuantizer {
     palette2.sort();
     return palette2;
   }
-  _alterNeighbour(rad, i, b, g, r, al) {
+  _alterNeighbour(rad, i, b, g, r7, al) {
     let lo = i - rad;
     if (lo < -1)
       lo = -1;
@@ -143946,28 +144610,28 @@ var _NeuQuant = class extends AbstractPaletteQuantizer {
       const a = this._radPower[m++] / _NeuQuant._alphaRadBias;
       if (j2 < hi2) {
         const p = this._network[j2++];
-        p.subtract(a * (p.r - r), a * (p.g - g), a * (p.b - b), a * (p.a - al));
+        p.subtract(a * (p.r - r7), a * (p.g - g), a * (p.b - b), a * (p.a - al));
       }
       if (k2 > lo) {
         const p = this._network[k2--];
-        p.subtract(a * (p.r - r), a * (p.g - g), a * (p.b - b), a * (p.a - al));
+        p.subtract(a * (p.r - r7), a * (p.g - g), a * (p.b - b), a * (p.a - al));
       }
     }
   }
-  _alterSingle(alpha, i, b, g, r, a) {
+  _alterSingle(alpha, i, b, g, r7, a) {
     alpha /= _NeuQuant._initAlpha;
-    const n7 = this._network[i];
-    n7.subtract(alpha * (n7.r - r), alpha * (n7.g - g), alpha * (n7.b - b), alpha * (n7.a - a));
+    const n = this._network[i];
+    n.subtract(alpha * (n.r - r7), alpha * (n.g - g), alpha * (n.b - b), alpha * (n.a - a));
   }
-  _contest(b, g, r, a) {
+  _contest(b, g, r7, a) {
     const multiplier = 255 * 4 << networkBiasShift;
     let bestd = ~(1 << 31);
     let bestbiasd = bestd;
     let bestpos = -1;
     let bestbiaspos = bestpos;
     for (let i = 0;i < this._networkSize; i++) {
-      const n7 = this._network[i];
-      const dist = this._distance.calculateNormalized(n7, { r, g, b, a }) * multiplier | 0;
+      const n = this._network[i];
+      const dist = this._distance.calculateNormalized(n, { r: r7, g, b, a }) * multiplier | 0;
       if (dist < bestd) {
         bestd = dist;
         bestpos = i;
@@ -144020,8 +144684,8 @@ var NeuronFloat = class {
   toPoint() {
     return Point.createByRGBA(this.r >> networkBiasShift2, this.g >> networkBiasShift2, this.b >> networkBiasShift2, this.a >> networkBiasShift2);
   }
-  subtract(r, g, b, a) {
-    this.r -= r;
+  subtract(r7, g, b, a) {
+    this.r -= r7;
     this.g -= g;
     this.b -= b;
     this.a -= a;
@@ -144104,12 +144768,12 @@ var _NeuQuantFloat = class extends AbstractPaletteQuantizer {
       const point = this._pointArray[pointIndex];
       const b = point.b << networkBiasShift2;
       const g = point.g << networkBiasShift2;
-      const r = point.r << networkBiasShift2;
+      const r7 = point.r << networkBiasShift2;
       const a = point.a << networkBiasShift2;
-      const neuronIndex = this._contest(b, g, r, a);
-      this._alterSingle(alpha, neuronIndex, b, g, r, a);
+      const neuronIndex = this._contest(b, g, r7, a);
+      this._alterSingle(alpha, neuronIndex, b, g, r7, a);
       if (rad !== 0)
-        this._alterNeighbour(rad, neuronIndex, b, g, r, a);
+        this._alterNeighbour(rad, neuronIndex, b, g, r7, a);
       pointIndex += step;
       if (pointIndex >= pointsNumber)
         pointIndex -= pointsNumber;
@@ -144136,7 +144800,7 @@ var _NeuQuantFloat = class extends AbstractPaletteQuantizer {
     palette2.sort();
     return palette2;
   }
-  _alterNeighbour(rad, i, b, g, r, al) {
+  _alterNeighbour(rad, i, b, g, r7, al) {
     let lo = i - rad;
     if (lo < -1)
       lo = -1;
@@ -144150,28 +144814,28 @@ var _NeuQuantFloat = class extends AbstractPaletteQuantizer {
       const a = this._radPower[m++] / _NeuQuantFloat._alphaRadBias;
       if (j2 < hi2) {
         const p = this._network[j2++];
-        p.subtract(a * (p.r - r), a * (p.g - g), a * (p.b - b), a * (p.a - al));
+        p.subtract(a * (p.r - r7), a * (p.g - g), a * (p.b - b), a * (p.a - al));
       }
       if (k2 > lo) {
         const p = this._network[k2--];
-        p.subtract(a * (p.r - r), a * (p.g - g), a * (p.b - b), a * (p.a - al));
+        p.subtract(a * (p.r - r7), a * (p.g - g), a * (p.b - b), a * (p.a - al));
       }
     }
   }
-  _alterSingle(alpha, i, b, g, r, a) {
+  _alterSingle(alpha, i, b, g, r7, a) {
     alpha /= _NeuQuantFloat._initAlpha;
-    const n7 = this._network[i];
-    n7.subtract(alpha * (n7.r - r), alpha * (n7.g - g), alpha * (n7.b - b), alpha * (n7.a - a));
+    const n = this._network[i];
+    n.subtract(alpha * (n.r - r7), alpha * (n.g - g), alpha * (n.b - b), alpha * (n.a - a));
   }
-  _contest(b, g, r, al) {
+  _contest(b, g, r7, al) {
     const multiplier = 255 * 4 << networkBiasShift2;
     let bestd = ~(1 << 31);
     let bestbiasd = bestd;
     let bestpos = -1;
     let bestbiaspos = bestpos;
     for (let i = 0;i < this._networkSize; i++) {
-      const n7 = this._network[i];
-      const dist = this._distance.calculateNormalized(n7, { r, g, b, a: al }) * multiplier;
+      const n = this._network[i];
+      const dist = this._distance.calculateNormalized(n, { r: r7, g, b, a: al }) * multiplier;
       if (dist < bestd) {
         bestd = dist;
         bestpos = i;
@@ -144306,7 +144970,7 @@ var _ColorHistogram = class {
     });
     this._hueStats.injectIntoDictionary(histG);
   }
-  _iterateBox(bbox, wid, fn) {
+  _iterateBox(bbox, wid, fn2) {
     const b = bbox;
     const i0 = b.y * wid + b.x;
     const i1 = (b.y + b.h - 1) * wid + (b.x + b.w - 1);
@@ -144314,7 +144978,7 @@ var _ColorHistogram = class {
     let cnt = 0;
     let i = i0;
     do {
-      fn.call(this, i);
+      fn2.call(this, i);
       i += ++cnt % b.w === 0 ? incr : 1;
     } while (i <= i1);
   }
@@ -144325,11 +144989,11 @@ var _ColorHistogram = class {
     const yend = height - hrem;
     const boxesArray = [];
     for (let y2 = 0;y2 < height; y2 += stepY) {
-      for (let x22 = 0;x22 < width; x22 += stepX) {
+      for (let x2 = 0;x2 < width; x2 += stepX) {
         boxesArray.push({
-          x: x22,
+          x: x2,
           y: y2,
-          w: x22 === xend ? wrem : stepX,
+          w: x2 === xend ? wrem : stepX,
           h: y2 === yend ? hrem : stepY
         });
       }
@@ -144546,11 +145210,11 @@ var _WuQuant = class extends AbstractPaletteQuantizer {
     for (let paletteIndex = 0;paletteIndex < this._colors; paletteIndex++) {
       if (this._sums[paletteIndex] > 0) {
         const sum = this._sums[paletteIndex];
-        const r = this._reds[paletteIndex] / sum;
+        const r7 = this._reds[paletteIndex] / sum;
         const g = this._greens[paletteIndex] / sum;
         const b = this._blues[paletteIndex] / sum;
         const a = this._alphas[paletteIndex] / sum;
-        const color = Point.createByRGBA(r | 0, g | 0, b | 0, a | 0);
+        const color = Point.createByRGBA(r7 | 0, g | 0, b | 0, a | 0);
         palette2.add(color);
       }
     }
@@ -144929,7 +145593,7 @@ var NearestColor = class extends AbstractImageQuantizer {
           progress: tracker.progress
         };
       }
-      for (let x22 = 0, idx = y2 * width;x22 < width; x22++, idx++) {
+      for (let x2 = 0, idx = y2 * width;x2 < width; x2++, idx++) {
         const point = pointArray[idx];
         point.from(palette2.getNearestColor(this._distance, point));
       }
@@ -144997,9 +145661,9 @@ var ErrorDiffusionArray = class extends AbstractImageQuantizer {
       this._fillErrorLine(errorLines[0], width);
       errorLines.push(errorLines.shift());
       const errorLine = errorLines[0];
-      for (let x22 = xStart, idx = lni + xStart;x22 !== xEnd; x22 += dir, idx += dir) {
+      for (let x2 = xStart, idx = lni + xStart;x2 !== xEnd; x2 += dir, idx += dir) {
         const point = pointArray[idx];
-        const error2 = errorLine[x22];
+        const error2 = errorLine[x2];
         originalPoint.from(point);
         const correctedPoint = Point.createByRGBA(inRange0to255Rounded(point.r + error2[0]), inRange0to255Rounded(point.g + error2[1]), inRange0to255Rounded(point.b + error2[2]), inRange0to255Rounded(point.a + error2[3]));
         const palettePoint = palette2.getNearestColor(this._distance, correctedPoint);
@@ -145029,9 +145693,9 @@ var ErrorDiffusionArray = class extends AbstractImageQuantizer {
         for (let i = dStart;i !== dEnd; i += dir) {
           const x1 = this._kernel[i][1] * dir;
           const y1 = this._kernel[i][2];
-          if (x1 + x22 >= 0 && x1 + x22 < width && y1 + y2 >= 0 && y1 + y2 < height) {
+          if (x1 + x2 >= 0 && x1 + x2 < width && y1 + y2 >= 0 && y1 + y2 < height) {
             const d = this._kernel[i][0];
-            const e = errorLines[y1][x1 + x22];
+            const e = errorLines[y1][x1 + x2];
             e[0] += er * d;
             e[1] += eg * d;
             e[2] += eb * d;
@@ -145270,18 +145934,18 @@ var ErrorDiffusionRiemersma = class extends AbstractImageQuantizer {
     for (let i = 0;i < this._errorQueueSize; i++) {
       errorQueue[i] = { r: 0, g: 0, b: 0, a: 0 };
     }
-    yield* hilbertCurve(width, height, (x22, y2) => {
-      const p = pointArray[x22 + y2 * width];
-      let { r, g, b, a } = p;
+    yield* hilbertCurve(width, height, (x2, y2) => {
+      const p = pointArray[x2 + y2 * width];
+      let { r: r7, g, b, a } = p;
       for (let i = 0;i < this._errorQueueSize; i++) {
         const weight = this._weights[i];
         const e = errorQueue[(i + head) % this._errorQueueSize];
-        r += e.r * weight;
+        r7 += e.r * weight;
         g += e.g * weight;
         b += e.b * weight;
         a += e.a * weight;
       }
-      const correctedPoint = Point.createByRGBA(inRange0to255Rounded(r), inRange0to255Rounded(g), inRange0to255Rounded(b), inRange0to255Rounded(a));
+      const correctedPoint = Point.createByRGBA(inRange0to255Rounded(r7), inRange0to255Rounded(g), inRange0to255Rounded(b), inRange0to255Rounded(a));
       const quantizedPoint = palette2.getNearestColor(this._distance, correctedPoint);
       head = (head + 1) % this._errorQueueSize;
       const tail = (head + this._errorQueueSize - 1) % this._errorQueueSize;
@@ -145348,24 +146012,24 @@ function iterate(image1, image2, callback) {
   const width = image1.getWidth();
   const height = image1.getHeight();
   for (let y2 = 0;y2 < height; y2 += windowSize) {
-    for (let x22 = 0;x22 < width; x22 += windowSize) {
-      const windowWidth = Math.min(windowSize, width - x22);
+    for (let x2 = 0;x2 < width; x2 += windowSize) {
+      const windowWidth = Math.min(windowSize, width - x2);
       const windowHeight = Math.min(windowSize, height - y2);
-      const lumaValues1 = calculateLumaValuesForWindow(image1, x22, y2, windowWidth, windowHeight);
-      const lumaValues2 = calculateLumaValuesForWindow(image2, x22, y2, windowWidth, windowHeight);
+      const lumaValues1 = calculateLumaValuesForWindow(image1, x2, y2, windowWidth, windowHeight);
+      const lumaValues2 = calculateLumaValuesForWindow(image2, x2, y2, windowWidth, windowHeight);
       const averageLuma1 = calculateAverageLuma(lumaValues1);
       const averageLuma2 = calculateAverageLuma(lumaValues2);
       callback(lumaValues1, lumaValues2, averageLuma1, averageLuma2);
     }
   }
 }
-function calculateLumaValuesForWindow(image2, x22, y2, width, height) {
+function calculateLumaValuesForWindow(image2, x2, y2, width, height) {
   const pointArray = image2.getPointArray();
   const lumaValues = [];
   let counter = 0;
   for (let j2 = y2;j2 < y2 + height; j2++) {
     const offset = j2 * image2.getWidth();
-    for (let i = x22;i < x22 + width; i++) {
+    for (let i = x2;i < x2 + width; i++) {
       const point = pointArray[offset + i];
       lumaValues[counter] = point.r * 0.2126 + point.g * 0.7152 + point.b * 0.0722;
       counter++;
@@ -145978,7 +146642,7 @@ function addIssueToContext16(ctx, issueData) {
       ctx.schemaErrorMap,
       overrideMap,
       overrideMap === en_default16 ? undefined : en_default16
-    ].filter((x3) => !!x3)
+    ].filter((x2) => !!x2)
   });
   ctx.common.issues.push(issue2);
 }
@@ -146042,10 +146706,10 @@ var INVALID16 = Object.freeze({
 });
 var DIRTY16 = (value) => ({ status: "dirty", value });
 var OK16 = (value) => ({ status: "valid", value });
-var isAborted16 = (x3) => x3.status === "aborted";
-var isDirty16 = (x3) => x3.status === "dirty";
-var isValid17 = (x3) => x3.status === "valid";
-var isAsync16 = (x3) => typeof Promise !== "undefined" && x3 instanceof Promise;
+var isAborted16 = (x2) => x2.status === "aborted";
+var isDirty16 = (x2) => x2.status === "dirty";
+var isValid17 = (x2) => x2.status === "valid";
+var isAsync16 = (x2) => typeof Promise !== "undefined" && x2 instanceof Promise;
 // ../node_modules/@jimp/plugin-quantize/node_modules/zod/v3/helpers/errorUtil.js
 var errorUtil16;
 (function(errorUtil17) {
@@ -148415,7 +149079,7 @@ class ZodTuple16 extends ZodType16 {
       if (!schema)
         return null;
       return schema._parse(new ParseInputLazyPath16(ctx, item, ctx.path, itemIndex));
-    }).filter((x3) => !!x3);
+    }).filter((x2) => !!x2);
     if (ctx.common.async) {
       return Promise.all(items).then((results) => {
         return ParseStatus16.mergeArray(status, results);
@@ -148672,7 +149336,7 @@ class ZodFunction16 extends ZodType16 {
       return makeIssue16({
         data: args,
         path: ctx.path,
-        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap16(), en_default16].filter((x3) => !!x3),
+        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap16(), en_default16].filter((x2) => !!x2),
         issueData: {
           code: ZodIssueCode16.invalid_arguments,
           argumentsError: error2
@@ -148683,7 +149347,7 @@ class ZodFunction16 extends ZodType16 {
       return makeIssue16({
         data: returns,
         path: ctx.path,
-        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap16(), en_default16].filter((x3) => !!x3),
+        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap16(), en_default16].filter((x2) => !!x2),
         issueData: {
           code: ZodIssueCode16.invalid_return_type,
           returnTypeError: error2
@@ -148691,7 +149355,7 @@ class ZodFunction16 extends ZodType16 {
       });
     }
     const params = { errorMap: ctx.common.contextualErrorMap };
-    const fn = ctx.data;
+    const fn2 = ctx.data;
     if (this._def.returns instanceof ZodPromise16) {
       const me2 = this;
       return OK16(async function(...args) {
@@ -148700,7 +149364,7 @@ class ZodFunction16 extends ZodType16 {
           error2.addIssue(makeArgsIssue(args, e));
           throw error2;
         });
-        const result = await Reflect.apply(fn, this, parsedArgs);
+        const result = await Reflect.apply(fn2, this, parsedArgs);
         const parsedReturns = await me2._def.returns._def.type.parseAsync(result, params).catch((e) => {
           error2.addIssue(makeReturnsIssue(result, e));
           throw error2;
@@ -148714,7 +149378,7 @@ class ZodFunction16 extends ZodType16 {
         if (!parsedArgs.success) {
           throw new ZodError31([makeArgsIssue(args, parsedArgs.error)]);
         }
-        const result = Reflect.apply(fn, this, parsedArgs.data);
+        const result = Reflect.apply(fn2, this, parsedArgs.data);
         const parsedReturns = me2._def.returns.safeParse(result, params);
         if (!parsedReturns.success) {
           throw new ZodError31([makeReturnsIssue(result, parsedReturns.error)]);
@@ -149328,17 +149992,17 @@ function cleanParams16(params, data) {
 function custom16(check, _params = {}, fatal) {
   if (check)
     return ZodAny16.create().superRefine((data, ctx) => {
-      const r = check(data);
-      if (r instanceof Promise) {
-        return r.then((r2) => {
-          if (!r2) {
+      const r7 = check(data);
+      if (r7 instanceof Promise) {
+        return r7.then((r8) => {
+          if (!r8) {
             const params = cleanParams16(_params, data);
             const _fatal = params.fatal ?? fatal ?? true;
             ctx.addIssue({ code: "custom", ...params, fatal: _fatal });
           }
         });
       }
-      if (!r) {
+      if (!r7) {
         const params = cleanParams16(_params, data);
         const _fatal = params.fatal ?? fatal ?? true;
         ctx.addIssue({ code: "custom", ...params, fatal: _fatal });
@@ -149576,33 +150240,33 @@ var j2 = "aws.partition";
 var k2 = "partitionResult";
 var l = "accessPointSuffix";
 var m = "regionPrefix";
-var n7 = (n8) => "outpostId_ssa_" + n8 + i;
+var n = (n2) => "outpostId_ssa_" + n2 + i;
 var o = "hardwareType";
 var p = "ite";
-var q2 = "isValidHostLabel";
+var q = "isValidHostLabel";
 var s = "sigv4";
 var t = "aws.isVirtualHostableS3Bucket";
 var u = "url";
 var v2 = "getAttr";
 var w = "bucketArn";
-var x3 = "--";
+var x2 = "--";
 var y2 = "arnType";
-var z = "accesspoint";
-var A2 = (n8) => "accessPointName_ssa_" + n8 + i;
-var B2 = "s3-object-lambda";
+var z2 = "accesspoint";
+var A2 = (n2) => "accessPointName_ssa_" + n2 + i;
+var B = "s3-object-lambda";
 var C2 = "s3-outposts";
 var D2 = "bucketPartition";
-var E = "us-east-1";
+var E2 = "us-east-1";
 var F2 = "outpostType";
 var G2 = "name";
 var H2 = "s3";
 var I2 = "{url#scheme}://{Bucket}.{url#authority}{url#path}";
-var J = "{url#scheme}://{url#authority}{url#path}";
+var J2 = "{url#scheme}://{url#authority}{url#path}";
 var K3 = "{url#scheme}://{url#authority}{url#normalizedPath}{Bucket}";
 var L2 = "https://{Bucket}.s3-accelerate.{partitionResult#dnsSuffix}";
 var M2 = "https://{Bucket}.s3.{partitionResult#dnsSuffix}";
-var N2 = (n8) => "{url#scheme}://{accessPointName_ssa_" + n8 + "}-{bucketArn#accountId}.{url#authority}{url#path}";
-var O2 = (n8) => "Invalid ARN: The access point name may only contain a-z, A-Z, 0-9 and `-`. Found: `{accessPointName_ssa_" + n8 + "}`";
+var N2 = (n2) => "{url#scheme}://{accessPointName_ssa_" + n2 + "}-{bucketArn#accountId}.{url#authority}{url#path}";
+var O2 = (n2) => "Invalid ARN: The access point name may only contain a-z, A-Z, 0-9 and `-`. Found: `{accessPointName_ssa_" + n2 + "}`";
 var P2 = "sigv4a";
 var Q2 = "{url#scheme}://{url#authority}{url#normalizedPath}{uri_encoded_bucket}";
 var R2 = "https://s3.{partitionResult#dnsSuffix}/{uri_encoded_bucket}";
@@ -149610,30 +150274,30 @@ var S = "https://s3.{partitionResult#dnsSuffix}";
 var T2 = { [aw]: "UseFIPS" };
 var U2 = { [aw]: "UseDualStack" };
 var V2 = { [aw]: "Bucket" };
-var W2 = { fn: v2, [ax]: [{ [aw]: k2 }, G2] };
+var W = { fn: v2, [ax]: [{ [aw]: k2 }, G2] };
 var X2 = { [aw]: u };
 var Y3 = { [aw]: "Region" };
-var Z = { [aw]: w };
+var Z2 = { [aw]: w };
 var aa = { [aw]: y2 };
 var ab = { [aw]: "accessPointName_ssa_1" };
-var ac = { fn: v2, [ax]: [Z, "region"] };
+var ac = { fn: v2, [ax]: [Z2, "region"] };
 var ad = { [aw]: o };
-var ae2 = { fn: v2, [ax]: [Z, "service"] };
-var af = { fn: v2, [ax]: [Z, "accountId"] };
+var ae2 = { fn: v2, [ax]: [Z2, "service"] };
+var af = { fn: v2, [ax]: [Z2, "accountId"] };
 var ag = { [ay]: "S3Express", [az]: [{ [aA]: true, [G2]: "{_s3e_auth}", [aB]: "s3express", [aC]: "{Region}" }] };
 var ah = { [ay]: "S3Express", [az]: [{ [aA]: true, [G2]: s, [aB]: "s3express", [aC]: "{Region}" }] };
 var ai2 = { [az]: [{ [aA]: true, [G2]: P2, [aB]: C2, [aD]: ["*"] }, { [aA]: true, [G2]: s, [aB]: C2, [aC]: "{Region}" }] };
-var aj = { [az]: [{ [aA]: true, [G2]: s, [aB]: H2, [aC]: E }] };
+var aj = { [az]: [{ [aA]: true, [G2]: s, [aB]: H2, [aC]: E2 }] };
 var ak = { [az]: [{ [aA]: true, [G2]: s, [aB]: H2, [aC]: "{Region}" }] };
-var al = { [az]: [{ [aA]: true, [G2]: s, [aB]: B2, [aC]: "{bucketArn#region}" }] };
+var al = { [az]: [{ [aA]: true, [G2]: s, [aB]: B, [aC]: "{bucketArn#region}" }] };
 var am = { [az]: [{ [aA]: true, [G2]: s, [aB]: H2, [aC]: "{bucketArn#region}" }] };
-var an = { [az]: [{ [aA]: true, [G2]: P2, [aB]: C2, [aD]: ["*"] }, { [aA]: true, [G2]: s, [aB]: C2, [aC]: "{bucketArn#region}" }] };
-var ao = { [az]: [{ [aA]: true, [G2]: s, [aB]: B2, [aC]: "{Region}" }] };
+var an2 = { [az]: [{ [aA]: true, [G2]: P2, [aB]: C2, [aD]: ["*"] }, { [aA]: true, [G2]: s, [aB]: C2, [aC]: "{bucketArn#region}" }] };
+var ao = { [az]: [{ [aA]: true, [G2]: s, [aB]: B, [aC]: "{Region}" }] };
 var ap = [Y3];
 var aq = [{ [aw]: "Endpoint" }];
 var as2 = [V2];
 var at2 = [V2, 0, 7, true];
-var au = [Z, "resourceId[1]"];
+var au = [Z2, "resourceId[1]"];
 var av = ["*"];
 var _data = {
   conditions: [
@@ -149649,12 +150313,12 @@ var _data = {
     [h, at2, l],
     [f, [{ [aw]: l }, "--op-s3"]],
     [h, [V2, 8, 12, b], m],
-    [h, [V2, 32, 49, b], n7(2)],
+    [h, [V2, 32, 49, b], n(2)],
     [h, [V2, 49, 50, b], o],
     [e, [{ [aw]: "ForcePathStyle" }, b]],
-    [f, [W2, "aws-cn"]],
+    [f, [W, "aws-cn"]],
     [p, [U2, ".dualstack", i], "_s3e_ds"],
-    [q2, [{ [aw]: n7(2) }, c2]],
+    [q, [{ [aw]: n(2) }, c2]],
     [p, [T2, "-fips", i], "_s3e_fips"],
     [p, [{ fn: g, [ax]: [{ [aw]: "DisableS3ExpressSessionAuth" }, c2] }, s, "sigv4-s3express"], "_s3e_auth"],
     [t, [V2, c2]],
@@ -149662,56 +150326,56 @@ var _data = {
     [e, [{ fn: g, [ax]: [{ [aw]: "UseS3ExpressControlEndpoint" }, c2] }, b]],
     [t, [V2, b]],
     [f, [{ fn: v2, [ax]: [X2, "scheme"] }, "http"]],
-    [q2, [Y3, c2]],
+    [q, [Y3, c2]],
     ["aws.parseArn", as2, w],
-    [v2, [{ fn: "split", [ax]: [V2, x3, 0] }, "[-2]"], "s3expressAvailabilityZoneId"],
+    [v2, [{ fn: "split", [ax]: [V2, x2, 0] }, "[-2]"], "s3expressAvailabilityZoneId"],
     [f, [{ fn: g, [ax]: [{ fn: h, [ax]: [V2, 0, 4, c2] }, i] }, "arn:"]],
-    [f, [{ fn: g, [ax]: [{ fn: h, [ax]: [V2, 16, 18, b] }, i] }, x3]],
+    [f, [{ fn: g, [ax]: [{ fn: h, [ax]: [V2, 16, 18, b] }, i] }, x2]],
     [e, [{ fn: v2, [ax]: [X2, "isIp"] }, b]],
-    [f, [{ fn: g, [ax]: [{ fn: h, [ax]: [V2, 21, 23, b] }, i] }, x3]],
-    [f, [{ fn: g, [ax]: [{ fn: h, [ax]: [V2, 27, 29, b] }, i] }, x3]],
+    [f, [{ fn: g, [ax]: [{ fn: h, [ax]: [V2, 21, 23, b] }, i] }, x2]],
+    [f, [{ fn: g, [ax]: [{ fn: h, [ax]: [V2, 27, 29, b] }, i] }, x2]],
     [f, [{ [aw]: m }, "beta"]],
     ["uriEncode", as2, "uri_encoded_bucket"],
-    [q2, [Y3, b]],
+    [q, [Y3, b]],
     [e, [{ fn: g, [ax]: [{ [aw]: "UseObjectLambdaEndpoint" }, c2] }, b]],
-    [v2, [Z, "resourceId[0]"], y2],
+    [v2, [Z2, "resourceId[0]"], y2],
     [f, [aa, i]],
-    [f, [aa, z]],
+    [f, [aa, z2]],
     [v2, au, A2(1)],
     [f, [ab, i]],
     [f, [ac, i]],
-    [f, [{ fn: g, [ax]: [{ fn: h, [ax]: [V2, 14, 16, b] }, i] }, x3]],
+    [f, [{ fn: g, [ax]: [{ fn: h, [ax]: [V2, 14, 16, b] }, i] }, x2]],
     [f, [ad, "e"]],
     [f, [ad, "o"]],
     [f, [Y3, "aws-global"]],
-    [f, [{ fn: g, [ax]: [{ fn: h, [ax]: [V2, 19, 21, b] }, i] }, x3]],
-    [f, [ae2, B2]],
+    [f, [{ fn: g, [ax]: [{ fn: h, [ax]: [V2, 19, 21, b] }, i] }, x2]],
+    [f, [ae2, B]],
     [e, [{ fn: g, [ax]: [{ [aw]: "DisableAccessPoints" }, c2] }, b]],
     [f, [ae2, C2]],
     [j2, [ac], D2],
-    [q2, [ab, b]],
-    [f, [{ fn: g, [ax]: [{ fn: h, [ax]: [V2, 26, 28, b] }, i] }, x3]],
-    [f, [{ fn: g, [ax]: [{ fn: h, [ax]: [V2, 15, 17, b] }, i] }, x3]],
-    [v2, [Z, "resourceId[4]"]],
-    [f, [{ fn: g, [ax]: [{ fn: h, [ax]: [V2, 20, 22, b] }, i] }, x3]],
+    [q, [ab, b]],
+    [f, [{ fn: g, [ax]: [{ fn: h, [ax]: [V2, 26, 28, b] }, i] }, x2]],
+    [f, [{ fn: g, [ax]: [{ fn: h, [ax]: [V2, 15, 17, b] }, i] }, x2]],
+    [v2, [Z2, "resourceId[4]"]],
+    [f, [{ fn: g, [ax]: [{ fn: h, [ax]: [V2, 20, 22, b] }, i] }, x2]],
     [e, [{ [aw]: "UseGlobalEndpoint" }, b]],
-    [f, [Y3, E]],
-    [v2, au, n7(1)],
+    [f, [Y3, E2]],
+    [v2, au, n(1)],
     [e, [{ fn: g, [ax]: [{ [aw]: "UseArnRegion" }, b] }, b]],
-    [q2, [{ [aw]: n7(1) }, c2]],
-    [v2, [Z, "resourceId[2]"], F2],
+    [q, [{ [aw]: n(1) }, c2]],
+    [v2, [Z2, "resourceId[2]"], F2],
     [f, [Y3, ac]],
-    [f, [{ fn: v2, [ax]: [{ [aw]: D2 }, G2] }, W2]],
+    [f, [{ fn: v2, [ax]: [{ [aw]: D2 }, G2] }, W]],
     [e, [{ [aw]: "DisableMultiRegionAccessPoints" }, b]],
-    [q2, [ac, b]],
-    [f, [{ fn: v2, [ax]: [Z, "partition"] }, W2]],
+    [q, [ac, b]],
+    [f, [{ fn: v2, [ax]: [Z2, "partition"] }, W]],
     [f, [af, i]],
     [f, [ae2, H2]],
-    [q2, [af, c2]],
-    [v2, [Z, "resourceId[3]"], A2(2)],
-    [q2, [ab, c2]],
-    [f, [{ [aw]: F2 }, z]],
-    [q2, [{ [aw]: A2(2) }, c2]]
+    [q, [af, c2]],
+    [v2, [Z2, "resourceId[3]"], A2(2)],
+    [q, [ab, c2]],
+    [f, [{ [aw]: F2 }, z2]],
+    [q, [{ [aw]: A2(2) }, c2]]
   ],
   results: [
     [a],
@@ -149727,7 +150391,7 @@ var _data = {
     ["https://s3express-control{_s3e_fips}{_s3e_ds}.{Region}.{partitionResult#dnsSuffix}/{uri_encoded_bucket}", ah],
     ["https://{Bucket}.s3express{_s3e_fips}-{s3expressAvailabilityZoneId}{_s3e_ds}.{Region}.{partitionResult#dnsSuffix}", ag],
     [a, "Unrecognized S3Express bucket name format."],
-    [J, ag],
+    [J2, ag],
     ["https://s3express-control{_s3e_fips}{_s3e_ds}.{Region}.{partitionResult#dnsSuffix}", ah],
     [a, "Expected a endpoint to be specified but no endpoint was found"],
     ["https://{Bucket}.ec2.{url#authority}", ai2],
@@ -149791,8 +150455,8 @@ var _data = {
     [a, "S3 Outposts does not support FIPS"],
     [a, "S3 Outposts does not support S3 Accelerate"],
     [a, "Invalid Arn: Outpost Access Point ARN contains sub resources"],
-    ["https://{accessPointName_ssa_2}-{bucketArn#accountId}.{outpostId_ssa_1}.{url#authority}", an],
-    ["https://{accessPointName_ssa_2}-{bucketArn#accountId}.{outpostId_ssa_1}.s3-outposts.{bucketArn#region}.{bucketPartition#dnsSuffix}", an],
+    ["https://{accessPointName_ssa_2}-{bucketArn#accountId}.{outpostId_ssa_1}.{url#authority}", an2],
+    ["https://{accessPointName_ssa_2}-{bucketArn#accountId}.{outpostId_ssa_1}.s3-outposts.{bucketArn#region}.{bucketPartition#dnsSuffix}", an2],
     [a, O2(2)],
     [a, "Expected an outpost type `accesspoint`, found {outpostType}"],
     [a, "Invalid ARN: expected an access point name"],
@@ -149815,7 +150479,7 @@ var _data = {
     [R2, ak],
     ["https://s3.{Region}.{partitionResult#dnsSuffix}/{uri_encoded_bucket}", ak],
     [a, "Path-style addressing cannot be used with S3 Accelerate"],
-    [J, ao],
+    [J2, ao],
     ["https://s3-object-lambda-fips.{Region}.{partitionResult#dnsSuffix}", ao],
     ["https://s3-object-lambda.{Region}.{partitionResult#dnsSuffix}", ao],
     ["https://s3-fips.dualstack.us-east-1.{partitionResult#dnsSuffix}", aj],
@@ -149824,8 +150488,8 @@ var _data = {
     ["https://s3-fips.{Region}.{partitionResult#dnsSuffix}", ak],
     ["https://s3.dualstack.us-east-1.{partitionResult#dnsSuffix}", aj],
     ["https://s3.dualstack.{Region}.{partitionResult#dnsSuffix}", ak],
-    [J, aj],
-    [J, ak],
+    [J2, aj],
+    [J2, ak],
     [S, aj],
     [S, ak],
     ["https://s3.{Region}.{partitionResult#dnsSuffix}", ak],
@@ -149833,14 +150497,14 @@ var _data = {
   ]
 };
 var root = 2;
-var r = 1e8;
+var r7 = 1e8;
 var nodes = new Int32Array([
   -1,
   1,
   -1,
   0,
   3,
-  r + 115,
+  r7 + 115,
   1,
   424,
   4,
@@ -149858,7 +150522,7 @@ var nodes = new Int32Array([
   8,
   8,
   9,
-  r + 115,
+  r7 + 115,
   16,
   10,
   13,
@@ -149869,13 +150533,13 @@ var nodes = new Int32Array([
   12,
   13,
   22,
-  r + 14,
+  r7 + 14,
   13,
   35,
   14,
-  r + 42,
+  r7 + 42,
   36,
-  r + 103,
+  r7 + 103,
   435,
   6,
   271,
@@ -149915,69 +150579,69 @@ var nodes = new Int32Array([
   78,
   37,
   28,
-  r + 86,
+  r7 + 86,
   38,
-  r + 86,
+  r7 + 86,
   29,
   39,
   47,
   30,
   48,
-  r + 58,
+  r7 + 58,
   31,
   50,
   32,
-  r + 85,
+  r7 + 85,
   51,
   33,
   136,
   55,
-  r + 76,
+  r7 + 76,
   34,
   59,
   35,
-  r + 84,
+  r7 + 84,
   60,
   39,
   36,
   61,
   37,
-  r + 83,
+  r7 + 83,
   62,
   38,
   146,
   63,
   41,
-  r + 46,
+  r7 + 46,
   61,
   40,
-  r + 83,
+  r7 + 83,
   62,
   41,
   150,
   64,
   42,
-  r + 54,
+  r7 + 54,
   66,
   43,
-  r + 53,
+  r7 + 53,
   70,
   44,
-  r + 52,
+  r7 + 52,
   71,
   45,
-  r + 81,
+  r7 + 81,
   73,
   46,
-  r + 80,
+  r7 + 80,
   74,
-  r + 78,
-  r + 79,
+  r7 + 78,
+  r7 + 79,
   40,
   48,
-  r + 57,
+  r7 + 57,
   41,
-  r + 57,
+  r7 + 57,
   49,
   42,
   185,
@@ -149986,7 +150650,7 @@ var nodes = new Int32Array([
   62,
   51,
   49,
-  r + 45,
+  r7 + 45,
   52,
   51,
   53,
@@ -149995,31 +150659,31 @@ var nodes = new Int32Array([
   56,
   54,
   62,
-  r + 55,
+  r7 + 55,
   55,
   63,
   57,
-  r + 46,
+  r7 + 46,
   62,
-  r + 55,
+  r7 + 55,
   57,
   64,
   58,
-  r + 54,
+  r7 + 54,
   66,
   59,
-  r + 53,
+  r7 + 53,
   69,
   60,
-  r + 65,
+  r7 + 65,
   70,
   61,
-  r + 52,
+  r7 + 52,
   72,
-  r + 64,
-  r + 51,
+  r7 + 64,
+  r7 + 51,
   49,
-  r + 45,
+  r7 + 45,
   63,
   51,
   64,
@@ -150028,46 +150692,46 @@ var nodes = new Int32Array([
   67,
   65,
   62,
-  r + 55,
+  r7 + 55,
   66,
   63,
   68,
-  r + 46,
+  r7 + 46,
   62,
-  r + 55,
+  r7 + 55,
   68,
   64,
   69,
-  r + 54,
+  r7 + 54,
   66,
   70,
-  r + 53,
+  r7 + 53,
   68,
-  r + 47,
+  r7 + 47,
   71,
   70,
   72,
-  r + 52,
+  r7 + 52,
   72,
-  r + 50,
-  r + 51,
+  r7 + 50,
+  r7 + 51,
   25,
   74,
-  r + 42,
+  r7 + 42,
   46,
-  r + 39,
+  r7 + 39,
   75,
   57,
   76,
-  r + 41,
+  r7 + 41,
   58,
-  r + 40,
-  r + 41,
+  r7 + 40,
+  r7 + 41,
   26,
-  r + 88,
+  r7 + 88,
   78,
   28,
-  r + 87,
+  r7 + 87,
   79,
   34,
   82,
@@ -150076,23 +150740,23 @@ var nodes = new Int32Array([
   81,
   545,
   36,
-  r + 103,
-  r + 115,
+  r7 + 103,
+  r7 + 115,
   46,
-  r + 97,
+  r7 + 97,
   83,
   57,
   84,
-  r + 99,
+  r7 + 99,
   58,
-  r + 98,
-  r + 99,
+  r7 + 98,
+  r7 + 99,
   5,
   101,
   86,
   8,
   87,
-  r + 115,
+  r7 + 115,
   16,
   88,
   89,
@@ -150115,26 +150779,26 @@ var nodes = new Int32Array([
   97,
   94,
   22,
-  r + 14,
+  r7 + 14,
   95,
   35,
   96,
-  r + 42,
+  r7 + 42,
   36,
-  r + 103,
-  r + 42,
+  r7 + 103,
+  r7 + 42,
   22,
-  r + 13,
+  r7 + 13,
   98,
   35,
   99,
-  r + 42,
+  r7 + 42,
   36,
-  r + 101,
+  r7 + 101,
   100,
   46,
-  r + 110,
-  r + 111,
+  r7 + 110,
+  r7 + 111,
   6,
   214,
   102,
@@ -150149,46 +150813,46 @@ var nodes = new Int32Array([
   105,
   21,
   106,
-  r + 23,
+  r7 + 23,
   26,
   107,
   502,
   37,
   108,
-  r + 86,
+  r7 + 86,
   38,
-  r + 86,
+  r7 + 86,
   109,
   39,
   112,
   110,
   48,
-  r + 58,
+  r7 + 58,
   111,
   50,
   136,
-  r + 85,
+  r7 + 85,
   40,
   113,
-  r + 57,
+  r7 + 57,
   41,
-  r + 57,
+  r7 + 57,
   114,
   42,
   115,
   500,
   48,
-  r + 56,
+  r7 + 56,
   116,
   52,
   117,
-  r + 72,
+  r7 + 72,
   65,
-  r + 69,
-  r + 72,
+  r7 + 69,
+  r7 + 72,
   21,
   501,
-  r + 23,
+  r7 + 23,
   9,
   120,
   124,
@@ -150212,7 +150876,7 @@ var nodes = new Int32Array([
   126,
   21,
   127,
-  r + 23,
+  r7 + 23,
   23,
   128,
   129,
@@ -150224,96 +150888,96 @@ var nodes = new Int32Array([
   197,
   37,
   131,
-  r + 86,
+  r7 + 86,
   38,
-  r + 86,
+  r7 + 86,
   132,
   39,
   159,
   133,
   48,
-  r + 58,
+  r7 + 58,
   134,
   50,
   135,
-  r + 85,
+  r7 + 85,
   51,
   141,
   136,
   55,
-  r + 76,
+  r7 + 76,
   137,
   59,
   138,
-  r + 84,
+  r7 + 84,
   60,
-  r + 83,
+  r7 + 83,
   139,
   61,
   140,
-  r + 83,
+  r7 + 83,
   63,
-  r + 83,
-  r + 46,
+  r7 + 83,
+  r7 + 46,
   55,
-  r + 76,
+  r7 + 76,
   142,
   59,
   143,
-  r + 84,
+  r7 + 84,
   60,
   148,
   144,
   61,
   145,
-  r + 83,
+  r7 + 83,
   62,
   147,
   146,
   63,
   150,
-  r + 46,
+  r7 + 46,
   63,
   153,
-  r + 46,
+  r7 + 46,
   61,
   149,
-  r + 83,
+  r7 + 83,
   62,
   153,
   150,
   64,
   151,
-  r + 54,
+  r7 + 54,
   66,
   152,
-  r + 53,
+  r7 + 53,
   70,
-  r + 82,
-  r + 52,
+  r7 + 82,
+  r7 + 52,
   64,
   154,
-  r + 54,
+  r7 + 54,
   66,
   155,
-  r + 53,
+  r7 + 53,
   70,
   156,
-  r + 52,
+  r7 + 52,
   71,
   157,
-  r + 81,
+  r7 + 81,
   73,
   158,
-  r + 80,
+  r7 + 80,
   74,
-  r + 77,
-  r + 79,
+  r7 + 77,
+  r7 + 79,
   40,
   160,
-  r + 57,
+  r7 + 57,
   41,
-  r + 57,
+  r7 + 57,
   161,
   42,
   185,
@@ -150322,7 +150986,7 @@ var nodes = new Int32Array([
   174,
   163,
   49,
-  r + 45,
+  r7 + 45,
   164,
   51,
   165,
@@ -150331,31 +150995,31 @@ var nodes = new Int32Array([
   168,
   166,
   62,
-  r + 55,
+  r7 + 55,
   167,
   63,
   169,
-  r + 46,
+  r7 + 46,
   62,
-  r + 55,
+  r7 + 55,
   169,
   64,
   170,
-  r + 54,
+  r7 + 54,
   66,
   171,
-  r + 53,
+  r7 + 53,
   69,
   172,
-  r + 65,
+  r7 + 65,
   70,
   173,
-  r + 52,
+  r7 + 52,
   72,
-  r + 63,
-  r + 51,
+  r7 + 63,
+  r7 + 51,
   49,
-  r + 45,
+  r7 + 45,
   175,
   51,
   176,
@@ -150364,67 +151028,67 @@ var nodes = new Int32Array([
   179,
   177,
   62,
-  r + 55,
+  r7 + 55,
   178,
   63,
   180,
-  r + 46,
+  r7 + 46,
   62,
-  r + 55,
+  r7 + 55,
   180,
   64,
   181,
-  r + 54,
+  r7 + 54,
   66,
   182,
-  r + 53,
+  r7 + 53,
   68,
-  r + 47,
+  r7 + 47,
   183,
   70,
   184,
-  r + 52,
+  r7 + 52,
   72,
-  r + 48,
-  r + 51,
+  r7 + 48,
+  r7 + 51,
   48,
-  r + 56,
+  r7 + 56,
   186,
   52,
   187,
-  r + 72,
+  r7 + 72,
   65,
-  r + 69,
+  r7 + 69,
   188,
   67,
-  r + 70,
-  r + 71,
+  r7 + 70,
+  r7 + 71,
   25,
-  r + 36,
-  r + 42,
+  r7 + 36,
+  r7 + 42,
   21,
   191,
-  r + 23,
+  r7 + 23,
   25,
   192,
-  r + 42,
+  r7 + 42,
   30,
   194,
   193,
   46,
-  r + 34,
-  r + 36,
+  r7 + 34,
+  r7 + 36,
   46,
-  r + 33,
-  r + 35,
+  r7 + 33,
+  r7 + 35,
   21,
   196,
-  r + 23,
+  r7 + 23,
   26,
-  r + 88,
+  r7 + 88,
   197,
   28,
-  r + 87,
+  r7 + 87,
   198,
   34,
   201,
@@ -150433,17 +151097,17 @@ var nodes = new Int32Array([
   200,
   545,
   36,
-  r + 101,
-  r + 115,
+  r7 + 101,
+  r7 + 115,
   46,
-  r + 95,
-  r + 96,
+  r7 + 95,
+  r7 + 96,
   17,
   203,
-  r + 22,
+  r7 + 22,
   20,
   204,
-  r + 21,
+  r7 + 21,
   21,
   205,
   550,
@@ -150451,11 +151115,11 @@ var nodes = new Int32Array([
   206,
   550,
   44,
-  r + 16,
+  r7 + 16,
   207,
   45,
-  r + 18,
-  r + 20,
+  r7 + 18,
+  r7 + 20,
   8,
   209,
   215,
@@ -150479,13 +151143,13 @@ var nodes = new Int32Array([
   215,
   19,
   216,
-  r + 9,
+  r7 + 9,
   20,
   217,
   227,
   21,
   231,
-  r + 9,
+  r7 + 9,
   16,
   219,
   220,
@@ -150500,39 +151164,39 @@ var nodes = new Int32Array([
   227,
   21,
   231,
-  r + 12,
+  r7 + 12,
   19,
   226,
   224,
   20,
   225,
-  r + 9,
+  r7 + 9,
   21,
-  r + 9,
-  r + 12,
+  r7 + 9,
+  r7 + 12,
   20,
   230,
   227,
   21,
   228,
-  r + 9,
+  r7 + 9,
   30,
   229,
-  r + 9,
+  r7 + 9,
   34,
-  r + 7,
-  r + 9,
+  r7 + 7,
+  r7 + 9,
   21,
   231,
   415,
   30,
   232,
-  r + 8,
+  r7 + 8,
   34,
-  r + 7,
-  r + 8,
+  r7 + 7,
+  r7 + 8,
   4,
-  r + 2,
+  r7 + 2,
   234,
   5,
   235,
@@ -150572,27 +151236,27 @@ var nodes = new Int32Array([
   267,
   37,
   247,
-  r + 86,
+  r7 + 86,
   38,
-  r + 86,
+  r7 + 86,
   248,
   39,
   249,
   518,
   40,
   250,
-  r + 57,
+  r7 + 57,
   41,
-  r + 57,
+  r7 + 57,
   251,
   42,
   538,
   252,
   48,
-  r + 43,
+  r7 + 43,
   253,
   49,
-  r + 45,
+  r7 + 45,
   254,
   51,
   255,
@@ -150601,67 +151265,67 @@ var nodes = new Int32Array([
   258,
   256,
   62,
-  r + 55,
+  r7 + 55,
   257,
   63,
   259,
-  r + 46,
+  r7 + 46,
   62,
-  r + 55,
+  r7 + 55,
   259,
   64,
   260,
-  r + 54,
+  r7 + 54,
   66,
   261,
-  r + 53,
+  r7 + 53,
   69,
   262,
-  r + 65,
+  r7 + 65,
   70,
   263,
-  r + 52,
+  r7 + 52,
   72,
-  r + 62,
-  r + 51,
+  r7 + 62,
+  r7 + 51,
   25,
   265,
-  r + 42,
+  r7 + 42,
   46,
-  r + 31,
-  r + 32,
+  r7 + 31,
+  r7 + 32,
   26,
-  r + 88,
+  r7 + 88,
   267,
   28,
-  r + 87,
+  r7 + 87,
   268,
   34,
   269,
   544,
   46,
-  r + 93,
-  r + 94,
+  r7 + 93,
+  r7 + 94,
   8,
   397,
-  r + 9,
+  r7 + 9,
   8,
   407,
-  r + 9,
+  r7 + 9,
   3,
   346,
   273,
   4,
-  r + 3,
+  r7 + 3,
   274,
   5,
   284,
   275,
   8,
   276,
-  r + 115,
+  r7 + 115,
   15,
-  r + 5,
+  r7 + 5,
   277,
   16,
   278,
@@ -150673,17 +151337,17 @@ var nodes = new Int32Array([
   280,
   281,
   22,
-  r + 14,
+  r7 + 14,
   281,
   35,
   282,
-  r + 42,
+  r7 + 42,
   36,
-  r + 102,
+  r7 + 102,
   283,
   46,
-  r + 106,
-  r + 107,
+  r7 + 106,
+  r7 + 107,
   6,
   405,
   285,
@@ -150701,18 +151365,18 @@ var nodes = new Int32Array([
   502,
   37,
   290,
-  r + 86,
+  r7 + 86,
   38,
-  r + 86,
+  r7 + 86,
   291,
   39,
   292,
   307,
   40,
   293,
-  r + 57,
+  r7 + 57,
   41,
-  r + 57,
+  r7 + 57,
   294,
   42,
   335,
@@ -150736,7 +151400,7 @@ var nodes = new Int32Array([
   339,
   301,
   15,
-  r + 5,
+  r7 + 5,
   302,
   20,
   337,
@@ -150746,24 +151410,24 @@ var nodes = new Int32Array([
   341,
   37,
   305,
-  r + 86,
+  r7 + 86,
   38,
-  r + 86,
+  r7 + 86,
   306,
   39,
   309,
   307,
   48,
-  r + 58,
+  r7 + 58,
   308,
   50,
-  r + 74,
-  r + 85,
+  r7 + 74,
+  r7 + 85,
   40,
   310,
-  r + 57,
+  r7 + 57,
   41,
-  r + 57,
+  r7 + 57,
   311,
   42,
   335,
@@ -150772,7 +151436,7 @@ var nodes = new Int32Array([
   324,
   313,
   49,
-  r + 45,
+  r7 + 45,
   314,
   51,
   315,
@@ -150781,31 +151445,31 @@ var nodes = new Int32Array([
   318,
   316,
   62,
-  r + 55,
+  r7 + 55,
   317,
   63,
   319,
-  r + 46,
+  r7 + 46,
   62,
-  r + 55,
+  r7 + 55,
   319,
   64,
   320,
-  r + 54,
+  r7 + 54,
   66,
   321,
-  r + 53,
+  r7 + 53,
   69,
   322,
-  r + 65,
+  r7 + 65,
   70,
   323,
-  r + 52,
+  r7 + 52,
   72,
-  r + 61,
-  r + 51,
+  r7 + 61,
+  r7 + 51,
   49,
-  r + 45,
+  r7 + 45,
   325,
   51,
   326,
@@ -150814,49 +151478,49 @@ var nodes = new Int32Array([
   329,
   327,
   62,
-  r + 55,
+  r7 + 55,
   328,
   63,
   330,
-  r + 46,
+  r7 + 46,
   62,
-  r + 55,
+  r7 + 55,
   330,
   64,
   331,
-  r + 54,
+  r7 + 54,
   66,
   332,
-  r + 53,
+  r7 + 53,
   68,
-  r + 47,
+  r7 + 47,
   333,
   70,
   334,
-  r + 52,
+  r7 + 52,
   72,
-  r + 49,
-  r + 51,
+  r7 + 49,
+  r7 + 51,
   48,
-  r + 56,
+  r7 + 56,
   336,
   52,
-  r + 67,
-  r + 72,
+  r7 + 67,
+  r7 + 72,
   25,
   338,
-  r + 42,
+  r7 + 42,
   46,
-  r + 27,
-  r + 28,
+  r7 + 27,
+  r7 + 28,
   15,
-  r + 5,
+  r7 + 5,
   340,
   26,
-  r + 88,
+  r7 + 88,
   341,
   28,
-  r + 87,
+  r7 + 87,
   342,
   34,
   345,
@@ -150865,22 +151529,22 @@ var nodes = new Int32Array([
   344,
   545,
   36,
-  r + 102,
-  r + 115,
+  r7 + 102,
+  r7 + 115,
   46,
-  r + 91,
-  r + 92,
+  r7 + 91,
+  r7 + 92,
   4,
-  r + 2,
+  r7 + 2,
   347,
   5,
   357,
   348,
   8,
   349,
-  r + 115,
+  r7 + 115,
   15,
-  r + 5,
+  r7 + 5,
   350,
   16,
   351,
@@ -150892,17 +151556,17 @@ var nodes = new Int32Array([
   353,
   354,
   22,
-  r + 14,
+  r7 + 14,
   354,
   35,
   355,
-  r + 42,
+  r7 + 42,
   36,
-  r + 43,
+  r7 + 43,
   356,
   46,
-  r + 104,
-  r + 105,
+  r7 + 104,
+  r7 + 105,
   6,
   405,
   358,
@@ -150931,7 +151595,7 @@ var nodes = new Int32Array([
   389,
   366,
   15,
-  r + 5,
+  r7 + 5,
   367,
   20,
   387,
@@ -150941,27 +151605,27 @@ var nodes = new Int32Array([
   391,
   37,
   370,
-  r + 86,
+  r7 + 86,
   38,
-  r + 86,
+  r7 + 86,
   371,
   39,
   372,
   518,
   40,
   373,
-  r + 57,
+  r7 + 57,
   41,
-  r + 57,
+  r7 + 57,
   374,
   42,
   538,
   375,
   48,
-  r + 43,
+  r7 + 43,
   376,
   49,
-  r + 45,
+  r7 + 45,
   377,
   51,
   378,
@@ -150970,58 +151634,58 @@ var nodes = new Int32Array([
   381,
   379,
   62,
-  r + 55,
+  r7 + 55,
   380,
   63,
   382,
-  r + 46,
+  r7 + 46,
   62,
-  r + 55,
+  r7 + 55,
   382,
   64,
   383,
-  r + 54,
+  r7 + 54,
   66,
   384,
-  r + 53,
+  r7 + 53,
   69,
   385,
-  r + 65,
+  r7 + 65,
   70,
   386,
-  r + 52,
+  r7 + 52,
   72,
-  r + 60,
-  r + 51,
+  r7 + 60,
+  r7 + 51,
   25,
   388,
-  r + 42,
+  r7 + 42,
   46,
-  r + 25,
-  r + 26,
+  r7 + 25,
+  r7 + 26,
   15,
-  r + 5,
+  r7 + 5,
   390,
   26,
-  r + 88,
+  r7 + 88,
   391,
   28,
-  r + 87,
+  r7 + 87,
   392,
   34,
   393,
   544,
   46,
-  r + 89,
-  r + 90,
+  r7 + 89,
+  r7 + 90,
   15,
-  r + 5,
+  r7 + 5,
   547,
   8,
   396,
-  r + 9,
+  r7 + 9,
   15,
-  r + 5,
+  r7 + 5,
   397,
   16,
   398,
@@ -151034,24 +151698,24 @@ var nodes = new Int32Array([
   410,
   20,
   401,
-  r + 9,
+  r7 + 9,
   27,
   402,
-  r + 12,
+  r7 + 12,
   29,
-  r + 11,
+  r7 + 11,
   403,
   31,
-  r + 11,
+  r7 + 11,
   404,
   32,
-  r + 11,
+  r7 + 11,
   422,
   8,
   406,
-  r + 9,
+  r7 + 9,
   15,
-  r + 5,
+  r7 + 5,
   407,
   16,
   408,
@@ -151063,62 +151727,62 @@ var nodes = new Int32Array([
   411,
   410,
   20,
-  r + 12,
-  r + 9,
+  r7 + 12,
+  r7 + 9,
   20,
   414,
   412,
   22,
   413,
-  r + 9,
+  r7 + 9,
   34,
-  r + 10,
-  r + 9,
+  r7 + 10,
+  r7 + 9,
   22,
   416,
   415,
   27,
   419,
-  r + 12,
+  r7 + 12,
   27,
   418,
   417,
   34,
-  r + 10,
-  r + 12,
+  r7 + 10,
+  r7 + 12,
   34,
-  r + 10,
+  r7 + 10,
   419,
   43,
-  r + 11,
+  r7 + 11,
   420,
   47,
-  r + 11,
+  r7 + 11,
   421,
   53,
-  r + 11,
+  r7 + 11,
   422,
   54,
-  r + 11,
+  r7 + 11,
   423,
   56,
-  r + 11,
-  r + 12,
+  r7 + 11,
+  r7 + 12,
   2,
-  r + 1,
+  r7 + 1,
   425,
   3,
   478,
   426,
   4,
-  r + 4,
+  r7 + 4,
   427,
   5,
   438,
   428,
   8,
   429,
-  r + 115,
+  r7 + 115,
   16,
   430,
   433,
@@ -151129,28 +151793,28 @@ var nodes = new Int32Array([
   432,
   433,
   22,
-  r + 14,
+  r7 + 14,
   433,
   35,
   434,
-  r + 42,
+  r7 + 42,
   36,
-  r + 44,
+  r7 + 44,
   435,
   46,
-  r + 112,
+  r7 + 112,
   436,
   57,
   437,
-  r + 114,
+  r7 + 114,
   58,
-  r + 113,
-  r + 114,
+  r7 + 113,
+  r7 + 114,
   6,
-  r + 6,
+  r7 + 6,
   439,
   7,
-  r + 6,
+  r7 + 6,
   440,
   8,
   450,
@@ -151163,24 +151827,24 @@ var nodes = new Int32Array([
   502,
   37,
   444,
-  r + 86,
+  r7 + 86,
   38,
-  r + 86,
+  r7 + 86,
   445,
   39,
   446,
   465,
   40,
   447,
-  r + 57,
+  r7 + 57,
   41,
-  r + 57,
+  r7 + 57,
   448,
   42,
   471,
   449,
   48,
-  r + 44,
+  r7 + 44,
   500,
   9,
   451,
@@ -151208,10 +151872,10 @@ var nodes = new Int32Array([
   461,
   25,
   459,
-  r + 42,
+  r7 + 42,
   46,
-  r + 37,
-  r + 38,
+  r7 + 37,
+  r7 + 38,
   20,
   540,
   461,
@@ -151220,61 +151884,61 @@ var nodes = new Int32Array([
   474,
   37,
   463,
-  r + 86,
+  r7 + 86,
   38,
-  r + 86,
+  r7 + 86,
   464,
   39,
   467,
   465,
   48,
-  r + 58,
+  r7 + 58,
   466,
   50,
-  r + 75,
-  r + 85,
+  r7 + 75,
+  r7 + 85,
   40,
   468,
-  r + 57,
+  r7 + 57,
   41,
-  r + 57,
+  r7 + 57,
   469,
   42,
   471,
   470,
   48,
-  r + 44,
+  r7 + 44,
   524,
   48,
-  r + 44,
+  r7 + 44,
   472,
   52,
-  r + 68,
-  r + 72,
+  r7 + 68,
+  r7 + 72,
   26,
-  r + 88,
+  r7 + 88,
   474,
   28,
-  r + 87,
+  r7 + 87,
   475,
   34,
-  r + 100,
+  r7 + 100,
   476,
   35,
   477,
   545,
   36,
-  r + 44,
-  r + 115,
+  r7 + 44,
+  r7 + 115,
   4,
-  r + 2,
+  r7 + 2,
   479,
   5,
   488,
   480,
   8,
   481,
-  r + 115,
+  r7 + 115,
   16,
   482,
   485,
@@ -151285,22 +151949,22 @@ var nodes = new Int32Array([
   484,
   485,
   22,
-  r + 14,
+  r7 + 14,
   485,
   35,
   486,
-  r + 42,
+  r7 + 42,
   36,
-  r + 43,
+  r7 + 43,
   487,
   46,
-  r + 108,
-  r + 109,
+  r7 + 108,
+  r7 + 109,
   6,
-  r + 6,
+  r7 + 6,
   489,
   7,
-  r + 6,
+  r7 + 6,
   490,
   8,
   503,
@@ -151313,34 +151977,34 @@ var nodes = new Int32Array([
   502,
   37,
   494,
-  r + 86,
+  r7 + 86,
   38,
-  r + 86,
+  r7 + 86,
   495,
   39,
   496,
   518,
   40,
   497,
-  r + 57,
+  r7 + 57,
   41,
-  r + 57,
+  r7 + 57,
   498,
   42,
   538,
   499,
   48,
-  r + 43,
+  r7 + 43,
   500,
   49,
-  r + 45,
+  r7 + 45,
   526,
   26,
-  r + 88,
+  r7 + 88,
   502,
   28,
-  r + 87,
-  r + 115,
+  r7 + 87,
+  r7 + 115,
   9,
   504,
   508,
@@ -151367,10 +152031,10 @@ var nodes = new Int32Array([
   514,
   25,
   512,
-  r + 42,
+  r7 + 42,
   46,
-  r + 29,
-  r + 30,
+  r7 + 29,
+  r7 + 30,
   20,
   540,
   514,
@@ -151379,121 +152043,121 @@ var nodes = new Int32Array([
   542,
   37,
   516,
-  r + 86,
+  r7 + 86,
   38,
-  r + 86,
+  r7 + 86,
   517,
   39,
   520,
   518,
   48,
-  r + 58,
+  r7 + 58,
   519,
   50,
-  r + 73,
-  r + 85,
+  r7 + 73,
+  r7 + 85,
   40,
   521,
-  r + 57,
+  r7 + 57,
   41,
-  r + 57,
+  r7 + 57,
   522,
   42,
   538,
   523,
   48,
-  r + 43,
+  r7 + 43,
   524,
   49,
-  r + 45,
+  r7 + 45,
   525,
   51,
   529,
   526,
   60,
-  r + 55,
+  r7 + 55,
   527,
   62,
-  r + 55,
+  r7 + 55,
   528,
   63,
-  r + 55,
-  r + 46,
+  r7 + 55,
+  r7 + 46,
   60,
   532,
   530,
   62,
-  r + 55,
+  r7 + 55,
   531,
   63,
   533,
-  r + 46,
+  r7 + 46,
   62,
-  r + 55,
+  r7 + 55,
   533,
   64,
   534,
-  r + 54,
+  r7 + 54,
   66,
   535,
-  r + 53,
+  r7 + 53,
   69,
   536,
-  r + 65,
+  r7 + 65,
   70,
   537,
-  r + 52,
+  r7 + 52,
   72,
-  r + 59,
-  r + 51,
+  r7 + 59,
+  r7 + 51,
   48,
-  r + 43,
+  r7 + 43,
   539,
   52,
-  r + 66,
-  r + 72,
+  r7 + 66,
+  r7 + 72,
   25,
-  r + 24,
-  r + 42,
+  r7 + 24,
+  r7 + 42,
   26,
-  r + 88,
+  r7 + 88,
   542,
   28,
-  r + 87,
+  r7 + 87,
   543,
   34,
-  r + 100,
+  r7 + 100,
   544,
   35,
   546,
   545,
   36,
-  r + 42,
-  r + 115,
+  r7 + 42,
+  r7 + 115,
   36,
-  r + 43,
-  r + 115,
+  r7 + 43,
+  r7 + 115,
   17,
   548,
-  r + 22,
+  r7 + 22,
   20,
   549,
-  r + 21,
+  r7 + 21,
   33,
   552,
   550,
   44,
-  r + 17,
+  r7 + 17,
   551,
   45,
-  r + 19,
-  r + 20,
+  r7 + 19,
+  r7 + 20,
   44,
-  r + 15,
+  r7 + 15,
   553,
   45,
-  r + 15,
-  r + 20
+  r7 + 15,
+  r7 + 20
 ]);
 var bdd = BinaryDecisionDiagram.from(nodes, root, _data.conditions, _data.results);
 var cache = new EndpointCache({
@@ -158375,7 +159039,7 @@ var makeDefaultDeps = () => ({
   core: { setFailed, warning, info },
   octokit: getOctokit(getInput("github-token")),
   exec,
-  glob: Ze,
+  glob: Ns,
   jimp: { read: Jimp.read.bind(Jimp) },
   s3: defaultS3Operations,
   fs: { unlinkSync, createWriteStream, mkdir: mkdir2, readFile: readFile3 },
@@ -158793,7 +159457,7 @@ async function downloadBuffer(s3, bucket, key) {
   return Buffer.from(bytes);
 }
 
-// src/diff-png.ts
+// ../shared/diff-png.ts
 var import_pngjs2 = __toESM(require_png(), 1);
 
 // ../node_modules/pixelmatch/index.js
@@ -158845,9 +159509,9 @@ function pixelmatch(img1, img2, output, width, height, options = {}) {
   for (let i2 = 0, pos = 0;i2 < len; i2++, pos += 4) {
     const delta = a32[i2] === b32[i2] || ignoreMask && ignoreMask[i2] ? 0 : colorDelta(img1, img2, pos, checkerboard, threshold);
     if (delta) {
-      const x4 = i2 % width;
+      const x3 = i2 % width;
       const y3 = i2 / width | 0;
-      const isExcludedAA = !includeAA && (antialiased(img1, x4, y3, width, height, a32, b32) || antialiased(img2, x4, y3, width, height, b32, a32));
+      const isExcludedAA = !includeAA && (antialiased(img1, x3, y3, width, height, a32, b32) || antialiased(img2, x3, y3, width, height, b32, a32));
       if (isExcludedAA) {
         if (output && !diffMask)
           drawPixel(output, pos, aaR, aaG, aaB);
@@ -158875,40 +159539,40 @@ function pixelmatch(img1, img2, output, width, height, options = {}) {
   }
   if (!mask || !diff)
     return diff;
-  const n8 = Math.min(Math.max(Math.floor(windowSize), 1), width, height);
+  const n2 = Math.min(Math.max(Math.floor(windowSize), 1), width, height);
   const colSum = new Uint16Array(width);
   let maxCount = 0;
   let bandTotal = 0;
-  const yEnd = Math.min(height - 1, lastDiffY + n8 - 1);
+  const yEnd = Math.min(height - 1, lastDiffY + n2 - 1);
   for (let y3 = firstDiffY;y3 <= yEnd; y3++) {
     const rowStart = y3 * width;
-    const leaving = y3 - n8;
+    const leaving = y3 - n2;
     if (leaving >= 0) {
       const leavingStart = leaving * width;
-      for (let x4 = 0;x4 < width; x4++) {
-        const d2 = (mask[rowStart + x4] & 1) - (mask[leavingStart + x4] & 1);
-        colSum[x4] += d2;
+      for (let x3 = 0;x3 < width; x3++) {
+        const d2 = (mask[rowStart + x3] & 1) - (mask[leavingStart + x3] & 1);
+        colSum[x3] += d2;
         bandTotal += d2;
       }
     } else {
-      for (let x4 = 0;x4 < width; x4++) {
-        const e2 = mask[rowStart + x4] & 1;
-        colSum[x4] += e2;
+      for (let x3 = 0;x3 < width; x3++) {
+        const e2 = mask[rowStart + x3] & 1;
+        colSum[x3] += e2;
         bandTotal += e2;
       }
-      if (y3 < n8 - 1)
+      if (y3 < n2 - 1)
         continue;
     }
     if (bandTotal <= maxCount)
       continue;
     let windowSum = 0;
-    for (let x4 = 0;x4 < n8 - 1; x4++)
-      windowSum += colSum[x4];
-    for (let x4 = n8 - 1;x4 < width; x4++) {
-      windowSum += colSum[x4];
+    for (let x3 = 0;x3 < n2 - 1; x3++)
+      windowSum += colSum[x3];
+    for (let x3 = n2 - 1;x3 < width; x3++) {
+      windowSum += colSum[x3];
       if (windowSum > maxCount)
         maxCount = windowSum;
-      windowSum -= colSum[x4 - n8 + 1];
+      windowSum -= colSum[x3 - n2 + 1];
     }
   }
   return maxCount;
@@ -158934,10 +159598,10 @@ function antialiased(img, x1, y1, width, height, a32, b32) {
   let maxX = 0;
   let maxY = 0;
   const rowStep = width * 4;
-  for (let x4 = x0;x4 <= x22; x4++) {
-    let m2 = (y0 * width + x4) * 4;
+  for (let x3 = x0;x3 <= x22; x3++) {
+    let m2 = (y0 * width + x3) * 4;
     for (let y3 = y0;y3 <= y22; y3++, m2 += rowStep) {
-      if (x4 === x1 && y3 === y1)
+      if (x3 === x1 && y3 === y1)
         continue;
       const delta = brightnessDelta(img, m2, cr, cg, cb, ca);
       if (delta === 0) {
@@ -158946,11 +159610,11 @@ function antialiased(img, x1, y1, width, height, a32, b32) {
           return false;
       } else if (delta < min) {
         min = delta;
-        minX = x4;
+        minX = x3;
         minY = y3;
       } else if (delta > max) {
         max = delta;
-        maxX = x4;
+        maxX = x3;
         maxY = y3;
       }
     }
@@ -158970,10 +159634,10 @@ function hasManySiblings(img, x1, y1, width, height) {
   const x22 = x1 < width - 1 ? x1 + 1 : width - 1;
   const y22 = y1 < height - 1 ? y1 + 1 : height - 1;
   let zeroes = x1 === x0 || x1 === x22 || y1 === y0 || y1 === y22 ? 1 : 0;
-  for (let x4 = x0;x4 <= x22; x4++) {
-    let pos = y0 * width + x4;
+  for (let x3 = x0;x3 <= x22; x3++) {
+    let pos = y0 * width + x3;
     for (let y3 = y0;y3 <= y22; y3++, pos += width) {
-      if (x4 === x1 && y3 === y1)
+      if (x3 === x1 && y3 === y1)
         continue;
       zeroes += +(val === img[pos]);
       if (zeroes > 2)
@@ -159009,20 +159673,20 @@ for (let i2 = 0;i2 < 256; i2++) {
   M_B[i2] = 0.1073969566 * lr;
   S_B[i2] = 0.6299787005 * lr;
 }
-function linLUT(x4) {
-  const i2 = x4 | 0;
-  return LIN[i2] + (LIN[i2 + 1] - LIN[i2]) * (x4 - i2);
+function linLUT(x3) {
+  const i2 = x3 | 0;
+  return LIN[i2] + (LIN[i2 + 1] - LIN[i2]) * (x3 - i2);
 }
 var CBRT_N = 4096;
 var CBRT = new Float64Array(CBRT_N + 2);
 for (let i2 = 0;i2 <= CBRT_N + 1; i2++)
   CBRT[i2] = Math.cbrt(i2 / CBRT_N);
 var CBRT_EXACT = 8;
-function cbrtLUT(x4) {
-  const t2 = x4 * CBRT_N;
+function cbrtLUT(x3) {
+  const t2 = x3 * CBRT_N;
   const i2 = t2 | 0;
   if (i2 < CBRT_EXACT)
-    return Math.cbrt(x4);
+    return Math.cbrt(x3);
   return CBRT[i2] + (CBRT[i2 + 1] - CBRT[i2]) * (t2 - i2);
 }
 var OKLAB_CACHE_BITS = 12;
@@ -159038,16 +159702,16 @@ function colorDelta(img1, img2, k3, checkerboard, maxDelta) {
   const g1 = img1[k3 + 1];
   const b1 = img1[k3 + 2];
   const a1 = img1[k3 + 3];
-  const r2 = img2[k3];
+  const r22 = img2[k3];
   const g2 = img2[k3 + 1];
   const b2 = img2[k3 + 2];
   const a2 = img2[k3 + 3];
   if (a1 === 255 && a2 === 255) {
-    return colorDeltaOpaque(r1, g1, b1, r2, g2, b2, maxDelta);
+    return colorDeltaOpaque(r1, g1, b1, r22, g2, b2, maxDelta);
   }
-  return colorDeltaTransparent(r1, g1, b1, a1, r2, g2, b2, a2, k3, checkerboard, maxDelta);
+  return colorDeltaTransparent(r1, g1, b1, a1, r22, g2, b2, a2, k3, checkerboard, maxDelta);
 }
-function colorDeltaOpaque(r1, g1, b1, r2, g2, b2, maxDelta) {
+function colorDeltaOpaque(r1, g1, b1, r22, g2, b2, maxDelta) {
   const key1 = r1 << 16 | g1 << 8 | b1;
   const slot1 = Math.imul(key1, 2654435761) >>> OKLAB_CACHE_SHIFT;
   const stored1 = key1 + 1;
@@ -159069,7 +159733,7 @@ function colorDeltaOpaque(r1, g1, b1, r2, g2, b2, maxDelta) {
     OKLAB_CACHE_VALUES[offset1 + 2] = s1;
     OKLAB_CACHE_VALUES[offset1 + 3] = lr1;
   }
-  const key2 = r2 << 16 | g2 << 8 | b2;
+  const key2 = r22 << 16 | g2 << 8 | b2;
   const slot2 = Math.imul(key2, 2654435761) >>> OKLAB_CACHE_SHIFT;
   const stored2 = key2 + 1;
   const offset2 = slot2 * 4;
@@ -159080,9 +159744,9 @@ function colorDeltaOpaque(r1, g1, b1, r2, g2, b2, maxDelta) {
     s2 = OKLAB_CACHE_VALUES[offset2 + 2];
     lr2 = OKLAB_CACHE_VALUES[offset2 + 3];
   } else {
-    l2 = cbrtLUT(L_R[r2] + L_G[g2] + L_B[b2]);
-    m2 = cbrtLUT(M_R[r2] + M_G[g2] + M_B[b2]);
-    s2 = cbrtLUT(S_R[r2] + S_G[g2] + S_B[b2]);
+    l2 = cbrtLUT(L_R[r22] + L_G[g2] + L_B[b2]);
+    m2 = cbrtLUT(M_R[r22] + M_G[g2] + M_B[b2]);
+    s2 = cbrtLUT(S_R[r22] + S_G[g2] + S_B[b2]);
     lr2 = lightness(l2, m2, s2);
     OKLAB_CACHE_KEYS[slot2] = stored2;
     OKLAB_CACHE_VALUES[offset2] = l2;
@@ -159092,7 +159756,7 @@ function colorDeltaOpaque(r1, g1, b1, r2, g2, b2, maxDelta) {
   }
   return oklabHyabDelta(lr1 - lr2, l1 - l2, m1 - m2, s1 - s2, maxDelta);
 }
-function colorDeltaTransparent(r1, g1, b1, a1, r2, g2, b2, a2, k3, checkerboard, maxDelta) {
+function colorDeltaTransparent(r1, g1, b1, a1, r22, g2, b2, a2, k3, checkerboard, maxDelta) {
   let rb = 255, gb = 255, bb = 255;
   if (checkerboard) {
     const h2 = Math.imul(k3 >> 2, 2654435761);
@@ -159103,11 +159767,11 @@ function colorDeltaTransparent(r1, g1, b1, a1, r2, g2, b2, a2, k3, checkerboard,
   r1 = (r1 * a1 + rb * (255 - a1)) / 255;
   g1 = (g1 * a1 + gb * (255 - a1)) / 255;
   b1 = (b1 * a1 + bb * (255 - a1)) / 255;
-  r2 = (r2 * a2 + rb * (255 - a2)) / 255;
+  r22 = (r22 * a2 + rb * (255 - a2)) / 255;
   g2 = (g2 * a2 + gb * (255 - a2)) / 255;
   b2 = (b2 * a2 + bb * (255 - a2)) / 255;
   const lr1 = linLUT(r1), lg1 = linLUT(g1), lb1 = linLUT(b1);
-  const lr2 = linLUT(r2), lg2 = linLUT(g2), lb2 = linLUT(b2);
+  const lr2 = linLUT(r22), lg2 = linLUT(g2), lb2 = linLUT(b2);
   const l1 = cbrtLUT(0.4122214708 * lr1 + 0.5363325363 * lg1 + 0.0514459929 * lb1);
   const m1 = cbrtLUT(0.2119034982 * lr1 + 0.6806995451 * lg1 + 0.1073969566 * lb1);
   const s1 = cbrtLUT(0.0883024619 * lr1 + 0.2817188376 * lg1 + 0.6299787005 * lb1);
@@ -159130,22 +159794,22 @@ function oklabHyabDelta(dLr, dl, dm, ds2, maxDelta) {
 }
 function lightness(l2, m2, s2) {
   const L3 = 0.2104542553 * l2 + 0.793617785 * m2 - 0.0040720468 * s2;
-  const x4 = TOE_K3 * L3 - TOE_K1;
-  return 0.5 * (x4 + Math.sqrt(x4 * x4 + 4 * TOE_K2 * TOE_K3 * L3));
+  const x3 = TOE_K3 * L3 - TOE_K1;
+  return 0.5 * (x3 + Math.sqrt(x3 * x3 + 4 * TOE_K2 * TOE_K3 * L3));
 }
 function brightnessDelta(img, m2, r1, g1, b1, a1) {
-  const r2 = img[m2];
+  const r22 = img[m2];
   const g2 = img[m2 + 1];
   const b2 = img[m2 + 2];
   const a2 = img[m2 + 3];
-  let dr = r1 - r2;
+  let dr = r1 - r22;
   let dg = g1 - g2;
   let db = b1 - b2;
   const da = a1 - a2;
   if (!dr && !dg && !db && !da)
     return 0;
   if (a1 < 255 || a2 < 255) {
-    dr = (r1 * a1 - r2 * a2 - 255 * da) / 255;
+    dr = (r1 * a1 - r22 * a2 - 255 * da) / 255;
     dg = (g1 * a1 - g2 * a2 - 255 * da) / 255;
     db = (b1 * a1 - b2 * a2 - 255 * da) / 255;
     const d2 = dr * 0.29889531 + dg * 0.58662247 + db * 0.11448223;
@@ -159153,8 +159817,8 @@ function brightnessDelta(img, m2, r1, g1, b1, a1) {
   }
   return dr * 0.29889531 + dg * 0.58662247 + db * 0.11448223;
 }
-function drawPixel(output, pos, r2, g2, b2) {
-  output[pos] = r2;
+function drawPixel(output, pos, r8, g2, b2) {
+  output[pos] = r8;
   output[pos + 1] = g2;
   output[pos + 2] = b2;
   output[pos + 3] = 255;
@@ -159164,18 +159828,30 @@ function drawGrayPixel(output, i2, img, alpha) {
   drawPixel(output, i2, val, val, val);
 }
 
-// src/diff-png.ts
+// ../shared/diff-png.ts
 function diffPng(baseBuffer, actualBuffer, options = {}) {
+  const {
+    padding = {},
+    strictEdgeDetection = false,
+    ...pixelmatchOptions
+  } = options;
   const rawBase = import_pngjs2.PNG.sync.read(baseBuffer);
   const rawActual = import_pngjs2.PNG.sync.read(actualBuffer);
   const width = Math.max(rawBase.width, rawActual.width);
   const height = Math.max(rawBase.height, rawActual.height);
-  const base = ensureSize(rawBase, width, height);
-  const actual = ensureSize(rawActual, width, height);
+  const prepareImage = (image2) => {
+    const resized = ensureSize(image2, width, height);
+    if (resized !== image2) {
+      fillPadding(resized, image2, padding);
+    }
+    return resized;
+  };
+  const base = prepareImage(rawBase);
+  const actual = prepareImage(rawActual);
   const diff = new import_pngjs2.PNG({ width, height });
   const diffPixels = pixelmatch(actual.data, base.data, diff.data, width, height, {
-    ...options.threshold !== undefined && { threshold: options.threshold },
-    includeAA: options.strictEdgeDetection ?? false
+    ...pixelmatchOptions,
+    includeAA: strictEdgeDetection
   });
   return { diffBuffer: import_pngjs2.PNG.sync.write(diff), diffPixels };
 }
@@ -159185,6 +159861,24 @@ function ensureSize(image2, width, height) {
   const resized = new import_pngjs2.PNG({ width, height, fill: true });
   import_pngjs2.PNG.bitblt(image2, resized, 0, 0, image2.width, image2.height, 0, 0);
   return resized;
+}
+function fillPadding(target, source, padding) {
+  const { opacity = 0, boundaryOffset = 0 } = padding;
+  if (!Number.isFinite(opacity) || opacity < 0 || opacity > 1) {
+    throw new RangeError("padding.opacity must be between 0 and 1.");
+  }
+  if (!Number.isInteger(boundaryOffset) || boundaryOffset < 0) {
+    throw new RangeError("padding.boundaryOffset must be a non-negative integer.");
+  }
+  if (opacity === 0)
+    return;
+  const fillPixel = Buffer.from([0, 0, 0, Math.round(opacity * 255)]);
+  for (let y3 = 0;y3 < target.height; y3++) {
+    const startX = y3 >= source.height + boundaryOffset ? 0 : source.width + boundaryOffset;
+    if (startX < target.width) {
+      target.data.fill(fillPixel, (y3 * target.width + startX) * 4, (y3 + 1) * target.width * 4);
+    }
+  }
 }
 
 // src/manifest-merge.ts
@@ -159339,7 +160033,10 @@ async function flagOverlappingOpenPrs(params, deps) {
     const overlapping = [...changesetPaths(otherChangeset)].filter((p2) => mergingPaths.has(p2) && otherChangeset[p2] !== mergingChangeset[p2]);
     if (overlapping.length === 0)
       continue;
-    deps.core.info(`Flagging PR #${pr.number} as stale (overlapping paths: ${overlapping.join(", ")}).`);
+    const stale = await dropStackedPaths(deps, bucket, pr.number, otherChangeset, mergingChangeset, overlapping);
+    if (stale.length === 0)
+      continue;
+    deps.core.info(`Flagging PR #${pr.number} as stale (overlapping paths: ${stale.join(", ")}).`);
     await deps.octokit.rest.repos.createCommitStatus({
       ...repo,
       sha: pr.head.sha,
@@ -159350,6 +160047,18 @@ async function flagOverlappingOpenPrs(params, deps) {
     flagged.push(pr.number);
   }
   return flagged;
+}
+async function dropStackedPaths(deps, bucket, prNumber, otherChangeset, mergingChangeset, overlapping) {
+  const otherHeadSha = otherChangeset[HEAD_SHA_KEY3];
+  if (!otherHeadSha)
+    return overlapping;
+  const otherBaseline = await deps.getAncestorManifest(bucket, otherHeadSha);
+  const stacked = overlapping.filter((p2) => (otherBaseline[p2] ?? null) === mergingChangeset[p2]);
+  if (stacked.length === 0)
+    return overlapping;
+  deps.core.info(`PR #${prNumber} was compared against a baseline that already includes the merging changes for ${stacked.join(", ")} — not stale for those paths.`);
+  const stackedPaths = new Set(stacked);
+  return overlapping.filter((p2) => !stackedPaths.has(p2));
 }
 function changesetPaths(changeset) {
   return new Set(Object.keys(changeset).filter((key) => key !== HEAD_SHA_KEY3));
@@ -159478,6 +160187,11 @@ async function mergeEntry(bucket, entry, deps) {
     flagOverlappingOpenPrs: (params) => flagOverlappingOpenPrs(params, {
       octokit: deps.octokit,
       getChangeset: manifestS3.getChangeset,
+      getAncestorManifest: (bucket2, startSha) => findAncestorManifest(bucket2, startSha, {
+        getManifest: manifestS3.getManifest,
+        getParentSha: (sha) => getParentSha(sha, deps),
+        core: deps.core
+      }),
       core: deps.core
     }),
     applyChangesetToBaseImages: (params) => applyChangesetToBaseImages(params, {

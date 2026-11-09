@@ -4,7 +4,7 @@ import { makeManifestS3 } from './manifest-s3';
 import { manifestCompare } from './manifest-compare';
 import { classifyManifests } from './manifest-compare-classify';
 import { generateDiffs } from './manifest-diff';
-import { diffPng } from './diff-png';
+import { diffPng } from 'shared/diff-png';
 import { manifestMerge } from './manifest-merge';
 import { findAncestorManifest } from './manifest-merge-ancestor';
 import {
@@ -197,6 +197,12 @@ async function mergeEntry(
         flagOverlappingOpenPrs(params, {
           octokit: deps.octokit,
           getChangeset: manifestS3.getChangeset,
+          getAncestorManifest: (bucket, startSha) =>
+            findAncestorManifest(bucket, startSha, {
+              getManifest: manifestS3.getManifest,
+              getParentSha: sha => getParentSha(sha, deps),
+              core: deps.core
+            }),
           core: deps.core
         }),
       applyChangesetToBaseImages: params =>

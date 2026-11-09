@@ -2,6 +2,18 @@
   "name": "comparadise-utils",
   "main": "dist/index.mjs",
   "types": "dist/index.d.mts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
+    },
+    "./compare": {
+      "types": "./dist/compare.d.mts",
+      "default": "./dist/compare.mjs"
+    },
+    "./commands": "./commands.js",
+    "./*": "./*"
+  },
   "license": "Apache-2.0",
   "files": [
     "dist",
@@ -26,8 +38,13 @@
   "peerDependencies": {
     "cypress": ">=12"
   },
+  "peerDependenciesMeta": {
+    "cypress": {
+      "optional": true
+    }
+  },
   "scripts": {
-    "build": "tsdown index.ts screenshot-actions.ts create-base-image.ts --deps.neverBundle shared",
+    "build": "tsdown index.ts screenshot-actions.ts create-base-image.ts compare.ts --deps.neverBundle shared",
     "postbuild": "echo \"require('./dist/screenshot-actions.mjs');\nrequire('./dist/create-base-image.mjs');\" > commands.js",
     "prepack": "bun run build",
     "test": "bun test"

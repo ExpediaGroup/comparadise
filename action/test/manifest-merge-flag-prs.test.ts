@@ -10,6 +10,7 @@ const paginateMock = mock<any>();
 const listPullsMock = mock<any>();
 const createCommitStatusMock = mock<any>();
 const getChangesetMock = mock<any>();
+const getAncestorManifestMock = mock<any>();
 const infoMock = mock<any>();
 
 function makeDeps(
@@ -24,6 +25,7 @@ function makeDeps(
       }
     } as any,
     getChangeset: getChangesetMock,
+    getAncestorManifest: getAncestorManifestMock,
     core: { info: infoMock } as any,
     ...overrides
   };
@@ -45,6 +47,10 @@ describe('flagOverlappingOpenPrs', () => {
     listPullsMock.mockReset();
     createCommitStatusMock.mockReset().mockResolvedValue({});
     getChangesetMock.mockReset();
+    getAncestorManifestMock.mockReset().mockResolvedValue({
+      Button: 'h-button-old',
+      Modal: 'h-modal-old'
+    });
     infoMock.mockReset();
   });
 
@@ -221,5 +227,134 @@ describe('flagOverlappingOpenPrs', () => {
 
     expect(flagged.sort()).toEqual([200, 400]);
     expect(createCommitStatusMock).toHaveBeenCalledTimes(2);
+  });
+  describe('stacked PRs', () => {
+    it('does not flag a PR whose baseline already held the merging values', async () => {
+      paginateMock.mockResolvedValue([
+        { number: 200, head: { sha: 'pr-200-head' } }
+      ]);
+      getChangesetMock.mockResolvedValue({
+        _headSha: 'merging-head',
+        Button: 'h-button-stacked'
+      } as Changeset);
+      getAncestorManifestMock.mockResolvedValue({ Button: 'h-button' });
+
+      const flagged = await flagOverlappingOpenPrs(
+        { bucket, repo, mergingPrNumber, mergingChangeset },
+        makeDeps()
+      );
+
+      expect(flagged).toEqual([]);
+      expect(getAncestorManifestMock).toHaveBeenCalledWith(
+        bucket,
+        'merging-head'
+      );
+      expect(createCommitStatusMock).not.toHaveBeenCalled();
+    });
+
+    it('treats a path the merging PR deletes as stacked when the baseline already lacked it', async () => {
+      paginateMock.mockResolvedValue([
+        { number: 200, head: { sha: 'pr-200-head' } }
+      ]);
+      getChangesetMock.mockResolvedValue({
+        _headSha: 'merging-head',
+        Modal: 'h-modal-readded'
+      } as Changeset);
+      getAncestorManifestMock.mockResolvedValue({ Button: 'h-button' });
+
+      const flagged = await flagOverlappingOpenPrs(
+        { bucket, repo, mergingPrNumber, mergingChangeset },
+        makeDeps()
+      );
+
+      expect(flagged).toEqual([]);
+      expect(createCommitStatusMock).not.toHaveBeenCalled();
+    });
+
+    it('still flags a stacked PR when the merging PR changed the path again after the stacked PR was compared', async () => {
+      paginateMock.mockResolvedValue([
+        { number: 200, head: { sha: 'pr-200-head' } }
+      ]);
+      getChangesetMock.mockResolvedValue({
+        _headSha: 'merging-head-earlier',
+        Button: 'h-button-stacked'
+      } as Changeset);
+      getAncestorManifestMock.mockResolvedValue({
+        Button: 'h-button-earlier'
+      });
+
+      const flagged = await flagOverlappingOpenPrs(
+        { bucket, repo, mergingPrNumber, mergingChangeset },
+        makeDeps()
+      );
+
+      expect(flagged).toEqual([200]);
+      expect(getAncestorManifestMock).toHaveBeenCalledWith(
+        bucket,
+        'merging-head-earlier'
+      );
+    });
+
+    it('flags when only some overlapping paths are stacked and reports just the stale ones', async () => {
+      paginateMock.mockResolvedValue([
+        { number: 200, head: { sha: 'pr-200-head' } }
+      ]);
+      getChangesetMock.mockResolvedValue({
+        _headSha: 'merging-head',
+        Button: 'h-button-stacked',
+        Modal: 'h-modal-other'
+      } as Changeset);
+      getAncestorManifestMock.mockResolvedValue({
+        Button: 'h-button',
+        Modal: 'h-modal-old'
+      });
+
+      const flagged = await flagOverlappingOpenPrs(
+        { bucket, repo, mergingPrNumber, mergingChangeset },
+        makeDeps()
+      );
+
+      expect(flagged).toEqual([200]);
+      const flagMessage = infoMock.mock.calls
+        .map((call: any[]) => call[0] as string)
+        .find((message: string) => message.startsWith('Flagging PR #200'));
+      expect(flagMessage).toContain('Modal');
+      expect(flagMessage).not.toContain('Button');
+    });
+
+    it('flags without resolving a baseline when the open changeset has no _headSha', async () => {
+      paginateMock.mockResolvedValue([
+        { number: 200, head: { sha: 'pr-200-head' } }
+      ]);
+      getChangesetMock.mockResolvedValue({
+        Button: 'h-button-other'
+      } as Changeset);
+
+      const flagged = await flagOverlappingOpenPrs(
+        { bucket, repo, mergingPrNumber, mergingChangeset },
+        makeDeps()
+      );
+
+      expect(flagged).toEqual([200]);
+      expect(getAncestorManifestMock).not.toHaveBeenCalled();
+    });
+
+    it('does not resolve a baseline for PRs with no disagreeing overlap', async () => {
+      paginateMock.mockResolvedValue([
+        { number: 200, head: { sha: 'pr-200-head' } }
+      ]);
+      getChangesetMock.mockResolvedValue({
+        _headSha: 'sha',
+        Button: 'h-button',
+        OtherThing: 'h-other'
+      } as Changeset);
+
+      await flagOverlappingOpenPrs(
+        { bucket, repo, mergingPrNumber, mergingChangeset },
+        makeDeps()
+      );
+
+      expect(getAncestorManifestMock).not.toHaveBeenCalled();
+    });
   });
 });
